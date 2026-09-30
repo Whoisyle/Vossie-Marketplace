@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "project": "Vossie",
+  "command_pattern": "run <AgentName>",
+  "state_writer": "atlas",
+  "orchestrator": "atlas",
+  "integration_owner": "atlas",
+  "verification_coordinator": "sentinel",
+  "final_merge_authority": "human",
+  "agents": [
+    {
+      "id": "atlas",
+      "display_name": "Atlas",
+      "role": "Engineering Orchestrator, Project Controller and GitHub Integration Coordinator",
+      "team": "orchestration",
+      "skill_path": ".agents/skills/atlas/SKILL.md",
+      "aliases": [
+        "atlas",
+        "Atlas"
+      ],
+      "may_write_project_state": true
+    },
+    {
+      "id": "pixel",
+      "display_name": "Pixel",
+      "role": "Frontend and Product Interface Engineer",
+      "team": "build",
+      "skill_path": ".agents/skills/pixel/SKILL.md",
+      "aliases": [
+        "pixel",
+        "Pixel"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "forge",
+      "display_name": "Forge",
+      "role": "Backend and API Engineer",
+      "team": "build",
+      "skill_path": ".agents/skills/forge/SKILL.md",
+      "aliases": [
+        "forge",
+        "Forge"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "schema",
+      "display_name": "Schema",
+      "role": "Database, Data Architecture and Supabase Data-Layer Engineer",
+      "team": "build",
+      "skill_path": ".agents/skills/schema/SKILL.md",
+      "aliases": [
+        "schema",
+        "Schema"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "market",
+      "display_name": "Market",
+      "role": "Marketplace Domain Engineer",
+      "team": "build",
+      "skill_path": ".agents/skills/market/SKILL.md",
+      "aliases": [
+        "market",
+        "Market"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "relay",
+      "display_name": "Relay",
+      "role": "Courier, Delivery and Logistics Domain Engineer",
+      "team": "build",
+      "skill_path": ".agents/skills/relay/SKILL.md",
+      "aliases": [
+        "relay",
+        "Relay"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "bridge",
+      "display_name": "Bridge",
+      "role": "External Integration and Adapter Engineer",
+      "team": "build",
+      "skill_path": ".agents/skills/bridge/SKILL.md",
+      "aliases": [
+        "bridge",
+        "Bridge"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "kinetic",
+      "display_name": "Kinetic",
+      "role": "Motion, Interaction and 3D Experience Engineer",
+      "team": "build",
+      "skill_path": ".agents/skills/kinetic/SKILL.md",
+      "aliases": [
+        "kinetic",
+        "Kinetic"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "probe",
+      "display_name": "Probe",
+      "role": "Build-Team QA and Test Automation Engineer",
+      "team": "build",
+      "skill_path": ".agents/skills/probe/SKILL.md",
+      "aliases": [
+        "probe",
+        "Probe"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "scribe",
+      "display_name": "Scribe",
+      "role": "Technical Documentation and Knowledge Engineer",
+      "team": "build",
+      "skill_path": ".agents/skills/scribe/SKILL.md",
+      "aliases": [
+        "scribe",
+        "Scribe"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "guardian",
+      "display_name": "Guardian",
+      "role": "Build-Team Architecture and Quality Reviewer",
+      "team": "build-review",
+      "skill_path": ".agents/skills/guardian/SKILL.md",
+      "aliases": [
+        "guardian",
+        "Guardian"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "medic",
+      "display_name": "Medic",
+      "role": "Defect Remediation and Stabilization Engineer",
+      "team": "build",
+      "skill_path": ".agents/skills/medic/SKILL.md",
+      "aliases": [
+        "medic",
+        "Medic"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "sentinel",
+      "display_name": "Sentinel",
+      "role": "Independent Verification Coordinator",
+      "team": "verification",
+      "skill_path": ".agents/skills/sentinel/SKILL.md",
+      "aliases": [
+        "sentinel",
+        "Sentinel"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "lens",
+      "display_name": "Lens",
+      "role": "Independent UI/UX and Accessibility Verifier",
+      "team": "verification",
+      "skill_path": ".agents/skills/lens/SKILL.md",
+      "aliases": [
+        "lens",
+        "Lens"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "aegis",
+      "display_name": "Aegis",
+      "role": "Independent Application Security Verifier",
+      "team": "verification",
+      "skill_path": ".agents/skills/aegis/SKILL.md",
+      "aliases": [
+        "aegis",
+        "Aegis"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "vector",
+      "display_name": "Vector",
+      "role": "Independent API and Contract Verifier",
+      "team": "verification",
+      "skill_path": ".agents/skills/vector/SKILL.md",
+      "aliases": [
+        "vector",
+        "Vector"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "pulse",
+      "display_name": "Pulse",
+      "role": "Independent Performance and Reliability Verifier",
+      "team": "verification",
+      "skill_path": ".agents/skills/pulse/SKILL.md",
+      "aliases": [
+        "pulse",
+        "Pulse"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "vault",
+      "display_name": "Vault",
+      "role": "Independent Data Integrity and Privacy Verifier",
+      "team": "verification",
+      "skill_path": ".agents/skills/vault/SKILL.md",
+      "aliases": [
+        "vault",
+        "Vault"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "harbor",
+      "display_name": "Harbor",
+      "role": "Independent Infrastructure, Deployment and Environment Verifier",
+      "team": "verification",
+      "skill_path": ".agents/skills/harbor/SKILL.md",
+      "aliases": [
+        "harbor",
+        "Harbor"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "watchtower",
+      "display_name": "Watchtower",
+      "role": "Independent Observability and Operational Readiness Verifier",
+      "team": "verification",
+      "skill_path": ".agents/skills/watchtower/SKILL.md",
+      "aliases": [
+        "watchtower",
+        "Watchtower"
+      ],
+      "may_write_project_state": false
+    },
+    {
+      "id": "resolver",
+      "display_name": "Resolver",
+      "role": "Final Independent Regression and Release-Readiness Verifier",
+      "team": "verification",
+      "skill_path": ".agents/skills/resolver/SKILL.md",
+      "aliases": [
+        "resolver",
+        "Resolver"
+      ],
+      "may_write_project_state": false
+    }
+  ]
+}
