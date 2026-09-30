@@ -4,7 +4,7 @@
   "status": "HANDOFF_READY",
   "summary": "Archived the product-owner design brief and five brand-deck captures; added scoped follow-up tasks for Pixel, Kinetic, Scribe and Sentinel-coordinated independent verification; recorded online-student scope as DEC-008.",
   "branch": "atlas/integration/2026-09-30-design-brief",
-  "commit_sha": "",
+  "commit_sha": "0d199a07e35b9f39ae8f5c7e67993155be36bdeb",
   "changed_files": [
     "docs/specs/README.md",
     "docs/specs/briefs/2026-09-30-design-agent-brief.md",
