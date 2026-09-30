@@ -1,0 +1,147 @@
+{
+  "schema_version": 3,
+  "project": "Vossie",
+  "status": "BLOCKED",
+  "orchestrator": "atlas",
+  "canonical_refs": [],
+  "agents": {
+    "atlas": {
+      "status": "BLOCKED",
+      "role": "Engineering Orchestrator, Project Controller and GitHub Integration Coordinator"
+    },
+    "pixel": {
+      "status": "AVAILABLE",
+      "role": "Frontend and Product Interface Engineer"
+    },
+    "forge": {
+      "status": "AVAILABLE",
+      "role": "Backend and API Engineer"
+    },
+    "schema": {
+      "status": "AVAILABLE",
+      "role": "Database, Data Architecture and Supabase Data-Layer Engineer"
+    },
+    "market": {
+      "status": "AVAILABLE",
+      "role": "Marketplace Domain Engineer"
+    },
+    "relay": {
+      "status": "AVAILABLE",
+      "role": "Courier, Delivery and Logistics Domain Engineer"
+    },
+    "bridge": {
+      "status": "AVAILABLE",
+      "role": "External Integration and Adapter Engineer"
+    },
+    "kinetic": {
+      "status": "AVAILABLE",
+      "role": "Motion, Interaction and 3D Experience Engineer"
+    },
+    "probe": {
+      "status": "AVAILABLE",
+      "role": "Build-Team QA and Test Automation Engineer"
+    },
+    "scribe": {
+      "status": "AVAILABLE",
+      "role": "Technical Documentation and Knowledge Engineer"
+    },
+    "guardian": {
+      "status": "AVAILABLE",
+      "role": "Build-Team Architecture and Quality Reviewer"
+    },
+    "medic": {
+      "status": "AVAILABLE",
+      "role": "Defect Remediation and Stabilization Engineer"
+    },
+    "sentinel": {
+      "status": "AVAILABLE",
+      "role": "Independent Verification Coordinator"
+    },
+    "lens": {
+      "status": "AVAILABLE",
+      "role": "Independent UI/UX and Accessibility Verifier"
+    },
+    "aegis": {
+      "status": "AVAILABLE",
+      "role": "Independent Application Security Verifier"
+    },
+    "vector": {
+      "status": "AVAILABLE",
+      "role": "Independent API and Contract Verifier"
+    },
+    "pulse": {
+      "status": "AVAILABLE",
+      "role": "Independent Performance and Reliability Verifier"
+    },
+    "vault": {
+      "status": "AVAILABLE",
+      "role": "Independent Data Integrity and Privacy Verifier"
+    },
+    "harbor": {
+      "status": "AVAILABLE",
+      "role": "Independent Infrastructure, Deployment and Environment Verifier"
+    },
+    "watchtower": {
+      "status": "AVAILABLE",
+      "role": "Independent Observability and Operational Readiness Verifier"
+    },
+    "resolver": {
+      "status": "AVAILABLE",
+      "role": "Final Independent Regression and Release-Readiness Verifier"
+    }
+  },
+  "tasks": [],
+  "dependencies": [],
+  "blockers": [
+    {
+      "blocker_id": "BLK-001",
+      "owner": "human",
+      "summary": "No canonical Vossie specifications exist in the repository (only README.md and the runtime ZIP). Atlas cannot catalog canonical_refs, build the dependency graph, or assign specialist tasks without inventing requirements.",
+      "blocks": [
+        "task-graph-initialization",
+        "all-specialist-assignment"
+      ],
+      "raised_by": "atlas",
+      "raised_at": "2026-09-30T17:40:00Z"
+    }
+  ],
+  "decisions_required": [
+    {
+      "decision_id": "DEC-001",
+      "owner": "human",
+      "question": "Provide the canonical Vossie specification package (177-screen map, screen specs, architecture/data decisions) by committing it to the repository (e.g. docs/specs/) or linking the authoritative source (e.g. Figma file URLs).",
+      "blocks": [
+        "BLK-001"
+      ]
+    },
+    {
+      "decision_id": "DEC-002",
+      "owner": "human",
+      "question": "Confirm the application stack/tooling for the adaptive single-deployment PWA (framework, package manager, hosting). Supabase is referenced by AGENT-CONTRACTS.md; the frontend framework and deployment target are not yet approved in-repo.",
+      "blocks": [
+        "foundations-task-planning"
+      ]
+    },
+    {
+      "decision_id": "DEC-003",
+      "owner": "human",
+      "question": "Keep or remove Vossie-Devin-Multi-Agent-Runtime.zip from the repository root now that its contents are installed.",
+      "blocks": []
+    }
+  ],
+  "artifacts": [],
+  "verification": {
+    "coordinator": "sentinel",
+    "status": "NOT_STARTED",
+    "findings": [],
+    "release_evidence": []
+  },
+  "integration": {
+    "protected_branch": "main",
+    "integration_branch": "atlas/integration/2026-09-30-runtime-bootstrap",
+    "pull_request": null,
+    "merge_authority": "human"
+  },
+  "last_updated_by": "atlas",
+  "last_updated_at": "2026-09-30T17:40:00Z"
+}
