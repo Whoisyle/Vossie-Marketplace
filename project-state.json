@@ -100,6 +100,16 @@
       "ref_id": "REF-STUDIO",
       "url": "https://vossie-production-studio.paballokali11.chatgpt.site/",
       "scope": "production design studio (brand tokens in use)"
+    },
+    {
+      "ref_id": "REF-DESIGN-BRIEF",
+      "path": "docs/specs/briefs/2026-09-30-design-agent-brief.md",
+      "scope": "product-owner direction for UI/UX, graphics, brand, prototypes, components, motion, policy surfaces, online-student scope and security verification"
+    },
+    {
+      "ref_id": "REF-BRAND-CAPTURES",
+      "path": "docs/specs/brand/brand-deck-captures/",
+      "scope": "phone captures reinforcing wordmark, app icon, palette, typography, voice, logo usage and interface-token guidance; original deck remains authoritative"
     }
   ],
   "agents": {
@@ -548,6 +558,390 @@
       "handoff_path": ".vossie/handoffs/VOS-005/pixel.json",
       "blocked_by": [],
       "created_at": "2026-09-30T18:45:00Z"
+    },
+    {
+      "task_id": "VOS-006",
+      "title": "Responsive design patterns and journey prototypes",
+      "owner_agent": "pixel",
+      "status": "READY",
+      "priority": 5,
+      "objective": "Turn the product-owner design brief into reusable responsive patterns, mapped user flows and high-fidelity journey prototypes that use the approved Vossie brand system.",
+      "why_now": "The product owner supplied a concrete UI/UX, graphic, brand, prototyping and component backlog; it can be designed after the token and primitive foundation is integrated.",
+      "dependencies": [
+        "VOS-002"
+      ],
+      "canonical_refs": [
+        "REF-DESIGN-BRIEF",
+        "REF-BRAND",
+        "REF-BRAND-CAPTURES",
+        "REF-DS2",
+        "REF-GUIDE ch.05 and per-screen appendix"
+      ],
+      "allowed_scope": [
+        "docs/design/**",
+        "apps/marketplace/app/(dev)/patterns/**",
+        "packages/ui/src/patterns/**",
+        "packages/ui/src/illustrations/**"
+      ],
+      "forbidden_scope": [
+        "project-state.json",
+        "docs/specs/**",
+        "authentication or session logic",
+        "database or RLS",
+        "motion implementation owned by Kinetic",
+        "production legal/compliance claims",
+        ".agents/**",
+        ".vossie/runtime/**"
+      ],
+      "base_branch": "main",
+      "base_sha": "tip of origin/main at claim time containing integrated VOS-002",
+      "base_includes": [],
+      "branch": "agent/pixel/VOS-006-responsive-patterns-prototypes",
+      "expected_files_or_artifacts": [
+        "user-flow maps and responsive wireframes for the first approved journeys",
+        "pattern specs and previews for booking cards, service grids, promo banners, shortcut rows, quick recents, search, wordmark header and profiles",
+        "onboarding and empty-state illustration direction",
+        "content-complete responsive high-fidelity mockups with loading, empty, offline, denied, error and recovery states"
+      ],
+      "acceptance_criteria": [
+        "every proposed pattern maps to a canonical screen or approved flow and documents its purpose",
+        "phone, tablet and desktop variants preserve hierarchy and usable touch targets",
+        "navy-on-ivory brand treatment and supplied logo usage rules are followed",
+        "soft-depth styling is used only where contrast, focus and readability remain accessible",
+        "component states and destinations are explicit; placeholder lorem ipsum is not used",
+        "no Figma plugin or inspiration service becomes a runtime dependency"
+      ],
+      "required_checks": [
+        "pnpm install --frozen-lockfile",
+        "pnpm lint",
+        "pnpm typecheck",
+        "pnpm test",
+        "pnpm build",
+        "python3 scripts/validate_agent_system.py"
+      ],
+      "handoff_path": ".vossie/handoffs/VOS-006/pixel.json",
+      "blocked_by": [],
+      "created_at": "2026-09-30T19:05:00Z"
+    },
+    {
+      "task_id": "VOS-007",
+      "title": "Motion tokens and interaction-state foundation",
+      "owner_agent": "kinetic",
+      "status": "READY",
+      "priority": 6,
+      "objective": "Implement the approved motion-token foundation and accessible interaction demonstrations for navigation, search, login, OTP, QR and payment-checkout states.",
+      "why_now": "Motion work needs the integrated UI primitives from VOS-002 but can then proceed independently from the product journey implementation.",
+      "dependencies": [
+        "VOS-002"
+      ],
+      "canonical_refs": [
+        "REF-DESIGN-BRIEF",
+        "REF-DS2",
+        "REF-GUIDE ch.06",
+        "REF-BRAND"
+      ],
+      "allowed_scope": [
+        "packages/ui/src/motion/**",
+        "apps/marketplace/app/(dev)/motion/**",
+        "docs/design/motion/**"
+      ],
+      "forbidden_scope": [
+        "project-state.json",
+        "docs/specs/**",
+        "business-state transitions",
+        "authentication or payment success simulation",
+        "database or API logic",
+        ".agents/**",
+        ".vossie/runtime/**"
+      ],
+      "base_branch": "main",
+      "base_sha": "tip of origin/main at claim time containing integrated VOS-002",
+      "base_includes": [],
+      "branch": "agent/kinetic/VOS-007-motion-foundation",
+      "expected_files_or_artifacts": [
+        "motion tokens matching the canonical duration/easing system",
+        "interaction demos for navigation, press, search, login, OTP, QR and checkout state changes",
+        "reduced-motion and interruption/cancellation behavior",
+        "motion usage documentation"
+      ],
+      "acceptance_criteria": [
+        "motion guides attention and never substitutes for authoritative state",
+        "every demonstration has a reduced-motion equivalent",
+        "animations remain interruptible and settle at the newest valid state",
+        "no preview-success control is presented as a real payment, authentication or custody event",
+        "keyboard and screen-reader behavior remains usable with animation enabled or disabled"
+      ],
+      "required_checks": [
+        "pnpm install --frozen-lockfile",
+        "pnpm lint",
+        "pnpm typecheck",
+        "pnpm test",
+        "pnpm build",
+        "python3 scripts/validate_agent_system.py"
+      ],
+      "handoff_path": ".vossie/handoffs/VOS-007/kinetic.json",
+      "blocked_by": [],
+      "created_at": "2026-09-30T19:05:00Z"
+    },
+    {
+      "task_id": "VOS-008",
+      "title": "Policy, legal and safety content inventory",
+      "owner_agent": "scribe",
+      "status": "READY",
+      "priority": 7,
+      "objective": "Create a traceable inventory and clearly marked draft copy plan for privacy, terms, safety, compliance PDFs and marketplace policy surfaces.",
+      "why_now": "The product owner explicitly requested compliance, privacy, legal and safety content; an early inventory prevents UI and data flows from omitting required surfaces.",
+      "dependencies": [
+        "VOS-001"
+      ],
+      "canonical_refs": [
+        "REF-DESIGN-BRIEF",
+        "REF-OPEN",
+        "REF-LOCKED",
+        "REF-GUIDE ch.33",
+        "REF-KB:02_IDENTITY_SECURITY/",
+        "REF-KB:03_COMMERCE/",
+        "REF-KB:05_OPERATIONS/03_SUPPORT_COMPLIANCE_SECURITY.pdf"
+      ],
+      "allowed_scope": [
+        "docs/policies/**",
+        "docs/content/**",
+        "docs/runbooks/policy-approval.md"
+      ],
+      "forbidden_scope": [
+        "project-state.json",
+        "docs/specs/**",
+        "publishing documents as approved or legally binding",
+        "inventing provider, institutional, jurisdiction or money-flow decisions",
+        "application source code",
+        ".agents/**",
+        ".vossie/runtime/**"
+      ],
+      "base_branch": "main",
+      "base_sha": "tip of origin/main at claim time containing integrated VOS-001",
+      "base_includes": [],
+      "branch": "agent/scribe/VOS-008-policy-content-inventory",
+      "expected_files_or_artifacts": [
+        "policy and compliance surface matrix mapped to screens and roles",
+        "draft privacy, terms, safety and marketplace-policy copy outlines",
+        "downloadable-PDF inventory and human/legal approval workflow",
+        "open-decision register linked to DEC-007"
+      ],
+      "acceptance_criteria": [
+        "every draft is visibly marked unapproved until human/legal review",
+        "open provider, money-flow, retention, campus and jurisdiction assumptions are not presented as settled",
+        "buyer, seller, courier, hub and staff responsibilities are covered",
+        "disputes, returns/refunds, reporting, prohibited content/items and custody guidance are included",
+        "copy uses the approved friendly, direct and useful Vossie voice"
+      ],
+      "required_checks": [
+        "markdown link/reference validation",
+        "python3 scripts/validate_agent_system.py"
+      ],
+      "handoff_path": ".vossie/handoffs/VOS-008/scribe.json",
+      "blocked_by": [],
+      "created_at": "2026-09-30T19:05:00Z"
+    },
+    {
+      "task_id": "VOS-009",
+      "title": "Foundation verification campaign planning",
+      "owner_agent": "sentinel",
+      "status": "PLANNED",
+      "priority": 8,
+      "objective": "Define the independent verification campaign for the Stage 1 PWA, identity foundation, access screens, design patterns and motion behavior, then route scoped work to Aegis and Lens.",
+      "why_now": "Independent verification must remain separate from implementation and should begin only after the relevant Stage 1 features are integrated.",
+      "dependencies": [
+        "VOS-005",
+        "VOS-007"
+      ],
+      "canonical_refs": [
+        "REF-DESIGN-BRIEF",
+        "REF-GUIDE ch.28-31",
+        "REF-KB:07_ENGINEERING/05_CICD_TESTING_SECURITY_GATES.pdf"
+      ],
+      "allowed_scope": [
+        ".vossie/verification/VOS-009/**",
+        ".vossie/handoffs/VOS-009/**"
+      ],
+      "forbidden_scope": [
+        "application implementation",
+        "rewriting implementation-agent handoffs",
+        "changing a failed verifier finding into a pass",
+        "project-state.json",
+        "docs/specs/**",
+        ".agents/**",
+        ".vossie/runtime/**"
+      ],
+      "base_branch": "main",
+      "base_sha": "tip of origin/main at claim time containing integrated VOS-005 and VOS-007",
+      "base_includes": [],
+      "branch": "agent/sentinel/VOS-009-foundation-verification-plan",
+      "expected_files_or_artifacts": [
+        "verification matrix and evidence requirements",
+        "scoped Aegis and Lens verification briefs",
+        "retest and escalation paths"
+      ],
+      "acceptance_criteria": [
+        "security and UI/accessibility verification remain independent from build review",
+        "the matrix includes denied, stale, duplicate, cross-user, offline and reduced-motion outcomes",
+        "Aegis and Lens scopes do not overlap implementation ownership"
+      ],
+      "required_checks": [
+        "python3 scripts/validate_agent_system.py"
+      ],
+      "handoff_path": ".vossie/handoffs/VOS-009/sentinel.json",
+      "blocked_by": [],
+      "created_at": "2026-09-30T19:05:00Z"
+    },
+    {
+      "task_id": "VOS-010",
+      "title": "Independent Stage 1 application-security verification",
+      "owner_agent": "aegis",
+      "status": "PLANNED",
+      "priority": 9,
+      "objective": "Independently verify Stage 1 authentication, authorisation, data isolation and server-side request handling against the Aegis brief produced by Sentinel.",
+      "why_now": "The product owner explicitly requested IDOR, SSRF and broader vulnerability coverage; testing requires runnable integrated features and Sentinel coordination.",
+      "dependencies": [
+        "VOS-009"
+      ],
+      "canonical_refs": [
+        "REF-DESIGN-BRIEF",
+        "REF-GUIDE ch.07-09 and ch.28",
+        "REF-KB:02_IDENTITY_SECURITY/"
+      ],
+      "allowed_scope": [
+        ".vossie/verification/VOS-010/**"
+      ],
+      "forbidden_scope": [
+        "application remediation",
+        "implementation handoffs",
+        "project-state.json",
+        "docs/specs/**",
+        ".agents/**",
+        ".vossie/runtime/**"
+      ],
+      "base_branch": "main",
+      "base_sha": "set by Atlas after VOS-009",
+      "base_includes": [],
+      "branch": "agent/aegis/VOS-010-stage1-security-verification",
+      "expected_files_or_artifacts": [
+        "independent security findings and evidence",
+        "IDOR/BOLA and function-level authorisation results",
+        "SSRF/unsafe-URL-fetching results",
+        "auth/session, injection, CSRF/XSS, RLS, secrets and abuse-case results"
+      ],
+      "acceptance_criteria": [
+        "Atlas replaces this provisional brief with Sentinel's scoped brief before assignment",
+        "every result includes reproducible evidence and severity",
+        "failures route to the owning build agent or Medic and return to Aegis for retest"
+      ],
+      "required_checks": [
+        "commands defined in the Sentinel verification brief"
+      ],
+      "handoff_path": ".vossie/handoffs/VOS-010/aegis.json",
+      "blocked_by": [],
+      "created_at": "2026-09-30T19:05:00Z"
+    },
+    {
+      "task_id": "VOS-011",
+      "title": "Independent Stage 1 UI, UX and accessibility verification",
+      "owner_agent": "lens",
+      "status": "PLANNED",
+      "priority": 9,
+      "objective": "Independently verify responsive behavior, usability, visual hierarchy, brand application, keyboard/screen-reader access and reduced-motion behavior against the Lens brief produced by Sentinel.",
+      "why_now": "The product-owner design brief explicitly requires usability and accessibility verification after the relevant UI and motion work exists.",
+      "dependencies": [
+        "VOS-009"
+      ],
+      "canonical_refs": [
+        "REF-DESIGN-BRIEF",
+        "REF-BRAND",
+        "REF-GUIDE ch.05-06"
+      ],
+      "allowed_scope": [
+        ".vossie/verification/VOS-011/**"
+      ],
+      "forbidden_scope": [
+        "application remediation",
+        "implementation handoffs",
+        "project-state.json",
+        "docs/specs/**",
+        ".agents/**",
+        ".vossie/runtime/**"
+      ],
+      "base_branch": "main",
+      "base_sha": "set by Atlas after VOS-009",
+      "base_includes": [],
+      "branch": "agent/lens/VOS-011-stage1-ui-accessibility-verification",
+      "expected_files_or_artifacts": [
+        "independent UI/UX/accessibility findings and evidence",
+        "responsive phone/tablet/desktop results",
+        "keyboard, screen-reader, contrast, target-size and reduced-motion results"
+      ],
+      "acceptance_criteria": [
+        "Atlas replaces this provisional brief with Sentinel's scoped brief before assignment",
+        "every result includes reproducible evidence and severity",
+        "failures route to the owning build agent or Medic and return to Lens for retest"
+      ],
+      "required_checks": [
+        "commands defined in the Sentinel verification brief"
+      ],
+      "handoff_path": ".vossie/handoffs/VOS-011/lens.json",
+      "blocked_by": [],
+      "created_at": "2026-09-30T19:05:00Z"
+    },
+    {
+      "task_id": "VOS-012",
+      "title": "Intake product-owner design brief and extend orchestration",
+      "owner_agent": "atlas",
+      "status": "DONE",
+      "priority": 0,
+      "objective": "Archive the supplied brand-deck captures and design brief, then add collision-free specialist and verification tasks without changing active VOS-001 ownership.",
+      "why_now": "The product owner supplied additional canonical direction and intends to run each agent in a separate Devin session.",
+      "dependencies": [],
+      "canonical_refs": [
+        "REF-DESIGN-BRIEF",
+        "REF-BRAND-CAPTURES",
+        "REF-BRAND"
+      ],
+      "allowed_scope": [
+        "docs/specs/briefs/**",
+        "docs/specs/brand/brand-deck-captures/**",
+        "docs/specs/README.md",
+        "project-state.json",
+        ".vossie/handoffs/VOS-012/**"
+      ],
+      "forbidden_scope": [
+        "application source code",
+        "active specialist task branches",
+        "runtime or agent skill changes"
+      ],
+      "base_branch": "main",
+      "base_sha": "0fc618a17dfb309d21670d76770243b4a29440da",
+      "base_includes": [],
+      "branch": "atlas/integration/2026-09-30-design-brief",
+      "expected_files_or_artifacts": [
+        "structured dated design-agent brief",
+        "five archived brand-deck captures",
+        "VOS-006 through VOS-011 specialist and verification tasks",
+        "DEC-008 online-student scope question"
+      ],
+      "acceptance_criteria": [
+        "VOS-001 remains assigned to Pixel with unchanged scope",
+        "new tasks use the registered roster and complete task-brief fields",
+        "dependent tasks cannot execute before integrated prerequisites",
+        "security verification routes through Sentinel before Aegis and Lens",
+        "runtime validator passes"
+      ],
+      "required_checks": [
+        "python3 scripts/validate_agent_system.py",
+        "JSON syntax and canonical-reference path validation"
+      ],
+      "handoff_path": ".vossie/handoffs/VOS-012/atlas.json",
+      "blocked_by": [],
+      "created_at": "2026-09-30T19:05:00Z",
+      "completed_at": "2026-09-30T19:05:00Z",
+      "completion_note": "Takes effect when the design-brief intake PR merges to main."
     }
   ],
   "dependencies": [
@@ -581,6 +975,43 @@
       "depends_on": [
         "VOS-002",
         "VOS-004"
+      ]
+    },
+    {
+      "task_id": "VOS-006",
+      "depends_on": [
+        "VOS-002"
+      ]
+    },
+    {
+      "task_id": "VOS-007",
+      "depends_on": [
+        "VOS-002"
+      ]
+    },
+    {
+      "task_id": "VOS-008",
+      "depends_on": [
+        "VOS-001"
+      ]
+    },
+    {
+      "task_id": "VOS-009",
+      "depends_on": [
+        "VOS-005",
+        "VOS-007"
+      ]
+    },
+    {
+      "task_id": "VOS-010",
+      "depends_on": [
+        "VOS-009"
+      ]
+    },
+    {
+      "task_id": "VOS-011",
+      "depends_on": [
+        "VOS-009"
       ]
     }
   ],
@@ -657,6 +1088,14 @@
       "blocks": [],
       "status": "OPEN",
       "note": "Does not block Stage 1; Stage 2 uses sandbox adapters and no real-money pilot starts until resolved."
+    },
+    {
+      "decision_id": "DEC-008",
+      "owner": "human",
+      "question": "Should verified online-only students participate, and if so which capabilities are available without a physical campus/hub (buying, selling, courier, collection, delivery, transfers and incubation)?",
+      "blocks": [],
+      "status": "OPEN",
+      "note": "The product owner asked Atlas to consider online students. This does not block the current foundation tasks; it must be resolved before location, eligibility and fulfilment rules are finalized."
     }
   ],
   "artifacts": [],
@@ -668,10 +1107,10 @@
   },
   "integration": {
     "protected_branch": "main",
-    "integration_branch": "atlas/integration/2026-09-30-canonical-intake",
+    "integration_branch": "atlas/integration/2026-09-30-design-brief",
     "pull_request": null,
     "merge_authority": "human"
   },
   "last_updated_by": "atlas",
-  "last_updated_at": "2026-09-30T18:45:00Z"
+  "last_updated_at": "2026-09-30T19:05:00Z"
 }
