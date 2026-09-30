@@ -114,7 +114,7 @@
       ],
       "base_branch": "main",
       "base_sha": "",
-      "branch": "atlas/integration/<date>-initialization",
+      "branch": "atlas/integration/2026-09-30-runtime-bootstrap",
       "expected_files_or_artifacts": [
         "project-state.json (canonical_refs, tasks, dependencies)"
       ],
