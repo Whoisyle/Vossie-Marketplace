@@ -1,0 +1,22 @@
+Disputes, Refunds and Returns
+Disputes, Refunds and Returns
+Delivery vs satisfaction
+Recipient OTP proves delivery, not product satisfaction.
+After OTP-confirmed delivery , the buyer receives a 24-hour issue window .
+Dispute flow
+1. Buyer opens issue within allowed window.
+2. Structured evidence is attached to the order case.
+3. Affected seller funds are paused/frozen as appropriate.
+4. Seller gets first opportunity to resolve within defined response policy .
+5. Unresolved case escalates to Operations.
+6. Operations reviews order data, chat/evidence, QR custody , OTP , payment and timeline.
+7. Refund/partial refund/denial/return outcome is recorded and processed through the PSP adapter.
+Return-cost responsibility
+• Seller fault → seller bears return cost.
+• Buyer change of mind / buyer fault where returns are allowed → buyer bears return cost.
+• Courier/hub fault → logistics incident; buyer/seller should not automatically bear the cost.
+• Unclear case → Operations adjudicates.
+Courier earnings
+A later product-quality dispute should not automatically freeze courier earnings when OTP-confirmed delivery was valid
+and courier service was not the cause.
+1

@@ -1,0 +1,15 @@
+Maps, GPS and Logistics Integrations
+Maps, GPS and Logistics Integrations
+Prototype
+Use real map UI where possible with simulated courier movement and predefined campuses/routes.
+Buyer: - courier location/ET A where appropriate, - campus/hub status, - route milestones.
+Courier: - current job, - pickup/drop-off route, - navigation context, - distance/ET A.
+Hub/T ransfers: - route/manifest visualization, - not unnecessary free-form personal tracking.
+Operations: - network/exception visibility .
+Incubation: - aggregated analytics, not individual courier GPS.
+Production
+Keep mapping/location provider behind an adapter. Background tracking must be evaluated on real iOS/Android devices.
+PW A behaviour is not assumed equivalent to native background location.
+Privacy
+Location access should be purpose-limited and retained only as long as operationally necessary .
+1

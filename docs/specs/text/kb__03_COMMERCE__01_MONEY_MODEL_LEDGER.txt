@@ -1,0 +1,26 @@
+Pilot Money Model and Ledger
+Pilot Money Model and Ledger
+Pilot commercial hypotheses
+• Seller commission: 7% of seller transaction value.
+• Courier commission: 5% of courier delivery earnings.
+• No listing fee or seller subscription in the pilot.
+• No separate V ossie buyer percentage fee.
+• Buyer pays applicable delivery by default.
+These are hypotheses subject to PSP economics, legal/accounting review and pilot evidence.
+Earnings states
+Pending → Secured → A vailable → Payout Processing → Paid Out
+Suggested meaning:
+• Pending: order/earning exists but payment state not yet secured.
+• Secured: PSP-confirmed payment exists; not yet releasable.
+• A vailable: release conditions met.
+• Payout Processing: payout command sent/processing.
+• Paid Out: provider-confirmed settlement.
+Payout preference
+Seller/courier chooses:
+• Automatic payout, or
+• Manual withdrawal.
+Only A vailable funds may move.
+Ledger principle
+Do not edit a single balance blindly . Use append-only/reference-based ledger entries with idempotency keys and provider
+references.
+1

@@ -1,0 +1,21 @@
+Courier System
+Courier System
+Activation
+Courier is a capability on the same verified student identity .
+T ransport modes:
+• walking,
+• bicycle,
+• motorcycle,
+• car.
+Eligibility/matching considers distance, package size/weight, route, time and transport mode.
+Courier work loop
+Go Online → eligible job card → map, distance, package class, payout → accept/decline → navigate to pickup → verify/scan
+custody → route to buyer/hub → OTP/scan handover → complete → earning state updates.
+V erification
+W alking: low-friction radius/availability policy .
+Bicycle: transport declaration and capability constraints.
+Motorcycle/Car: licence + vehicle details/evidence according to approved production verification policy .
+Safety/privacy
+Courier should receive only the data required for the current delivery . Cross-campus/transfer capability is separate from
+ordinary local courier capability .
+1

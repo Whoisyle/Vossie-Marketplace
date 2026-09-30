@@ -1,0 +1,21 @@
+Marketplace Reels
+Marketplace Reels
+Marketplace Reels is a shoppable short-video layer tied to real commerce objects.
+Buyer experience
+• first-class Reels tab in Marketplace navigation,
+• vertical swipe feed,
+• seller handle/profile,
+• short caption,
+• linked product/service/rental/digital item,
+• pinned product rail,
+• multiple linked listings where appropriate,
+• tap through to product/store/cart without leaving commerce context.
+Seller experience
+Create Reel → record/upload → trim to roughly 15–30 seconds → caption → link listing(s) → preview → publish.
+Seller analytics should include views, product taps, add-to-cart, bookings/orders and conversion signals.
+Boundaries
+• no requirement for open comments in the pilot,
+• content must remain commerce-led,
+• moderation/reporting required,
+• a Reel must link to legitimate marketplace inventory/service content.
+1

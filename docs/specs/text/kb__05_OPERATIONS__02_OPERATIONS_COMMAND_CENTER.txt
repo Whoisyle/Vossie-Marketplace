@@ -1,0 +1,28 @@
+Operations and Command Center
+Operations and Command Center
+V ossie Operations should feel like a real operating console rather than a generic admin page.
+Suggested navigation
+Command Center | Users | Sellers | Couriers | Listings | Orders | Hubs | T ransfers | Payments | Disputes | Support |
+Compliance | Incidents | Security | Audit | System
+Command Center
+Demo metrics may include clearly labelled sample data:
+• campuses online,
+• verified students,
+• active sellers,
+• couriers online,
+• orders in progress,
+• fulfilment success,
+• attention-required cases,
+• payment exceptions,
+• custody mismatches,
+• verification backlog,
+• service/platform health.
+Separation of duties
+Use different grants for:
+• moderation,
+• support,
+• finance,
+• security ,
+• admin/configuration.
+Do not create an unrestricted everyday “god mode” interface for all build-team users.
+1

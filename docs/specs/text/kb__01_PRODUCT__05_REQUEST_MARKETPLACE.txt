@@ -1,0 +1,24 @@
+Buyer Request Marketplace
+Buyer Request Marketplace
+Buyer Requests sit beside ordinary Listings.
+Buyer flow
+1. T apRequest.
+2. Select category/subcategory .
+3. Describe need.
+4. Add campus, desired time, budget and optional photo/file.
+5. Submit.
+6. System matches eligible sellers.
+7. Sellers receive Uber-like request cards.
+8. Sellers respond with structured offers: price, timing, terms.
+9. Buyer compares offers and accepts one.
+10. Accepted offer becomes the standard order/booking flow.
+Design principles
+• A void chaotic bidding wars.
+• Sellers should know request scope before accepting.
+• Requests expire/close cleanly .
+• Abuse/reporting/moderation applies.
+• Incubation receives aggregate unmet-demand signals.
+Demo value
+Request → seller notification → offer → buyer acceptance → sandbox checkout is one of the strongest demo stories because
+it proves V ossie creates supply from demand, not only displays existing stock.
+1

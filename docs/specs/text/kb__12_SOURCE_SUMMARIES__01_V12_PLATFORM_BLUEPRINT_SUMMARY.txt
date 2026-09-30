@@ -1,0 +1,9 @@
+Source Summary — V12 Platform Strategy , Differentiation & System
+Blueprint
+This is the consolidated strategic source for V ossie/EduHackers 2.0.
+Key contents: - two-application-family model, - verified student identity , - Buyer/Seller/Courier role progression, - Op-
+erations workspaces, - institutional auth target, - pilot money/custody policy , - cross-campus transfer model, - inven-
+tory/category system, - Marketplace Reels, - communications, - integrations, - differentiation, - prototype-vs-production
+boundaries.
+T reat this as the highest-level current product-policy reference unless superseded by a later explicit decision.
+1

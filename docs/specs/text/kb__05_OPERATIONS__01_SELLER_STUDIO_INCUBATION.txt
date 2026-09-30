@@ -1,0 +1,32 @@
+Seller Studio and Incubation
+Seller Studio and Incubation
+Seller Studio
+The deeper seller business-management experience includes:
+• store profile,
+• listing creation/editing,
+• media,
+• inventory ,
+• pricing/promotions,
+• orders,
+• earnings,
+• payouts,
+• seller analytics,
+• timetable/availability ,
+• Reels/content analytics.
+Timetable idea
+Student uploads a timetable PDF → prototype extracts class times → student must review/confirm → availability is
+generated → student can manually block extra time even after class.
+Do not treat extracted timetable data as authoritative without user confirmation. A void retaining the source PDF longer
+than needed where possible.
+Incubation
+Incubation is not simply seller admin. It sees aggregate/business-support intelligence:
+• unmet searches,
+• high-demand categories,
+• stock-outs,
+• seller growth,
+• repeat demand,
+• campus opportunities,
+• business-health indicators,
+• interventions and 30-day plans.
+The distinction: seller sees their business; Incubation sees opportunity/support intelligence across authorized campus scope.
+1

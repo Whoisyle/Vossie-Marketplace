@@ -1,0 +1,18 @@
+Eduvos Hack Jam 2026
+Incubation Hub Marketplace
+Team Project Timeline
+8-Week Project Timeline
+This timeline maps the official Hack Jam schedule to our team's roles and expected deliverables at each stage.
+
+
+Week|Dates|Focus|Team Deliverables / Leads
+Pre|26 Aug – 4 Sept|Applications Open|Submit team application
+Pre|7 – 11 Sept|Allocate Supervisors|Supervisor assigned to the team
+1|14 – 18 Sept|Launch & Understand the Challenge|Attend kick-off; unpack brief; confirm roles (Danny, Mpumelelo, Oratile, Paballo, Dikeledi); Danny sets up task tracker
+2|21 – 25 Sept|Research & Understand the User|Paballo leads user research/interviews; Dikeledi research competitors & market Deliverable: user insights summary
+3|28 Sept – 2 Oct|Ideate & Develop the Concept|Mpumelelo facilitates ideation & defines value proposition; Dikeledi drafts business model Deliverable: concept brief
+4|5 – 9 Oct|Design the Marketplace|Oratile builds wireframes/UI flows; Paballo defines technical architecture — Deliverable: clickable prototype/mock-ups
+5|12 – 16 Oct|Develop the MVP/Prototype|Paballo builds core functional prototype; Oratile finalises visual design — Deliverable: working MVP
+6|19 – 23 Oct|Test with Users|Paballo runs usability tests; Dikeledi gathers feedback on viability — Deliverable: testing report & refinements list
+7|26 – 30 Oct|Refine & Prepare the Pitch|Team implements fixes; Danny builds pitch deck & rehearses — Deliverable: polished prototype + pitch deck
+8|2 – 6 Nov|Demo Day & Final Presentations|Danny leads final pitch — Deliverable: live demo + presentation to judging panel

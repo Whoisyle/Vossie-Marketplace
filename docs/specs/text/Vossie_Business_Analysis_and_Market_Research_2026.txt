@@ -1,0 +1,586 @@
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 1
+ vossie
+ Business Analysis &
+Market Research
+Vossie Marketplace  EduHackers 2.0  South Africa  September 2026
+Purpose. A decision document for product scope, operating model, differentiation, pilot design, commercial logic and market positioning.
+It combines the confirmed Vossie platform architecture with current South African e-commerce and higher-education evidence.
+Research boundary. Public evidence is used for macro-market sizing and behaviour. Vossie-specific conclusions are strategic
+hypotheses until validated with Eduvos students, staff, sellers and operational pilots. No unsupported claim of institutional approval,
+government integration or production payment/logistics capability is made.
+Section
+Pages
+Focus
+Business analysis
+2–10
+Problem, users, workflows, operating model, economics, risks, KPIs
+Market research
+11–19
+Market, customer behaviour, competition, positioning, adoption, go-to-market
+Synthesis
+20
+Unified thesis, priorities and validation plan
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 2
+1. Executive business thesis
+Vossie is best understood as campus commerce infrastructure, not merely a classifieds app.
+The platform joins four activities that are normally fragmented: student discovery and purchasing, student selling/entrepreneurship, local
+fulfilment, and institutional visibility/support. The confirmed architecture uses one student identity with Buyer, Seller and Courier modes,
+plus a separate Operations family for Campus Hub, Transfers, Incubation and administrative functions.
+Value layer
+Current friction
+Vossie response
+Demand
+Needs are scattered across chats, social feeds and informal
+networks.
+Listings + Buyer Requests + Reels-style discovery inside a
+verified campus context.
+Supply
+Student sellers struggle with discovery, trust and repeatable
+order handling.
+Storefront, inventory/orders, offers, analytics and content-led
+discovery.
+Fulfilment
+Informal hand-offs create coordination and custody
+problems.
+Local courier modes, QR hand-off, tracking and hub-based
+cross-campus transfers.
+Institutional
+Entrepreneurship activity is difficult to observe or support
+systematically.
+Incubation/Operations views, moderation, analytics and campus
+controls.
+Core business hypothesis: verification + campus density + integrated fulfilment + request-side demand + entrepreneurship support can
+create a defensible student-commerce network that broad horizontal marketplaces do not optimize for.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 3
+2. Problem definition & jobs to be done
+The problem is not 'students cannot buy online'; it is that campus transactions lack a dedicated operating layer.
+Buyer job: find something relevant nearby, trust who is selling it, pay or reserve it, and know how it will reach me. Seller job: reach
+verified demand, convert attention into orders, manage stock/offers, and build a repeatable micro-business. Courier job: receive feasible
+jobs, understand payout/distance/package constraints, prove custody and completion. Campus/Incubation job: support enterprise while
+retaining moderation, safety, visibility and escalation mechanisms.
+Failure mode
+Business consequence
+Design requirement
+Fragmented discovery
+Low conversion; repeated searching
+Unified search/feed/requests
+Weak trust context
+Higher perceived transaction risk
+Institutional identity layer + reputation/moderation
+Unstructured fulfilment
+Missed hand-offs; unclear accountability
+Tracked jobs + QR custody
+Supply-demand mismatch
+Listings without buyers; unmet needs invisible
+Request marketplace + seller matching
+Cross-campus complexity
+Local model breaks at distance
+Hub/manifest transfer model; third-party adapter where
+appropriate
+No institutional lens
+Hard to support promising sellers
+Incubation analytics and operations controls
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 4
+3. Stakeholders, roles & value exchange
+One verified identity can participate in multiple economic roles while Operations remains capability-gated.
+Actor
+Receives
+Contributes / obligations
+Buyer
+Relevant supply, requests, tracking, safer campus context
+Accurate order/request data; payment; ratings/dispute evidence
+Seller
+Demand, storefront, Reels, orders, analytics
+Accurate listings, fulfilment, service quality, policy compliance
+Courier
+Eligible jobs, route/job details, earnings visibility
+Availability, vehicle eligibility, custody scans, delivery proof
+Campus Hub
+Transfer visibility and custody workflow
+Scan-in/out, reconciliation, exception handling
+Incubation
+Entrepreneurship pipeline and unmet-demand insight
+Seller support, programmes, interventions
+Operations
+Moderation, finance/support/compliance/security controls
+Governance, auditability, policy enforcement
+The role model should remain capability-based rather than creating separate identities. Courier activation is an additional verified
+capability: walking/bicycle can use lighter eligibility; motorcycle/car requires licence and vehicle evidence in the product model, with
+production validation dependent on approved processes.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 5
+4. End-to-end business processes
+Vossie should make the happy path simple while making state transitions explicit behind the scenes.
+Flow
+Canonical states
+Listing purchase
+Discover → Product → Cart/Checkout → Payment state → Seller acceptance/processing → Handoff → Delivery/Pickup
+→ Complete → Rating/Support
+Buyer Request
+Create request → Match suitable sellers → Offers → Compare → Accept → Convert to order/booking → Fulfil →
+Complete/close
+Local courier
+Go online → Eligible job card → Accept → Pickup/scan → Route → Delivery proof → Complete → Earnings ledger
+Cross-campus
+Origin hub scan-out → Manifest/leg → Intermediate/target hub scan-in → Reconcile → Forward/local final-mile → Buyer
+completion
+Moderation/dispute
+Report/trigger → Triage → Evidence → Action/hold/escalation → Resolution → Audit log
+Operational principle: every consequential transition should be server-authoritative, timestamped and attributable. UI animation can
+simplify the experience, but must not obscure transaction state, custody, money state or escalation.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 6
+5. Product capability map & scope discipline
+The 177-screen design universe is the full platform architecture, not the first release commitment.
+Domain
+Core capability
+Pilot priority
+Access/Identity
+Student verification, authentication, role/capability gating
+Critical
+Buyer
+Feed/search, listing detail, checkout, orders, requests
+Critical
+Seller
+Store/profile, listings, inventory, orders, request offers
+Critical
+Courier
+Activation, online state, jobs, QR, proof
+High — pilot selectively
+Reels
+Short-form product discovery tied to real listings
+High
+Transfers
+Hub manifests, custody, cross-campus tracking
+Later controlled pilot
+Incubation
+Seller visibility, trends, support
+High for stakeholder value
+Operations
+Moderation, support, security, campus controls
+Critical minimum set
+Recommendation for execution: build vertical slices that complete a transaction rather than implementing screens category-by-category.
+A thin Buyer→Seller→fulfilment→Operations slice produces more evidence than dozens of disconnected screens.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 7
+6. Operating model
+Vossie needs explicit ownership of money, goods, identity and exceptions before production.
+Operating question
+Prototype stance
+Production decision required
+Identity
+Simulated/approved demo verification
+Institutional federation/verification agreement
+Payments
+Sandbox/simulated provider interface
+Approved PSP, settlement, refunds, fee model
+Courier verification
+Demo document/eligibility states
+Approved document validation and policy
+Local delivery
+Simulated GPS + real state machine
+Safety, insurance/liability, location policy
+Cross-campus
+Defined routes + simulated movement
+Hub ownership, schedules, SLAs, custody rules
+Disputes
+Workflow prototype
+Policy, evidence standards, refund authority, escalation
+Data
+Least-privilege demo architecture
+POPIA/legal review, retention, consent, incident process
+The business should avoid presenting prototype integrations as production partnerships. Provider adapters are strategically useful
+because they let Vossie validate the domain model before locking institutional, payment or logistics vendors.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 8
+7. Revenue logic & unit economics framework
+Do not optimize monetization before transaction density; instrument the economics from day one.
+Potential lever
+Who pays
+When it makes sense
+Key risk
+Transaction/service fee
+Seller and/or buyer
+After liquidity and trust are proven
+Hurts low-value campus transactions
+Delivery fee
+Buyer
+When courier/hub economics are measurable
+Price sensitivity
+Seller tools
+Power sellers
+When sellers have repeat revenue
+Premature SaaS burden
+Promoted discovery
+Sellers/brands
+After feed demand exists
+Trust/ad load
+Institutional programme
+Institution
+If incubation/operations creates measurable value
+Procurement and governance
+Partner services
+Approved providers
+Only with clear student value
+Misaligned incentives
+Minimum unit-economics ledger: GMV, average order value, take rate, payment cost, refund/loss rate, delivery revenue, courier
+payout, support cost, promotional subsidy and contribution margin per completed order. Separate marketplace economics from logistics
+economics so one does not hide the other.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 9
+8. Risk, controls & trust architecture
+Trust is a product capability and an operating process, not a badge.
+Risk
+Control direction
+Evidence/KPI
+Account abuse
+Verified identity, capability gating, device/session controls
+Fraud reports per 1,000 orders
+Non-delivery / item mismatch
+Order states, proof, dispute evidence, moderation
+Dispute and refund rate
+Courier safety/custody
+Eligibility, package limits, QR chain-of-custody, incident flow
+Custody exceptions
+Payment failure
+Provider-authoritative states, idempotency, reconciliation
+Failed/duplicate payment rate
+Privacy
+Data minimization, RLS/capabilities, retention policy
+Access incidents / audit findings
+Content abuse
+Reporting, moderation queue, policy enforcement
+Time-to-action
+Demo/pitch failure
+Seeded data, reset, prerecorded fallbacks
+Successful rehearsal rate
+For production, legal and institutional review is required for POPIA, marketplace terms, payments, student-worker/courier arrangements,
+liability, prohibited goods, refunds and campus operations. This report does not substitute for legal advice.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 10
+9. KPI tree & experiment design
+The north-star should measure completed trusted campus commerce, not downloads.
+Layer
+Metrics
+Acquisition
+Verified sign-ups, activation by role, campus penetration
+Liquidity
+Active listings, active requests, seller response rate, search-to-result success
+Conversion
+View→cart, request→offer, offer→accept, checkout completion
+Fulfilment
+Median fulfilment time, courier acceptance, on-time rate, hub exceptions
+Trust
+Dispute rate, cancellation rate, moderation incidents, repeat purchase
+Seller health
+Time to first sale, repeat sellers, GMV/seller, inventory sell-through
+Retention
+D7/D30 active buyers/sellers, repeat order rate
+Economics
+AOV, GMV, contribution/order, logistics contribution, support/order
+Pilot experiments should have explicit pass/fail thresholds before launch. Examples: request response within a target window; minimum
+percentage of searches returning relevant local supply; courier acceptance under defined distance/payout; repeat purchase within 30
+days; seller time-to-first-sale.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 11
+10. Business-analysis priorities
+The next business work is validation, policy and instrumentation—not more feature ideation.
+Priority 1 — Prove density: one or two campuses, narrow categories, measurable weekly supply/demand. Priority 2 — Prove
+transaction trust: verified users, reliable states, support and dispute handling. Priority 3 — Prove fulfilment: start with campus-local
+delivery/pickup before scaling hub transfers. Priority 4 — Prove institutional value: show incubation demand/seller signals without
+overbuilding admin. Priority 5 — Prove repeat behaviour: repeat purchases and seller activity matter more than launch registrations.
+Decision gate
+Evidence needed
+Expand categories
+Search failure + request data show demand beyond pilot categories
+Expand campus
+Pilot liquidity and fulfilment remain healthy without heavy manual intervention
+Monetize
+Repeat transactions and contribution model show fee tolerance
+Cross-campus live pilot
+Custody, hub staffing, schedule and exception process validated
+Institutional rollout
+Governance, data, identity, support and procurement path agreed
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 12
+11. South African digital-commerce context
+The macro environment is large and growing, but trust, delivery and access remain decisive.
+World Wide Worx/Mastercard's 2026 work estimates South African online retail at about R159 billion in 2026, up roughly 22.5%,
+reaching about 10% of national retail turnover. Their consumer study reports 79.1% adult internet access but only 34.2%
+online-shopping penetration, indicating a substantial connected-but-not-shopping population. [MR1][MR2]
+Signal
+Reported value
+Implication for Vossie
+2026 online retail
+~R159bn; +22.5%
+Digital purchasing is mainstream enough for a campus layer.
+Adult internet access
+79.1%
+Connectivity is broad, but not equivalent to commerce adoption.
+Online-shopping penetration
+34.2%
+Trust, delivery, payment and knowledge frictions remain material.
+Smartphone use among online shoppers
+57.9%
+Phone-first design is appropriate; data efficiency matters.
+Browser vs app
+Browsers lead purchases in 42/48
+measured categories
+PWA/universal-link strategy reduces install friction.
+Sources: [MR1] World Wide Worx, Online Retail in SA 2026, 2 Sep 2026. [MR2] World Wide Worx, 'Online retail’s next big market', 16 Sep 2026.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 13
+12. Higher-education opportunity
+Campus density creates a bounded market in which trust, proximity and repeat interaction can be designed deliberately.
+DHET reports 1,115,580 students enrolled at public HEIs in 2024, with 721,803 in contact mode. This is national context rather than
+Vossie's immediate addressable market. Eduvos stated that it welcomed over 13,000 new and returning students across 12
+campuses in its first block of 2024; this is an institutional 2024 figure and should not be treated as a verified 2026 enrolment count.
+[MR3][MR4]
+The practical opportunity is therefore not 'all South African students on day one.' Vossie can exploit campus-by-campus density, then
+connect viable campuses once local liquidity and operations work.
+Market layer
+Definition
+Use
+TAM context
+South African tertiary student commerce
+Strategic ceiling; do not present as immediate
+users
+SAM
+Students at institutions/campuses Vossie can legally and operationally
+serve
+Partnership/expansion planning
+SOM / pilot
+Verified users at selected Eduvos campus(es) and selected categories
+Actual launch target and experiment base
+Sources: [MR3] DHET, Statistics on PSET in South Africa 2024, published 2026. [MR4] Eduvos, 12 Mar 2024.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 14
+13. Customer behaviour & friction
+Vossie should design for mobile convenience while explicitly reducing perceived transaction risk.
+The 2026 Online Retail research identifies delivery fees, minimum-order thresholds and unreliable last-mile service outside major urban
+areas as practical barriers; consumers also cite payment security, shopping knowledge and fear that goods may not arrive. It reports
+Instant EFT/PayShap availability among 40.8% of surveyed retailers and digital-wallet growth above 35% year on year. [MR2]
+Observed market friction
+Vossie response hypothesis
+Delivery cost
+Short-distance campus fulfilment; transparent payout/fee before checkout
+Trust / non-delivery concern
+Verified campus identity, order state, proof, dispute path
+Payment confidence
+Recognizable approved PSP; clear payment status; no ambiguous transfer state
+Discovery overload
+Campus relevance, category/search, Reels and request-side demand
+Low-value basket economics
+Pickup option and short-distance fulfilment; avoid excessive platform fee
+Data/install friction
+Responsive PWA and lightweight assets alongside installable experience
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 15
+14. Competitive landscape
+Vossie's competitive set is broader than 'student marketplaces': horizontal commerce, social discovery, classifieds and delivery all
+compete for pieces of the job.
+World Wide Worx/Mastercard reported Takealot as the most-used online platform among surveyed online shoppers in 2026 at 35.3%,
+followed by Shein at 21.5%, Checkers Sixty60 at 15%, and Amazon at 12.7% before Prime's June 2026 South African launch. These are
+national online-shopping usage figures, not campus-marketplace shares. [MR1]
+Archetype
+Strength
+Gap Vossie targets
+Large e-commerce marketplace
+Selection, fulfilment maturity, payments
+Not campus identity/density or student-to-student
+entrepreneurship
+Social/DM commerce
+Discovery and existing social graph
+Weak transaction state, custody and operational controls
+Classifieds / resale
+Local supply and broad categories
+Less integrated campus verification, courier/hub/incubation model
+Fashion resale communities
+Community and second-hand behaviour
+Narrower use cases; not full campus operating system
+On-demand delivery
+Speed and logistics expectations
+Usually merchant-led rather than peer campus commerce
+Source: [MR1] World Wide Worx/Mastercard 2026 online retail findings.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 16
+15. Differentiation system
+Differentiation should be demonstrated as a system of reinforcing capabilities, not a long feature list.
+Differentiator
+Why it matters
+Proof needed
+Verified campus context
+Narrows identity/trust problem
+Successful verification + lower abuse/dispute
+Buyer Requests
+Makes unmet demand visible
+Request→offer→order conversion
+Reels tied to commerce
+Turns content into measurable product discovery
+View→product→order attribution
+Role fluidity
+A student can buy, sell and potentially courier
+Cross-role activation and retention
+Campus-local fulfilment
+Matches short-distance campus reality
+Delivery time/cost vs alternatives
+Hub-based cross-campus
+Scales without pretending students drive intercity
+Custody accuracy + route economics
+Incubation/Operations
+Connects commerce with entrepreneurship support
+Actionable seller/demand insights
+The strongest positioning is not 'another marketplace for students.' It is a verified campus commerce network where discovery, demand,
+fulfilment and entrepreneurship support operate on the same transaction graph.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 17
+16. Segmentation & beachhead
+Start where transaction frequency, urgency and local fulfilment are naturally high.
+Segment
+Need pattern
+Pilot suitability
+Everyday student buyers
+Convenience, affordability, proximity
+High
+Student micro-sellers
+Discovery, orders, repeat customers
+High
+Service sellers
+Tutoring/design/repair/etc.
+Medium; requires service-specific booking rules
+Resale sellers
+Books, electronics, room/lifestyle items
+High with category controls
+Student couriers
+Flexible local earning
+High operational sensitivity
+Incubation staff
+Seller pipeline and trends
+High stakeholder value; lower transaction
+frequency
+Beachhead category selection should be empirical. Use interviews plus request/search data to choose categories. Avoid categories with
+high fraud, safety, regulated-goods or complex returns exposure in the first pilot.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 18
+17. Adoption & go-to-market
+A campus marketplace is a liquidity problem before it is a marketing problem.
+Launch sequencing should seed supply and demand together. Recruit a small set of credible sellers first, ensure their inventory is real,
+then activate buyers around specific campus moments and categories. Requests can capture demand even when supply is incomplete;
+this reduces the 'empty marketplace' problem and gives sellers direct evidence of what to stock.
+Phase
+Action
+Success signal
+Pre-pilot
+Seller cohort, catalogue quality, demo/support readiness
+Enough relevant supply for selected categories
+Closed campus pilot
+Invite verified users; instrument search, requests, orders
+Transactions complete without heavy manual
+rescue
+Liquidity loop
+Promote unmet requests to sellers; feature quality supply/Reels
+Faster request response and repeat orders
+Campus expansion
+Replicate playbook, then connect eligible routes
+New campus reaches liquidity threshold
+Institutional scale
+Formalize identity, operations, support and incubation
+Repeatable governance + economics
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 19
+18. Market validation programme
+Current research supports the direction; primary research must validate Vossie's exact assumptions.
+Study
+Minimum useful output
+Buyer interviews
+Top purchase/resale categories, trust barriers, delivery willingness, request behaviour
+Seller interviews
+Current channels, sales frequency, pain points, fee tolerance, content behaviour
+Courier concept test
+Availability, acceptable radius, payout expectations, safety concerns
+Campus staff / incubation
+Governance, prohibited use, support needs, useful analytics
+Prototype usability
+Task success/time for buyer, seller, courier and operations critical flows
+Pilot telemetry
+Search success, request response, conversion, fulfilment, disputes, repeat usage
+Do not ask respondents whether they 'like the idea' as the primary validation. Ask about recent real behaviour, then observe whether they
+complete real or high-fidelity tasks. Behavioural evidence should outrank stated enthusiasm.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 20
+19. Market outlook & strategic implications
+The market evidence supports mobile commerce growth, but Vossie's opportunity depends on solving campus-specific trust and
+liquidity.
+South African online retail is expected to keep growing, while the gap between internet access and online-shopping participation shows
+that access alone does not create trust or conversion. Vossie's campus model can potentially reduce uncertainty through bounded identity
+and proximity, but that advantage must be measured rather than assumed. [MR1][MR2]
+Implication
+Action
+Mobile-first is necessary
+Keep the PWA fast, responsive and data-conscious.
+Trust is commercially material
+Make verification, proof, support and moderation visible.
+Delivery economics matter
+Pilot local fulfilment before expensive network expansion.
+Large platforms set UX expectations
+Checkout/search/tracking must feel simple even if backend is complex.
+Campus is the wedge
+Optimize local density first; national breadth later.
+Requests reveal unmet demand
+Treat request data as both marketplace feature and research signal.
+Sources: [MR1] World Wide Worx/Mastercard, Online Retail in South Africa 2026. [MR2] World Wide Worx, consumer findings, Sep 2026.
+
+VOSSIE MARKETPLACE — BUSINESS ANALYSIS & MARKET RESEARCH — SEPTEMBER 2026
+Page 21
+20. Unified synthesis & decision agenda
+Vossie should be built and pitched as a verified campus commerce operating system with a marketplace at its center.
+Unified thesis. The business-analysis view says Vossie becomes valuable when it closes the loop from demand → supply → transaction
+→ fulfilment → support → insight. The market-research view says South Africa is increasingly comfortable with digital commerce, but
+trust, delivery, payment and usability still determine participation. Campus density gives Vossie a constrained environment in which those
+problems can be attacked directly.
+Now
+Next
+Later
+Lock pilot campus/categories; finish critical vertical
+slice; seed deterministic data; conduct
+buyer/seller/staff research; define policies and
+KPIs.
+Closed pilot; local courier validation;
+request-marketplace telemetry; seller/Reels
+attribution; dispute/support rehearsal; institutional
+review.
+Cross-campus hub pilot; production
+identity/payment/logistics agreements;
+monetization tests; multi-campus expansion based
+on thresholds.
+Pitch message: show the problem as fragmented campus commerce; show Vossie as one verified transaction network; prove
+differentiation through Requests, Reels-to-commerce, role fluidity, local fulfilment, hub transfers and incubation visibility; then show how
+the operating model keeps the experience simple while preserving control and auditability.
+Research sources used: World Wide Worx / Mastercard / Peach Payments / Ask Afrika Online Retail in South Africa 2026 findings; DHET Statistics on
+Post-School Education and Training in South Africa 2024 (published 2026); Eduvos 2024 institutional enrolment announcement; existing Vossie Developer
+Series architecture and product decisions.
+Confidence note: macro-market figures are externally sourced; competitor positioning is category-level; Vossie adoption, pricing, unit
+economics and institutional acceptance remain hypotheses requiring primary research and pilot evidence.

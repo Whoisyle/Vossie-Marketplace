@@ -1,0 +1,35 @@
+Artifact and V ersion History
+Strategy / system blueprint
+A working strategy document evolved through multiple versions as decisions were locked. The current consolidated reference
+is:
+Vossie_Platform_Strategy_Differentiation_System_Blueprint_v12.pdf
+Earlier versions captured the evolving money model, authentication, cross-campus transfer, inventory , Reels, communica-
+tions and integration decisions.
+Engineering/research artifacts
+Major engineering artifacts include:
+• EduHackers_Developer_Build_Workflow_Technical_Research_Dossier.pdf and later revisions.
+• EduHackers_Full_Developer_System_Architecture_Research_Dossier.pdf
+• Vossie_Implementation_Specification.pdf
+• Vossie_Developer_Architecture_and_Build_Guide.pdf
+UI/UX artifacts
+• Vossie_Full_UIUX_Page_Architecture.pdf
+• Vossie_177_Screen_Map.pdf
+• Vossie_Marketplace_Brand_UIUX_Profile.pptx
+• Vossie_Motion_and_Interactive_3D_Showcase.pdf
+Developer Series
+• Vossie_Developer_Series_1_v3.pdf
+• Vossie_Developer_Series_2_v1.pdf
+• Vossie_Developer_Series_3_Draft_2_Final_Workflow.pdf
+• Vossie_Developer_Series_4_Cinematic_Pitch_Production_Blueprint_v2.pdf
+Business/marketing artifacts
+• Vossie_Business_Analysis_and_Market_Research_2026.pdf
+• Vossie_CMO_Marketing_Advertising_Playbook_2026.pdf
+• Vossie_Visual_Advertising_Pack_2026.pdf
+Prototype
+Known hosted prototype reference:
+https://vossie-marketplace.paballokali11.chatgpt.site
+The hosted prototype is reference material, not the ultimate source of truth when it conflicts with later specifications.
+Figma
+Later work created/used dedicated V ossie Figma production files. Their purpose is to convert the approved Brand Identity
++ architecture into reusable native components and responsive screen families.
+1

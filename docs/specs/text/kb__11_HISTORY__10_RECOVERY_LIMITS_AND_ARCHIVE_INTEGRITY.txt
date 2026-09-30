@@ -1,0 +1,30 @@
+Recovery Limits and Archive Integrity
+What this archive contains
+This archive contains the complete recoverable V ossie project knowledge available from:
+• current conversation context,
+• recovered prior-conversation context,
+• saved project artifacts,
+• platform strategy revisions,
+• UI/UX files,
+• developer series,
+• business/marketing documents,
+• and the latest confirmed decisions.
+Important distinction
+This knowledge base is intended to transfer the project accurately to a fresh account. It is not a guaranteed verbatim export
+of every historical ChatGPT message ever sent across every separate chat, because chat transcripts that are not present in
+current context or saved as artifacts cannot be reconstructed word-for-word without inventing text.
+Where exact old wording was unavailable, the archive preserves the decision, rationale, workflow and artifact that resulted
+from it.
+What must never be invented during migration
+• Eduvos institutional approval.
+• Live Microsoft/Entra integration access.
+• Live payment credentials.
+• Government identity verification access.
+• Live logistics-provider contracts.
+• Production readiness.
+• F eatures not present in the approved product decisions.
+How to use the archive safely
+F or a fresh ChatGPT account, upload the 00_START_HERE files first. Then upload the source PDF s/PPTX/Figma links.
+T ell the new account to treat the knowledge base as context and to ask only when there is a real unresolved conflict, not
+to redesign the product from scratch.
+1

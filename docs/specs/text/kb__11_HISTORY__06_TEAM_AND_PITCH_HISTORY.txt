@@ -1,0 +1,45 @@
+T eam and Pitch History
+Confirmed team roles
+• Oratile Modise — UI/UX Designer
+• Babalo Kali — Developer and Research Lead
+• Malindi Mpumelelo — Product Lead
+• Danny Mohale — Project Manager and Pitch Lead
+• Babalo Kali + Danny Mohale — Business Analysis and Marketing Leads
+Cinematic pitch structure
+The pitch was deliberately split into two modes.
+Act I — cinematic introduction
+The first approximately four minutes introduce the problem, V ossie concept and team contributions without fully demon-
+strating the application.
+Opening concept:
+1. Black screen.
+2. A single V ossie dot appears.
+3. Dot bounces with controlled impact/audio rhythm.
+4. Final landing becomes the dot above the i in the V ossie wordmark.
+5. Camera pushes through the dot into an illustrated campus world.
+6. F ragmented student needs/supply are visualized.
+7. T eam contributions transform the problem into product, design, engineering and coordinated execution.
+T eam visualization
+• Malindi: fragmented needs become a coherent Buyer/Seller/Courier/Operations product system.
+• Oratile: product model becomes wireframes, tokens, components and refined responsive UI.
+• Babalo: research becomes architecture, code, agents, tests, GitHub and deployment.
+• Danny: parallel workstreams converge into project milestones and release readiness.
+• Babalo + Danny: business signals become market analysis, positioning and launch thinking.
+Pitch handoff
+The cinematic layer collapses into the V ossie dot and introduces Danny Mohale — Pitch Lead .
+Act II — live/cueable product demonstration
+Danny receives approximately 15–20 minutes. V ossie itself becomes the presentation rather than relying on static slides.
+Cueable chapters include:
+• Reveal
+• Buyer
+• Reels
+• Checkout
+• Request Marketplace
+• Seller
+• Courier
+• Cross-campus
+• Operations
+• Incubation
+• Recap
+• Finale
+Each critical live path should have deterministic demo data, a reset route and a prerecorded fallback.
+1

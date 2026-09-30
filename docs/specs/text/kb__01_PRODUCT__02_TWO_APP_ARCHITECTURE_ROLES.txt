@@ -1,0 +1,52 @@
+T wo-App Architecture and Roles
+T wo-App Architecture and Roles
+App 1 — V ossie Marketplace
+Student-facing application. One identity can hold multiple capabilities.
+Buyer
+• browse/search,
+• categories,
+• listing detail,
+• seller storefronts,
+• Reels,
+• cart/checkout,
+• Requests,
+• messaging,
+• order tracking,
+• pickup/delivery ,
+• disputes/refunds,
+• ratings/reviews.
+Seller
+Day-to-day commerce mode:
+• listings,
+• incoming orders,
+• Requests/offers,
+• inventory/availability ,
+• quick analytics,
+• earnings/payout state,
+• customer/order actions,
+• Reels publishing.
+Courier
+• activation/verification,
+• go online/offline,
+• eligible jobs,
+• map/route,
+• pickup,
+• QR custody scans,
+• OTP delivery ,
+• incidents,
+• earnings.
+App 2 — V ossie Operations
+One staff/business application with permission-controlled workspaces.
+1
+Campus Hub
+Intake, condition check, QR custody , pickup/release, outgoing transfers, returns, exceptions.
+T ransfers
+Routes, manifests, hub-to-hub scans, reconciliation, mismatch/incident handling.
+Incubation
+Demand intelligence, seller health, unmet searches, trends, interventions and business-growth plans.
+Operations/Admin
+Support, moderation, disputes, finance, compliance, security , audit, users/roles, configuration and platform health.
+Permission principle
+A visible button is not authority . Backend/server policy is authoritative. Roles must be scoped to the user, campus and
+resource.
+2

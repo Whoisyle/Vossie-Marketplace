@@ -1,0 +1,29 @@
+Agent Roster and Responsibilities
+Agent Roster and Responsibilities
+Cursor build side
+• Atlas — Lead Developer / build coordinator
+• Pixel — F rontend/UI
+• F orge— Backend/API/domain services
+• Schema — Database/schema/migrations
+• Market — Marketplace/order/request logic
+• Relay — Logistics/courier/hub/transfers
+• Bridge — Integrations/providers
+• Kinetic — Motion/interactions
+• Probe — T esting support
+• Scribe — Documentation
+• Guardian — workflow/dependency/completeness auditor
+• Medic — build/runtime/debug repair loop
+VS Code verification side
+• Sentinel — verification controller
+• Lens — code review
+• Aegis — security review
+• V ector— QA/E2E/release smoke
+• Pulse — performance/accessibility
+• V ault— data/schema/RLS review
+• Harbor — Git/release gate
+• W atchtower— verifies all required gates actually ran
+• Resolver — deep failure analysis/recovery routing
+Separation of duties
+Atlas cannot approve/merge its own work. Sentinel cannot waive mandatory gates. Specialists cannot redefine locked
+architecture silently .
+1

@@ -1,0 +1,153 @@
+--- slide 1
+01
+Brand identity & app experience
+EduHackers  /  Presentation concept  /  September 2026
+
+--- slide 2
+02
+A marketplace for campus life
+Good things.
+Brighter campus.
+A familiar place to discover student businesses, buy everyday essentials and arrange collection or delivery.
+The wider concept connects unmet demand with student entrepreneurs and incubation support.
+
+--- slide 3
+03
+The design direction
+How it works
+Uber-inspired task flows: location first, clear choices, dispatch requests, live status and one obvious next action.
+How it feels
+Plato-inspired restraint: warm ivory, soft blue, rounded lettering, quiet packaging and generous space.
+Vossie brings these references together in an original campus marketplace identity.
+
+--- slide 4
+04
+The primary wordmark
+Rounded lowercase lettering
+
+A distinctive joined “ss”
+
+A clear marketplace descriptor
+Use the supplied artwork. Keep its proportions and letter spacing intact.
+
+--- slide 5
+05
+The app icon
+A symbol from the name
+The joined “ss” carries the character of the wordmark into a compact icon.
+Navy on ivory is the primary treatment. “Vossie” appears as the device label beneath the app.
+Production export: supply a square master and let each platform apply its icon mask.
+
+--- slide 6
+06
+The colour palette
+A Vossie palette inspired by the requested softer direction; these are not official Eduvos colour specifications.
+
+--- slide 7
+07
+Colour in use
+Ivory leads.
+Navy gives clarity.
+Blue adds emphasis.
+Use navy for reading and actions.
+
+Keep powder blue as a surface colour.
+
+Pair every status colour with a label.
+The soft palette should still produce a clear interface at small sizes.
+
+--- slide 8
+08
+Typography
+Aa
+DejaVu Sans
+A clear supporting typeface for this presentation and the proposed interface system.
+Headings  /  Bold
+Body copy  /  Regular
+Prices and status  /  Bold emphasis
+The logo is custom artwork.
+Do not recreate it by typing
+the brand name in a font.
+
+--- slide 9
+09
+Logo rules
+Space and scale
+Leave at least one “o” height of clear space around the full wordmark. Use the icon when the descriptor becomes too small to read.
+Consistent artwork
+Keep the joined letters intact. Avoid stretching, extra effects, busy backgrounds or new monograms.
+Proposed starting sizes: full lockup 180 px digital / 35 mm print. Icon 32 px. Review proofs at actual size.
+
+--- slide 10
+10
+The voice
+Friendly, direct and useful
+
+--- slide 11
+11
+Delivery packaging
+
+--- slide 12
+12
+Packaging details
+The visual system
+Ivory surfaces, navy wordmark and one powder-blue panel. A small seal carries the joined “ss”.
+The practical layer
+Choose packaging by item size and protection needs. Keep order labels separate from brand artwork.
+Production brief
+Supplier dielines, print proofs, material selection and closure tests follow this concept. Food items need suitable food-contact packaging. Do not print unnecessary student details.
+
+--- slide 13
+13
+Campus brand applications
+
+--- slide 14
+14
+App navigation
+One student identity. Additional verification unlocks seller and courier roles.
+
+--- slide 15
+15
+The buyer experience
+Concept UI. Prices, map, route and arrival time are illustrative.
+
+--- slide 16
+16
+Seller and courier dispatch
+Concept UI. Countdown, route, earnings and timing are illustrative.
+
+--- slide 17
+17
+The journey behind the screens
+Hub transfers can sit between preparation and final delivery, with clear status updates.
+
+--- slide 18
+18
+When the plan changes
+A calm design must explain uncertainty as clearly as success.
+
+--- slide 19
+19
+The wider marketplace
+Student opportunity
+Unmet requests help student businesses decide what to offer. Sellers receive practical guidance in their own workspace.
+Operations workspace
+Hub staff manage package custody. Authorised teams handle transfers, disputes, finance and incubation support.
+The same visual language extends across roles, while each workspace shows only the information that role needs.
+
+--- slide 20
+20
+From concept to launch assets
+The slides are editable. Mockups and logo artwork are raster images, not production vectors or working screens.
+
+--- slide 21
+21
+Source and concept notes
+Project foundations
+EduHackers Full Marketplace Research Dossier (2)
+Executive summary and marketplace / incubation scope
+
+EduHackers Developer UX Workflow Wireframes Research Dossier (2)
+Pages 11–14: role modes, seller dispatch, courier and hub flows
+Creative direction
+Your selected Vossie wordmark and icon; the supplied Plato packaging reference; your direction to combine Uber-style functionality with Plato-style visuals. All application mockups are illustrative concepts.

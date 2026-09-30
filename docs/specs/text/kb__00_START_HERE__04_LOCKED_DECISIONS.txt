@@ -1,0 +1,39 @@
+Locked Decisions
+Locked Decisions
+The following decisions are considered current unless the user explicitly changes them.
+Product
+• One platform, two application families.
+• One student identity; Buyer is base capability , Seller/Courier are progressive activations.
+• App 1 = Buyer + Seller + Courier.
+• App 2 = Campus Hub + T ransfers + Incubation + operational/admin workspaces.
+• Marketplace Reels is a first-class commerce feature, not a generic social network.
+• Buyer Requests exist alongside normal Listings.
+• Cross-campus uses hub-network routing with third-party courier fallback.
+Money
+• Pilot seller commission hypothesis: 7%.
+• Pilot courier platform commission hypothesis: 5% of courier delivery earnings.
+• No separate buyer percentage commission; buyer pays applicable delivery by default.
+• Earnings lifecycle: Pending → Secured → A vailable → Payout Processing → Paid Out .
+• Seller/courier may choose automatic payout or manual withdrawal.
+• Package QR proves custody; recipient OTP proves final delivery .
+• OTP delivery starts a 24-hour issue window .
+• F ull approved refunds reverse V ossie seller commission; provider costs remain separately tracked.
+Authentication
+• EDUV student-number format or email domain alone is not authentication.
+• Production target: institutional SSO/federation with Eduvos/Microsoft/Entra and existing Authenticator MF A.
+• V ossie must not store institutional passwords or Authenticator secrets.
+• Prototype uses a clearly labelled simulated/sandbox version of the target flow.
+• No requirement for separate V ossie F ace ID/passkey layer in the current prototype.
+Design
+• Plato inspires visual softness; Uber inspires interaction architecture.
+• V ossie brand identity remains authoritative.
+• Mobile-first Marketplace; desktop-first Operations; all surfaces responsive.
+• Motion must explain state and causality; reduced-motion support required.
+Engineering
+• One adaptive PW A URL/QR for the prototype.
+• TypeScript + Next.js/React + PostgreSQL/Supabase foundation.
+• GitHub monorepo is durable source of truth.
+• Cursor = implementation/build cockpit led by Atlas.
+• VS Code = independent verification/control cockpit led by Sentinel.
+• No autonomous direct-to-main pushes.
+1

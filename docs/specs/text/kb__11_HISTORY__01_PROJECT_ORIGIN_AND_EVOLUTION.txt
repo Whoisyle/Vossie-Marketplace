@@ -1,0 +1,76 @@
+V ossie Project Origin and Evolution
+Purpose
+This file preserves the project history from the earliest EduHackers/V ossie discussions through the current EduHackers 2.0
+architecture so a fresh account can understand how the product evolved and why the present decisions exist.
+Earliest product direction
+V ossie began as an Eduvos student marketplace. The first idea was simple: students should be able to buy and sell products
+and services around campus more easily than through fragmented WhatsApp groups, DMs, social pages or informal word
+of mouth.
+The project quickly expanded because a simple listings app did not solve the hard parts: trust, verification, fulfilment,
+student logistics, cross-campus movement, support, disputes, business growth and campus oversight.
+Brand and interaction direction
+The visual direction was intentionally separated from the functionality model:
+• Plato-inspired visual literacy: soft colours, warm spacing, clean photography , gentle panels, restrained typography
+and a premium-but-approachable campus feel.
+• Uber-inspired interaction literacy: task clarity , live status, cards, sheets, maps, request/accept patterns, activity
+history , rapid actions and obvious next steps.
+• V ossie must remain its own brand and must not copy proprietary Plato or Uber assets or exact layouts.
+Platform expansion
+The project evolved from one marketplace into two application families sharing one backend:
+1. V ossie Marketplace— Buyer, Seller and Courier under one student identity .
+2. V ossie Operations — Campus Hub, T ransfers, Incubation, Support, Moderation, Finance, Compliance, Security ,
+Admin and Platform Operations.
+Major concepts added over time
+The project added, in roughly this evolutionary order:
+• Buyer, Seller and Courier role model.
+• Student identity and Eduvos verification.
+• Campus pickup and delivery .
+• Hub custody and QR scanning.
+• Courier OTP handover.
+• Cross-campus transfers.
+• Third-party courier fallback.
+• Buyer Requests when no suitable listing exists.
+• Dynamic listing categories and subcategories.
+• Digital study materials and controlled digital delivery .
+• F ood marketplace trust/compliance handling.
+• Seller Studio and timetable-based availability .
+• Incubation intelligence for student businesses.
+• Platform Operations command centre.
+• Payments, ledger, fees, payouts, refunds and disputes.
+• Receipts, notifications and email event templates.
+• Marketplace Reels tied to actual commerce objects.
+• PW A/universal link distribution.
+• Figma design-system production.
+• Motion and microinteraction system.
+• Cursor + VS Code agentic development workflow.
+• Cinematic Apple-style pitch system.
+• Business analysis, market research and marketing campaign system.
+1
+Current product thesis
+V ossie is not merely a student marketplace. It is a verified campus commerce, logistics, operations and student-
+entrepreneurship platform .
+Its differentiation comes from the combination of:
+• verified campus identity ,
+• multi-role student participation,
+• listings + requests + Reels discovery ,
+• student courier fulfilment,
+• QR custody and campus hubs,
+• cross-campus logistics,
+• operational tooling,
+• seller analytics,
+• Incubation intelligence,
+• auditable payments/disputes,
+• and institution-facing visibility .
+Current scale of the specification
+The latest engineering handoff describes a large system surface: 90 database tables, 202 API operations, 177 screen designs,
+514 action bindings and 385 delivery tickets. This is a specification universe, not a claim that every element must ship in
+the first pilot.
+Current prototype philosophy
+The prototype should prove complete vertical slices instead of showing hundreds of disconnected screens. The strongest
+journey is:
+Authentication → Buyer Marketplace → Reels/Listings/Requests → Checkout → Payment state → Seller → Courier →
+QR custody → OTP delivery → Hub/Cross-campus → Incubation/Operations.
+Project constraint
+The prototype is intentionally zero-budget wherever possible. Paid provider dependencies must be optional, simulated,
+replaceable or deferred until a real production pilot is approved.
+2

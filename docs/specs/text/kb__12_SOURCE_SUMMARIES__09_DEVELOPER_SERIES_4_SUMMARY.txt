@@ -1,0 +1,9 @@
+Source Summary — Developer Series 4
+Series 4 defines the cinematic pitch and W ork execution handoff.
+• Act I: approximately four-minute cinematic origin/team story .
+• Act II: 15–20 minute Danny-led cueable live product demonstration.
+• Recurring V ossie dot visual signature.
+• Brand Identity + approved Figma/prototype are visual sources of truth.
+• After Effects project is modular by sequence.
+• Every critical live demo flow needs deterministic data, reset and prerecorded fallback.
+1

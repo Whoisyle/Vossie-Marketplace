@@ -1,0 +1,28 @@
+Figma Production System
+Figma Production System
+Figma is the UI/UX source of truth for the design phase.
+Recommended file/page structure
+00 Cover/Product Map 01 Brand & F oundations 02 V ariables/T okens 03 Core Components 04 Marketplace Components
+05 Logistics Components 06 Operations Components 07 Access & Shared 08 Buyer 09 Seller 10 Courier 11 Campus Hub 12
+T ransfers 13 Incubation 14 Operations/Admin 15 Extensions 16 Responsive States 17 Motion & Interaction 18 Prototype
+Journeys 19 Developer Handoff
+Build order
+Brand/tokens → primitives → shared patterns → role patterns → priority journeys → full screen families → responsive
+states → motion specs → clickable prototype → developer handoff.
+Component discipline
+Use Figma V ariables, Styles, Components, V ariants and Auto Layout. A void meaningless frame names.
+Examples:
+• Marketplace/ListingCard/Food/Default
+• Marketplace/Reel/ProductRail
+• Courier/JobCard/Available
+• Hub/PackageCard/AwaitingScan
+• Operations/IncidentCard/Critical
+States
+Default, focus, pressed, hover where relevant, loading, disabled, success, error, offline, empty , retry , expired, denied, pend-
+ing/review.
+Handoff
+Map Figma variables → code tokens; components → React components; variants → component states; frames → routes;
+responsive variants → container/breakpoint behaviour; motion specs → Motion.dev/CSS.
+Automated Figma writing is an accelerator only when the connected plugin/account supports it; do not assume write access
+exists.
+1
