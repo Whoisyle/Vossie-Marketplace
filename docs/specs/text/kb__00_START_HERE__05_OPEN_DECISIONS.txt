@@ -1,0 +1,28 @@
+Open Decisions and External Dependencies
+Open Decisions and External Dependencies
+These areas are intentionally not fully locked.
+Institutional
+• F ormal Eduvos approval for SSO/identity federation.
+• Exact active-student eligibility API/attribute source.
+• Campus-hub operational agreements and staﬀing.
+• Institutional governance, POPIA and procurement requirements.
+Payments
+• Final production PSP selection.
+• Exact marketplace split/payout capability and pricing.
+• Merchant onboarding and settlement terms.
+• T reatment of provider fees in refunds and low-value orders.
+Logistics
+• Final third-party courier partners/API support.
+• Real cross-campus route schedules, capacity and economics.
+• Whether transfer couriers are students, institution transport, third parties, or a hybrid.
+T echnology
+• Final identity provider implementation (Clerk is a candidate; institutional SSO remains the ultimate target).
+• Final push/email provider.
+• Final observability provider.
+• Final production video/media pipeline.
+• Native iOS/SwiftUI expansion only if real native requirements justify it.
+Legal/compliance
+• F ood-selling requirements by relevant municipality/campus context.
+• Courier insurance/legal requirements.
+• Digital-content ownership and academic-integrity policy .
+1

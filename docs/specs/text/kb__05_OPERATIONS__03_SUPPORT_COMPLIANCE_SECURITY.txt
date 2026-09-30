@@ -1,0 +1,33 @@
+Support Tickets, Compliance and Security Operations
+Support Tickets, Compliance and Security Operations
+Support / disputes as cases
+Each issue becomes a structured case containing:
+• ticket/case ID,
+• related order/payment/package,
+• buyer/seller/courier/hub,
+• timeline,
+• evidence,
+• messages,
+• internal notes,
+• assigned operator,
+• priority/SLA,
+• resolution.
+Listing compliance
+Possible state flow:
+Draft → automated/basic checks → Published
+or
+Draft → Flagged → Human Review → Approved/Rejected.
+Security operations
+The admin security view can resemble a lightweight V ossie SOC dashboard, but it is not a claim of building a full SIEM
+product.
+Useful events:
+• failed auth patterns,
+• suspicious sessions,
+• role changes,
+• payout changes,
+• privileged actions,
+• moderation evidence access,
+• webhook/payment failures,
+• repeated scan/custody anomalies.
+Keep security logs separate from ordinary product analytics and never dump secrets into the UI.
+1

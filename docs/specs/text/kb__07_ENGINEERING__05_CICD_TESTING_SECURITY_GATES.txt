@@ -1,0 +1,29 @@
+CI/CD, T esting and Security Gates
+CI/CD, T esting and Security Gates
+Mandatory automated checks should include:
+• clean install,
+• formatting verification,
+• lint,
+• TypeScript/typecheck,
+• unit tests,
+• integration tests,
+• production build,
+• Playwright E2E,
+• accessibility checks,
+• dependency/security scanning,
+• secret scanning,
+• database migration validation,
+• RLS/authorization validation,
+• preview/staging smoke tests,
+• post-deployment critical-path smoke tests.
+Git rules
+• scoped branches/worktrees,
+• atomic conventional commits,
+• PRs with feature/risk/test evidence,
+• no silent direct push to main,
+• protected merge after required checks,
+• deployment evidence written back to GitHub/.vossie.
+Reliability philosophy
+Ordinary errors should enter bounded automated repair loops before reaching the user, but the system must never fake
+success or bypass a failed security/data gate.
+1

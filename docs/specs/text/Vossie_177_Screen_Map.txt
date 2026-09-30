@@ -1,0 +1,68 @@
+VOSSIE · SCREEN ARCHITECTURE · SEPTEMBER 2026
+1
+ vossie
+ 177-screen platform map
+A concise role-and-workspace breakdown of the current Vossie UI/UX architecture.
+177
+Total screen designs
+Across Marketplace, Operations, shared access and feature-gated extensions.
+Overall breakdown
+Workspace
+Screens
+Scope
+Access / Authentication
+12
+Registration, verification, recovery and staff sign-in.
+Shared / Account
+24
+Account, workspace switching, messages, support, wallet and security.
+Buyer
+41
+Home, Explore, Activity and Account; owned orders and requests.
+Seller
+25
+Requests, Shop, Earnings and Account; own business only.
+Courier
+14
+Offers, Delivery, Earnings and Account; assigned jobs only.
+Campus Hub
+8
+Intake, scans, transfers and account; assigned hub custody.
+Transfers
+9
+Routes, manifests, scans and issues; hub-to-hub transfer operations.
+Incubation
+12
+Overview, demand, businesses and plans; campus-scoped support evidence.
+Operations
+17
+Permission-controlled moderation, finance, support, compliance, security, admin and configuration.
+Extensions
+15
+Feature-gated categories and approved organiser/extended workspace capabilities.
+Application family breakdown
+APP 1 · VOSSIE MARKETPLACE
+APP 2 · VOSSIE OPERATIONS
+80 role-specific screens
+Buyer — 41
+Seller — 25
+Courier — 14
+Access (12) and Shared (24) experiences layer across
+relevant student roles rather than becoming separate
+student accounts.
+46 operational workspace screens
+Campus Hub — 8
+Transfers — 9
+Incubation — 12
+Operations — 17
+Operations uses granular permissions for moderation,
+finance, support, compliance, security, administration and
+platform control.
+How the 177 reconciles
+12 Access + 24 Shared + 41 Buyer + 25 Seller + 14 Courier + 8 Hub + 9 Transfers + 12 Incubation + 17 Operations
++ 15 Extensions = 177 screens.
+
+VOSSIE · SCREEN ARCHITECTURE · SEPTEMBER 2026
+2
+The 177-screen atlas is the full design baseline, not a requirement that every screen ship in the first MVP.
+Shared identity and permission rules connect the workspaces.

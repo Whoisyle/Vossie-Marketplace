@@ -1,0 +1,35 @@
+Payments, Gateways and Security
+Payments, Gateways and Security
+Architecture
+Buyer → PSP-hosted/tokenized checkout → provider server confirmation/webhook → V ossie verifies signature/idempotency
+→ ledger entry/state transition → protection window → payout.
+V ossie should store
+• internal payment ID,
+• provider reference,
+• amount/currency ,
+• fee snapshot,
+• status,
+• seller/courier allocation,
+• refund/payout references.
+V ossie should not store
+• raw card number,
+• CVV,
+• online-banking credentials.
+Prototype methods to demonstrate
+• card,
+• Instant EFT / Pay by Bank,
+• PayShap,
+• Apple Pay / Google Pay where provider/device appropriate,
+• sandbox only unless real credentials are provided.
+Security controls
+• backend-only secret keys,
+• signed webhook verification,
+• idempotent event processing,
+• payout-detail changes protected with step-up security ,
+• reconciliation jobs,
+• append-only financial history ,
+• client never declares final payment success by itself.
+Provider strategy
+Use a PSP adapter. Candidate providers were researched across Paystack, Payfast, Peach, Stitch/Ozow and others. Final
+production choice remains open.
+1

@@ -1,0 +1,22 @@
+Core User Journeys
+Core User Journeys
+Buyer vertical slice
+Continue with Eduvos → verified student session → Marketplace Home → Search/Reel → Listing → Cart → Checkout →
+PSP sandbox → Payment Secured → seller fulfils → courier/hub tracking → QR/OTP handover → Delivered → 24-hour
+issue window → Completed.
+Buyer Request
+No suitable result → Request It → choose category , describe need, campus/time/budget, optional media → matching →
+sellers receive request cards → sellers send offers → buyer accepts one → normal order/booking flow begins.
+Seller activation
+V erified Buyer → Activate Seller → identity/onboarding → seller profile/store setup → payout settings → listing creation
+→ publish → order/request flow.
+Courier activation
+V erified student → Activate Courier → select walking/bicycle/motorcycle/car → provide role-specific evidence → approval
+→ online state → job → pickup → scan → route → OTP handover → earnings.
+Campus Hub
+Package arrives → scan QR → condition check → custody state changes → ready for pickup/courier/transfer → scan out
+→ reconciliation/audit.
+Cross-campus
+Origin seller/hub → route through nearest viable campus hubs or approved third-party courier → each custody leg scanned
+→ buyer sees one shipment timeline → final local handover.
+1

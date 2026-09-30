@@ -1,0 +1,27 @@
+Responsive PW A and Device Experience
+Responsive PW A and Device Experience
+Prototype distribution
+Primary demo strategy: one URL/QR code opens the same adaptive PW A across iOS, Android, Windows and macOS.
+Do not maintain a separate “phone website” and “desktop website. ” Use one shared application/data model with adaptive
+layouts.
+Phone
+• bottom navigation,
+• full-screen Reels,
+• touch-first commerce,
+• camera/QR,
+• courier map,
+• sheets/drawers.
+T ablet
+• split/contextual views,
+• wider cards/maps,
+• light operational use.
+Desktop
+• sidebars,
+• multi-column layout,
+• larger maps,
+• seller studio,
+• hub/incubation/admin tables and dashboards.
+Native future
+SwiftUI/native expansion is optional and should be justified by real requirements such as reliable background location,
+richer push or device integrations. The PW A remains the universal prototype base.
+1

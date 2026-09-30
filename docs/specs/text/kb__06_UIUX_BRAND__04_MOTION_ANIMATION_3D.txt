@@ -1,0 +1,40 @@
+Motion, Animation and Optional 3D
+Motion, Animation and Optional 3D
+Principle
+F unctional motion first. Optional 3D second. Motion explains cause/effect and state.
+Three layers
+1. Presses, forms, navigation and recovery .
+2. Matching, status, tracking and scanning.
+3. Optional parcel preview/icon depth/campus illustration.
+Core experiences must work without layer 3.
+Existing motion inventory
+The project defined ~30 motion contracts including:
+• logo reveal,
+• account-step transitions,
+• button/submit feedback,
+• main navigation,
+• workspace switch,
+• search continuity ,
+• sheets/filters,
+• product-detail continuity ,
+• basket/quantity ,
+• seller matching,
+• request arrival/acceptance,
+• money-state transition,
+• order milestones,
+• courier interpolation,
+• scan recognition,
+• handover,
+• manifest reconciliation,
+• availability/workload,
+• listing publication,
+• messaging/notifications,
+• incubation panels/plans,
+• operations queue updates,
+• loading/offline/recovery .
+Runtime
+Core motion uses CSS/Motion.dev-style implementation. Motion.so or other generative motion is optional exported media
+only and cannot be a runtime dependency for a zero-budget prototype.
+Accessibility
+Respect reduced motion. Never make animation the only carrier of meaning.
+1

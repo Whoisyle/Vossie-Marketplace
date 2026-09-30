@@ -1,0 +1,23 @@
+Source of T ruth Order
+Source of T ruth Order
+When documents disagree, use this precedence:
+1. Latest explicitly confirmed user decision in the curated Markdown pack.
+2. Approved V ossie Brand Identity for logo, colour, typography and visual language.
+3. Latest Platform Strategy / System Blueprint (V12) for product policy and system model.
+4. F ull UI/UX Page Architecture / 177-screen atlas for screen inventory and role flows.
+5. Developer Series 1 for stack and application architecture.
+6. Developer Series 2 for Figma and runtime motion production.
+7. Developer Series 3 for agentic SDLC and GitHub workflow.
+8. Developer Series 4 for cinematic pitch production.
+9. Older prototypes and earlier blueprint versions as historical references only .
+Conflict rule
+Do not silently merge contradictory rules. Record the conflict, identify which source is newer/higher priority , and resolve
+explicitly .
+Prototype vs production
+A specification can describe production intent without proving production readiness. Always distinguish:
+• specified,
+• prototyped/simulated,
+• locally implemented/tested,
+• externally integrated,
+• production approved.
+1

@@ -1,0 +1,29 @@
+Design Language: Plato-Inspired Visuals, Uber-Inspired F unction
+Design Language: Plato-Inspired Visuals, Uber-Inspired F unction
+Plato-inspired visual literacy
+Use as inspiration, not as copied proprietary design:
+• airy layouts,
+• gentle colour panels,
+• warm surfaces,
+• restrained typography ,
+• rich product photography ,
+• minimal visual noise,
+• soft premium feeling.
+Uber-inspired interaction literacy
+Again, use patterns not proprietary copying:
+• clear destinations,
+• contextual cards,
+• strong primary actions,
+• bottom navigation on mobile,
+• sheets/drawers,
+• live status,
+• map-centric courier flow,
+• clear task switching,
+• concise activity history ,
+• progressive disclosure.
+V ossie rule
+Visuals must remain unmistakably V ossie. Brand Identity wins over references.
+Performance/latency feeling
+Microinteractions should feel immediate. Essential actions must never wait for decorative animation. Stable typography
+and predictable state changes are more important than flashy transitions.
+1

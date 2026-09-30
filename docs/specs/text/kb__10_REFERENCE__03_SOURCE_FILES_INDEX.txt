@@ -1,0 +1,28 @@
+Canonical Source Files Index
+Canonical Source Files Index
+Important original artifacts that should be retained alongside this Markdown pack when possible:
+Strategy / architecture
+• Vossie_Platform_Strategy_Differentiation_System_Blueprint_v12.pdf
+• Vossie_Implementation_Specification.pdf
+• Vossie_Developer_Architecture_and_Build_Guide.pdf
+• EduHackers_Full_Developer_System_Architecture_Research_Dossier.pdf
+• EduHackers_Developer_Build_Workflow_Technical_Research_Dossier.pdf
+UI/UX / brand / motion
+• Vossie_Full_UIUX_Page_Architecture.pdf
+• Vossie_177_Screen_Map.pdf
+• Vossie_Marketplace_Brand_UIUX_Profile.pptx
+• Vossie_Motion_and_Interactive_3D_Showcase.pdf
+• any approved Figma file/links and current live prototype.
+Developer Series
+• Vossie_Developer_Series_1_v3.pdf
+• Vossie_Developer_Series_2_v1.pdf
+• Vossie_Developer_Series_3_Draft_2_Final_Workflow.pdf
+• Vossie_Developer_Series_4_Cinematic_Pitch_Production_Blueprint_v2.pdf
+Business / marketing
+• Vossie_Business_Analysis_and_Market_Research_2026.pdf
+• Vossie_CMO_Marketing_Advertising_Playbook_2026.pdf
+• Vossie_Visual_Advertising_Pack_2026.pdf
+Rule
+The Markdown pack summarizes and curates decisions; original assets remain valuable for visual detail, screen-level mapping
+and evidence.
+1

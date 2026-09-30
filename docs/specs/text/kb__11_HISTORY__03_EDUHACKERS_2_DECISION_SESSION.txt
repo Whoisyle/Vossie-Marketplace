@@ -1,0 +1,106 @@
+EduHackers 2.0 Decision Session — Consolidated Record
+Purpose
+This is the decision-oriented reconstruction of the long EduHackers 2.0 working session in which the current V ossie product
+policy was refined.
+Money model
+The pilot model was locked as a working hypothesis:
+• Seller commission: 7% of seller transaction value.
+• Courier commission: 5% of courier earnings.
+• No separate buyer percentage commission in the pilot.
+• Buyer pays applicable delivery cost by default.
+• Seller/courier can choose automatic payout or manual withdrawal.
+• Only A vailable funds can be paid out.
+Earnings states:
+Pending → Secured → A vailable → Payout Processing → Paid Out.
+Delivery and buyer protection
+• QR confirms custody transfer.
+• Recipient OTP confirms delivery .
+• OTP proves delivery , not product satisfaction.
+• OTP delivery starts a 24-hour issue window .
+• A qualifying dispute freezes affected seller funds.
+• Seller gets the first opportunity to resolve.
+• Unresolved cases escalate to Operations.
+• Courier earnings are not automatically frozen for a product-quality complaint if OTP-confirmed delivery was success-
+fully completed.
+Returns
+Responsibility determines cost:
+• Seller fault → seller pays.
+• Buyer change-of-mind/buyer fault where allowed → buyer pays.
+• Hub/courier fault → logistics incident; buyer and seller should not be charged as though either caused it.
+• Unclear responsibility → Operations decision.
+Authentication
+The group rejected student-number/email-format validation as suﬀicient identity proof.
+Production target:
+Continue with Eduvos → Microsoft/Entra → existing Authenticator/MF A → signed identity response → active-student
+verification → V ossie session.
+Prototype target:
+Simulate the exact institutional flow clearly as sandbox/demo authentication. Do not imply a live Eduvos integration exists
+before formal approval.
+No V ossie-specific F ace ID/passkey requirement was retained for the prototype.
+Cross-campus transfer
+A hybrid model was locked:
+• Prefer pooled hub-to-hub movement when route volume justifies it.
+• Route through nearest viable campuses, not merely nearest coordinates.
+1
+• Every leg uses manifests and QR custody .
+• Buyer sees one continuous shipment journey .
+• Offer a third-party courier alternative when hub pooling is ineﬀicient or too slow.
+• Long-distance transfer eligibility is not automatically granted to ordinary local student couriers.
+Buyer Requests
+Requests became a first-class marketplace capability:
+Buyer chooses category , describes need, adds timing/campus/budget and optional media → eligible sellers are notified →
+sellers respond with offers → buyer accepts one → request converts into normal order/booking flow.
+The product avoids a blind auction race. Offers are structured and comparable.
+T wo-app structure
+App 1 — Marketplace
+Buyer, Seller, Courier.
+App 2 — Operations/business side
+Campus Hub, T ransfers, Seller Studio where relevant, Incubation and Platform Operations/Admin.
+Operations is permissioned, not a universal super-admin experience.
+Seller Studio and timetable
+Student sellers can upload a timetable PDF or add availability manually . The system extracts class times for convenience,
+then the student confirms/edits availability before it becomes authoritative. The original timetable need not be retained
+longer than required for the workflow.
+Inventory
+T op-level categories were kept deliberately limited and expanded with subcategories/attributes:
+• F ood & Drinks
+• Essentials
+• F ashion & Lifestyle
+• Services
+• Rentals
+• Digital
+• feature-gated future categories
+Category-specific schemas reveal only relevant fields.
+Digital inventory
+Potential categories include notes, study guides, templates and other legitimate digital products. Past exams or institutional
+material require stronger ownership/integrity moderation rather than being automatically accepted.
+Listing assets
+Sellers fill structured fields; V ossie renders consistent buyer-facing cards/pages. Typical buyer presentation includes im-
+age/video, title, seller, price, promotion/special state, description, variants/attributes and category-specific transaction
+controls.
+Marketplace Reels
+Reels were locked as a commerce-discovery tab:
+• 15–30 second seller video.
+• V ertical swipe feed.
+• Linked seller identity .
+2
+• Caption.
+• Pinned product/service rail.
+• Direct product/cart action.
+• Seller analytics for views/taps/orders.
+• Reporting/moderation.
+• No need to become a generic social network.
+F ood trust/compliance
+Any Seller can use the F ood category; food is not a separate account type. V ossie adds food-specific fields, seller responsibility ,
+ingredients/allergens, preparation information, food reviews and incident/reporting paths. The platform should not rely
+on “buy at your own risk” as its main legal/trust model.
+Communications
+One transaction/event timeline drives notifications. Key milestones create in-app/push/email events. Receipts remain
+accessible under Orders. Critical transactional communications are not treated as marketing preferences.
+Prototype integrations
+Prototype and production are separated:
+• Maps/GPS: real UI and simulated movement in prototype; approved provider/live device location in production.
+• Payments: sandbox/provider adapter in prototype; approved PSP with live merchant credentials in production.
+• Identity: simulated institutional flow in prototype; approved Eduvos/Microsoft federation in production.
+• Notifications: demo/sandbox delivery in prototype; production provider later.
+3

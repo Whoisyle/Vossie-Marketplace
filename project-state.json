@@ -1,16 +1,114 @@
 {
   "schema_version": 3,
   "project": "Vossie",
-  "status": "BLOCKED",
+  "status": "ACTIVE",
   "orchestrator": "atlas",
-  "canonical_refs": [],
+  "canonical_refs": [
+    {
+      "ref_id": "REF-INDEX",
+      "path": "docs/specs/README.md",
+      "scope": "package index, source-of-truth order, layout"
+    },
+    {
+      "ref_id": "REF-LOCKED",
+      "path": "docs/specs/knowledge-base/00_START_HERE/04_LOCKED_DECISIONS.pdf",
+      "scope": "locked product/money/auth/design/engineering decisions",
+      "precedence": 1
+    },
+    {
+      "ref_id": "REF-OPEN",
+      "path": "docs/specs/knowledge-base/00_START_HERE/05_OPEN_DECISIONS.pdf",
+      "scope": "decisions intentionally not locked"
+    },
+    {
+      "ref_id": "REF-KB",
+      "path": "docs/specs/knowledge-base/",
+      "scope": "curated knowledge base by domain; start at 00_START_HERE"
+    },
+    {
+      "ref_id": "REF-BRAND",
+      "path": "docs/specs/canonical/Vossie_Marketplace_Brand_Identity.pptx",
+      "scope": "logo, colour, typography, voice",
+      "precedence": 2
+    },
+    {
+      "ref_id": "REF-BRAND-KB",
+      "path": "docs/specs/knowledge-base/06_UIUX_BRAND/",
+      "scope": "brand hex values, design language, motion, responsive PWA",
+      "precedence": 2
+    },
+    {
+      "ref_id": "REF-V12",
+      "path": "docs/specs/canonical/Vossie_Platform_Strategy_Differentiation_System_Blueprint_v12.pdf",
+      "scope": "product policy and system model",
+      "precedence": 3
+    },
+    {
+      "ref_id": "REF-SCREENMAP",
+      "path": "docs/specs/canonical/Vossie_177_Screen_Map.pdf",
+      "scope": "177-screen inventory by workspace",
+      "precedence": 4
+    },
+    {
+      "ref_id": "REF-GUIDE",
+      "path": "docs/specs/canonical/Vossie_Developer_Architecture_and_Build_Guide.pdf",
+      "scope": "engineering chapters 01-33 (proposal) and per-screen contract appendix A01-X15",
+      "precedence": 4
+    },
+    {
+      "ref_id": "REF-DS1",
+      "path": "docs/specs/canonical/Vossie_Developer_Series_1_v3.pdf",
+      "scope": "PWA decision, multi-agent model, Decision 03 locked stack",
+      "precedence": 5
+    },
+    {
+      "ref_id": "REF-DS2",
+      "path": "docs/specs/canonical/Vossie_Developer_Series_2_v1.pdf",
+      "scope": "Figma and runtime motion production",
+      "precedence": 6
+    },
+    {
+      "ref_id": "REF-DS3",
+      "path": "docs/specs/canonical/Vossie_Developer_Series_3_Draft_2_Final_Workflow.pdf",
+      "scope": "agentic SDLC and GitHub workflow",
+      "precedence": 7
+    },
+    {
+      "ref_id": "REF-DS4",
+      "path": "docs/specs/canonical/Vossie_Developer_Series_4_Cinematic_Pitch_Production_Blueprint_v2.pdf",
+      "scope": "cinematic pitch production",
+      "precedence": 8
+    },
+    {
+      "ref_id": "REF-RESEARCH",
+      "path": "docs/specs/research/",
+      "scope": "research dossiers, business/marketing, Hack Jam timeline (reference only)",
+      "precedence": 9
+    },
+    {
+      "ref_id": "REF-VISUAL",
+      "path": "docs/specs/brand/",
+      "scope": "icon/wordmark photos, studio and prototype screenshots (reference only)",
+      "precedence": 9
+    },
+    {
+      "ref_id": "REF-TEXT",
+      "path": "docs/specs/text/",
+      "scope": "extracted text of every document for search/low-token reading"
+    },
+    {
+      "ref_id": "REF-STUDIO",
+      "url": "https://vossie-production-studio.paballokali11.chatgpt.site/",
+      "scope": "production design studio (brand tokens in use)"
+    }
+  ],
   "agents": {
     "atlas": {
-      "status": "BLOCKED",
+      "status": "ACTIVE",
       "role": "Engineering Orchestrator, Project Controller and GitHub Integration Coordinator"
     },
     "pixel": {
-      "status": "AVAILABLE",
+      "status": "ASSIGNED",
       "role": "Frontend and Product Interface Engineer"
     },
     "forge": {
@@ -95,7 +193,7 @@
       "task_id": "VOS-000",
       "title": "Initialize Vossie orchestration from canonical specifications",
       "owner_agent": "atlas",
-      "status": "BLOCKED",
+      "status": "DONE",
       "priority": 0,
       "objective": "Catalog canonical_refs, build the dependency/task graph and assign the first safe parallel specialist tasks without changing approved product scope.",
       "why_now": "No other task can be planned or assigned until canonical references are cataloged.",
@@ -103,7 +201,12 @@
         "DEC-001",
         "DEC-002"
       ],
-      "canonical_refs": [],
+      "canonical_refs": [
+        "REF-INDEX",
+        "REF-LOCKED",
+        "REF-GUIDE",
+        "REF-DS1"
+      ],
       "allowed_scope": [
         "project-state.json",
         ".vossie/**"
@@ -114,7 +217,7 @@
       ],
       "base_branch": "main",
       "base_sha": "",
-      "branch": "atlas/integration/2026-09-30-runtime-bootstrap",
+      "branch": "atlas/integration/2026-09-30-canonical-intake",
       "expected_files_or_artifacts": [
         "project-state.json (canonical_refs, tasks, dependencies)"
       ],
@@ -131,7 +234,320 @@
       "blocked_by": [
         "BLK-001"
       ],
-      "created_at": "2026-09-30T17:40:00Z"
+      "created_at": "2026-09-30T17:40:00Z",
+      "completed_at": "2026-09-30T18:45:00Z",
+      "completion_note": "Takes effect when the canonical-intake PR merges to main."
+    },
+    {
+      "task_id": "VOS-001",
+      "title": "Monorepo and adaptive PWA walking skeleton",
+      "owner_agent": "pixel",
+      "status": "ASSIGNED",
+      "priority": 1,
+      "objective": "Create the pnpm + Turborepo TypeScript monorepo with a Next.js App Router PWA app, shared config packages, test runners and a CI workflow, so every later task has a buildable base.",
+      "why_now": "Stage 1 foundation (REF-GUIDE ch.31); every other build task depends on a runnable workspace.",
+      "dependencies": [],
+      "canonical_refs": [
+        "REF-LOCKED",
+        "REF-KB:07_ENGINEERING/01_TECH_STACK.pdf",
+        "REF-KB:07_ENGINEERING/02_REPOSITORY_APP_ARCHITECTURE.pdf",
+        "REF-KB:07_ENGINEERING/05_CICD_TESTING_SECURITY_GATES.pdf",
+        "REF-DS1 (Decision 01 and Decision 03)",
+        "REF-KB:06_UIUX_BRAND/05_RESPONSIVE_PWA_DEVICE_EXPERIENCE.pdf"
+      ],
+      "allowed_scope": [
+        "package.json",
+        "pnpm-workspace.yaml",
+        "pnpm-lock.yaml",
+        "turbo.json",
+        ".nvmrc",
+        ".gitignore",
+        ".env.example",
+        "apps/marketplace/**",
+        "packages/config/**",
+        ".github/workflows/**",
+        "docs/adr/0001-stack-and-workspace.md",
+        "README.md (setup section only)"
+      ],
+      "forbidden_scope": [
+        "supabase/**",
+        "packages/db/**",
+        "packages/ui/** beyond an empty placeholder",
+        "authentication or session logic",
+        "domain/business logic",
+        "screen implementations beyond a placeholder home route",
+        "project-state.json",
+        "docs/specs/**",
+        ".agents/**",
+        ".vossie/runtime/**"
+      ],
+      "base_branch": "main",
+      "base_sha": "tip of origin/main at claim time (must include the VOS-000 merge)",
+      "base_includes": [],
+      "branch": "agent/pixel/VOS-001-monorepo-walking-skeleton",
+      "expected_files_or_artifacts": [
+        "apps/marketplace (Next.js App Router, TypeScript strict, Tailwind CSS, web app manifest + icons placeholder)",
+        "packages/config (shared tsconfig/eslint/tailwind preset base)",
+        "root scripts: dev, lint, typecheck, test, test:e2e, build",
+        "Vitest unit smoke test and Playwright smoke test of the home route",
+        "GitHub Actions workflow running install/lint/typecheck/test/build on pull requests",
+        "ADR 0001 recording Node LTS, pnpm, Next.js and other resolved versions"
+      ],
+      "acceptance_criteria": [
+        "fresh clone: pnpm install && pnpm build succeeds",
+        "pnpm dev serves an installable PWA shell (manifest, theme colour #29475B, responsive viewport)",
+        "lint, typecheck, unit and e2e smoke tests pass locally and in CI",
+        "no secrets committed; .env.example lists names only",
+        "only one lockfile (pnpm)"
+      ],
+      "required_checks": [
+        "pnpm install --frozen-lockfile",
+        "pnpm lint",
+        "pnpm typecheck",
+        "pnpm test",
+        "pnpm build",
+        "python3 scripts/validate_agent_system.py",
+        "pnpm test:e2e"
+      ],
+      "handoff_path": ".vossie/handoffs/VOS-001/pixel.json",
+      "blocked_by": [],
+      "created_at": "2026-09-30T18:45:00Z"
+    },
+    {
+      "task_id": "VOS-002",
+      "title": "Vossie design tokens and core UI primitives",
+      "owner_agent": "pixel",
+      "status": "READY",
+      "priority": 2,
+      "objective": "Create packages/ui with brand colour/typography/radius/spacing tokens and the first accessible primitives the screen contracts rely on.",
+      "why_now": "REF-GUIDE ch.05 requires shared tokens and primitives before screen families; runs in parallel with VOS-003.",
+      "dependencies": [
+        "VOS-001"
+      ],
+      "canonical_refs": [
+        "REF-BRAND",
+        "REF-BRAND-KB:01_BRAND_IDENTITY.pdf",
+        "REF-BRAND-KB:02_DESIGN_LANGUAGE_PLATO_UBER.pdf",
+        "REF-GUIDE ch.05",
+        "REF-STUDIO",
+        "REF-VISUAL"
+      ],
+      "allowed_scope": [
+        "packages/ui/**",
+        "packages/config/tailwind preset (token wiring only)",
+        "apps/marketplace/app/(dev)/ui/** (component preview route)"
+      ],
+      "forbidden_scope": [
+        "motion/animation tokens and behaviours (Kinetic, later task)",
+        "logo artwork recreation (DEC-006)",
+        "screen implementations",
+        "supabase/**",
+        "packages/db/**",
+        "project-state.json",
+        "docs/specs/**",
+        ".agents/**",
+        ".vossie/runtime/**"
+      ],
+      "base_branch": "main",
+      "base_sha": "tip of origin/main at claim time (must include the VOS-000 merge)",
+      "base_includes": [],
+      "branch": "agent/pixel/VOS-002-design-tokens-primitives",
+      "expected_files_or_artifacts": [
+        "colour tokens: ivory #FAF8F2, navy #29475B, powder blue #AFCBDE, slate #567487, pale sage #DDE5D9, plus semantic status tokens with labels",
+        "typography/radius/spacing tokens",
+        "components: Button, Field, FormError, StatusBadge, BottomSheet, RoleNavigation (Radix/shadcn-derived)",
+        "preview route and unit tests"
+      ],
+      "acceptance_criteria": [
+        "tokens match REF-BRAND-KB hex values exactly; navy used for text and primary actions, powder blue as surface only",
+        "every status colour is paired with a text label",
+        "components keyboard- and screen-reader-accessible (WCAG 2.2 AA contrast on ivory)",
+        "text 'vossie' wordmark stand-in clearly marked pending DEC-006"
+      ],
+      "required_checks": [
+        "pnpm install --frozen-lockfile",
+        "pnpm lint",
+        "pnpm typecheck",
+        "pnpm test",
+        "pnpm build",
+        "python3 scripts/validate_agent_system.py"
+      ],
+      "handoff_path": ".vossie/handoffs/VOS-002/pixel.json",
+      "blocked_by": [],
+      "created_at": "2026-09-30T18:45:00Z"
+    },
+    {
+      "task_id": "VOS-003",
+      "title": "Supabase local project and identity foundation schema",
+      "owner_agent": "schema",
+      "status": "READY",
+      "priority": 2,
+      "objective": "Initialise the local Supabase project and packages/db (Drizzle), and create the identity-foundation schema, RLS and deterministic seed data.",
+      "why_now": "Stage 1 foundation requires auth, memberships and migrations (REF-GUIDE ch.31); runs in parallel with VOS-002.",
+      "dependencies": [
+        "VOS-001"
+      ],
+      "canonical_refs": [
+        "REF-LOCKED",
+        "REF-KB:07_ENGINEERING/01_TECH_STACK.pdf",
+        "REF-GUIDE ch.07-09",
+        "REF-KB:02_IDENTITY_SECURITY/",
+        "REF-GUIDE appendix A01-A12, U01-U04 (data/authority sections)"
+      ],
+      "allowed_scope": [
+        "supabase/**",
+        "packages/db/**",
+        "docs/database/**"
+      ],
+      "forbidden_scope": [
+        "apps/**",
+        "packages/ui/**",
+        "Supabase Auth service/client integration code (Forge)",
+        "payments, orders or logistics tables",
+        "real student or institutional data",
+        "project-state.json",
+        "docs/specs/**",
+        ".agents/**",
+        ".vossie/runtime/**"
+      ],
+      "base_branch": "main",
+      "base_sha": "tip of origin/main at claim time (must include the VOS-000 merge)",
+      "base_includes": [],
+      "branch": "agent/schema/VOS-003-supabase-identity-schema",
+      "expected_files_or_artifacts": [
+        "supabase/config.toml and migrations",
+        "tables: campuses, profiles (1:1 auth.users), memberships/capabilities (buyer base; seller/courier activation; staff roles), verification_requests",
+        "RLS policies with deny-by-default",
+        "deterministic seed: fake campuses and students",
+        "Drizzle schema + typed client in packages/db"
+      ],
+      "acceptance_criteria": [
+        "supabase db reset applies all migrations and seeds cleanly",
+        "RLS tests prove a user cannot read/modify another user's profile, memberships or verification requests",
+        "staff roles cannot be self-assigned",
+        "no institutional passwords/Authenticator secrets stored (REF-LOCKED)",
+        "schema documented in docs/database/"
+      ],
+      "required_checks": [
+        "pnpm install --frozen-lockfile",
+        "pnpm lint",
+        "pnpm typecheck",
+        "pnpm test",
+        "pnpm build",
+        "python3 scripts/validate_agent_system.py",
+        "supabase db reset",
+        "RLS test suite"
+      ],
+      "handoff_path": ".vossie/handoffs/VOS-003/schema.json",
+      "blocked_by": [],
+      "created_at": "2026-09-30T18:45:00Z"
+    },
+    {
+      "task_id": "VOS-004",
+      "title": "Supabase Auth integration and server-side session resolution",
+      "owner_agent": "forge",
+      "status": "PLANNED",
+      "priority": 3,
+      "objective": "Integrate Supabase Auth (email/password, email verification, MFA challenge), resolve sessions and memberships server-side, and expose the session contract used by A01-A09.",
+      "why_now": "Access screens (VOS-005) need a real session contract; follows the VOS-003 schema.",
+      "dependencies": [
+        "VOS-003"
+      ],
+      "canonical_refs": [
+        "REF-GUIDE ch.07-08",
+        "REF-GUIDE appendix A01-A09",
+        "REF-KB:02_IDENTITY_SECURITY/01_AUTHENTICATION_EDUVOS_MFA.pdf",
+        "REF-LOCKED (Authentication)"
+      ],
+      "allowed_scope": [
+        "apps/marketplace/server/**",
+        "apps/marketplace/app/api/**",
+        "packages/contracts/** (session/auth DTOs)"
+      ],
+      "forbidden_scope": [
+        "database schema/RLS (Schema)",
+        "UI screens (Pixel)",
+        "institutional SSO/Eduvos live integration (simulated adapter is a separate Bridge task)",
+        "project-state.json",
+        "docs/specs/**",
+        ".agents/**",
+        ".vossie/runtime/**"
+      ],
+      "base_branch": "main",
+      "base_sha": "tip of origin/main at claim time (must include the VOS-000 merge)",
+      "base_includes": [],
+      "branch": "agent/forge/VOS-004-supabase-auth-session",
+      "expected_files_or_artifacts": [
+        "auth route handlers/server actions",
+        "session resolution with server-side membership checks",
+        "Zod DTOs in packages/contracts"
+      ],
+      "acceptance_criteria": [
+        "Atlas refines acceptance criteria when VOS-003 is accepted"
+      ],
+      "required_checks": [
+        "pnpm install --frozen-lockfile",
+        "pnpm lint",
+        "pnpm typecheck",
+        "pnpm test",
+        "pnpm build",
+        "python3 scripts/validate_agent_system.py"
+      ],
+      "handoff_path": ".vossie/handoffs/VOS-004/forge.json",
+      "blocked_by": [],
+      "created_at": "2026-09-30T18:45:00Z"
+    },
+    {
+      "task_id": "VOS-005",
+      "title": "Access screens A01-A09",
+      "owner_agent": "pixel",
+      "status": "PLANNED",
+      "priority": 4,
+      "objective": "Implement access/authentication screens A01-A09 against the VOS-004 session contract and VOS-002 primitives.",
+      "why_now": "Stage 1 deliverable (REF-GUIDE ch.31: A01-A09, U01-U06).",
+      "dependencies": [
+        "VOS-002",
+        "VOS-004"
+      ],
+      "canonical_refs": [
+        "REF-GUIDE appendix A01-A09",
+        "REF-BRAND",
+        "REF-VISUAL:prototype-login-showcase.jpeg"
+      ],
+      "allowed_scope": [
+        "apps/marketplace/app/(access)/**"
+      ],
+      "forbidden_scope": [
+        "auth server logic",
+        "schema",
+        "passkey A10 (capability-gated, not in scope)",
+        "project-state.json",
+        "docs/specs/**",
+        ".agents/**",
+        ".vossie/runtime/**"
+      ],
+      "base_branch": "main",
+      "base_sha": "tip of origin/main at claim time (must include the VOS-000 merge)",
+      "base_includes": [],
+      "branch": "agent/pixel/VOS-005-access-screens",
+      "expected_files_or_artifacts": [
+        "routes /access/a01-a09 with screen IDs in route metadata"
+      ],
+      "acceptance_criteria": [
+        "Atlas refines acceptance criteria when VOS-002 and VOS-004 are accepted"
+      ],
+      "required_checks": [
+        "pnpm install --frozen-lockfile",
+        "pnpm lint",
+        "pnpm typecheck",
+        "pnpm test",
+        "pnpm build",
+        "python3 scripts/validate_agent_system.py",
+        "pnpm test:e2e"
+      ],
+      "handoff_path": ".vossie/handoffs/VOS-005/pixel.json",
+      "blocked_by": [],
+      "created_at": "2026-09-30T18:45:00Z"
     }
   ],
   "dependencies": [
@@ -140,6 +556,31 @@
       "depends_on": [
         "DEC-001",
         "DEC-002"
+      ]
+    },
+    {
+      "task_id": "VOS-002",
+      "depends_on": [
+        "VOS-001"
+      ]
+    },
+    {
+      "task_id": "VOS-003",
+      "depends_on": [
+        "VOS-001"
+      ]
+    },
+    {
+      "task_id": "VOS-004",
+      "depends_on": [
+        "VOS-003"
+      ]
+    },
+    {
+      "task_id": "VOS-005",
+      "depends_on": [
+        "VOS-002",
+        "VOS-004"
       ]
     }
   ],
@@ -153,7 +594,9 @@
       ],
       "raised_by": "atlas",
       "raised_at": "2026-09-30T17:40:00Z",
-      "status": "OPEN"
+      "status": "RESOLVED",
+      "resolved_at": "2026-09-30T18:45:00Z",
+      "resolution": "Canonical specification package committed under docs/specs/ (DEC-001); stack confirmed (DEC-002)."
     }
   ],
   "decisions_required": [
@@ -164,16 +607,16 @@
       "blocks": [
         "BLK-001"
       ],
-      "status": "OPEN"
+      "status": "RESOLVED",
+      "resolution": "Human supplied the specification package on 2026-09-30; committed under docs/specs/ and cataloged in canonical_refs. Per-screen contracts: REF-GUIDE appendix."
     },
     {
       "decision_id": "DEC-002",
       "owner": "human",
       "question": "Confirm the application stack/tooling for the adaptive single-deployment PWA (framework, package manager, hosting). Supabase is referenced by AGENT-CONTRACTS.md; the frontend framework and deployment target are not yet approved in-repo.",
-      "blocks": [
-        "foundations-task-planning"
-      ],
-      "status": "OPEN"
+      "blocks": [],
+      "status": "RESOLVED",
+      "resolution": "Locked stack per REF-LOCKED, REF-KB 07_ENGINEERING/01_TECH_STACK and REF-DS1 Decision 03: TypeScript, Next.js + React PWA, Tailwind + Radix/shadcn-derived UI, TypeScript modular monolith, PostgreSQL on Supabase, Drizzle, Zod, Supabase Realtime, Vitest + Playwright, pnpm + Turborepo monorepo, GitHub Actions, Vercel + Supabase. Confirmed to human 2026-09-30 without objection."
     },
     {
       "decision_id": "DEC-003",
@@ -182,6 +625,38 @@
       "blocks": [],
       "status": "RESOLVED",
       "resolution": "Keep the ZIP; kept in sync with the installed runtime (human: 'update everything', 2026-09-30)."
+    },
+    {
+      "decision_id": "DEC-004",
+      "owner": "atlas",
+      "question": "REF-GUIDE ch.02-04 proposes Expo/React Native clients, a NestJS API and a BullMQ/Redis worker; REF-LOCKED and REF-DS1 lock a single adaptive Next.js PWA on Supabase.",
+      "blocks": [],
+      "status": "RESOLVED",
+      "resolution": "Locked decisions outrank the Guide (precedence 1 vs 4; the Guide labels itself a proposal). Build the single Next.js PWA with server-side route handlers/server actions; treat Guide API endpoints as contract shapes, not a NestJS mandate. Human may override."
+    },
+    {
+      "decision_id": "DEC-005",
+      "owner": "atlas",
+      "question": "Prototype screenshots (brand/production-studio-overview.png, brand/prototype-login-showcase.jpeg) use a deep green primary, while the brand identity and the live production studio use navy #29475B.",
+      "blocks": [],
+      "status": "RESOLVED",
+      "resolution": "Brand identity (precedence 2) wins: navy #29475B primary on ivory #FAF8F2. Green screenshots are non-authoritative references. Human may override."
+    },
+    {
+      "decision_id": "DEC-006",
+      "owner": "human",
+      "question": "Supply the approved vector logo (wordmark + ss icon) and confirm the licensed UI typeface.",
+      "blocks": [],
+      "status": "OPEN",
+      "note": "Does not block Stage 1; prototypes use a marked text stand-in (REF-GUIDE ch.01)."
+    },
+    {
+      "decision_id": "DEC-007",
+      "owner": "human",
+      "question": "Business/provider decisions in REF-OPEN and REF-GUIDE ch.33: pilot campuses/hubs, identity federation, payment provider and funds custody, fee schedule, food rules, retention, hosting region, support ownership.",
+      "blocks": [],
+      "status": "OPEN",
+      "note": "Does not block Stage 1; Stage 2 uses sandbox adapters and no real-money pilot starts until resolved."
     }
   ],
   "artifacts": [],
@@ -193,10 +668,10 @@
   },
   "integration": {
     "protected_branch": "main",
-    "integration_branch": "atlas/integration/2026-09-30-runtime-bootstrap",
+    "integration_branch": "atlas/integration/2026-09-30-canonical-intake",
     "pull_request": null,
     "merge_authority": "human"
   },
   "last_updated_by": "atlas",
-  "last_updated_at": "2026-09-30T18:30:00Z"
+  "last_updated_at": "2026-09-30T18:45:00Z"
 }

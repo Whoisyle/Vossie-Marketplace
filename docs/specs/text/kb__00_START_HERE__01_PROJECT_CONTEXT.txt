@@ -1,0 +1,37 @@
+Project Context
+Project Context
+Origin
+V ossie began as an Eduvos student marketplace concept and evolved through the EduHackers research/build process into
+a much broader campus-commerce operating system.
+The project combines:
+• verified student identity ,
+• local campus buying and selling,
+• student courier participation,
+• campus hub custody and collection,
+• cross-campus parcel movement,
+• seller analytics and incubation support,
+• operations/admin tooling,
+• payments, disputes and auditability ,
+• short-form commerce discovery through Marketplace Reels,
+• buyer-side Requests when a needed product/service is not listed.
+Core differentiation
+The strongest thesis is not “marketplace for students. ” The stronger combination is:
+verified campus identity + multi-role student participation + campus logistics/custody + cross-campus
+transfers + operations tooling + demand intelligence for student entrepreneurship.
+Current project state
+The work now exists across strategy PDF s, a 177-screen UI/UX atlas, developer guides, motion specifications, business
+research, marketing materials and a cinematic pitch blueprint.
+The project should be treated as a system with a canonical hierarchy of decisions. Older prototypes and older PDF s are
+useful references, but newer confirmed decisions override them.
+Prototype philosophy
+The demo should feel real and interactive:
+• real state transitions inside the prototype,
+• simulated/sandbox external integrations,
+• real cross-device responsive behaviour,
+• no false claims of live Eduvos, payment-provider or courier-provider connectivity ,
+• deterministic demo data and reset paths,
+• polished motion and microinteractions.
+Zero-budget principle
+Use free tiers, local simulation and open/free tools for the prototype. Keep all provider-specific integrations behind adapters
+so the implementation can switch later without rebuilding the product domain.
+1

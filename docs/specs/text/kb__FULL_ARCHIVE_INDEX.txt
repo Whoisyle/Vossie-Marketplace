@@ -1,0 +1,20 @@
+V ossie Marketplace — F ull Markdown Archive Index
+This archive is the complete recoverable Markdown transfer pack for V ossie Marketplace / EduHackers 2.0.
+Sections
+• 00_START_HERE — fresh-account migration and current truth
+• 01_PRODUCT — product vision, roles, journeys, screens, Requests, Reels
+• 02_IDENTITY_SECURITY — Eduvos identity , MF A, progressive roles, RBAC/privacy/audit
+• 03_COMMERCE — money , payments, disputes, inventory , food, communications
+• 04_LOGISTICS — courier, custody , hubs, transfers, maps/GPS
+• 05_OPERATIONS — Seller Studio, Incubation, Operations, support/security
+• 06_UIUX_BRAND — brand, Plato/Uber design language, Figma, motion, responsive PW A
+• 07_ENGINEERING — stack, repository , agentic workflow, CI/CD, integrations
+• 08_BUSINESS_MARKETING — business/market thesis, GTM, team roles
+• 09_PITCH_MEDIA — cinematic pitch and W ork handoff
+• 10_REFERENCE — glossary , timeline, source index, migration checklist
+• 11_HISTORY — recovered project evolution and decision history
+• 12_SOURCE_SUMMARIES — one Markdown summary per major source artifact
+Archive integrity
+This pack preserves every recoverable product decision and artifact relationship available in the current project context. It
+does not fabricate verbatim text for historical chat messages that are no longer directly retrievable.
+1

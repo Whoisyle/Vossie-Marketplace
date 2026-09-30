@@ -1,0 +1,28 @@
+New ChatGPT Account Bootstrap Checklist
+New ChatGPT Account Bootstrap Checklist
+Use this when moving to a clean account.
+Upload first
+1. This complete Markdown ZIP or folder.
+2. Brand Identity .
+3. V12 Strategy Blueprint.
+4. F ull UI/UX Page Architecture + 177 Screen Map.
+5. Developer Series 1–4.
+6. Motion showcase.
+7. Current Figma link/file.
+8. Current working prototype link if still relevant.
+First message
+Paste the prompt from 00_START_HERE/02_MASTER_CONTEXT_TRANSFER_PROMPT.md.
+Then ask the new account to
+• read every Markdown file,
+• output a one-page project-state summary ,
+• identify conflicts/open decisions,
+• confirm source-precedence rules,
+• avoid changing anything until it can reproduce the current two-app architecture, money flow, auth target, cross-
+campus model, Reels, Requests and agentic workflow accurately .
+F or W ork mode
+T ell W ork which phase it is executing: Figma production, dev-environment setup, app implementation or cinematic pro-
+duction. Do not give a vague “continue V ossie” prompt in a brand-new workspace.
+F or repo use
+Copy this knowledge base into /docs/vossie/ or .vossie/knowledge/ so Cursor and VS Code agents can read durable
+project context.
+1

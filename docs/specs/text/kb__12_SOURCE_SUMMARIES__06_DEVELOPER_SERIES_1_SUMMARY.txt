@@ -1,0 +1,5 @@
+Source Summary — Developer Series 1
+Series 1 defines: - single-deployment adaptive PW A, - one URL/QR across devices, - core technical stack, - modular backend
+direction, - GitHub monorepo, - Cursor/VS Code multi-agent development principle, - provider-adapter boundaries, - and
+prototype deployment architecture.
+1

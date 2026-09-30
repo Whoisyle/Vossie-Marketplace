@@ -1,0 +1,7 @@
+Source Summary — Developer Series 2
+Series 2 defines the design production pipeline:
+Specifications → Figma design system → reusable screen families → responsive states → motion specification → Cursor
+implementation → VS Code QA.
+Figma is the UI/UX source of truth. Motion.dev/CSS is the runtime interaction layer. Motion.so is optional and cannot
+be a required paid dependency .
+1

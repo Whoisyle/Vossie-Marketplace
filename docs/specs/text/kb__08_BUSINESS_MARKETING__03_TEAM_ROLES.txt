@@ -1,0 +1,15 @@
+EduHackers T eam Roles
+EduHackers T eam Roles
+Current roles captured in the project:
+• Oratile Modise — UI/UX Designer
+• Babalo Kali — Developer & Research Lead
+• Malindi Mpumelelo — Product Lead
+• Danny Mohale — Project Manager & Pitch Lead
+• Babalo Kali + Danny Mohale — Business Analysts & Marketing Leads
+Film/pitch mapping
+• Malindi: fragmented campus needs become coherent product structure.
+• Oratile: product structure becomes design system, wireframes and refined UI.
+• Babalo: research becomes architecture, engineering, agents, testing and deployment.
+• Danny: workstreams converge through project management, then Danny leads the live product pitch.
+• Babalo + Danny: business analysis and marketing turn platform signals into positioning and growth narrative.
+1
