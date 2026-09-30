@@ -12,6 +12,7 @@
   "forbidden_scope": [],
   "base_branch": "main",
   "base_sha": "",
+  "base_includes": [],
   "branch": "agent/<agent>/VOS-000-slug",
   "expected_files_or_artifacts": [],
   "acceptance_criteria": [],
