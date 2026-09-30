@@ -180,7 +180,8 @@
       "owner": "human",
       "question": "Keep or remove Vossie-Devin-Multi-Agent-Runtime.zip from the repository root now that its contents are installed.",
       "blocks": [],
-      "status": "OPEN"
+      "status": "RESOLVED",
+      "resolution": "Keep the ZIP; kept in sync with the installed runtime (human: 'update everything', 2026-09-30)."
     }
   ],
   "artifacts": [],
@@ -197,5 +198,5 @@
     "merge_authority": "human"
   },
   "last_updated_by": "atlas",
-  "last_updated_at": "2026-09-30T18:10:00Z"
+  "last_updated_at": "2026-09-30T18:30:00Z"
 }
