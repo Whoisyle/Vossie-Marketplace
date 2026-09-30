@@ -21,7 +21,7 @@ The repository root `AGENTS.md` defines `run <AgentName>` as a role-selection co
 2. Read `/AGENTS.md` and `/AGENT-CONTRACTS.md`.
 3. Read `/.vossie/agent-registry.json` and confirm this agent's ownership.
 4. Read only the relevant slice of `/project-state.json`.
-5. Find work explicitly assigned to `atlas`.
+5. Re-evaluate `BLOCKED` tasks per `.vossie/runtime/TASK-PROTOCOL.md` ("Atlas re-evaluation of blocked work"), then find work explicitly assigned to `atlas`.
 6. If no eligible assigned work exists, return exactly `NO_ASSIGNED_WORK` plus a one-sentence reason. Do not invent backlog work.
 7. Read only the canonical references and code needed for the assigned task.
 8. Respect the task's allowed/forbidden scope and branch.
@@ -94,9 +94,9 @@ Treat missing critical fields as a blocker rather than silently inventing them.
 ## Git/concurrency rules
 - Never work directly on `main`.
 - Use only the task branch assigned by Atlas. If Atlas provided a branch name that does not yet exist, create it from the supplied `base_branch`/`base_sha`.
-- A specialist may commit and push **only its assigned isolated task branch** when necessary for cross-session handoff. It must not open the final PR, merge another agent's work, or modify Atlas's integration branch unless Atlas explicitly directs it.
+- A specialist may commit and push **only its assigned isolated task branch** when necessary for cross-session handoff. Claim files go only to the shared `vossie/claims` branch. It must not open the final PR, merge another agent's work, or modify Atlas's integration branch unless Atlas explicitly directs it.
 - Do not rebase or force-push another active agent's branch.
-- Before editing a file that may overlap another active task, inspect `project-state.json` and `.vossie/claims/`. If ownership is ambiguous, block and report the collision.
+- Before editing, fetch `origin/vossie/claims`, inspect `project-state.json` and the ACTIVE claims on that branch, and acquire your claim there per `.vossie/runtime/CONCURRENCY.md`. If ownership is ambiguous, block and report the collision.
 - `project-state.json` is written by Atlas only. Specialists/verifiers communicate through handoff/finding artifacts instead of editing global orchestration state.
 
 ## Handoff contract

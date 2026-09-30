@@ -56,7 +56,7 @@ Never use a lower-ranked source to silently override a higher-ranked source.
 **Atlas is the only normal writer of global orchestration state.**
 
 Specialists and verifiers consume assigned state and write:
-- claims under `.vossie/claims/`
+- claims under `.vossie/claims/` on the shared `vossie/claims` branch
 - handoffs under `.vossie/handoffs/`
 - independent findings/evidence under `.vossie/verification/`
 
@@ -71,11 +71,11 @@ Rules:
 - Atlas assigns isolated task branches.
 - Branch pattern: `agent/<agent>/<task-id>-<slug>`.
 - Atlas integration branches use `atlas/integration/<milestone-or-date>`.
-- A specialist may commit/push only its assigned isolated task branch for cross-session handoff.
+- A specialist may commit/push only its assigned isolated task branch for cross-session handoff, plus its own claim files on the shared `vossie/claims` branch.
 - Specialists never merge protected branches or open the final integration PR.
 - Do not force-push another agent's branch.
 - Do not edit another active task's owned files/contracts without Atlas resolving the collision.
-- Use `.vossie/claims/` and task scopes to avoid hidden overlap.
+- Acquire a claim on the shared `vossie/claims` branch before editing, per `.vossie/runtime/CONCURRENCY.md`, and use task scopes to avoid hidden overlap.
 
 ## Vossie architecture context
 

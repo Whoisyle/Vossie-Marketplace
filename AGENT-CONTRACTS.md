@@ -65,7 +65,7 @@ Atlas is its authoritative writer. Specialists/verifiers write scoped artifacts 
 
 - `main` remains protected by process.
 - Specialists use isolated assigned task branches.
-- Specialists may push only those task branches when cross-session handoff requires it.
+- Specialists may push only those task branches when cross-session handoff requires it, plus their own claim files on the shared `vossie/claims` branch.
 - Atlas performs integration and prepares the final PR.
 - Final protected-branch merge remains human.
 

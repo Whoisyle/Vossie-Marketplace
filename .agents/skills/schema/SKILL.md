@@ -92,9 +92,9 @@ Treat missing critical fields as a blocker rather than silently inventing them.
 ## Git/concurrency rules
 - Never work directly on `main`.
 - Use only the task branch assigned by Atlas. If Atlas provided a branch name that does not yet exist, create it from the supplied `base_branch`/`base_sha`.
-- A specialist may commit and push **only its assigned isolated task branch** when necessary for cross-session handoff. It must not open the final PR, merge another agent's work, or modify Atlas's integration branch unless Atlas explicitly directs it.
+- A specialist may commit and push **only its assigned isolated task branch** when necessary for cross-session handoff. Claim files go only to the shared `vossie/claims` branch. It must not open the final PR, merge another agent's work, or modify Atlas's integration branch unless Atlas explicitly directs it.
 - Do not rebase or force-push another active agent's branch.
-- Before editing a file that may overlap another active task, inspect `project-state.json` and `.vossie/claims/`. If ownership is ambiguous, block and report the collision.
+- Before editing, fetch `origin/vossie/claims`, inspect `project-state.json` and the ACTIVE claims on that branch, and acquire your claim there per `.vossie/runtime/CONCURRENCY.md`. If ownership is ambiguous, block and report the collision.
 - `project-state.json` is written by Atlas only. Specialists/verifiers communicate through handoff/finding artifacts instead of editing global orchestration state.
 
 ## Handoff contract

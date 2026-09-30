@@ -121,7 +121,8 @@
       "acceptance_criteria": [
         "canonical_refs populated from committed/linked specs",
         "first specialist tasks recorded with full task-brief fields",
-        "scripts/validate_agent_system.py passes"
+        "scripts/validate_agent_system.py passes",
+        "shared vossie/claims coordination branch exists before the first specialist task is assigned"
       ],
       "required_checks": [
         "python3 scripts/validate_agent_system.py"
@@ -151,7 +152,8 @@
         "VOS-000"
       ],
       "raised_by": "atlas",
-      "raised_at": "2026-09-30T17:40:00Z"
+      "raised_at": "2026-09-30T17:40:00Z",
+      "status": "OPEN"
     }
   ],
   "decisions_required": [
@@ -161,7 +163,8 @@
       "question": "Provide the canonical Vossie specification package (177-screen map, screen specs, architecture/data decisions) by committing it to the repository (e.g. docs/specs/) or linking the authoritative source (e.g. Figma file URLs).",
       "blocks": [
         "BLK-001"
-      ]
+      ],
+      "status": "OPEN"
     },
     {
       "decision_id": "DEC-002",
@@ -169,13 +172,15 @@
       "question": "Confirm the application stack/tooling for the adaptive single-deployment PWA (framework, package manager, hosting). Supabase is referenced by AGENT-CONTRACTS.md; the frontend framework and deployment target are not yet approved in-repo.",
       "blocks": [
         "foundations-task-planning"
-      ]
+      ],
+      "status": "OPEN"
     },
     {
       "decision_id": "DEC-003",
       "owner": "human",
       "question": "Keep or remove Vossie-Devin-Multi-Agent-Runtime.zip from the repository root now that its contents are installed.",
-      "blocks": []
+      "blocks": [],
+      "status": "OPEN"
     }
   ],
   "artifacts": [],
@@ -192,5 +197,5 @@
     "merge_authority": "human"
   },
   "last_updated_by": "atlas",
-  "last_updated_at": "2026-09-30T17:55:00Z"
+  "last_updated_at": "2026-09-30T18:10:00Z"
 }
