@@ -1,0 +1,16 @@
+{
+  "task_id": "VOS-000",
+  "agent": "",
+  "status": "HANDOFF_READY",
+  "summary": "",
+  "branch": "",
+  "commit_sha": "",
+  "changed_files": [],
+  "artifacts": [],
+  "tests_or_checks": [],
+  "acceptance_criteria_results": [],
+  "risks_or_limitations": [],
+  "blockers": [],
+  "follow_ups": [],
+  "integration_notes": ""
+}

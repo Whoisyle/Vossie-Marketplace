@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "jev": {
+      "command": "node",
+      "args": [
+        ".gemini/jev-mcp/dist/index.js"
+      ]
+    }
+  }
+}

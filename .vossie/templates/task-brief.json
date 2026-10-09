@@ -1,0 +1,21 @@
+{
+  "task_id": "VOS-000",
+  "title": "",
+  "owner_agent": "",
+  "status": "ASSIGNED",
+  "priority": 100,
+  "objective": "",
+  "why_now": "",
+  "dependencies": [],
+  "canonical_refs": [],
+  "allowed_scope": [],
+  "forbidden_scope": [],
+  "base_branch": "main",
+  "base_sha": "",
+  "branch": "agent/<agent>/VOS-000-slug",
+  "expected_files_or_artifacts": [],
+  "acceptance_criteria": [],
+  "required_checks": [],
+  "handoff_path": ".vossie/handoffs/VOS-000/<agent>.json",
+  "created_at": null
+}

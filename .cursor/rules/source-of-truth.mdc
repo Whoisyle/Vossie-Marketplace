@@ -1,0 +1,12 @@
+---
+description: Knowledge precedence and conflict handling
+alwaysApply: true
+---
+
+# Source of truth
+
+Follow `docs/INDEX.md`. Precedence: locked decisions → product → architecture → UI/UX → brand → developer series → implementation → historical.
+
+If documents conflict, flag the conflict. Do not silently choose.
+
+This repo may lack approved specs. Missing spec ≠ license to invent a new product.

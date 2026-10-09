@@ -1,0 +1,15 @@
+{
+  "finding_id": "FIND-000",
+  "task_id": "VOS-000",
+  "verifier": "",
+  "severity": "MEDIUM",
+  "status": "OPEN",
+  "requirement_or_boundary": "",
+  "summary": "",
+  "evidence": [],
+  "reproduction_steps": [],
+  "expected": "",
+  "actual": "",
+  "recommended_owner": "",
+  "retest_required": true
+}

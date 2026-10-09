@@ -1,0 +1,35 @@
+# Secrets and local env
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+auth.json
+
+# Dependencies and build
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+.turbo/
+.vercel/
+
+# Tooling
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/README.md
+
+# Python
+__pycache__/
+.venv/
+
+# Snapshots (local AI tooling)
+.snapshots/

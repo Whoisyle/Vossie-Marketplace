@@ -1,0 +1,27 @@
+---
+description: Shared Vossie engineering rules for every agent
+alwaysApply: true
+---
+
+# Shared engineering rules
+
+1. Repository is the engineering source of truth.
+2. Never fabricate successful test results.
+3. Never claim something works without verification.
+4. Never silently remove requirements.
+5. Never expose secrets.
+6. Never commit credentials.
+7. Never weaken security to make a test pass.
+8. Never bypass failing tests without documenting why.
+9. Never fake payment completion.
+10. Never fake custody/delivery completion.
+11. Never claim an external integration is live when using mocks.
+12. Prototype/sandbox behaviour must be clearly separated from production behaviour.
+13. Respect TypeScript strictness.
+14. Prefer reusable components.
+15. Maintain accessibility.
+16. Respect reduced-motion preferences.
+17. Maintain responsive behaviour.
+18. Update relevant documentation when architecture changes.
+19. Preserve Vossie naming conventions.
+20. Preserve locked product decisions unless explicitly instructed otherwise.

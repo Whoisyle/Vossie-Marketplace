@@ -1,0 +1,28 @@
+{
+  "name": "vossie-jev-mcp",
+  "version": "1.0.0",
+  "description": "Production-quality Jev decision intelligence MCP server for Gemini CLI and Antigravity",
+  "main": "dist/index.js",
+  "bin": {
+    "jev-mcp": "dist/index.js",
+    "jev-hook-gate": "dist/gate/cli.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "node --test --import tsx test/*.test.ts",
+    "test:unit": "node --test --import tsx test/client.test.ts test/router.test.ts test/approver.test.ts test/validator.test.ts test/scorer.test.ts test/hook-interceptor.test.ts",
+    "test:integration": "node --test --import tsx test/integration.test.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}
