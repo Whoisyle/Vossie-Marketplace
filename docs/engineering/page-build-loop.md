@@ -9,6 +9,18 @@ Every page supplied by the project owner follows one repeatable loop:
 5. Verify the saved source change and rendered page in Chrome.
 6. Update the existing Appetize Vossie build using the finished iOS Simulator artifact, then confirm the same Appetize link shows the completed page.
 7. Run Guardian review before committing the page.
+8. Commit the approved page and its documentation with a focused Conventional Commit. Confirm `git status --short` contains only intentional changes before committing; never stage `.env`, `.local/`, credentials, or generated evidence unless explicitly approved.
+
+The final handoff for each page includes the commit hash, verification result, EAS build ID, Appetize link, and any visual verification caveat. A typical commit sequence is:
+
+```powershell
+git status --short
+git add <intended-page-files>
+git commit -m "feat: build <page name> screen"
+git status --short
+```
+
+The loop is complete only after the commit succeeds and the post-commit status check confirms that excluded local files remain untracked and unstaged.
 
 Use the scaffold helper when a page arrives:
 
