@@ -40,6 +40,8 @@ The EAS project is owned by [`paballokalis-team`](https://expo.dev/accounts/paba
 
 Vossie does not use a local Android emulator. Remote iOS and Android development both use an EAS Simulator session connected to `npm run start:remote`; the same Metro tunnel and Fast Refresh loop serves either platform. The `android-remote` EAS profile produces the APK required by a remote Android session when that platform is requested. Do not start a remote session while the account availability check is false.
 
+For the Appetize page, run `npm run update:appetize -- -BuildId <finished-ios-simulator-build-id>`. The helper validates the EAS artifact is the Vossie iOS Simulator build before updating the existing Appetize app. `APPETIZE_API_TOKEN` must remain in the ignored local `.env` file or process environment.
+
 Before handoff:
 
 ```powershell
