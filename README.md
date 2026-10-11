@@ -42,6 +42,8 @@ Vossie does not use a local Android emulator. Remote iOS and Android development
 
 For the Appetize page, run `npm run update:appetize -- -BuildId <finished-ios-simulator-build-id>`. The helper validates the EAS artifact is the Vossie iOS Simulator build before updating the existing Appetize app. `APPETIZE_API_TOKEN` must remain in the ignored local `.env` file or process environment.
 
+Each supplied page is decomposed and scaffolded with `npm run scaffold:page -- -PageName <name> -AssetName "asset one,asset two"`; see [`docs/engineering/page-build-loop.md`](docs/engineering/page-build-loop.md) for the complete Chrome/Appetize verification loop and page-local asset convention.
+
 Before handoff:
 
 ```powershell

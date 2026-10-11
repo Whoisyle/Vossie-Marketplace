@@ -9,6 +9,7 @@
     "start:dev-client": "expo start --dev-client",
     "start:remote": "cross-env EXPO_UNSTABLE_TUNNEL_V2=1 expo start --dev-client --tunnel",
     "update:appetize": "powershell -ExecutionPolicy Bypass -File scripts/update-appetize.ps1",
+    "scaffold:page": "powershell -ExecutionPolicy Bypass -File scripts/scaffold-page.ps1",
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
