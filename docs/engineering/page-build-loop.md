@@ -7,7 +7,7 @@ Every page supplied by the project owner follows one repeatable loop:
 3. Implement the screen and route in the approved Expo structure without inventing product behavior that is not in the supplied reference or canonical specification.
 4. Run lint, strict TypeScript, tests, static web export, and Expo Doctor.
 5. Verify the saved source change and rendered page in Chrome.
-6. Update the existing Appetize Vossie build using the finished iOS Simulator artifact, then confirm the same Appetize link shows the completed page.
+6. Build the `ios-appetize` profile (an embedded-JS iOS Simulator build, not the Metro-only `ios-simulator` development client), update the existing Appetize Vossie build, then confirm the same Appetize link shows the completed page.
 7. Run Guardian review before committing the page.
 8. Commit the approved page and its documentation with a focused Conventional Commit. Confirm `git status --short` contains only intentional changes before committing; never stage `.env`, `.local/`, credentials, or generated evidence unless explicitly approved.
 
