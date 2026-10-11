@@ -17,22 +17,22 @@ When documents conflict, **stop and report the conflict**. Do not silently pick 
 7. Existing implementation — application source in this repository
 8. Historical documents — older revisions, snapshots, superseded drafts
 
-## Current repository status (bootstrap)
+## Current repository status
 
-As of engineering bootstrap, this repository contains **no locked product, architecture, or UI specification** and **no application source** beyond the initial README. Agents must treat product behaviour as **unspecified until documents or code exist**.
+ADR 0001 and the application-foundation document approve a universal Expo engineering foundation. A product-neutral application shell now exists. Product behaviour remains **unspecified** until the canonical product and screen specifications are committed or linked.
 
 ## Where to look
 
 | Domain | Path | Status |
 |--------|------|--------|
 | Product | `docs/product/` | Reserved; empty of approved specs |
-| Architecture | `docs/architecture/` | Reserved; empty of approved specs |
+| Architecture | `docs/architecture/` | **Foundation approved**; domain architecture pending |
 | UI/UX | `docs/ui-ux/` | Reserved; empty of approved specs |
 | Security | `docs/security/` | Reserved; engineering rules apply |
 | Commerce | `docs/commerce/` | Reserved |
 | Logistics | `docs/logistics/` | Reserved |
 | Operations | `docs/operations/` | Reserved |
-| Decisions | `docs/decisions/` | Reserved for ADRs / locked decisions |
+| Decisions | `docs/decisions/` | ADR 0001 accepted |
 | Engineering system | `docs/engineering/` | **Present** — agent, git, workflow, handoff |
 | Future VS Code verification | `docs/verification/` | Reserved; not active in Cursor |
 
@@ -45,8 +45,13 @@ As of engineering bootstrap, this repository contains **no locked product, archi
 - Git: `docs/engineering/git-workflow.md`
 - Cursor config inventory: `docs/engineering/cursor-configuration.md`
 
-## Command status (when application exists)
+## Application commands
 
-Until `package.json` exists, there are **no** project test, build, lint, or typecheck commands. Do not invent passing results.
-
-When those scripts exist, record them here and in root `AGENTS.md`.
+- Install: `npm ci`
+- Develop: `npm start`
+- Web: `npm run web`
+- Lint: `npm run lint`
+- Typecheck: `npm run typecheck`
+- Test: `npm test -- --runInBand`
+- Web export: `npm run export:web`
+- Full verification: `npm run verify`

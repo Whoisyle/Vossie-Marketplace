@@ -6,7 +6,7 @@ This file is the **portable** engineering contract for Cursor, Codex, and other 
 
 Vossie Marketplace is a campus marketplace product (buyer/seller, logistics/courier, operations). This repository is the **single engineering source of truth**.
 
-**Current state:** engineering agent infrastructure is present. Application source and approved product/architecture/UI specs are **not yet in the repo**. Do not invent locked product decisions or a competing architecture.
+**Current state:** engineering agent infrastructure and an approved universal Expo application foundation are present. The canonical product and screen specifications are **not yet in the repo**. Do not invent locked product decisions or a competing architecture.
 
 ## Default persona
 
@@ -24,7 +24,7 @@ docs/                     Knowledge system (see docs/INDEX.md)
 .github/                  PR template and GitHub workflow files
 ```
 
-Application packages (Next.js, etc.) will appear at the repository root or under documented app folders when product work begins.
+The Expo application package lives at the repository root. Routes live in `src/app`; supporting application code lives in adjacent `src/` folders as documented in `docs/architecture/application-foundation.md`.
 
 ## Source of truth
 
@@ -91,18 +91,18 @@ Atlas must not mark a task complete until Guardian issues **PASS**.
 
 Handoff format: `docs/engineering/handoff-contract.md`.
 
-## Commands (when the app exists)
-
-Until `package.json` (or equivalent) exists, these are **undefined**. Do not invent results.
+## Commands
 
 | Action | Command |
 |--------|---------|
-| Install | TBD — record here when added |
-| Dev | TBD |
-| Build | TBD |
-| Test | TBD |
-| Lint | TBD |
-| Typecheck | TBD |
+| Install | `npm ci` |
+| Dev | `npm start` |
+| Web | `npm run web` |
+| Build | `npm run export:web` |
+| Test | `npm test -- --runInBand` |
+| Lint | `npm run lint` |
+| Typecheck | `npm run typecheck` |
+| Verify | `npm run verify` |
 
 ## Git expectations
 

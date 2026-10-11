@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Vossie Marketplace",
+    "slug": "vossie-marketplace",
+    "version": "0.1.0",
+    "orientation": "default",
+    "scheme": "vossie",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "za.co.vossie.marketplace"
+    },
+    "android": {
+      "package": "za.co.vossie.marketplace",
+      "predictiveBackGestureEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F4EBDD",
+          "image": "./assets/branding/vossie-wordmark.png",
+          "imageWidth": 220,
+          "resizeMode": "contain"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1136195b-ce99-42ad-9935-a9c3a4e4aef8"
+      }
+    },
+    "owner": "paballokalis-team"
+  }
+}

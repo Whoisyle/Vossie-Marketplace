@@ -1,12 +1,15 @@
 {
   "schema_version": 3,
   "project": "Vossie",
-  "status": "BLOCKED",
+  "status": "IN_PROGRESS",
   "orchestrator": "atlas",
-  "canonical_refs": [],
+  "canonical_refs": [
+    "docs/decisions/0001-universal-expo-foundation.md",
+    "docs/architecture/application-foundation.md"
+  ],
   "agents": {
     "atlas": {
-      "status": "BLOCKED",
+      "status": "IN_PROGRESS",
       "role": "Engineering Orchestrator, Project Controller and GitHub Integration Coordinator"
     },
     "pixel": {
@@ -100,10 +103,12 @@
       "objective": "Catalog canonical_refs, build the dependency/task graph and assign the first safe parallel specialist tasks without changing approved product scope.",
       "why_now": "No other task can be planned or assigned until canonical references are cataloged.",
       "dependencies": [
-        "DEC-001",
-        "DEC-002"
+        "DEC-001"
       ],
-      "canonical_refs": [],
+      "canonical_refs": [
+        "docs/decisions/0001-universal-expo-foundation.md",
+        "docs/architecture/application-foundation.md"
+      ],
       "allowed_scope": [
         "project-state.json",
         ".vossie/**"
@@ -132,13 +137,73 @@
         "BLK-001"
       ],
       "created_at": "2026-09-30T17:40:00Z"
+    },
+    {
+      "task_id": "VOS-001",
+      "title": "Build the universal Expo foundation",
+      "owner_agent": "pixel",
+      "status": "COMPLETED",
+      "priority": 1,
+      "objective": "Create and verify a product-neutral Expo application shell for web and native development.",
+      "why_now": "The project owner approved DEC-002 and supplied the first-screen visual reference.",
+      "dependencies": [
+        "DEC-002"
+      ],
+      "canonical_refs": [
+        "docs/decisions/0001-universal-expo-foundation.md",
+        "docs/architecture/application-foundation.md"
+      ],
+      "allowed_scope": [
+        "package.json",
+        "package-lock.json",
+        "app.json",
+        "eas.json",
+        "src/**",
+        "assets/**",
+        "docs/**",
+        "AGENTS.md",
+        "README.md",
+        ".gitignore"
+      ],
+      "forbidden_scope": [
+        "marketplace product behavior",
+        "authentication and authorization behavior",
+        "payments, logistics, and production data schema"
+      ],
+      "base_branch": "feature/jev-agent-layer",
+      "base_sha": "e7f5c81",
+      "branch": "feature/jev-agent-layer",
+      "expected_files_or_artifacts": [
+        "Verified Expo application foundation",
+        "First-screen implementation based on the supplied reference"
+      ],
+      "acceptance_criteria": [
+        "Web application renders and navigates",
+        "Metro detects a saved source change",
+        "Lint, typecheck, tests, web export, and agent-system validation pass",
+        "Guardian issues PASS"
+      ],
+      "required_checks": [
+        "npm run verify",
+        "python scripts/validate_agent_system.py"
+      ],
+      "handoff_path": ".vossie/handoffs/VOS-001/pixel.json",
+      "blocked_by": [],
+      "created_at": "2026-10-10T00:00:00+02:00",
+      "completed_at": "2026-10-11T00:00:00+02:00",
+      "guardian_verdict": "PASS"
     }
   ],
   "dependencies": [
     {
       "task_id": "VOS-000",
       "depends_on": [
-        "DEC-001",
+        "DEC-001"
+      ]
+    },
+    {
+      "task_id": "VOS-001",
+      "depends_on": [
         "DEC-002"
       ]
     }
@@ -147,7 +212,7 @@
     {
       "blocker_id": "BLK-001",
       "owner": "human",
-      "summary": "The repository contains the agent/runtime infrastructure and local Jev decision layer, but no canonical Vossie product specifications. Atlas cannot catalog canonical_refs, build the dependency graph, or assign specialist tasks without inventing requirements.",
+      "summary": "The repository still has no canonical Vossie product and 177-screen specification package. The approved Expo foundation may proceed, but marketplace feature planning cannot be completed without inventing requirements.",
       "blocks": [
         "VOS-000"
       ],
@@ -173,15 +238,47 @@
       "blocks": [
         "foundations-task-planning"
       ],
-      "status": "OPEN"
+      "status": "CLOSED",
+      "resolution": "The project owner approved Expo SDK 57, React Native Web, Expo Router, strict TypeScript, npm, and the EAS delivery path in ADR 0001."
     }
   ],
-  "artifacts": [],
+  "artifacts": [
+    "docs/decisions/0001-universal-expo-foundation.md",
+    "docs/architecture/application-foundation.md",
+    "assets/branding/vossie-wordmark.png",
+    ".vossie/handoffs/VOS-001/pixel.json",
+    ".vossie/handoffs/VOS-001/guardian.json"
+  ],
   "verification": {
     "coordinator": "sentinel",
-    "status": "NOT_STARTED",
-    "findings": [],
-    "release_evidence": []
+    "status": "FOUNDATION_BUILD_REVIEW_PASSED",
+    "findings": [
+      {
+        "finding_id": "VOS-001-DEPENDENCY-AUDIT",
+        "status": "OPEN_NON_BLOCKING",
+        "summary": "npm audit reports 61 production-tree findings (16 moderate, 45 high) and 65 total; automated remediation requires breaking or SDK-incompatible changes."
+      },
+      {
+        "finding_id": "VOS-001-EAS-LINK",
+        "status": "CLOSED",
+        "summary": "Vossie is linked to @paballokalis-team/vossie-marketplace and iOS Simulator development build a5cd58ce-1bda-4c96-8552-ee5fead49a15 completed successfully."
+      },
+      {
+        "finding_id": "VOS-001-EAS-SIMULATOR-ACCESS",
+        "status": "OPEN_EXTERNAL",
+        "summary": "EAS Simulator availability is false for paballokalis-team. The iOS development artifact and Android remote build profile are ready, but browser-streamed remote launch and Fast Refresh cannot be verified until Expo enables account access."
+      }
+    ],
+    "release_evidence": [
+      "Expo Doctor 21/21",
+      "npm run verify PASS",
+      "Jest 2/2",
+      "five-route static web export",
+      "Metro save-and-rebuild proof",
+      "Chrome splash and home rendering",
+      "EAS iOS Simulator development build a5cd58ce-1bda-4c96-8552-ee5fead49a15",
+      "Guardian PASS"
+    ]
   },
   "integration": {
     "protected_branch": "main",
@@ -190,5 +287,5 @@
     "merge_authority": "human"
   },
   "last_updated_by": "atlas",
-  "last_updated_at": "2026-09-30T18:30:00Z"
+  "last_updated_at": "2026-10-11T21:00:00+02:00"
 }
