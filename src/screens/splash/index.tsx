@@ -1,5 +1,4 @@
 import { Image } from "expo-image";
-import { router } from "expo-router";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -10,7 +9,7 @@ import Animated, {
 import { useEffect } from "react";
 import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
-import { motion, spacing } from "@/theme";
+import { spacing } from "@/theme";
 
 const WORDMARK = require("../../../assets/branding/vossie-wordmark.png");
 const LOGO_BLUE = "#2F667A";
@@ -23,7 +22,6 @@ export function SplashScreen() {
   const fullScale = useSharedValue(0.96);
 
   useEffect(() => {
-    const nextScreenTimer = setTimeout(() => router.replace("/home"), motion.splashHold);
     const duration = reducedMotion ? 0 : 460;
     const revealDelay = reducedMotion ? 0 : 540;
     const animationTimer = setTimeout(() => {
@@ -48,7 +46,6 @@ export function SplashScreen() {
     }, revealDelay + duration + (reducedMotion ? 0 : 240));
 
     return () => {
-      clearTimeout(nextScreenTimer);
       clearTimeout(animationTimer);
       clearTimeout(fullRevealTimer);
     };
