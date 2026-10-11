@@ -85,8 +85,6 @@ const styles = StyleSheet.create({
   },
   frame: {
     alignItems: "center",
-    borderColor: "#1677FF",
-    borderWidth: 2,
     flex: 1,
     justifyContent: "center",
     maxWidth: 420,
