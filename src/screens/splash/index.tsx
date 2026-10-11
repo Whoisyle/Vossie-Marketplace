@@ -22,28 +22,31 @@ export function SplashScreen() {
   const fullScale = useSharedValue(0.96);
 
   useEffect(() => {
-    const duration = reducedMotion ? 0 : 460;
-    const revealDelay = reducedMotion ? 0 : 540;
+    const revealDelay = reducedMotion ? 0 : 820;
+    const revealDuration = reducedMotion ? 0 : 760;
+    const fullDuration = reducedMotion ? 0 : 900;
+    const firstFadeDuration = reducedMotion ? 0 : 380;
+    const transitionGap = reducedMotion ? 0 : 320;
     const animationTimer = setTimeout(() => {
       firstOpacity.set(withTiming(1, {
-        duration,
+        duration: revealDuration,
         easing: Easing.bezier(0.23, 1, 0.32, 1),
       }));
     }, revealDelay);
     const fullRevealTimer = setTimeout(() => {
       fullOpacity.set(withTiming(1, {
-        duration: reducedMotion ? 0 : 520,
+        duration: fullDuration,
         easing: Easing.bezier(0.23, 1, 0.32, 1),
       }));
       fullScale.set(withTiming(1, {
-        duration: reducedMotion ? 0 : 520,
+        duration: fullDuration,
         easing: Easing.bezier(0.23, 1, 0.32, 1),
       }));
       firstOpacity.set(withTiming(0, {
-        duration: reducedMotion ? 0 : 220,
+        duration: firstFadeDuration,
         easing: Easing.bezier(0.23, 1, 0.32, 1),
       }));
-    }, revealDelay + duration + (reducedMotion ? 0 : 240));
+    }, revealDelay + revealDuration + transitionGap);
 
     return () => {
       clearTimeout(animationTimer);
