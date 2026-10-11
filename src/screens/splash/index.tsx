@@ -27,24 +27,24 @@ export function SplashScreen() {
     const duration = reducedMotion ? 0 : 460;
     const revealDelay = reducedMotion ? 0 : 540;
     const animationTimer = setTimeout(() => {
-      firstOpacity.value = withTiming(1, {
+      firstOpacity.set(withTiming(1, {
         duration,
         easing: Easing.bezier(0.23, 1, 0.32, 1),
-      });
+      }));
     }, revealDelay);
     const fullRevealTimer = setTimeout(() => {
-      fullOpacity.value = withTiming(1, {
+      fullOpacity.set(withTiming(1, {
         duration: reducedMotion ? 0 : 520,
         easing: Easing.bezier(0.23, 1, 0.32, 1),
-      });
-      fullScale.value = withTiming(1, {
+      }));
+      fullScale.set(withTiming(1, {
         duration: reducedMotion ? 0 : 520,
         easing: Easing.bezier(0.23, 1, 0.32, 1),
-      });
-      firstOpacity.value = withTiming(0, {
+      }));
+      firstOpacity.set(withTiming(0, {
         duration: reducedMotion ? 0 : 220,
         easing: Easing.bezier(0.23, 1, 0.32, 1),
-      });
+      }));
     }, revealDelay + duration + (reducedMotion ? 0 : 240));
 
     return () => {
@@ -64,11 +64,11 @@ export function SplashScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.frame}>
-        <View style={styles.brandLockup} accessible accessibilityLabel="Vossie Marketplace">
+        <View style={[styles.brandLockup, { width: logoWidth }]} accessible accessibilityLabel="Vossie Marketplace">
           <Animated.View style={[styles.firstLetterCrop, { width: logoWidth * 0.25 }, firstLetterStyle]}>
             <Image contentFit="contain" source={WORDMARK} style={[styles.wordmark, { width: logoWidth }]} tintColor={LOGO_BLUE} />
           </Animated.View>
-          <Animated.View style={[styles.fullWordmark, fullWordmarkStyle]}>
+          <Animated.View style={[styles.fullWordmark, { width: logoWidth }, fullWordmarkStyle]}>
             <Image contentFit="contain" source={WORDMARK} style={[styles.wordmark, { width: logoWidth }]} tintColor={LOGO_BLUE} />
           </Animated.View>
         </View>
