@@ -26,6 +26,7 @@ The Developer Architecture and Build Guide describes itself as a design proposal
 | `knowledge-base/` | Curated Vossie knowledge base (start at `00_START_HERE/`) |
 | `research/` | EduHackers research dossiers, technical showcase, business analysis, CMO playbook, visual advertising pack, Hack Jam timeline |
 | `brand/` | Photos/screenshots of the app icon, wordmark, production studio and prototype login (not production vector artwork) |
+| `briefs/` | Dated product-owner briefs that add design, prototype, policy and security direction |
 | `references/plato/` | Plato app screenshots: visual-literacy reference only; never copy its assets |
 | `text/` | Extracted text of every document above (`kb__` prefix = knowledge base) |
 
