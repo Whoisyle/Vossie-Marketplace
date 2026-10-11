@@ -55,7 +55,7 @@ export const radius = {
 } as const;
 
 export const motion = {
-  splashHold: 1600,
+  splashHold: 3000,
 } as const;
 
 export const type = {
