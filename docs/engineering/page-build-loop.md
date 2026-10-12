@@ -18,6 +18,7 @@ For every supplied reference, the loop also includes these fit and behavior chec
 - Inventory every visible control before implementation: navigation, inputs, validation, focus/keyboard behavior, loading, error, success, and back/help states. If an external contract is not approved, implement only a clearly labelled local prototype and document the integration gap; never claim a mock is live.
 - Verify the interaction path, not only the first frame: press the primary button, enter invalid and valid values, submit, go back, and repeat the flow at narrow and tall device dimensions.
 - When the live iPhone is connected, repeat the check on the physical device after every page change: save source, wait for Metro Fast Refresh, then confirm the updated screen and interaction on the phone before moving to the next page.
+- Verify a native relaunch path: background/exit the app, return to it, and confirm the root route restarts the Vossie opening animation before continuing to the welcome page.
 
 The final handoff for each page includes the commit hash, verification result, EAS build ID, Appetize link, and any visual verification caveat. A typical commit sequence is:
 
