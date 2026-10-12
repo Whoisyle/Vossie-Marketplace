@@ -36,11 +36,11 @@ Native `ios/` and `android/` projects are not committed unless an approved capab
 ## Development workflow
 
 1. Install with `npm ci` when the lockfile exists.
-2. Run `npm run web` for Chrome, `npm run start:go` for Expo Go, or `npm run start:dev-client` for an installed Vossie development build.
+2. Run `npm run web` for Chrome, `npm run start:go` for Expo Go on the connected iPhone, or `npm run start:dev-client` for an installed Vossie development build.
 3. Save TypeScript files; Metro performs Fast Refresh for connected clients.
 4. Run `npm run verify` before handoff.
 
-Only one Vossie Metro instance should own the selected development port. Chrome web, a physical device, and a remote simulator are separate clients and must each be observed before being reported as working.
+Only one Vossie Metro instance should own the selected development port. Chrome web, the connected iPhone, and a remote simulator are separate clients; for active page work, the physical iPhone is the primary live client and must be observed before the page is reported as working.
 
 ## EAS ownership and native build
 
