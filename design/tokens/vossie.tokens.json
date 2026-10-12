@@ -1,0 +1,76 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "meta": {
+    "name": "Vossie Marketplace",
+    "version": "1.1.0",
+    "status": "implementation-ready light theme; experimental dark aliases",
+    "updated": "2026-10-12"
+  },
+  "color": {
+    "primitive": {
+      "teal": { "500": "#376371", "600": "#2E5561", "700": "#244752" },
+      "forest": { "700": "#1C352D" },
+      "navy": { "700": "#24394C", "900": "#172633" },
+      "sky": { "200": "#C8D9E6" },
+      "mist": { "100": "#E9F2F5" },
+      "beige": { "100": "#F8F0E5" },
+      "sage": { "200": "#DDE5D9" },
+      "slate": { "500": "#647787", "600": "#526674" },
+      "neutral": {
+        "0": "#FFFFFF",
+        "25": "#FAFBFC",
+        "50": "#F5F7F8",
+        "100": "#E8EDF0",
+        "300": "#C8D2D8",
+        "500": "#74838C",
+        "700": "#3D4A52",
+        "900": "#172027"
+      },
+      "green": { "50": "#E8F4ED", "600": "#26734D" },
+      "amber": { "50": "#FFF4D8", "700": "#8A5A0A" },
+      "red": { "50": "#FDECEF", "600": "#B23A48", "700": "#982E3B" },
+      "blue": { "50": "#E8F2FA", "600": "#2C6E9E" }
+    },
+    "light": {
+      "background": { "canvas": "#FFFFFF", "subtle": "#FAFBFC", "brandSoft": "#E9F2F5", "warm": "#F8F0E5", "success": "#E8F4ED", "warning": "#FFF4D8", "danger": "#FDECEF", "info": "#E8F2FA" },
+      "surface": { "default": "#FFFFFF", "raised": "#FFFFFF", "selected": "#E9F2F5", "disabled": "#F5F7F8", "inverse": "#24394C" },
+      "text": { "primary": "#24394C", "secondary": "#526674", "muted": "#74838C", "inverse": "#FFFFFF", "link": "#2E5561", "danger": "#982E3B", "success": "#26734D", "warning": "#8A5A0A" },
+      "action": { "primary": "#376371", "primaryHover": "#2E5561", "primaryPressed": "#244752", "primaryText": "#FFFFFF", "secondary": "#FFFFFF", "secondaryText": "#24394C", "destructive": "#B23A48", "disabled": "#E8EDF0", "disabledText": "#74838C" },
+      "border": { "default": "#C8D2D8", "subtle": "#E8EDF0", "strong": "#9DAEB8", "focus": "#376371", "danger": "#B23A48" },
+      "icon": { "primary": "#24394C", "secondary": "#647787", "inverse": "#FFFFFF", "brand": "#376371" },
+      "overlay": { "scrim": "rgba(23, 38, 51, 0.48)" }
+    },
+    "darkExperimental": {
+      "background": { "canvas": "#10181D", "subtle": "#172027", "brandSoft": "#183038", "warm": "#2C2822" },
+      "surface": { "default": "#172027", "raised": "#1E2A31", "selected": "#244752", "disabled": "#28343A", "inverse": "#FFFFFF" },
+      "text": { "primary": "#F5F7F8", "secondary": "#C8D2D8", "muted": "#9DAEB8", "inverse": "#172027", "link": "#C8D9E6" },
+      "border": { "default": "#3D4A52", "subtle": "#28343A", "strong": "#647787", "focus": "#C8D9E6" }
+    }
+  },
+  "font": {
+    "family": {
+      "display": "Canto, Georgia, Times New Roman, serif",
+      "interface": "Minimalist, Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
+      "monospace": "ui-monospace, SFMono-Regular, Consolas, monospace"
+    },
+    "size": { "micro": 11, "label": 12, "body": 14, "cardTitle": 15, "section": 19, "page": 27, "display": 32 },
+    "lineHeight": { "micro": 15, "label": 17, "body": 21, "cardTitle": 21, "section": 26, "page": 34, "display": 38 },
+    "weight": { "regular": 400, "medium": 500, "semibold": 600, "bold": 700 }
+  },
+  "space": { "0": 0, "1": 4, "2": 8, "3": 12, "4": 16, "5": 20, "6": 24, "8": 32, "10": 40, "12": 48, "16": 64 },
+  "radius": { "micro": 8, "field": 12, "card": 16, "hero": 20, "sheet": 24, "pill": 999 },
+  "size": { "touchMinimum": 44, "controlSmall": 40, "controlDefault": 48, "controlLarge": 56, "iconSmall": 16, "iconDefault": 20, "iconLarge": 24 },
+  "borderWidth": { "hairline": 1, "focus": 2, "strong": 2 },
+  "shadow": {
+    "sm": { "color": "rgba(23, 38, 51, 0.08)", "x": 0, "y": 2, "blur": 8, "spread": 0 },
+    "md": { "color": "rgba(23, 38, 51, 0.12)", "x": 0, "y": 8, "blur": 24, "spread": -4 },
+    "nav": { "color": "rgba(23, 38, 51, 0.16)", "x": 0, "y": 8, "blur": 28, "spread": -6 }
+  },
+  "motion": {
+    "duration": { "instant": 0, "fast": 120, "standard": 180, "view": 260, "slow": 320 },
+    "easing": { "standard": "cubic-bezier(0.2, 0, 0, 1)", "decelerate": "cubic-bezier(0, 0, 0, 1)", "accelerate": "cubic-bezier(0.3, 0, 1, 1)" },
+    "reduced": { "duration": 0, "distance": 0 }
+  },
+  "breakpoint": { "compact": 0, "medium": 600, "expanded": 1024, "wide": 1440 },
+  "layout": { "phoneMargin": 16, "phoneWideMargin": 20, "tabletMargin": 24, "desktopMargin": 32, "contentMax": 1200, "readingMax": 720, "gridColumnsCompact": 4, "gridColumnsMedium": 8, "gridColumnsExpanded": 12 }
+}
