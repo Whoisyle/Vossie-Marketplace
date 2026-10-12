@@ -13,8 +13,8 @@ const WORDMARK = require("../../../assets/branding/vossie-wordmark.png");
 export function WelcomeScreen() {
   const { width } = useWindowDimensions();
   const reducedMotion = useReducedMotion();
-  const heroHeight = Math.min(width * 0.78, 320);
-  const contentWidth = Math.min(width - spacing.lg * 2, 440);
+  const heroHeight = Math.min(width * 0.72, 320);
+  const contentWidth = Math.min(width * 0.82, 440);
 
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.screen}>
@@ -81,7 +81,7 @@ export function WelcomeScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: brand.cream,
+    backgroundColor: brand.white,
     flex: 1,
   },
   scrollContent: {
@@ -105,35 +105,35 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     aspectRatio: 3,
-    height: 48,
+    height: 42,
     marginBottom: spacing.xs,
-    width: 126,
+    width: 116,
   },
   title: {
     color: brand.navy,
     fontFamily: "serif",
-    fontSize: 31,
+    fontSize: 29,
     letterSpacing: -0.6,
-    lineHeight: 38,
+    lineHeight: 34,
     textAlign: "center",
   },
   subtitle: {
     color: brand.ink,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 12,
+    lineHeight: 16,
     marginTop: spacing.xs,
     textAlign: "center",
   },
   tagline: {
     color: brand.teal,
-    fontSize: 15,
-    letterSpacing: 1.8,
+    fontSize: 10,
+    letterSpacing: 1.2,
     marginTop: spacing.sm,
     textAlign: "center",
   },
   actions: {
     gap: spacing.sm,
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
     width: "100%",
   },
   button: {
@@ -141,13 +141,13 @@ const styles = StyleSheet.create({
     backgroundColor: brand.teal,
     borderRadius: radius.full,
     justifyContent: "center",
-    minHeight: 48,
+    minHeight: 40,
     paddingHorizontal: spacing.lg,
     width: "100%",
   },
   buttonText: {
     color: brand.white,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
   },
   footer: {
@@ -155,16 +155,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: "auto",
-    padding: spacing.lg,
+    padding: spacing.md,
     width: "100%",
   },
   business: {
     color: brand.teal,
-    fontSize: 13,
+    fontSize: 10,
     fontStyle: "italic",
   },
   legal: {
     color: brand.ink,
-    fontSize: 13,
+    fontSize: 10,
   },
 });

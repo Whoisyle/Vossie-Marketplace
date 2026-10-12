@@ -99,7 +99,30 @@ export function SplashScreen() {
           <Animated.View style={[styles.fullWordmark, { width: logoWidth }, fullWordmarkStyle]}>
             <Image contentFit="contain" source={WORDMARK} style={[styles.wordmark, { width: logoWidth }]} tintColor={brand.teal} />
           </Animated.View>
-          <Animated.View style={[styles.animatedDot, { left: logoWidth * 0.635 }, dotStyle]} />
+          <View
+            pointerEvents="none"
+            style={[
+              styles.dotMask,
+              {
+                height: logoWidth * 0.047,
+                left: logoWidth * 0.639,
+                top: logoWidth * 0.051,
+                width: logoWidth * 0.071,
+              },
+            ]}
+          />
+          <Animated.View
+            style={[
+              styles.animatedDot,
+              {
+                height: logoWidth * 0.047,
+                left: logoWidth * 0.639,
+                top: logoWidth * 0.051,
+                width: logoWidth * 0.071,
+              },
+              dotStyle,
+            ]}
+          />
         </View>
         <Text style={styles.footer}>Powered by Vossie Pty Ltd</Text>
       </View>
@@ -134,8 +157,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     height: 9,
     position: "absolute",
-    top: 1,
     width: 9,
+  },
+  dotMask: {
+    backgroundColor: brand.white,
+    borderRadius: 8,
+    position: "absolute",
   },
   firstLetterCrop: {
     height: 58,
