@@ -9,11 +9,12 @@ import {
 
 type IosPressableProps = Omit<PressableProps, "style"> & {
   children: ReactNode;
+  contentStyle?: StyleProp<ViewStyle>;
   style?: StyleProp<ViewStyle>;
 };
 
 /** A small, interruptible press-in scale/opacity response aligned with iOS controls. */
-export function IosPressable({ children, onPressIn, onPressOut, style, ...props }: IosPressableProps) {
+export function IosPressable({ children, contentStyle, onPressIn, onPressOut, style, ...props }: IosPressableProps) {
   const pressed = useSharedValue(0);
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: 1 - pressed.get() * 0.08,
@@ -32,7 +33,7 @@ export function IosPressable({ children, onPressIn, onPressOut, style, ...props 
           pressed.set(withTiming(0, { duration: 180 }));
           onPressOut?.(event);
         }}
-        style={styles.pressable}
+        style={[styles.pressable, contentStyle]}
       >
         {children}
       </Pressable>

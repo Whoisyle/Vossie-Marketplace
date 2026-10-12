@@ -186,11 +186,11 @@ export function EduvosSignInScreen() {
         </View>
 
         <View style={styles.bottomBar}>
-          <IosPressable accessibilityRole="button" onPress={handleBack} style={styles.bottomAction}>
+          <IosPressable accessibilityRole="button" contentStyle={styles.inlinePressable} onPress={handleBack} style={styles.bottomAction}>
             <Text style={styles.backChevron}>‹</Text>
             <Text style={styles.bottomActionText}>Back</Text>
           </IosPressable>
-          <IosPressable accessibilityRole="link" style={styles.bottomAction}>
+          <IosPressable accessibilityRole="link" contentStyle={styles.inlinePressable} style={styles.bottomAction}>
             <Text style={styles.helpText}>Need help?</Text>
           </IosPressable>
         </View>
@@ -360,6 +360,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
   },
   bottomAction: {
+    alignItems: "center",
+    flexDirection: "row",
+    minHeight: 44,
+  },
+  inlinePressable: {
     alignItems: "center",
     flexDirection: "row",
     minHeight: 44,

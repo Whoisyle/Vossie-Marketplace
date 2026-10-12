@@ -134,7 +134,7 @@ export function QrSignInScreen() {
             {cameraError ? <Text style={styles.errorText}>{cameraError}</Text> : null}
           </>
         )}
-        <IosPressable accessibilityRole="button" onPress={leaveScanner} style={styles.backButton}>
+        <IosPressable accessibilityRole="button" contentStyle={styles.inlinePressable} onPress={leaveScanner} style={styles.backButton}>
           <Text style={styles.backChevron}>‹</Text>
           <Text style={styles.backText}>Back</Text>
         </IosPressable>
@@ -166,7 +166,7 @@ function PermissionScreen({ canOpenSettings = false, error, onBack, onOpenSettin
           <Text style={styles.primaryButtonText}>{canOpenSettings ? "Open Settings" : "Allow camera access"}</Text>
         </IosPressable>
       </View>
-      <IosPressable accessibilityRole="button" onPress={onBack} style={styles.permissionBack}>
+      <IosPressable accessibilityRole="button" contentStyle={styles.inlinePressable} onPress={onBack} style={styles.permissionBack}>
         <Text style={styles.backChevron}>‹</Text>
         <Text style={styles.backText}>Back</Text>
       </IosPressable>
@@ -200,6 +200,7 @@ const styles = StyleSheet.create({
   primaryButton: { alignItems: "center", alignSelf: "stretch", backgroundColor: TEAL, borderRadius: radius.full, justifyContent: "center", marginTop: spacing.md, minHeight: 52, paddingHorizontal: spacing.lg },
   primaryButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
   backButton: { alignItems: "center", alignSelf: "center", flexDirection: "row", marginTop: spacing.sm, minHeight: 44, paddingHorizontal: spacing.md },
+  inlinePressable: { alignItems: "center", flexDirection: "row", minHeight: 44 },
   backChevron: { color: TEAL, fontSize: 28, lineHeight: 30, marginRight: spacing.xs },
   backText: { color: NAVY, fontSize: 14 },
   permissionScreen: { backgroundColor: CREAM, flex: 1, paddingHorizontal: spacing.lg },
