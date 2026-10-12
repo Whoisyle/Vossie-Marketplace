@@ -52,6 +52,7 @@ export function WelcomeScreen() {
           <IosPressable
             accessibilityRole="button"
             accessibilityLabel="Scan to sign in"
+            onPress={() => router.push("/qr-sign-in")}
             style={styles.button}
           >
             <Text style={styles.buttonText}>Scan to sign in</Text>

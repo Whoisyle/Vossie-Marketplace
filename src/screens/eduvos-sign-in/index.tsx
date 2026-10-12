@@ -76,7 +76,11 @@ export function EduvosSignInScreen() {
       setSubmitted(false);
       return;
     }
-    router.back();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/welcome");
+    }
   };
 
   return (

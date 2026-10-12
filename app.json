@@ -21,6 +21,12 @@
     "plugins": [
       "expo-router",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Vossie uses your camera to scan your Eduvos QR code and sign you in securely."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#F4EBDD",
