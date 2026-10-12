@@ -15,6 +15,7 @@ export default function RootLayout() {
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="welcome" options={{ headerShown: false }} />
+      <Stack.Screen name="eduvos-sign-in" options={{ animation: "slide_from_right", headerShown: false }} />
       <Stack.Screen name="home" options={{ title: "Vossie Marketplace" }} />
       <Stack.Screen name="foundation" options={{ title: "Foundation" }} />
     </Stack>

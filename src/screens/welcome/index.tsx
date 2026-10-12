@@ -1,4 +1,5 @@
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 import { radius, spacing } from "@/theme";
@@ -39,10 +40,19 @@ export function WelcomeScreen() {
         <Text style={styles.tagline}>Discover  •  Buy  •  Sell  •  Deliver</Text>
 
         <View style={styles.actions}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Sign in with Eduvos" style={styles.button}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Sign in with Eduvos"
+            onPress={() => router.push("/eduvos-sign-in")}
+            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+          >
             <Text style={styles.buttonText}>Sign in with Eduvos</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Scan to sign in" style={styles.button}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Scan to sign in"
+            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+          >
             <Text style={styles.buttonText}>Scan to sign in</Text>
           </Pressable>
         </View>
@@ -123,6 +133,10 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
+  },
+  buttonPressed: {
+    opacity: 0.84,
+    transform: [{ scale: 0.98 }],
   },
   footer: {
     alignItems: "center",
