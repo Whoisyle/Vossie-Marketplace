@@ -1,77 +1,91 @@
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import Animated, { Easing, FadeIn, FadeInDown, FadeInUp, useReducedMotion } from "react-native-reanimated";
+import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IosPressable } from "@/components/IosPressable";
-import { radius, spacing } from "@/theme";
+import { brand, radius, spacing } from "@/theme";
 
 const HERO_COLLAGE = require("./assets/hero-collage/hero-collage.png");
 const WORDMARK = require("../../../assets/branding/vossie-wordmark.png");
-const TEAL = "#2F6670";
-const INK = "#112B3E";
-const CREAM = "#FCFAF5";
 
 export function WelcomeScreen() {
   const { width } = useWindowDimensions();
-  const heroHeight = Math.min(width * 0.86, 360);
+  const reducedMotion = useReducedMotion();
+  const heroHeight = Math.min(width * 0.78, 320);
   const contentWidth = Math.min(width - spacing.lg * 2, 440);
 
   return (
-    <View style={styles.screen}>
-      <View style={[styles.hero, { height: heroHeight }]}>
-        <Image
-          accessibilityLabel="Vossie student marketplace collage"
-          contentFit="cover"
-          contentPosition="top"
-          source={HERO_COLLAGE}
-          style={styles.heroImage}
-        />
-      </View>
+    <SafeAreaView edges={["top", "bottom"]} style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <Animated.View
+          entering={reducedMotion ? undefined : FadeIn.duration(520).easing(Easing.out(Easing.cubic))}
+          style={[styles.hero, { height: heroHeight }]}
+        >
+          <Image
+            accessibilityLabel="Vossie student marketplace collage"
+            contentFit="cover"
+            contentPosition="top"
+            source={HERO_COLLAGE}
+            style={styles.heroImage}
+          />
+        </Animated.View>
 
-      <View style={[styles.content, { maxWidth: contentWidth }]}>
-        <Image
-          accessibilityLabel="Vossie Marketplace"
-          contentFit="contain"
-          source={WORDMARK}
-          style={styles.wordmark}
-          tintColor={TEAL}
-        />
-        <Text style={styles.title}>Welcome to Vossie</Text>
-        <Text style={styles.subtitle}>Your campus marketplace, made for students.</Text>
-        <Text style={styles.tagline}>Discover  •  Buy  •  Sell  •  Deliver</Text>
+        <Animated.View
+          entering={reducedMotion ? undefined : FadeInDown.delay(120).duration(520).easing(Easing.out(Easing.cubic))}
+          style={[styles.content, { maxWidth: contentWidth }]}
+        >
+          <Image
+            accessibilityLabel="Vossie Marketplace"
+            contentFit="contain"
+            source={WORDMARK}
+            style={styles.wordmark}
+            tintColor={brand.teal}
+          />
+          <Text style={styles.title}>Welcome to Vossie</Text>
+          <Text style={styles.subtitle}>Your campus marketplace, made for students.</Text>
+          <Text style={styles.tagline}>Discover  •  Buy  •  Sell  •  Deliver</Text>
 
-        <View style={styles.actions}>
-          <IosPressable
-            accessibilityRole="button"
-            accessibilityLabel="Sign in with Eduvos"
-            onPress={() => router.push("/eduvos-sign-in")}
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>Sign in with Eduvos</Text>
-          </IosPressable>
-          <IosPressable
-            accessibilityRole="button"
-            accessibilityLabel="Scan to sign in"
-            onPress={() => router.push("/qr-sign-in")}
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>Scan to sign in</Text>
-          </IosPressable>
-        </View>
-      </View>
+          <View style={styles.actions}>
+            <IosPressable
+              accessibilityRole="button"
+              accessibilityLabel="Sign in with Eduvos"
+              onPress={() => router.push("/eduvos-sign-in")}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>Sign in with Eduvos</Text>
+            </IosPressable>
+            <IosPressable
+              accessibilityRole="button"
+              accessibilityLabel="Scan to sign in"
+              onPress={() => router.push("/qr-sign-in")}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>Scan to sign in</Text>
+            </IosPressable>
+          </View>
+        </Animated.View>
 
-      <View style={styles.footer}>
-        <Text style={styles.business}>Vossie Business</Text>
-        <Text style={styles.legal}>Terms  |  Privacy</Text>
-      </View>
-    </View>
+        <Animated.View
+          entering={reducedMotion ? undefined : FadeInUp.delay(260).duration(520).easing(Easing.out(Easing.cubic))}
+          style={styles.footer}
+        >
+          <Text style={styles.business}>Vossie Business  →</Text>
+          <Text style={styles.legal}>Terms  |  Privacy</Text>
+        </Animated.View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: CREAM,
+    backgroundColor: brand.cream,
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   hero: {
     overflow: "hidden",
@@ -84,7 +98,7 @@ const styles = StyleSheet.create({
   content: {
     alignItems: "center",
     alignSelf: "center",
-    flex: 1,
+    paddingBottom: spacing.sm,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
     width: "100%",
@@ -96,7 +110,7 @@ const styles = StyleSheet.create({
     width: 126,
   },
   title: {
-    color: INK,
+    color: brand.navy,
     fontFamily: "serif",
     fontSize: 31,
     letterSpacing: -0.6,
@@ -104,14 +118,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   subtitle: {
-    color: "#4F5D6A",
+    color: brand.ink,
     fontSize: 16,
     lineHeight: 22,
     marginTop: spacing.xs,
     textAlign: "center",
   },
   tagline: {
-    color: TEAL,
+    color: brand.teal,
     fontSize: 15,
     letterSpacing: 1.8,
     marginTop: spacing.sm,
@@ -124,7 +138,7 @@ const styles = StyleSheet.create({
   },
   button: {
     alignItems: "center",
-    backgroundColor: TEAL,
+    backgroundColor: brand.teal,
     borderRadius: radius.full,
     justifyContent: "center",
     minHeight: 48,
@@ -132,7 +146,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   buttonText: {
-    color: "#FFFFFF",
+    color: brand.white,
     fontSize: 16,
     fontWeight: "600",
   },
@@ -140,16 +154,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
+    marginTop: "auto",
     padding: spacing.lg,
     width: "100%",
   },
   business: {
-    color: TEAL,
+    color: brand.teal,
     fontSize: 13,
     fontStyle: "italic",
   },
   legal: {
-    color: "#65717E",
+    color: brand.ink,
     fontSize: 13,
   },
 });

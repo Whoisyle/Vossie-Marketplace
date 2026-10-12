@@ -38,6 +38,20 @@ export const colors = {
   onAccent: "#FFFFFF",
 } as const;
 
+/**
+ * Vossie brand tokens. Keep screen-level styling on these values so the
+ * native app stays consistent with the supplied wordmark and palette board.
+ */
+export const brand = {
+  navy: "#29475B",
+  teal: "#567C8D",
+  sky: "#C8D9E6",
+  cream: "#F5EFE6",
+  white: "#FFFFFF",
+  sage: "#98AA9D",
+  ink: "#2D3536",
+} as const;
+
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -55,7 +69,7 @@ export const radius = {
 } as const;
 
 export const motion = {
-  splashHold: 3000,
+  splashHold: 4800,
 } as const;
 
 export const type = {

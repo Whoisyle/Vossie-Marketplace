@@ -14,12 +14,12 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IosPressable } from "@/components/IosPressable";
-import { radius, spacing } from "@/theme";
+import { brand, radius, spacing } from "@/theme";
 
 const WORDMARK = require("../../../assets/branding/vossie-wordmark.png");
-const CREAM = "#FCFAF5";
-const TEAL = "#2F6670";
-const INK = "#112B3E";
+const CREAM = brand.cream;
+const TEAL = brand.teal;
+const INK = brand.navy;
 const MICROSOFT_BLUE = "#0067B8";
 
 function MicrosoftMark() {

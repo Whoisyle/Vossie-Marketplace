@@ -15,13 +15,9 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IosPressable } from "@/components/IosPressable";
-import { radius, spacing } from "@/theme";
+import { brand, radius, spacing } from "@/theme";
 
 const WORDMARK = require("../../../assets/branding/vossie-wordmark.png");
-const TEAL = "#236579";
-const NAVY = "#112B3E";
-const CREAM = "#FCFAF5";
-
 function leaveScanner() {
   if (router.canGoBack()) {
     router.back();
@@ -31,14 +27,18 @@ function leaveScanner() {
 }
 
 export function QrSignInScreen() {
-  const { width } = useWindowDimensions();
+  const { height, width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<BarcodeScanningResult | null>(null);
   const scanLock = useRef(false);
-  const frameSize = Math.min(Math.max(width - spacing.xl * 2, 240), 330);
+  const frameSize = Math.min(
+    Math.max(width - spacing.xl * 2, 240),
+    330,
+    Math.max(240, height - insets.top - insets.bottom - 320),
+  );
 
   const handleBarcodeScanned = useCallback((result: BarcodeScanningResult) => {
     if (scanLock.current) return;
@@ -155,7 +155,7 @@ function PermissionScreen({ canOpenSettings = false, error, onBack, onOpenSettin
   return (
     <SafeAreaView edges={["top", "bottom"]} style={styles.permissionScreen}>
       <StatusBar style="dark" />
-      <Image accessibilityLabel="Vossie Marketplace" contentFit="contain" source={WORDMARK} style={styles.permissionWordmark} tintColor={TEAL} />
+      <Image accessibilityLabel="Vossie Marketplace" contentFit="contain" source={WORDMARK} style={styles.permissionWordmark} tintColor={brand.teal} />
       <View style={styles.permissionContent}>
         <Text style={styles.permissionTitle}>Camera access needed</Text>
         <Text style={styles.permissionDescription}>
@@ -175,38 +175,38 @@ function PermissionScreen({ canOpenSettings = false, error, onBack, onOpenSettin
 }
 
 const styles = StyleSheet.create({
-  screen: { backgroundColor: "#0B222A", flex: 1 },
+  screen: { backgroundColor: brand.ink, flex: 1 },
   cameraTint: { backgroundColor: "rgba(4, 31, 39, 0.14)", bottom: 0, left: 0, position: "absolute", right: 0, top: 0 },
   topBar: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", paddingHorizontal: spacing.lg, zIndex: 2 },
   wordmark: { aspectRatio: 3, height: 44, width: 132 },
   closeButton: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.86)", borderRadius: radius.full, height: 48, justifyContent: "center", width: 48 },
-  closeText: { color: NAVY, fontSize: 36, fontWeight: "300", lineHeight: 40, marginTop: -4 },
+  closeText: { color: brand.navy, fontSize: 36, fontWeight: "300", lineHeight: 40, marginTop: -4 },
   headingBlock: { alignItems: "center", paddingHorizontal: spacing.lg, paddingTop: spacing.xl, zIndex: 1 },
-  heading: { color: "#FFFFFF", fontFamily: "serif", fontSize: 40, lineHeight: 46, textAlign: "center" },
-  description: { color: "#E7F2F4", fontSize: 17, lineHeight: 24, marginTop: spacing.sm, maxWidth: 390, textAlign: "center" },
+  heading: { color: brand.white, fontFamily: "serif", fontSize: 40, lineHeight: 46, textAlign: "center" },
+  description: { color: brand.sky, fontSize: 17, lineHeight: 24, marginTop: spacing.sm, maxWidth: 390, textAlign: "center" },
   scannerArea: { alignItems: "center", flex: 1, justifyContent: "center", paddingHorizontal: spacing.lg },
   scanFrame: { alignItems: "center", borderColor: "rgba(255,255,255,0.92)", borderRadius: 28, borderWidth: 3, justifyContent: "center" },
-  corner: { borderColor: "#A7E0F8", height: 44, position: "absolute", width: 44 },
+  corner: { borderColor: brand.sky, height: 44, position: "absolute", width: 44 },
   cornerTopLeft: { borderBottomWidth: 0, borderRightWidth: 0, borderTopLeftRadius: 16, borderLeftWidth: 8, borderTopWidth: 8, left: 24, top: 24 },
   cornerTopRight: { borderBottomWidth: 0, borderLeftWidth: 0, borderTopRightRadius: 16, borderRightWidth: 8, borderTopWidth: 8, right: 24, top: 24 },
   cornerBottomLeft: { borderRightWidth: 0, borderTopWidth: 0, borderBottomLeftRadius: 16, borderBottomWidth: 8, borderLeftWidth: 8, bottom: 24, left: 24 },
   cornerBottomRight: { borderLeftWidth: 0, borderTopWidth: 0, borderBottomRightRadius: 16, borderBottomWidth: 8, borderRightWidth: 8, bottom: 24, right: 24 },
   scanHint: { backgroundColor: "rgba(0,0,0,0.32)", borderRadius: radius.sm, color: "#FFFFFF", fontSize: 16, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
-  bottomPanel: { backgroundColor: CREAM, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
-  instruction: { color: NAVY, fontSize: 16, lineHeight: 22, textAlign: "center" },
-  resultTitle: { color: NAVY, fontSize: 22, fontWeight: "700", textAlign: "center" },
+  bottomPanel: { backgroundColor: brand.cream, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
+  instruction: { color: brand.navy, fontSize: 16, lineHeight: 22, textAlign: "center" },
+  resultTitle: { color: brand.navy, fontSize: 22, fontWeight: "700", textAlign: "center" },
   resultText: { color: "#536777", fontSize: 14, lineHeight: 20, marginTop: spacing.xs, textAlign: "center" },
   errorText: { color: "#B42318", fontSize: 13, lineHeight: 18, marginTop: spacing.sm, textAlign: "center" },
-  primaryButton: { alignItems: "center", alignSelf: "stretch", backgroundColor: TEAL, borderRadius: radius.full, justifyContent: "center", marginTop: spacing.md, minHeight: 52, paddingHorizontal: spacing.lg },
-  primaryButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
+  primaryButton: { alignItems: "center", alignSelf: "stretch", backgroundColor: brand.teal, borderRadius: radius.full, justifyContent: "center", marginTop: spacing.md, minHeight: 52, paddingHorizontal: spacing.lg },
+  primaryButtonText: { color: brand.white, fontSize: 16, fontWeight: "700" },
   backButton: { alignItems: "center", alignSelf: "center", flexDirection: "row", marginTop: spacing.sm, minHeight: 44, paddingHorizontal: spacing.md },
   inlinePressable: { alignItems: "center", flexDirection: "row", minHeight: 44 },
-  backChevron: { color: TEAL, fontSize: 28, lineHeight: 30, marginRight: spacing.xs },
-  backText: { color: NAVY, fontSize: 14 },
-  permissionScreen: { backgroundColor: CREAM, flex: 1, paddingHorizontal: spacing.lg },
+  backChevron: { color: brand.teal, fontSize: 28, lineHeight: 30, marginRight: spacing.xs },
+  backText: { color: brand.navy, fontSize: 14 },
+  permissionScreen: { backgroundColor: brand.cream, flex: 1, paddingHorizontal: spacing.lg },
   permissionWordmark: { alignSelf: "center", aspectRatio: 3, height: 54, marginTop: spacing.xl, width: 162 },
   permissionContent: { alignItems: "center", flex: 1, justifyContent: "center", maxWidth: 420, width: "100%", alignSelf: "center" },
-  permissionTitle: { color: NAVY, fontFamily: "serif", fontSize: 32, textAlign: "center" },
-  permissionDescription: { color: "#536777", fontSize: 16, lineHeight: 23, marginTop: spacing.sm, maxWidth: 360, textAlign: "center" },
+  permissionTitle: { color: brand.navy, fontFamily: "serif", fontSize: 32, textAlign: "center" },
+  permissionDescription: { color: brand.ink, fontSize: 16, lineHeight: 23, marginTop: spacing.sm, maxWidth: 360, textAlign: "center" },
   permissionBack: { alignItems: "center", alignSelf: "center", flexDirection: "row", minHeight: 48, paddingHorizontal: spacing.md },
 });
