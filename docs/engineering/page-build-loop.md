@@ -7,7 +7,7 @@ Every page supplied by the project owner follows one repeatable loop:
 3. Implement the screen and route in the approved Expo structure without inventing product behavior that is not in the supplied reference or canonical specification.
 4. Run lint, strict TypeScript, tests, static web export, and Expo Doctor.
 5. Verify the saved source change and rendered page in Chrome.
-6. Verify the completed page on the connected iPhone through Expo Go (Metro Fast Refresh is the primary live loop). Use `npm run start:go` on the same network, or `npm run start:remote` when LAN discovery is unavailable. Appetize is an optional secondary artifact when its quota is available; do not block a page on an Appetize quota limit.
+6. Verify the completed page on the connected iPhone through Expo Go (Metro Fast Refresh is the primary live loop). Use `npm run start:go` on the same network, or `npm run start:go:remote` when LAN discovery is unavailable. Appetize is an optional secondary artifact when its quota is available; do not block a page on an Appetize quota limit.
 7. Run Guardian review before committing the page.
 8. Commit the approved page and its documentation with a focused Conventional Commit. Confirm `git status --short` contains only intentional changes before committing; never stage `.env`, `.local/`, credentials, or generated evidence unless explicitly approved.
 

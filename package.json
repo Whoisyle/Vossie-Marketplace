@@ -6,6 +6,7 @@
   "scripts": {
     "start": "expo start",
     "start:go": "expo start --go",
+    "start:go:remote": "cross-env EXPO_UNSTABLE_TUNNEL_V2=1 expo start --go --tunnel",
     "start:dev-client": "expo start --dev-client",
     "start:remote": "cross-env EXPO_UNSTABLE_TUNNEL_V2=1 expo start --dev-client --tunnel",
     "update:appetize": "powershell -ExecutionPolicy Bypass -File scripts/update-appetize.ps1",

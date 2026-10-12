@@ -36,7 +36,7 @@ Native `ios/` and `android/` projects are not committed unless an approved capab
 ## Development workflow
 
 1. Install with `npm ci` when the lockfile exists.
-2. Run `npm run web` for Chrome, `npm run start:go` for Expo Go on the connected iPhone, or `npm run start:dev-client` for an installed Vossie development build.
+2. Run `npm run web` for Chrome, `npm run start:go` for Expo Go on the connected iPhone, `npm run start:go:remote` for Expo Go over a tunnel, or `npm run start:dev-client` for an installed Vossie development build.
 3. Save TypeScript files; Metro performs Fast Refresh for connected clients.
 4. Run `npm run verify` before handoff.
 
