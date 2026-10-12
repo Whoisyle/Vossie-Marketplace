@@ -11,6 +11,13 @@ Every page supplied by the project owner follows one repeatable loop:
 7. Run Guardian review before committing the page.
 8. Commit the approved page and its documentation with a focused Conventional Commit. Confirm `git status --short` contains only intentional changes before committing; never stage `.env`, `.local/`, credentials, or generated evidence unless explicitly approved.
 
+For every supplied reference, the loop also includes these fit and behavior checks:
+
+- Treat the reference as a design reference, not a fixed canvas. Use the device's runtime width, height, safe-area insets, text scaling, keyboard, and orientation so the screen fits the actual Expo client.
+- Preserve a minimum 44 pt touch target and add iOS-style press feedback to every actionable control. Respect reduced-motion preferences and use native stack transitions for screen-to-screen movement.
+- Inventory every visible control before implementation: navigation, inputs, validation, focus/keyboard behavior, loading, error, success, and back/help states. If an external contract is not approved, implement only a clearly labelled local prototype and document the integration gap; never claim a mock is live.
+- Verify the interaction path, not only the first frame: press the primary button, enter invalid and valid values, submit, go back, and repeat the flow at narrow and tall device dimensions.
+
 The final handoff for each page includes the commit hash, verification result, EAS build ID, Appetize link, and any visual verification caveat. A typical commit sequence is:
 
 ```powershell

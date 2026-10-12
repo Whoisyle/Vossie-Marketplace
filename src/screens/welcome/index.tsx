@@ -1,7 +1,8 @@
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
+import { IosPressable } from "@/components/IosPressable";
 import { radius, spacing } from "@/theme";
 
 const HERO_COLLAGE = require("./assets/hero-collage/hero-collage.png");
@@ -40,21 +41,21 @@ export function WelcomeScreen() {
         <Text style={styles.tagline}>Discover  •  Buy  •  Sell  •  Deliver</Text>
 
         <View style={styles.actions}>
-          <Pressable
+          <IosPressable
             accessibilityRole="button"
             accessibilityLabel="Sign in with Eduvos"
             onPress={() => router.push("/eduvos-sign-in")}
-            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+            style={styles.button}
           >
             <Text style={styles.buttonText}>Sign in with Eduvos</Text>
-          </Pressable>
-          <Pressable
+          </IosPressable>
+          <IosPressable
             accessibilityRole="button"
             accessibilityLabel="Scan to sign in"
-            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+            style={styles.button}
           >
             <Text style={styles.buttonText}>Scan to sign in</Text>
-          </Pressable>
+          </IosPressable>
         </View>
       </View>
 
@@ -133,10 +134,6 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
-  },
-  buttonPressed: {
-    opacity: 0.84,
-    transform: [{ scale: 0.98 }],
   },
   footer: {
     alignItems: "center",
