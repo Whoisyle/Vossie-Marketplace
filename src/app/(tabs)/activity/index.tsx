@@ -1,5 +1,5 @@
-import { UpcomingScreen } from "@/screens/shared/UpcomingScreen";
+import { ActivityScreen } from "@/screens/activity/ActivityScreen";
 
-export default function ActivityTab() {
-  return <UpcomingScreen icon="list" step={4} title="Your activity" />;
+export default function Route() {
+  return <ActivityScreen />;
 }

@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
 import { AppHeader, Button, Card, EmptyState, Icon, Screen } from "@/components";
@@ -60,7 +60,7 @@ export function ConfirmationScreen() {
       </Text>
       <Button
         label="Track my order"
-        onPress={() => router.replace("/activity/orders" as never)}
+        onPress={() => router.replace("/activity/orders" as Href)}
         style={styles.track}
         variant="outline"
       />
