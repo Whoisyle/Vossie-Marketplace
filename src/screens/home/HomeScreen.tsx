@@ -145,7 +145,7 @@ export function HomeScreen() {
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(120).duration(380)} style={styles.section}>
-        <PromoCarousel onPress={() => toast.show("Promotions are placeholders for now")} width={pageWidth} />
+        <PromoCarousel onPress={(promo) => router.push(detail("promo", promo.id))} width={pageWidth} />
       </Animated.View>
 
       {hotDeals.length > 0 ? (

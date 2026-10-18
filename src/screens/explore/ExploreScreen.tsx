@@ -123,7 +123,7 @@ export function ExploreScreen() {
       <AppHeader title="Explore" />
       {showingIdle ? (
         <Animated.View entering={FadeInDown.duration(320)} style={styles.promo}>
-          <PromoCarousel width={pageWidth} />
+          <PromoCarousel onPress={(promo) => router.push(open("promo", promo.id))} width={pageWidth} />
         </Animated.View>
       ) : null}
       <View style={styles.searchRow}>

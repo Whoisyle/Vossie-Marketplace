@@ -12,7 +12,7 @@ export function baseFromPath(pathname: string | null | undefined): Base {
   return (TABS_WITH_DETAILS as readonly string[]).includes(first ?? "") ? (first as Base) : "home";
 }
 
-export type DetailKind = "listing" | "store" | "review";
+export type DetailKind = "listing" | "store" | "review" | "promo";
 
 export function detailHref(pathname: string | null | undefined, kind: DetailKind, id: string): Href {
   return `/${baseFromPath(pathname)}/${kind}/${id}` as Href;

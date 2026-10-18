@@ -12,6 +12,7 @@ import {
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from "react-native-reanimated";
 
 import { Icon, type IconName } from "@/components";
+import { promoDefs, promoPercent } from "@/data/promos";
 import { haptic } from "@/lib/haptics";
 import { spring } from "@/theme/motion";
 import { color, corner, gradient, space } from "@/theme/tokens";
@@ -23,16 +24,27 @@ export type Promo = {
   cta: string;
   icon: IconName;
   colors: readonly [string, string];
-  /** Placeholder content: replaced by seller templates and staff banners later. */
+  /** e.g. "Up to 25% off", shown on the banner when the target has deals. */
+  badge?: string;
+  /** Marks a stand-in banner that does not lead anywhere yet. */
   placeholder?: boolean;
 };
 
-/** Placeholder banners (owner decision, 2026-10-18): the real promo system comes later. */
-export const PLACEHOLDER_PROMOS: Promo[] = [
-  { colors: gradient.primary, cta: "Use VOSSIE10", icon: "percent", id: "promo-welcome", placeholder: true, subtitle: "10% off your first campus order", title: "Welcome to Vossie" },
-  { colors: gradient.ink, cta: "Browse food", icon: "coffee", id: "promo-lunch", placeholder: true, subtitle: "Lunch between lectures, ready in minutes", title: "Fresh at the food court" },
-  { colors: gradient.teal, cta: "See study gear", icon: "book-open", id: "promo-study", placeholder: true, subtitle: "Second-hand books and tutors near you", title: "Exam season essentials" },
-];
+const TONES = { ink: gradient.ink, primary: gradient.primary, teal: gradient.teal } as const;
+
+/** The campus promotion banners: each opens a store or category page with its deals first. */
+export const PROMOS: Promo[] = promoDefs.map((def) => {
+  const percent = promoPercent(def);
+  return {
+    badge: percent > 0 ? `Up to ${percent}% off` : undefined,
+    colors: TONES[def.tone],
+    cta: def.cta,
+    icon: def.icon as IconName,
+    id: def.id,
+    subtitle: def.subtitle,
+    title: def.title,
+  };
+});
 
 /**
  * Swipeable promo banners with page dots. Pages snap, the active dot stretches, and the carousel advances by
@@ -40,7 +52,7 @@ export const PLACEHOLDER_PROMOS: Promo[] = [
  */
 export function PromoCarousel({
   onPress,
-  promos = PLACEHOLDER_PROMOS,
+  promos = PROMOS,
   width,
 }: {
   promos?: Promo[];
@@ -123,6 +135,11 @@ function Banner({ active, cardWidth, onPress, promo }: { active: boolean; cardWi
         <View style={styles.bubbleBig} />
         <View style={styles.bubbleSmall} />
         <View style={styles.texts}>
+          {promo.badge ? (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{promo.badge}</Text>
+            </View>
+          ) : null}
           <Text numberOfLines={2} style={styles.title}>
             {promo.title}
           </Text>
@@ -135,7 +152,7 @@ function Banner({ active, cardWidth, onPress, promo }: { active: boolean; cardWi
           </View>
         </View>
         <View style={styles.iconBadge}>
-          <Icon color={color.onPrimary} name={promo.icon} size={28} />
+          <Icon color={color.onPrimary} name={promo.icon} size={34} />
         </View>
       </Animated.View>
     </Pressable>
@@ -156,24 +173,26 @@ function Dot({ active, onPress }: { active: boolean; onPress: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  bubbleBig: { backgroundColor: "rgba(255,255,255,0.10)", borderRadius: 70, height: 140, position: "absolute", right: -30, top: -40, width: 140 },
+  badge: { alignSelf: "flex-start", backgroundColor: color.mist, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  badgeText: { color: color.ink, fontSize: 12, fontWeight: "800" },
+  bubbleBig: { backgroundColor: "rgba(255,255,255,0.10)", borderRadius: 100, height: 200, position: "absolute", right: -50, top: -60, width: 200 },
   bubbleSmall: { backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 30, bottom: -10, height: 60, position: "absolute", right: 70, width: 60 },
   card: {
     borderCurve: "continuous",
     borderRadius: corner.xl,
     boxShadow: "0 10px 24px rgba(30, 42, 56, 0.18)",
     flexDirection: "row",
-    minHeight: 132,
+    minHeight: 188,
     overflow: "hidden",
-    padding: space.md,
+    padding: space.lg,
   },
-  cta: { alignItems: "center", alignSelf: "flex-start", backgroundColor: color.onPrimary, borderRadius: 16, flexDirection: "row", gap: 6, marginTop: space.xs, paddingHorizontal: 12, paddingVertical: 7 },
-  ctaText: { color: color.ink, fontSize: 12, fontWeight: "700" },
+  cta: { alignItems: "center", alignSelf: "flex-start", backgroundColor: color.onPrimary, borderRadius: 18, flexDirection: "row", gap: 6, marginTop: space.xs, paddingHorizontal: 14, paddingVertical: 9 },
+  ctaText: { color: color.ink, fontSize: 13, fontWeight: "700" },
   dot: { backgroundColor: color.ink, borderRadius: 4, height: 8 },
   dots: { alignItems: "center", flexDirection: "row", gap: 6, justifyContent: "center", marginTop: space.xs },
-  iconBadge: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 28, height: 56, justifyContent: "center", width: 56 },
+  iconBadge: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 36, height: 72, justifyContent: "center", width: 72 },
   row: { gap: space.xs, paddingHorizontal: space.lg },
-  subtitle: { color: "rgba(255,255,255,0.86)", fontSize: 13, lineHeight: 18 },
+  subtitle: { color: "rgba(255,255,255,0.88)", fontSize: 14, lineHeight: 20 },
   texts: { flex: 1, gap: 4, paddingRight: space.sm },
-  title: { color: color.onPrimary, fontSize: 19, fontWeight: "700", lineHeight: 24 },
+  title: { color: color.onPrimary, fontSize: 24, fontWeight: "800", lineHeight: 29 },
 });

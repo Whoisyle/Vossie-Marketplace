@@ -19,6 +19,8 @@ export const dealPercent: Record<string, number> = {
   "headphones": 15,
   "bomber-jacket": 25,
   "stats-tutoring": 10,
+  highlighters: 15,
+  printing: 10,
   "maths-tutoring": 15,
   "mint-laptop": 10,
   "planner-notebooks": 25,

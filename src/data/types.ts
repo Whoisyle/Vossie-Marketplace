@@ -140,12 +140,14 @@ export type Message = {
   fromMe: boolean;
   body: string;
   sentAt: string;
+  /** A suggested place to meet or hand over, shown as a card instead of plain text. */
+  place?: string;
 };
 
 export type Conversation = {
   id: string;
   name: string;
-  kind: "buyer" | "seller" | "support";
+  kind: "buyer" | "seller" | "support" | "courier";
   unread: boolean;
   orderId?: string;
   messages: Message[];
@@ -217,3 +219,23 @@ export type Review = {
   /** True for reviews written by the signed-in student on this device. */
   mine?: boolean;
 };
+
+/** Who can see the student's profile and listings. */
+export type ProfileVisibility = "campus" | "followers" | "private";
+
+export type AppSettings = {
+  /** Ask for Face ID or Touch ID before payments and wallet actions. */
+  biometric: boolean;
+  profileVisibility: ProfileVisibility;
+  showCampus: boolean;
+  personalised: boolean;
+  shareTracking: boolean;
+  notifyOrders: boolean;
+  notifyMessages: boolean;
+  notifyPromos: boolean;
+  notifyAlerts: boolean;
+  haptics: boolean;
+  sounds: boolean;
+};
+
+export type BlockedUser = { id: string; name: string; blockedAt: string };

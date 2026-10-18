@@ -6,8 +6,15 @@ import { Platform } from "react-native";
  */
 type Haptics = typeof import("expo-haptics");
 
+let enabled = true;
+
+/** Turned off from Security and Settings; every haptic call then does nothing. */
+export function setHapticsEnabled(value: boolean) {
+  enabled = value;
+}
+
 function load(): Haptics | null {
-  if (Platform.OS === "web") return null;
+  if (Platform.OS === "web" || !enabled) return null;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require("expo-haptics") as Haptics;

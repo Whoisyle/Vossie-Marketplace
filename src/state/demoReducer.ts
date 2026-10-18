@@ -17,9 +17,12 @@ import { reelsSeed, reviewsSeed } from "@/data/mock/content";
 import { effectivePrice } from "@/data/deals";
 import { deliveryEtaMinutes, deliveryFee, fulfilmentFor, type DeliveryMode, type ThirdPartyTier } from "@/data/delivery";
 import { getListing, getSeller } from "@/data/repository";
+import { DEFAULT_SETTINGS } from "@/data/settings";
 import { lookupStudentRecord } from "@/data/studentRecord";
 import type {
   ActivityItem,
+  AppSettings,
+  BlockedUser,
   Booking,
   CampusId,
   CartLine,
@@ -85,6 +88,8 @@ export type DemoState = {
   wallet: { balanceCents: number; transactions: WalletTransaction[] };
   cards: SavedCard[];
   twoFactor: boolean;
+  settings: AppSettings;
+  blocked: BlockedUser[];
   loginEvents: LoginEvent[];
   reels: Reel[];
   likedReels: string[];
@@ -123,6 +128,8 @@ export function createInitialState(): DemoState {
     wallet: { balanceCents: walletSeed.balanceCents, transactions: walletSeed.transactions },
     cards: savedCardsSeed,
     twoFactor: true,
+    settings: DEFAULT_SETTINGS,
+    blocked: [{ blockedAt: daysAgoIso(12), id: "user-blocked-1", name: "Sam K." }],
     loginEvents: loginEventsSeed,
     reels: reelsSeed,
     likedReels: [],
@@ -154,12 +161,17 @@ export type DemoAction =
   | { type: "applyVoucher"; code: string | null }
   | { type: "placeOrder" }
   | { type: "addCard"; card: Omit<SavedCard, "id" | "isDefault">; makeDefault: boolean }
+  | { type: "removeCard"; cardId: string }
+  | { type: "setDefaultCard"; cardId: string }
   | { type: "addFunds"; amountCents: number; source: string }
-  | { type: "sendMessage"; conversationId: string; body: string }
-  | { type: "openConversation"; conversationId: string; name?: string }
+  | { type: "sendMessage"; conversationId: string; body: string; place?: string }
+  | { type: "openConversation"; conversationId: string; name?: string; kind?: Conversation["kind"]; orderId?: string }
   | { type: "markConversationRead"; conversationId: string }
   | { type: "markNotificationsRead" }
   | { type: "setTwoFactor"; enabled: boolean }
+  | { type: "setSetting"; key: keyof AppSettings; value: AppSettings[keyof AppSettings] }
+  | { type: "unblockUser"; userId: string }
+  | { type: "blockUser"; userId: string; name: string }
   | { type: "signOutOtherSessions" }
   | { type: "toggleReelLike"; reelId: string }
   | { type: "addReelComment"; reelId: string; body: string };
@@ -240,6 +252,10 @@ function addressFor(mode: DeliveryMode, address: string): string {
   if (mode === "collection") return "Campus collection point";
   if (mode === "hub-to-hub") return "Your campus hub (collect there)";
   return address;
+}
+
+function daysAgoIso(days: number): string {
+  return new Date(Date.now() - days * 86_400_000).toISOString();
 }
 
 function orderNumber() {
@@ -496,6 +512,26 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         checkout: { ...state.checkout, payment: "card", cardId: card.id },
       };
     }
+    case "setDefaultCard":
+      return {
+        ...state,
+        cards: state.cards.map((item) => ({ ...item, isDefault: item.id === action.cardId })),
+        checkout: { ...state.checkout, cardId: action.cardId },
+      };
+    case "removeCard": {
+      const rest = state.cards.filter((item) => item.id !== action.cardId);
+      const cards = rest.length > 0 && !rest.some((item) => item.isDefault) ? rest.map((item, index) => ({ ...item, isDefault: index === 0 })) : rest;
+      const usingIt = state.checkout.cardId === action.cardId;
+      return {
+        ...state,
+        cards,
+        checkout: {
+          ...state.checkout,
+          cardId: usingIt ? (cards.find((item) => item.isDefault)?.id ?? null) : state.checkout.cardId,
+          payment: usingIt && cards.length === 0 && state.checkout.payment === "card" ? "wallet" : state.checkout.payment,
+        },
+      };
+    }
     case "addFunds":
       return {
         ...state,
@@ -512,7 +548,7 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       return {
         ...state,
         conversations: [
-          { id: action.conversationId, name: action.name ?? "Conversation", kind: "seller", unread: false, messages: [] },
+          { id: action.conversationId, name: action.name ?? "Conversation", kind: action.kind ?? "seller", orderId: action.orderId, unread: false, messages: [] },
           ...state.conversations,
         ],
       };
@@ -525,7 +561,7 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         ...state,
         conversations: state.conversations.map((conversation) =>
           conversation.id === action.conversationId
-            ? { ...conversation, messages: [...conversation.messages, { id: nextId("m"), fromMe: true, body, sentAt }] }
+            ? { ...conversation, messages: [...conversation.messages, { id: nextId("m"), fromMe: true, body, sentAt, ...(action.place ? { place: action.place } : {}) }] }
             : conversation,
         ),
       };
@@ -539,6 +575,14 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       };
     case "markNotificationsRead":
       return { ...state, notifications: state.notifications.map((item) => ({ ...item, read: true })) };
+    case "setSetting":
+      return { ...state, settings: { ...state.settings, [action.key]: action.value } };
+    case "unblockUser":
+      return { ...state, blocked: state.blocked.filter((item) => item.id !== action.userId) };
+    case "blockUser":
+      return state.blocked.some((item) => item.id === action.userId)
+        ? state
+        : { ...state, blocked: [...state.blocked, { blockedAt: new Date().toISOString(), id: action.userId, name: action.name }] };
     case "setTwoFactor":
       return { ...state, twoFactor: action.enabled };
     case "signOutOtherSessions":

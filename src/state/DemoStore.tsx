@@ -1,4 +1,6 @@
-import { createContext, use, useReducer, type Dispatch, type ReactNode } from "react";
+import { createContext, use, useEffect, useReducer, type Dispatch, type ReactNode } from "react";
+
+import { setHapticsEnabled } from "@/lib/haptics";
 
 import {
   cartTotals,
@@ -31,6 +33,7 @@ export function DemoStoreProvider({
     initialState,
     (seed) => seed ?? createInitialState(),
   );
+  useEffect(() => setHapticsEnabled(state.settings.haptics), [state.settings.haptics]);
   return <DemoStoreContext value={{ state, dispatch }}>{children}</DemoStoreContext>;
 }
 

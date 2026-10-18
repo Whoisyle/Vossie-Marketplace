@@ -82,7 +82,7 @@ export function TrackOrderScreen() {
           : "Waiting for the seller";
 
   const chat = () => {
-    dispatch({ conversationId: `courier-${order.id}`, name: order.courier?.name ?? "Courier", type: "openConversation" });
+    dispatch({ conversationId: `courier-${order.id}`, kind: "courier", name: order.courier?.name ?? "Courier", orderId: order.id, type: "openConversation" });
     router.push(`/account/inbox/courier-${order.id}` as Href);
   };
 

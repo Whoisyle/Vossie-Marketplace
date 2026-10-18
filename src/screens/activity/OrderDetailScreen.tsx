@@ -46,7 +46,7 @@ export function OrderDetailScreen() {
   const info = statusInfo(order.status);
   const messageSeller = () => {
     if (!seller) return;
-    dispatch({ conversationId: `seller-${seller.id}`, name: seller.name, type: "openConversation" });
+    dispatch({ conversationId: `seller-${seller.id}`, name: seller.name, orderId: order?.id, type: "openConversation" });
     router.push(`/account/inbox/seller-${seller.id}` as Href);
   };
 

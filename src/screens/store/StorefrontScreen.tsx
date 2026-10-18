@@ -18,6 +18,7 @@ import {
 } from "@/components";
 import { VossieMap } from "@/components/map/VossieMap";
 import { shortDate, formatRand } from "@/data/format";
+import { dealFor } from "@/data/deals";
 import { storeLocation } from "@/data/geo";
 import { getCampusName, getListings, getSeller } from "@/data/repository";
 import type { Listing } from "@/data/types";
@@ -41,7 +42,14 @@ export function StorefrontScreen() {
   const all = useMemo(() => (seller ? getListings({ sellerId: seller.id }) : []), [seller]);
   const goods = all.filter((listing) => listing.categoryId !== "services");
   const services = all.filter((listing) => listing.categoryId === "services");
-  const specials = useMemo(() => all.filter((listing) => listing.popular || listing.rating >= 4.8), [all]);
+  // items with a deal come first, then the popular and top-rated ones
+  const specials = useMemo(
+    () =>
+      all
+        .filter((listing) => dealFor(listing.id) > 0 || listing.popular || listing.rating >= 4.8)
+        .sort((a, b) => dealFor(b.id) - dealFor(a.id)),
+    [all],
+  );
   const reviews = useMemo(() => state.reviews.filter((review) => review.sellerId === id), [id, state.reviews]);
   const isFood = goods.length > 0 && goods.every((listing) => listing.categoryId === "food");
 
@@ -62,15 +70,20 @@ export function StorefrontScreen() {
     { count: reviews.length, key: "reviews" as const, label: "Reviews" },
   ];
   const active = tabs.some((item) => item.key === tab) ? tab : tabs[0]!.key;
-  const promo: Promo = {
-    colors: gradient.teal,
-    cta: "Shop now",
-    icon: "gift",
-    id: `store-${seller.id}`,
-    placeholder: true,
-    subtitle: "Store promotions will appear here",
-    title: `${seller.name} specials`,
-  };
+  const dealPercent = Math.max(0, ...all.map((listing) => dealFor(listing.id)));
+  // a banner only when this store really has something on promotion; tapping it opens the Specials tab
+  const promo: Promo | null =
+    dealPercent > 0
+      ? {
+          badge: `Up to ${dealPercent}% off`,
+          colors: gradient.teal,
+          cta: "See the deals",
+          icon: "percent",
+          id: `store-${seller.id}`,
+          subtitle: "Discounted items from this store",
+          title: `${seller.name} deals`,
+        }
+      : null;
 
   const message = () => {
     dispatch({ conversationId: `seller-${seller.id}`, name: seller.name, type: "openConversation" });
@@ -160,9 +173,11 @@ export function StorefrontScreen() {
         </View>
       </View>
 
-      <View style={styles.promo}>
-        <PromoCarousel promos={[promo]} width={Math.min(width, size.contentMax + space.xl * 2)} />
-      </View>
+      {promo ? (
+        <View style={styles.promo}>
+          <PromoCarousel onPress={() => setTab("specials")} promos={[promo]} width={Math.min(width, size.contentMax + space.xl * 2)} />
+        </View>
+      ) : null}
 
       <SegmentedTabs onChange={setTab} options={tabs} value={active} />
 

@@ -49,3 +49,13 @@ export function initials(name: string): string {
     .map((part) => part[0]!.toUpperCase())
     .join("");
 }
+
+/** "Today", "Yesterday", or the date, for dividers between days in a conversation. */
+export function dayLabel(iso: string, now: Date = new Date()): string {
+  const day = new Date(iso);
+  const startOf = (value: Date) => new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
+  const diff = Math.round((startOf(now) - startOf(day)) / 86_400_000);
+  if (diff <= 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  return shortDate(iso);
+}

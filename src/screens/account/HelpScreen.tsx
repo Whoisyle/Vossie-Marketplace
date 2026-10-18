@@ -20,7 +20,7 @@ export function HelpScreen() {
   }, [query]);
 
   const chat = () => {
-    dispatch({ conversationId: "conv-support", name: "Vossie Support", type: "openConversation" });
+    dispatch({ conversationId: "conv-support", kind: "support", name: "Vossie Support", type: "openConversation" });
     router.push("/account/inbox/conv-support" as Href);
   };
 
