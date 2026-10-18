@@ -13,7 +13,9 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { useTilt } from "@/lib/useTilt";
-import { color } from "@/theme/tokens";
+import { LinearGradient } from "expo-linear-gradient";
+
+import { gradient } from "@/theme/tokens";
 import { duration, ease, seeded } from "@/theme/motion";
 
 /**
@@ -40,9 +42,9 @@ const BUBBLES = [
 ] as const;
 
 const TONES = {
-  accent: { backgroundColor: color.accent, opacity: 1 },
-  ink: { backgroundColor: color.ink, opacity: 0.88 },
-  mist: { backgroundColor: color.mist, opacity: 0.8 },
+  accent: { colors: gradient.teal, opacity: 1 },
+  ink: { colors: gradient.ink, opacity: 0.9 },
+  mist: { colors: gradient.mist, opacity: 0.85 },
 } as const;
 
 type Props = {
@@ -117,7 +119,7 @@ const Bubble = memo(function Bubble({
   const style = useAnimatedStyle(() => {
     if (reduced) return { opacity: TONES[bubble.tone].opacity };
     // slow wander, a bit larger for small bubbles
-    const wander = 10 + 26 * bubble.depth;
+    const wander = 6 + 16 * bubble.depth;
     let dx = interpolate(driftX.get(), [0, 1], [-wander, wander]);
     let dy = interpolate(driftY.get(), [0, 1], [-wander * 0.8, wander * 0.8]);
 
@@ -153,7 +155,6 @@ const Bubble = memo(function Bubble({
       style={[
         styles.bubble,
         {
-          backgroundColor: TONES[bubble.tone].backgroundColor,
           borderRadius: radius,
           height: radius * 2,
           left: centerX - radius,
@@ -162,10 +163,17 @@ const Bubble = memo(function Bubble({
         },
         style,
       ]}
-    />
+    >
+      <LinearGradient
+        colors={TONES[bubble.tone].colors}
+        end={{ x: 0.85, y: 1 }}
+        start={{ x: 0.15, y: 0 }}
+        style={StyleSheet.absoluteFill}
+      />
+    </Animated.View>
   );
 });
 
 const styles = StyleSheet.create({
-  bubble: { position: "absolute" },
+  bubble: { overflow: "hidden", position: "absolute" },
 });

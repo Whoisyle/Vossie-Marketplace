@@ -1,3 +1,4 @@
+import { LinearGradient } from "expo-linear-gradient";
 import {
   ActivityIndicator,
   Pressable,
@@ -8,15 +9,18 @@ import {
   type ViewStyle,
 } from "react-native";
 
-import { color, corner, size, space, text } from "@/theme/tokens";
+import { color, gradient, corner, size, space, text } from "@/theme/tokens";
 
 import { Icon, type IconName } from "./Icon";
 
 type Variant = "primary" | "accent" | "soft" | "outline" | "danger" | "light";
 
-const variants: Record<Variant, { bg: string; pressed: string; fg: string; border?: string }> = {
-  primary: { bg: color.primary, pressed: color.primaryPressed, fg: color.onPrimary },
-  accent: { bg: color.accent, pressed: color.accentPressed, fg: color.onPrimary },
+type Tone = { bg: string; pressed: string; fg: string; border?: string; gradient?: readonly [string, string]; gradientPressed?: readonly [string, string] };
+
+const variants: Record<Variant, Tone> = {
+  // the main action colour everywhere: slate with a soft gradient
+  primary: { bg: color.primary, pressed: color.primaryPressed, fg: color.onPrimary, gradient: gradient.primary, gradientPressed: gradient.primaryPressed },
+  accent: { bg: color.primary, pressed: color.primaryPressed, fg: color.onPrimary, gradient: gradient.primary, gradientPressed: gradient.primaryPressed },
   soft: { bg: color.surfaceSoft, pressed: "#CFDDE6", fg: color.heading },
   outline: { bg: "transparent", pressed: color.surfaceIcon, fg: color.heading, border: color.borderStrong },
   danger: { bg: color.danger, pressed: "#97433A", fg: color.onPrimary },
@@ -71,6 +75,7 @@ export function Button({
         styles.base,
         {
           backgroundColor: pressed ? tone.pressed : tone.bg,
+          overflow: "hidden",
           borderColor: tone.border ?? "transparent",
           borderRadius: shape === "pill" ? corner.pill : corner.sm,
           minHeight: height,
@@ -83,6 +88,17 @@ export function Button({
       ]}
       testID={testID}
     >
+      {({ pressed }) => (
+        <>
+          {tone.gradient ? (
+            <LinearGradient
+              colors={pressed ? tone.gradientPressed! : tone.gradient}
+              end={{ x: 1, y: 1 }}
+              pointerEvents="none"
+              start={{ x: 0, y: 0 }}
+              style={StyleSheet.absoluteFill}
+            />
+          ) : null}
       {loading ? (
         <ActivityIndicator color={tone.fg} />
       ) : (
@@ -96,6 +112,8 @@ export function Button({
           </Text>
           {iconRight ? <Icon name={iconRight} size={18} color={tone.fg} /> : null}
         </View>
+      )}
+        </>
       )}
     </Pressable>
   );

@@ -20,8 +20,8 @@ export const duration = {
   base: 260,
   slow: 420,
   /** Ambient loops (drifting bubbles, breathing glows). */
-  ambientMin: 7_000,
-  ambientMax: 14_000,
+  ambientMin: 4_200,
+  ambientMax: 8_200,
 } as const;
 
 export const ease = {

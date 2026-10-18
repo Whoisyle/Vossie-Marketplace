@@ -1,3 +1,4 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -11,6 +12,8 @@ import {
   type MotionRange,
   rangeProgress,
 } from "./VossieIntroTransition";
+import { gradient } from "@/theme/tokens";
+
 import { useIntroRevealAccessibility } from "./useIntroRevealAccessibility";
 
 type AnimatedWelcomeContentProps = {
@@ -21,8 +24,8 @@ type AnimatedWelcomeContentProps = {
 };
 
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1).factory();
-const ACTION_COLOR = "#376371";
-const ACTION_PRESSED_COLOR = "#244752";
+const ACTION_COLOR = "#35505C";
+const ACTION_PRESSED_COLOR = "#2A4250";
 
 // Sign-in pill frame on the 852x1846 Welcome canvas.
 const SIGN_IN_FRAME = { height: 116, width: 732, x: 60, y: 1594 } as const;
@@ -241,10 +244,18 @@ function SignInAction({
             backgroundColor: pressed ? ACTION_PRESSED_COLOR : ACTION_COLOR,
             borderRadius: height / 2,
             height,
+            overflow: "hidden",
             transform: [{ scale: pressed ? 0.985 : 1 }],
           },
         ]}
       >
+        <LinearGradient
+          colors={gradient.primary}
+          end={{ x: 1, y: 1 }}
+          pointerEvents="none"
+          start={{ x: 0, y: 0 }}
+          style={StyleSheet.absoluteFill}
+        />
         <Text
           allowFontScaling
           maxFontSizeMultiplier={1.35}

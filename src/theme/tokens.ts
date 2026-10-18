@@ -59,6 +59,19 @@ export const color = {
   microsoftText: "#404040",
 } as const;
 
+/** Gradients that belong together: each runs from a lighter to a deeper step of the same hue. */
+export const gradient = {
+  /** Main action colour (slate #35505C) with a lift at the top-left. */
+  primary: ["#40677A", "#35505C"],
+  primaryPressed: ["#35505C", "#2A4250"],
+  /** Bubbles and decorative fills. */
+  teal: ["#4E7E8D", "#2F5A67"],
+  ink: ["#2C4150", "#1E2A38"],
+  mist: ["#D3DDE3", "#B7C4CC"],
+  /** Cards and panels. */
+  soft: ["#EDF3F6", "#DFEAF1"],
+} as const satisfies Record<string, readonly [string, string]>;
+
 export const space = {
   none: 0,
   xxs: 4,
