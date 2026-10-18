@@ -2,7 +2,7 @@
 
 - Status: **Plan agreed with the owner on 2026-10-18; no motion work built yet**
 - Method: flow order, one screen at a time, owner reviews each on the iPhone (Expo Go) before the next
-- References go in `design/inspiration/` (see its README). Pinterest links cannot be opened by tooling, so the image or video itself is needed.
+- References go in the owner's folder `C:\Users\PABAL\OneDrive\Desktop\Vossie Design Inspiration` (see `design/inspiration/README.md`). Pinterest links cannot be opened by tooling, so the image or video itself is needed.
 
 ## Rules for all motion
 

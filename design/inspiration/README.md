@@ -1,5 +1,7 @@
 # Motion and visual inspiration
 
+> The owner keeps the real inspiration files in `C:\Users\PABAL\OneDrive\Desktop\Vossie Design Inspiration`. Read from there; do not copy large media into git. Copy a file here only when a build needs it.
+
 Drop references here: screenshots, screen recordings (.mp4, .mov, .gif), Lottie/JSON files, and a `links.md` for URLs.
 
 Name files by the screen they inspire so they are easy to match, for example:
