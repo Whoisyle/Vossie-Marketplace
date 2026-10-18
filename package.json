@@ -16,7 +16,8 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "export:web": "expo export --platform web",
-    "verify": "npm run lint && npm run typecheck && npm test -- --runInBand && npm run export:web"
+    "verify": "npm run lint && npm run typecheck && npm test -- --runInBand && npm run export:web",
+    "test:db": "node --test supabase/tests/"
   },
   "dependencies": {
     "@expo/ui": "~57.0.23",
@@ -42,6 +43,7 @@
     "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.10",
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "29.5.14",
     "@types/react": "~19.2.2",
