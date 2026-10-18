@@ -43,6 +43,21 @@
 | Checkout and receipts | Animated pay button states (idle, processing, success, failure), animated receipt, and receipts and order updates sent by email. |
 | Email | Supabase built-in email for now (owner decision, to be changed later). It is rate-limited and by default only delivers to project team addresses, so it is for testing; the receipt email also needs an Edge Function and the provider swap later. |
 
+## Final answers (2026-10-18, after the reference folder arrived)
+
+References in the owner's folder: a property app (floating bar, dark filter button, swipeable cards, nearby list), a parcel delivery app (dark greeting header, tracking cards with a progress line, live map with dashed route and courier card with call and chat, QR box-scan screen, round centre button), a notes app (black and white curved cut-outs), the **reels icon** (black rounded square with white vertical bars) and a 5 second **transition video**: a navy circle swells over the screen and inverts the colours with small dots on top. This confirms the liquid ink reveal.
+
+| Question | Answer |
+| --- | --- |
+| Navbar style | **Light frosted glass** with the sliding glass highlight (owner chose this over the dark pill and the centre button). |
+| Maps | **All four**: live order tracking (courier, dashed route, ETA, call and chat), store and pickup locations, delivery address picker, and the courier's own navigation view. |
+| Payments (mock-ups with proper brand icons) | **All**: Visa and Mastercard (credit and debit), Apple Pay and Google Pay, Vossie Wallet, instant EFT with South African banks. Real Apple Pay and Google Pay need a payment provider and a development build, so they stay mock. EFT is not yet a payment method in the database; it needs one more enum value when it goes live. |
+| Seller and courier apps | **Tomorrow (19 Oct).** Not part of this pass. |
+| Reels icon | The black rounded square with white vertical bars. Redrawn as a clean animated icon (bars bounce when active). |
+| Scope of this pass | Maps data and live tracking; connect screens to the real backend; the missing buyer screens (notifications, saved items, saved addresses with a map pin, payment methods and cards list, order tracking, receipt). The polish layer (skeletons, offline states, onboarding tour, dark mode) is deferred. |
+
+Notes: connecting screens to the real backend needs the new schema on a Supabase project. Until the owner approves applying it, screens keep working on the demo store behind the `backendEnabled` switch. Live courier position needs a new table and the iPhone location permission.
+
 ## New packages (approved)
 
 `react-native-gesture-handler`, `expo-haptics`, `expo-linear-gradient`, `expo-blur`, `expo-sensors`. All run in Expo Go.
