@@ -7,7 +7,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import {
-  BRAND_BLUE,
+  INK,
   type FrameMetrics,
   introTimeline,
   rangeProgress,
@@ -76,7 +76,7 @@ export function AnimatedWordmark({
       };
     }
 
-    const visible = rangeProgress(clock.get(), [3_400, 3_460]);
+    const visible = rangeProgress(clock.get(), [3_450, 3_510]);
     const travel = EASE_IN_OUT(
       rangeProgress(clock.get(), introTimeline.sharedLogoTransition),
     );
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   imageLayer: { bottom: 0, left: 0, position: "absolute", right: 0, top: 0 },
   leftCover: {
-    backgroundColor: BRAND_BLUE,
+    backgroundColor: INK,
     bottom: 0,
     left: 0,
     position: "absolute",
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     width: "50%",
   },
   rightCover: {
-    backgroundColor: BRAND_BLUE,
+    backgroundColor: INK,
     bottom: 0,
     position: "absolute",
     right: 0,

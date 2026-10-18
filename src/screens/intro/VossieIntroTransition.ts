@@ -29,15 +29,15 @@ export const introTimeline: IntroTimeline = {
   totalDurationMs: 8_000,
   nativeHandoff: [0, 600],
   dotPop: [600, 850],
-  dotHopV: [850, 1_100],
-  dotHopO: [1_100, 1_350],
-  dotHopS1: [1_350, 1_600],
-  dotHopS2: [1_600, 1_850],
-  dotHopI: [1_850, 2_100],
-  portalPrepare: [2_100, 2_500],
-  portalExpand: [2_500, 3_400],
-  whiteWordmarkReveal: [3_400, 4_600],
-  brandHold: [4_600, 5_000],
+  dotHopV: [850, 1_150],
+  dotHopO: [1_150, 1_450],
+  dotHopS1: [1_450, 1_750],
+  dotHopS2: [1_750, 2_050],
+  dotHopI: [2_050, 2_350],
+  portalPrepare: [2_350, 2_650],
+  portalExpand: [2_650, 3_450],
+  whiteWordmarkReveal: [3_450, 4_500],
+  brandHold: [4_500, 5_000],
   sharedLogoTransition: [5_000, 5_900],
   heading: [5_900, 6_350],
   descriptor: [6_150, 6_550],
@@ -68,6 +68,10 @@ export const wordmarkDotHopTargets = [
 ] as const;
 
 export const BRAND_BLUE = "#29475B";
+/** Owner palette additions (2026-10-18): the ink flood, its soft edge, and a deeper shade. */
+export const INK = "#1f2f39";
+export const MIST = "#b7c4cc";
+export const INK_DEEP = "#1e2a38";
 
 export const splashReference = {
   height: 2796,

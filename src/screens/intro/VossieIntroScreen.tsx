@@ -10,8 +10,9 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { AnimatedWordmark } from "./AnimatedWordmark";
+import { hopLift, hopRun, hopScales, settleWobble } from "./dotMotion";
+import { InkReveal } from "./InkReveal";
 import {
-  BRAND_BLUE,
   type FrameMetrics,
   activeDotHopIndex,
   introTimeline,
@@ -27,7 +28,6 @@ import { useIntroAnimation } from "./useIntroAnimation";
 const SPLASH_REFERENCE = require("../splash/assets/reference-screen/vossie-ios-splash.png");
 const WORDMARK_WITHOUT_DOT = require("./assets/vossie-wordmark-no-dot.svg");
 const DOT = require("./assets/vossie-dot.svg");
-const EASE_IN_OUT = Easing.bezier(0.77, 0, 0.175, 1).factory();
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1).factory();
 const DOT_HOP_RANGES = [
   introTimeline.dotHopV,
@@ -36,6 +36,8 @@ const DOT_HOP_RANGES = [
   introTimeline.dotHopS2,
   introTimeline.dotHopI,
 ] as const;
+/** Peak height of each hop in dot heights; the hops climb a little and the last one is the highest. */
+const HOP_ARCS = [1.5, 1.7, 1.7, 1.9, 2.3] as const;
 
 type OpeningProps = {
   clock: SharedValue<number>;
@@ -88,46 +90,28 @@ function OpeningSplash({ clock, frame }: OpeningProps) {
 
     if (hopIndex >= 0) {
       const hopProgress = rangeProgress(value, DOT_HOP_RANGES[hopIndex]!);
-      const easedHop = EASE_IN_OUT(hopProgress);
+      const isLast = hopIndex === DOT_HOP_RANGES.length - 1;
       const target = wordmarkDotHopTargets[hopIndex]!;
       const start = hopIndex === 0
         ? { translateX: vTarget.translateX, translateY: vTarget.translateY - 0.72 * 99.3433 }
         : wordmarkDotHopTargets[hopIndex - 1]!;
-      const arcHeight = dot.height * 1.12;
-      translateX = interpolate(
-        easedHop,
-        [0, 1],
-        [start.translateX * logoUnitScale, target.translateX * logoUnitScale],
-        Extrapolation.CLAMP,
-      );
-      translateY = interpolate(
-        easedHop,
-        [0, 0.5, 1],
-        [
-          start.translateY * logoUnitScale,
-          (start.translateY + target.translateY) * 0.5 * logoUnitScale - arcHeight,
-          target.translateY * logoUnitScale,
-        ],
-        Extrapolation.CLAMP,
-      );
-      scaleX = interpolate(
-        hopProgress,
-        [0, 0.2, 0.68, 0.86, 1],
-        [1, 0.86, 1.08, 1.26, 1],
-        Extrapolation.CLAMP,
-      );
-      scaleY = interpolate(
-        hopProgress,
-        [0, 0.2, 0.68, 0.86, 1],
-        [1, 1.18, 0.92, 0.68, 1],
-        Extrapolation.CLAMP,
-      );
+      const run = hopRun(hopProgress, isLast);
+      const arc = dot.height * HOP_ARCS[hopIndex]!;
+      translateX = (start.translateX + (target.translateX - start.translateX) * run) * logoUnitScale;
+      translateY =
+        (start.translateY + (target.translateY - start.translateY) * hopProgress) * logoUnitScale +
+        hopLift(hopProgress, arc);
+      const squash = hopScales(hopProgress, hopIndex > 0);
+      scaleX = squash.x;
+      scaleY = squash.y;
     } else if (value >= introTimeline.dotHopI[1]) {
       const settledTarget = wordmarkDotHopTargets[4];
+      const settle = rangeProgress(value, introTimeline.portalPrepare);
       translateX = settledTarget.translateX * logoUnitScale;
-      translateY = settledTarget.translateY * logoUnitScale;
-      scaleX = 1 - preparing * 0.08;
-      scaleY = 1 + preparing * 0.08;
+      translateY = settledTarget.translateY * logoUnitScale + settleWobble(settle, dot.height * 0.34);
+      const wobbleSquash = 1 + 0.05 * Math.abs(Math.sin(settle * 13)) * Math.exp(-5.5 * settle);
+      scaleX = (1 - preparing * 0.08) / wobbleSquash;
+      scaleY = (1 + preparing * 0.08) * wobbleSquash;
     }
 
     return {
@@ -176,74 +160,6 @@ function OpeningSplash({ clock, frame }: OpeningProps) {
   );
 }
 
-function Portal({
-  clock,
-  frame,
-  reducedMotion,
-  viewportHeight,
-  viewportWidth,
-}: {
-  clock: SharedValue<number>;
-  frame: FrameMetrics;
-  reducedMotion: boolean;
-  viewportHeight: number;
-  viewportWidth: number;
-}) {
-  const diameter = 51.3647 * frame.scale;
-  const centerX = frame.left + 838.5267 * frame.scale;
-  const centerY = frame.top + 1323.2055 * frame.scale;
-  const coverScale =
-    (Math.hypot(
-      Math.max(centerX, viewportWidth - centerX) * 2,
-      Math.max(centerY, viewportHeight - centerY) * 2,
-    ) + 4) /
-    diameter;
-  const portalStyle = useAnimatedStyle(() => {
-    if (reducedMotion) return { opacity: 0, transform: [{ scale: 0.01 }] };
-    const value = clock.get();
-    const prepare = rangeProgress(value, introTimeline.portalPrepare);
-    const expand = EASE_IN_OUT(
-      rangeProgress(value, introTimeline.portalExpand),
-    );
-    const retract = EASE_IN_OUT(
-      rangeProgress(value, introTimeline.sharedLogoTransition),
-    );
-    const preparedScale = interpolate(
-      prepare,
-      [0, 0.45, 1],
-      [0.92, 0.78, 1],
-      Extrapolation.CLAMP,
-    );
-    const expandedScale = preparedScale + (coverScale - preparedScale) * expand;
-    const retractScale = 0.01 + 0.99 * (1 - retract);
-    return {
-      opacity:
-        value < introTimeline.portalPrepare[0] ||
-        value >= introTimeline.sharedLogoTransition[1]
-          ? 0
-          : 1,
-      transform: [{ scale: expandedScale * retractScale }],
-    };
-  });
-
-  return (
-    <Animated.View
-      pointerEvents="none"
-      style={[
-        styles.portal,
-        {
-          borderRadius: diameter / 2,
-          height: diameter,
-          left: centerX - diameter / 2,
-          top: centerY - diameter / 2,
-          width: diameter,
-        },
-        portalStyle,
-      ]}
-    />
-  );
-}
-
 export function VossieIntroScreen() {
   const { height, width } = useWindowDimensions();
   const { canSkip, clock, isComplete, reducedMotion, skip } =
@@ -271,7 +187,7 @@ export function VossieIntroScreen() {
         reducedMotion={reducedMotion}
       />
       {!reducedMotion && <OpeningSplash clock={clock} frame={splashFrame} />}
-      <Portal
+      <InkReveal
         clock={clock}
         frame={splashFrame}
         reducedMotion={reducedMotion}
@@ -310,7 +226,6 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
   },
-  portal: { backgroundColor: BRAND_BLUE, position: "absolute" },
   positioned: { position: "absolute" },
   screen: { backgroundColor: "#FFFFFF", flex: 1, overflow: "hidden" },
 });

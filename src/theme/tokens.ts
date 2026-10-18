@@ -14,6 +14,10 @@ export const color = {
   accent: "#376371", // selected chips, Welcome button, sign-in bubbles
   accentPressed: "#244752",
   onPrimary: "#FFFFFF",
+  // Owner palette additions (2026-10-18): accents and tints, never large solid fills
+  mist: "#b7c4cc",
+  ink: "#1f2f39",
+  inkDeep: "#1e2a38",
 
   // Surfaces
   background: "#FFFFFF",

@@ -9,20 +9,20 @@ import {
 import { IntroPlaybackController } from "./IntroPlaybackController";
 
 describe("Vossie cinematic intro timeline", () => {
-  it("locks the approved eight-second choreography", () => {
+  it("locks the eight-second choreography (hops lengthened to 300ms and ink reveal, 2026-10-18)", () => {
     expect(introTimeline).toMatchObject({
       totalDurationMs: 8_000,
       nativeHandoff: [0, 600],
       dotPop: [600, 850],
-      dotHopV: [850, 1_100],
-      dotHopO: [1_100, 1_350],
-      dotHopS1: [1_350, 1_600],
-      dotHopS2: [1_600, 1_850],
-      dotHopI: [1_850, 2_100],
-      portalPrepare: [2_100, 2_500],
-      portalExpand: [2_500, 3_400],
-      whiteWordmarkReveal: [3_400, 4_600],
-      brandHold: [4_600, 5_000],
+      dotHopV: [850, 1_150],
+      dotHopO: [1_150, 1_450],
+      dotHopS1: [1_450, 1_750],
+      dotHopS2: [1_750, 2_050],
+      dotHopI: [2_050, 2_350],
+      portalPrepare: [2_350, 2_650],
+      portalExpand: [2_650, 3_450],
+      whiteWordmarkReveal: [3_450, 4_500],
+      brandHold: [4_500, 5_000],
       sharedLogoTransition: [5_000, 5_900],
       heading: [5_900, 6_350],
       descriptor: [6_150, 6_550],
@@ -47,7 +47,7 @@ describe("Vossie cinematic intro timeline", () => {
 
     expect(path[0]![0]).toBe(introTimeline.nativeHandoff[1]);
     expect(path.map((range) => range[1] - range[0])).toEqual([
-      250, 250, 250, 250, 250, 250,
+      250, 300, 300, 300, 300, 300,
     ]);
     path.slice(1).forEach((range, index) => {
       expect(range[0]).toBe(path[index]![1]);
@@ -79,8 +79,8 @@ describe("Vossie cinematic intro timeline", () => {
       expect(activeDotHopIndex(end)).toBe(index === hops.length - 1 ? -1 : index + 1);
     });
 
-    expect(activeDotHopIndex(2_100)).toBe(-1);
-    expect(activeDotHopIndex(2_499)).toBe(-1);
+    expect(activeDotHopIndex(2_350)).toBe(-1);
+    expect(activeDotHopIndex(2_649)).toBe(-1);
   });
 
   it("settles on the authored i-dot before the continuous portal preparation", () => {
@@ -89,7 +89,7 @@ describe("Vossie cinematic intro timeline", () => {
     expect(rangeProgress(lastHop[0], lastHop)).toBe(0);
     expect(rangeProgress(lastHop[1], lastHop)).toBe(1);
     expect(lastHop[1]).toBe(introTimeline.portalPrepare[0]);
-    expect(introTimeline.portalPrepare).toEqual([2_100, 2_500]);
+    expect(introTimeline.portalPrepare).toEqual([2_350, 2_650]);
     expect(introTimeline.portalExpand[0]).toBe(introTimeline.portalPrepare[1]);
   });
 

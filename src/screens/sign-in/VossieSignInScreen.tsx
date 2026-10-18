@@ -14,26 +14,21 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 
 import { Button, Sheet } from "@/components";
+import { haptic } from "@/lib/haptics";
 import { useDemoStore } from "@/state/DemoStore";
+import { duration, ease, spring } from "@/theme/motion";
 import { color, space } from "@/theme/tokens";
 
+import { FloatingBubbles } from "./FloatingBubbles";
 import { isValidEmail } from "./validation";
-
-// Bubble geometry measured from design/screens/03-sign-in-microsoft.png on a
-// 560 x 1205 frame: x and radius scale with width, y with height.
-const BUBBLES = [
-  { x: 150, y: 160, r: 165 },
-  { x: 470, y: 85, r: 120 },
-  { x: 340, y: 255, r: 58 },
-  { x: 520, y: 335, r: 115 },
-  { x: 280, y: 605, r: 300 },
-  { x: 505, y: 835, r: 68 },
-  { x: 165, y: 1005, r: 150 },
-  { x: 400, y: 945, r: 60 },
-  { x: 410, y: 1100, r: 105 },
-] as const;
 
 const MICROSOFT_SQUARES = ["#F25022", "#7FBA00", "#00A4EF", "#FFB900"] as const;
 
@@ -60,6 +55,18 @@ export function VossieSignInScreen() {
   const [helpOpen, setHelpOpen] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardWidth = Math.min(width * 0.82, 440);
+  const pulse = useSharedValue(0);
+  const burst = useSharedValue(0);
+  const touchX = useSharedValue(width / 2);
+  const touchY = useSharedValue(height / 2);
+  const touchActive = useSharedValue(0);
+
+  const followFinger = (event: { nativeEvent: { pageX: number; pageY: number } }) => {
+    touchX.set(withSpring(event.nativeEvent.pageX, spring.follow));
+    touchY.set(withSpring(event.nativeEvent.pageY, spring.follow));
+    touchActive.set(withTiming(1, { duration: duration.fast }));
+  };
+  const releaseFinger = () => touchActive.set(withTiming(0, { duration: duration.slow }));
 
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current);
@@ -79,14 +86,18 @@ export function VossieSignInScreen() {
     Keyboard.dismiss();
     if (!email.trim()) {
       setError("Enter your email, phone or Skype name.");
+      haptic.error();
       return;
     }
     if (!isValidEmail(email)) {
       setError("Enter a valid email address, like eduv123456@vossie.net.");
+      haptic.error();
       return;
     }
     setError("");
     setSubmitting(true);
+    haptic.press();
+    burst.set(withTiming(1, { duration: 620, easing: ease.out }));
     timer.current = setTimeout(() => {
       dispatch({ email, type: "signIn" });
       router.replace("/home");
@@ -94,31 +105,29 @@ export function VossieSignInScreen() {
   };
 
   return (
-    <SafeAreaView edges={["left", "right"]} style={styles.safeArea}>
+    <SafeAreaView
+      edges={["left", "right"]}
+      onTouchCancel={releaseFinger}
+      onTouchEnd={releaseFinger}
+      onTouchMove={followFinger}
+      onTouchStart={followFinger}
+      style={styles.safeArea}
+    >
       <View
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
         pointerEvents="none"
         style={StyleSheet.absoluteFill}
       >
-        {BUBBLES.map((bubble, index) => {
-          const radius = (bubble.r / 560) * width;
-          return (
-            <View
-              key={index}
-              style={[
-                styles.bubble,
-                {
-                  borderRadius: radius,
-                  height: radius * 2,
-                  left: (bubble.x / 560) * width - radius,
-                  top: (bubble.y / 1205) * height - radius,
-                  width: radius * 2,
-                },
-              ]}
-            />
-          );
-        })}
+        <FloatingBubbles
+          burst={burst}
+          height={height}
+          pulse={pulse}
+          touchActive={touchActive}
+          touchX={touchX}
+          touchY={touchY}
+          width={width}
+        />
       </View>
 
       <KeyboardAvoidingView
@@ -143,6 +152,10 @@ export function VossieSignInScreen() {
               autoCorrect={false}
               editable={!submitting}
               keyboardType="email-address"
+              onFocus={() => {
+                haptic.tap();
+                pulse.set(withSequence(withTiming(1, { duration: 320, easing: ease.out }), withTiming(0, { duration: 900, easing: ease.inOut })));
+              }}
               onChangeText={(value) => {
                 setEmail(value);
                 if (error) setError("");
@@ -208,7 +221,6 @@ export function VossieSignInScreen() {
 
 const styles = StyleSheet.create({
   actions: { alignItems: "flex-end", marginTop: space.lg },
-  bubble: { backgroundColor: color.accent, position: "absolute" },
   card: {
     alignSelf: "center",
     backgroundColor: "#FFFFFF",
