@@ -1,6 +1,6 @@
 import { act, fireEvent, renderHook, screen } from "@testing-library/react-native";
 
-import { OfflineBanner, TourOverlay } from "@/components";
+import { OfflineBanner } from "@/components";
 import { resetFirstLoads, useFirstLoad } from "@/components/Skeleton";
 import { pointsBalance } from "@/data/points";
 import { hideBlocked, referralCodeFor } from "@/data/phase4";
@@ -17,7 +17,6 @@ import { TrackOrderScreen, DEMO_RIDE_MS, trackingLink } from "./activity/TrackOr
 import { arrivalText } from "./cart/ConfirmationScreen";
 import { CheckoutScreen, slotLabel } from "./cart/CheckoutScreen";
 import { ListingDetailScreen } from "./listing/ListingDetailScreen";
-import { TOUR_CARDS } from "@/components/TourOverlay";
 
 const mockPush = jest.fn();
 const mockBack = jest.fn();
@@ -116,16 +115,22 @@ describe("Delivery, courier rating and tips", () => {
 });
 
 describe("Referrals", () => {
-  it("pays the credit once, on the first order after a friend's code", () => {
+  it("pays 200 points once, when the first order after a friend's code is delivered", () => {
     let state = demoReducer(signedIn(), { code: "kamo-1234", type: "applyReferral" });
     expect(state.referral.referredBy).toBe("KAMO-1234");
     state = demoReducer(state, { listingId: "burger-chips", optionId: "small", quantity: 1, type: "addToCart" });
-    const before = state.wallet.balanceCents;
     const placed = demoReducer(state, { type: "placeOrder" });
-    expect(placed.wallet.balanceCents).toBe(before + 3000);
-    expect(placed.referral.rewardPaid).toBe(true);
-    const again = demoReducer(demoReducer(placed, { listingId: "burger-chips", optionId: "small", quantity: 1, type: "addToCart" }), { type: "placeOrder" });
-    expect(again.wallet.balanceCents).toBe(placed.wallet.balanceCents);
+    expect(placed.referral.firstOrderId).toBe(placed.orders[0]!.id);
+    expect(placed.referral.rewardPaid).toBe(false);
+    const before = pointsBalance(placed.orders, placed.pointsLedger);
+    const delivered = demoReducer(placed, { orderId: placed.orders[0]!.id, type: "deliverOrder" });
+    expect(delivered.referral.rewardPaid).toBe(true);
+    expect(pointsBalance(delivered.orders, delivered.pointsLedger)).toBeGreaterThanOrEqual(before + 200);
+    expect(delivered.pointsLedger[0]!.label).toMatch(/Referral reward/);
+    // a second order does not pay again
+    const again = demoReducer(demoReducer(delivered, { listingId: "burger-chips", optionId: "small", quantity: 1, type: "addToCart" }), { type: "placeOrder" });
+    const second = demoReducer(again, { orderId: again.orders[0]!.id, type: "deliverOrder" });
+    expect(second.pointsLedger.filter((entry) => /Referral reward/.test(entry.label))).toHaveLength(1);
   });
 
   it("ignores your own code and a second code", () => {
@@ -240,24 +245,7 @@ describe("Alerts, stock, block and reorder", () => {
   });
 });
 
-describe("Tour, skeleton, offline and phone features", () => {
-  it("walks the three tour cards and finishes", () => {
-    const done = jest.fn();
-    renderWithProviders(<TourOverlay onDone={done} visible />);
-    expect(screen.getByText(TOUR_CARDS[0]!.title)).toBeTruthy();
-    fireEvent.press(screen.getByTestId("tour-next"));
-    fireEvent.press(screen.getByTestId("tour-next"));
-    fireEvent.press(screen.getByText("Get started"));
-    expect(done).toHaveBeenCalled();
-  });
-
-  it("can be skipped", () => {
-    const done = jest.fn();
-    renderWithProviders(<TourOverlay onDone={done} visible />);
-    fireEvent.press(screen.getByTestId("tour-skip"));
-    expect(done).toHaveBeenCalled();
-  });
-
+describe("Skeleton, offline and phone features", () => {
   it("shows a skeleton on first load only", () => {
     jest.useFakeTimers();
     resetFirstLoads();

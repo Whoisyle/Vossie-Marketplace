@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { AppHeader, Card, Chip, Icon, ProgressRing, Screen, useToast } from "@/components";
 import { dateAndTime, formatRand } from "@/data/format";
-import { canRedeem, nextTier, pointsBalance, pointsForOrder, pointsValueCents, REDEEM_OPTIONS, TIERS, tierFor } from "@/data/points";
+import { canRedeem, nextTier, orderPoints, pointsBalance, pointsValueCents, REDEEM_OPTIONS, TIERS, tierFor } from "@/data/points";
 import { confirmWithBiometrics } from "@/lib/biometric";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
@@ -11,10 +11,10 @@ import { color, space, text } from "@/theme/tokens";
 type Line = { id: string; label: string; points: number; at: string };
 
 /** Every point movement, newest first: earned on delivered orders, plus redemptions. */
-export function pointsHistory(state: { orders: { id: string; number: string; status: string; totalCents: number; deliveredAt?: string; placedAt: string }[]; pointsLedger: { id: string; label: string; points: number; createdAt: string }[] }): Line[] {
+export function pointsHistory(state: { orders: { id: string; number: string; status: string; totalCents: number; pointsMultiplier?: number; deliveredAt?: string; placedAt: string }[]; pointsLedger: { id: string; label: string; points: number; createdAt: string }[] }): Line[] {
   const earned = state.orders
-    .filter((order) => order.status === "delivered" && pointsForOrder(order.totalCents) > 0)
-    .map((order) => ({ at: order.deliveredAt ?? order.placedAt, id: order.id, label: `Order ${order.number} delivered`, points: pointsForOrder(order.totalCents) }));
+    .filter((order) => order.status === "delivered" && orderPoints(order) > 0)
+    .map((order) => ({ at: order.deliveredAt ?? order.placedAt, id: order.id, label: `Order ${order.number} delivered`, points: orderPoints(order) }));
   const ledger = state.pointsLedger.map((entry) => ({ at: entry.createdAt, id: entry.id, label: entry.label, points: entry.points }));
   return [...earned, ...ledger].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 }

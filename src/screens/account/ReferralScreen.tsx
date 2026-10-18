@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Share, StyleSheet, Text, View } from "react-native";
 
 import { AppHeader, Button, Card, Icon, Screen, StatusBadge, TextField, useToast } from "@/components";
-import { formatRand } from "@/data/format";
-import { inviteStatusLabel, REFERRAL_REWARD_CENTS, referralCodeFor, validateReferralCode } from "@/data/phase4";
+import { inviteStatusLabel, REFERRAL_REWARD_POINTS, referralCodeFor, validateReferralCode } from "@/data/phase4";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, corner, space, text } from "@/theme/tokens";
 
@@ -17,13 +16,13 @@ export function ReferralScreen() {
   if (!profile) return null;
 
   const code = referralCodeFor(profile.fullName || profile.email, profile.studentNumber);
-  const reward = formatRand(REFERRAL_REWARD_CENTS);
-  const earned = state.referral.invited.filter((friend) => friend.status === "rewarded").length * REFERRAL_REWARD_CENTS;
+  const reward = `${REFERRAL_REWARD_POINTS} points`;
+  const earned = state.referral.invited.filter((friend) => friend.status === "rewarded").length * REFERRAL_REWARD_POINTS;
 
   const share = async () => {
     try {
       await Share.share({
-        message: `Join me on Vossie, the campus marketplace. Use my code ${code} when you sign up and we both get ${reward} wallet credit after your first order.`,
+        message: `Join me on Vossie, the campus marketplace. Use my code ${code} when you sign up and we both get ${reward} after your first delivered order.`,
       });
     } catch {
       toast.show("Sharing isn't available here");
@@ -39,7 +38,7 @@ export function ReferralScreen() {
     setError(null);
     dispatch({ code: input, type: "applyReferral" });
     setInput("");
-    toast.show(`Code applied. You get ${reward} after your next order`);
+    toast.show(`Code applied. You get ${reward} after your first delivered order`);
   };
 
   return (
@@ -54,13 +53,13 @@ export function ReferralScreen() {
         <Button icon="share-2" label="Share my code" onPress={() => void share()} testID="share-code" variant="light" />
       </Card>
       <Text style={[text.caption, styles.small]}>
-        When a friend signs up with your code and places their first order, you both get {reward} in your Vossie wallet.
+        When a friend signs up with your code and their first order is delivered, you both get {reward}, added to your Vossie Points.
       </Text>
 
       <Text style={styles.heading}>Earned so far</Text>
       <Card style={styles.earned} variant="soft">
         <Icon color={color.heading} name="gift" size={22} />
-        <Text style={styles.earnedValue}>{formatRand(earned)}</Text>
+        <Text style={styles.earnedValue}>{earned} points</Text>
       </Card>
 
       <Text style={styles.heading}>Got a friend&apos;s code?</Text>
@@ -70,7 +69,7 @@ export function ReferralScreen() {
           <View style={styles.flex}>
             <Text style={text.cardTitle}>{state.referral.referredBy}</Text>
             <Text style={text.caption}>
-              {state.referral.rewardPaid ? `${reward} credit added to your wallet` : `You get ${reward} after your first order`}
+              {state.referral.rewardPaid ? `${reward} added to your points` : `You get ${reward} after your first delivered order`}
             </Text>
           </View>
         </Card>

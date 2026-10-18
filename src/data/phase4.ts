@@ -7,8 +7,8 @@ import type { Seller } from "./types";
 
 // ---- referrals ---------------------------------------------------------------------------------------------
 
-/** Wallet credit each side gets once the invited friend places their first order. */
-export const REFERRAL_REWARD_CENTS = 3000;
+/** Points each side gets once the invited friend's first order is delivered (owner decision, 2026-10-18). */
+export const REFERRAL_REWARD_POINTS = 200;
 
 /** "Vumisa" with student number 2023 09530 becomes VUMI-9530. */
 export function referralCodeFor(name: string, studentNumber?: string): string {
@@ -35,7 +35,7 @@ export const invitedSeed: InvitedFriend[] = [
 export const inviteStatusLabel: Record<InvitedFriend["status"], string> = {
   joined: "Joined, waiting for their first order",
   ordered: "First order placed, credit on its way",
-  rewarded: "You both got R30",
+  rewarded: "You both got 200 points",
 };
 
 // ---- vouchers ----------------------------------------------------------------------------------------------

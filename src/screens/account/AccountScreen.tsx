@@ -54,7 +54,9 @@ export function AccountScreen() {
           campusName={getCampusName(profile.campusId)}
           name={profile.fullName}
           studentNumber={profile.studentNumber}
+          vertical
           verified={profile.isVerifiedStudent}
+          width={250}
         />
       </View>
 
@@ -97,16 +99,21 @@ export function AccountScreen() {
         <MenuRow icon="edit-2" label="Edit Profile" onPress={() => go("/account/edit-profile")} />
         <MenuRow icon="credit-card" label="Wallet" onPress={() => go("/account/wallet")} />
         <MenuRow icon="award" label="Vossie Points" onPress={() => go("/account/points")} value={`${points.toLocaleString("en-ZA")} pts`} />
-        <MenuRow icon="tag" label="My vouchers" onPress={() => go("/account/vouchers")} value={`${state.userVouchers.filter((item) => new Date(item.expiresAt).getTime() >= now).length} active`} />
-        <MenuRow icon="gift" label="Refer a friend" onPress={() => go("/account/referral")} />
+        <MenuRow icon="tag" label="Coupons and offers" onPress={() => go("/account/vouchers")} value={`${state.userVouchers.filter((item) => new Date(item.expiresAt).getTime() >= now).length} active`} />
+        <MenuRow icon="gift" label="Refer friends" onPress={() => go("/account/referral")} value="Earn 200 pts" />
+        <MenuRow icon="star" label="Subscriptions" onPress={() => go("/account/subscriptions")} value={`${state.subscriptions.filter((item) => new Date(item.renewsAt).getTime() >= now).length} active`} />
         <MenuRow
           icon="mail"
           label="Inbox"
           onPress={() => go("/account/inbox")}
           value={unread ? `${unread} new` : undefined}
         />
+        <MenuRow icon="bookmark" label="Wishlist and saved searches" onPress={() => go("/account/wishlist")} />
+        <MenuRow icon="compass" label="Campus extras" onPress={() => go("/account/campus")} value="Swap, tutors, lost and found" />
+        <MenuRow icon="heart" label="Safety" onPress={() => go("/account/safety")} value="Check-up" />
         <MenuRow icon="shield" label="Security and Settings" onPress={() => go("/account/security")} />
         <MenuRow icon="help-circle" label="Help" onPress={() => go("/account/help")} />
+        <MenuRow icon="file-text" label="Terms and conditions" onPress={() => go("/account/legal")} />
       </View>
 
       <View style={styles.signOut}>
@@ -196,7 +203,7 @@ function Fact({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   bar: { backgroundColor: color.mist, borderRadius: 4, height: 8, overflow: "hidden" },
   barFill: { backgroundColor: color.primary, borderRadius: 4, height: 8 },
-  cardGap: { marginTop: space.sm },
+  cardGap: { alignItems: "center", marginTop: space.sm },
   points: { gap: space.sm, marginTop: space.sm },
   pointsTop: { alignItems: "center", flexDirection: "row", gap: space.sm },
   pointsValue: { color: color.heading, fontSize: 26, fontWeight: "800" },

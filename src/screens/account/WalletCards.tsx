@@ -10,9 +10,10 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from "react-native-reanimated";
 
 import { Icon } from "@/components";
+import { cardHeight } from "@/components/StudentCard";
 import { formatRand } from "@/data/format";
 import type { SavedCard } from "@/data/types";
 import { haptic } from "@/lib/haptics";
@@ -21,8 +22,13 @@ import { color, corner, gradient, space } from "@/theme/tokens";
 
 import { BrandMark } from "../cart/BrandMark";
 
-export const WALLET_CARD_WIDTH = 190;
-export const WALLET_CARD_HEIGHT = 300;
+/** Cards are drawn at real card proportions (85.6 x 54 mm, held upright). */
+export const WALLET_CARD_WIDTH = 210;
+export const WALLET_CARD_HEIGHT = cardHeight(WALLET_CARD_WIDTH);
+
+/** How long the carousel stays on a card before moving on, and how long it waits after a touch. */
+export const WALLET_AUTO_MS = 3800;
+export const WALLET_RESUME_MS = 6000;
 const GAP = space.sm;
 
 export type WalletItem =
@@ -56,9 +62,35 @@ export function walletItems(input: {
 }
 
 /** Medium, upright cards in a swipeable row. The one in the middle is lifted; the others sit back a little. */
+/** The face of one saved card, drawn at card size; also used as the live preview when editing a card. */
+export function CardFace({ card, width = WALLET_CARD_WIDTH }: { card: SavedCard; width?: number }) {
+  const look = lookFor({ card, id: card.id, kind: "card" });
+  return (
+    <View style={[styles.card, { height: cardHeight(width), width }]} testID="card-face">
+      {look.colors ? <LinearGradient colors={look.colors} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} /> : null}
+      <View pointerEvents="none" style={styles.bubble} />
+      <View style={styles.top}>
+        <BrandMark kind={card.brand} />
+        {look.tag ? (
+          <View style={styles.tag}>
+            <Text style={styles.tagText}>{look.tag}</Text>
+          </View>
+        ) : null}
+      </View>
+      <View style={styles.chip} />
+      <View style={styles.bottom}>
+        <Text style={[styles.title, styles.onDark]}>{look.title}</Text>
+        <Text style={[styles.sub, styles.onDarkMuted]}>{look.sub}</Text>
+        {look.foot ? <Text style={[styles.foot, styles.onDarkMuted]}>{look.foot}</Text> : null}
+      </View>
+    </View>
+  );
+}
+
 export function WalletCarousel({
   items,
   onAdd,
+  onEditCard,
   onSelect,
   selected,
 }: {
@@ -66,9 +98,29 @@ export function WalletCarousel({
   selected: number;
   onSelect: (index: number) => void;
   onAdd: () => void;
+  /** Tapping a saved card opens it for editing. */
+  onEditCard: (cardId: string) => void;
 }) {
   const scroller = useRef<ScrollView>(null);
+  const reduced = useReducedMotion();
   const snap = WALLET_CARD_WIDTH + GAP;
+  const pausedUntil = useRef(0);
+  const current = useRef(selected);
+  useEffect(() => {
+    current.current = selected;
+  });
+
+  // moves on by itself, stops while a finger is on it, and stays still with Reduce Motion
+  useEffect(() => {
+    if (reduced || items.length < 2) return;
+    const timer = setInterval(() => {
+      if (Date.now() < pausedUntil.current) return;
+      const next = (current.current + 1) % items.length;
+      scroller.current?.scrollTo({ animated: true, x: next * snap });
+      onSelect(next);
+    }, WALLET_AUTO_MS);
+    return () => clearInterval(timer);
+  }, [items.length, onSelect, reduced, snap]);
 
   const onEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const next = Math.min(items.length - 1, Math.max(0, Math.round(event.nativeEvent.contentOffset.x / snap)));
@@ -85,6 +137,9 @@ export function WalletCarousel({
         decelerationRate="fast"
         horizontal
         onMomentumScrollEnd={onEnd}
+        onScrollBeginDrag={() => {
+          pausedUntil.current = Date.now() + WALLET_RESUME_MS;
+        }}
         ref={scroller}
         showsHorizontalScrollIndicator={false}
         snapToInterval={snap}
@@ -98,6 +153,7 @@ export function WalletCarousel({
             key={item.id}
             onPress={() => {
               if (item.kind === "add") onAdd();
+              else if (item.kind === "card") onEditCard(item.card.id);
               else {
                 scroller.current?.scrollTo({ animated: true, x: index * snap });
                 onSelect(index);

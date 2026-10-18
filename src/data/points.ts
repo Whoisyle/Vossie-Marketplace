@@ -23,12 +23,19 @@ export function pointsForOrder(totalCents: number): number {
 }
 
 /** Points earned from delivered orders plus the welcome gift, plus anything redeemed (negative) or awarded in the ledger. */
-export function pointsBalance(orders: Pick<Order, "status" | "totalCents">[], ledger: Pick<PointsEntry, "points">[] = []): number {
+export function pointsBalance(orders: OrderPoints[], ledger: Pick<PointsEntry, "points">[] = []): number {
   return (
     WELCOME_POINTS +
-    orders.filter((order) => order.status === "delivered").reduce((sum, order) => sum + pointsForOrder(order.totalCents), 0) +
+    orders.filter((order) => order.status === "delivered").reduce((sum, order) => sum + orderPoints(order), 0) +
     ledger.reduce((sum, entry) => sum + entry.points, 0)
   );
+}
+
+export type OrderPoints = Pick<Order, "status" | "totalCents"> & { pointsMultiplier?: number };
+
+/** Points a delivered order earns: 1 per R10, doubled for Vossie Plus members. */
+export function orderPoints(order: Pick<OrderPoints, "totalCents" | "pointsMultiplier">): number {
+  return pointsForOrder(order.totalCents) * (order.pointsMultiplier ?? 1);
 }
 
 /** Points can be redeemed in steps of 100 (R10 each step), up to the balance. */

@@ -26,5 +26,4 @@ export { StudentCard } from "./StudentCard";
 export { TabBar, TABS } from "./TabBar";
 export { TextField } from "./TextField";
 export { ToastProvider, useToast } from "./Toast";
-export { TourOverlay } from "./TourOverlay";
 export { Wordmark } from "./Wordmark";

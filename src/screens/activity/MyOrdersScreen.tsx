@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useMemo, useState } from "react";
-import { Share, StyleSheet, Text, View } from "react-native";
+import { Pressable, Share, StyleSheet, Text, View } from "react-native";
 
 import {
   AppHeader,
@@ -128,7 +128,7 @@ export function MyOrdersScreen() {
         ? (tab === "complete" ? groups.complete : groups.cancelled).length === 0
           ? <EmptyState icon="inbox" title={`No ${tab} orders`} />
           : (tab === "complete" ? groups.complete : groups.cancelled).map((order) => (
-              <OrderRow key={order.id} order={order} onPress={() => router.push(`/activity/order/${order.id}` as Href)} />
+              <OrderRow key={order.id} onPress={() => router.push(`/activity/order/${order.id}` as Href)} onReceipt={() => router.push(`/activity/receipt/${order.id}` as Href)} order={order} />
             ))
         : null}
 
@@ -136,7 +136,7 @@ export function MyOrdersScreen() {
         <>
           <Text style={styles.heading}>Recent Orders</Text>
           {recent.map((order) => (
-            <OrderRow key={order.id} order={order} onPress={() => router.push(`/activity/order/${order.id}` as Href)} />
+            <OrderRow key={order.id} onPress={() => router.push(`/activity/order/${order.id}` as Href)} onReceipt={() => router.push(`/activity/receipt/${order.id}` as Href)} order={order} />
           ))}
         </>
       ) : null}
@@ -144,7 +144,7 @@ export function MyOrdersScreen() {
   );
 }
 
-function OrderRow({ onPress, order }: { order: Order; onPress: () => void }) {
+function OrderRow({ onPress, onReceipt, order }: { order: Order; onPress: () => void; onReceipt: () => void }) {
   const info = statusInfo(order.status);
   return (
     <Card
@@ -165,6 +165,12 @@ function OrderRow({ onPress, order }: { order: Order; onPress: () => void }) {
       <View style={styles.rowEnd}>
         <Text style={styles.price}>{formatRand(order.totalCents)}</Text>
         <StatusBadge label={info.label} tone={info.tone} />
+        {order.status !== "cancelled" ? (
+          <Pressable accessibilityLabel={`View receipt for order ${order.number}`} accessibilityRole="button" hitSlop={8} onPress={onReceipt} style={styles.receiptLink} testID={`receipt-${order.id}`}>
+            <Icon color={color.link} name="file-text" size={13} />
+            <Text style={styles.receiptText}>Receipt</Text>
+          </Pressable>
+        ) : null}
       </View>
     </Card>
   );
@@ -193,6 +199,8 @@ function BookingRow({ booking }: { booking: Booking }) {
 }
 
 const styles = StyleSheet.create({
+  receiptLink: { alignItems: "center", flexDirection: "row", gap: 4, minHeight: 28 },
+  receiptText: { color: color.link, fontSize: 12, fontWeight: "700" },
   actions: { flexDirection: "row", gap: space.sm },
   courier: { alignItems: "center", flexDirection: "row", gap: space.xs },
   featured: { gap: space.sm, marginTop: space.sm },

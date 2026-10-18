@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Fragment, type ReactNode, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import Animated, { FadeInDown, FadeOutUp } from "react-native-reanimated";
@@ -41,8 +41,10 @@ export function ExploreScreen() {
   const open = useDetail();
   const { width } = useWindowDimensions();
   const { dispatch, state } = useDemoStore();
-  const [query, setQuery] = useState("");
-  const [submitted, setSubmitted] = useState<string | null>(null);
+  // a saved search opens Explore with its words already searched
+  const { q } = useLocalSearchParams<{ q?: string }>();
+  const [query, setQuery] = useState(q ?? "");
+  const [submitted, setSubmitted] = useState<string | null>(q ?? null);
   const [category, setCategory] = useState<CategoryId | null>(null);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -194,9 +196,21 @@ export function ExploreScreen() {
               {results.length} {results.length === 1 ? "result" : "results"}
               {submitted ? ` for “${submitted}”` : category ? ` in ${categories.find((item) => item.id === category)?.name}` : ""}
             </Text>
-            <Pressable accessibilityRole="button" hitSlop={8} onPress={reset}>
-              <Text style={styles.link}>Clear</Text>
-            </Pressable>
+            <View style={styles.headActions}>
+              {submitted ? (
+                <Pressable
+                  accessibilityRole="button"
+                  hitSlop={8}
+                  onPress={() => dispatch({ query: submitted, type: "saveSearch" })}
+                  testID="save-search"
+                >
+                  <Text style={styles.link}>{state.savedSearches.some((item) => item.query.toLowerCase() === submitted.toLowerCase()) ? "Search saved" : "Save search"}</Text>
+                </Pressable>
+              ) : null}
+              <Pressable accessibilityRole="button" hitSlop={8} onPress={reset}>
+                <Text style={styles.link}>Clear</Text>
+              </Pressable>
+            </View>
           </View>
           {results.length === 0 ? (
             <View>
@@ -324,6 +338,7 @@ const styles = StyleSheet.create({
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: space.xs, marginTop: space.xs },
   flex: { flex: 1 },
   grid: { gap: space.xs },
+  headActions: { flexDirection: "row", gap: space.md },
   link: { color: color.link, fontSize: 13, fontWeight: "600" },
   pressed: { opacity: 0.7 },
   promo: { marginBottom: space.sm },

@@ -1,12 +1,12 @@
 import { Redirect } from "expo-router";
 import { Tabs } from "expo-router/tabs";
 
-import { OfflineBanner, TabBar, TourOverlay } from "@/components";
+import { OfflineBanner, TabBar } from "@/components";
 import { TabChromeProvider } from "@/components/nav/TabChrome";
 import { useDemoStore } from "@/state/DemoStore";
 
 export default function TabsLayout() {
-  const { dispatch, state } = useDemoStore();
+  const { state } = useDemoStore();
   if (!state.profile) return <Redirect href="/sign-in" />;
   if (state.isNewUser) return <Redirect href="/profile-setup" />;
 
@@ -25,7 +25,6 @@ export default function TabsLayout() {
       <Tabs.Screen name="account" options={{ title: "Account" }} />
     </Tabs>
     <OfflineBanner />
-    <TourOverlay onDone={() => dispatch({ type: "markTourSeen" })} visible={!state.tourSeen} />
     </TabChromeProvider>
   );
 }

@@ -117,6 +117,10 @@ export type Order = {
   /** Chosen with Order for later: the time the student wants it. */
   scheduledFor?: string;
   deliveredAt?: string;
+  /** 2 for Vossie Plus members at the time of ordering; points are earned times this. */
+  pointsMultiplier?: number;
+  /** Orders paid together share a group, so one receipt can show them all. */
+  groupId?: string;
   /** The student's rating of the courier (1 to 5) and the tip they added after delivery. */
   courierRating?: 1 | 2 | 3 | 4 | 5;
   tipCents?: number;
@@ -176,11 +180,19 @@ export type ActivityItem = {
   createdAt: string;
 };
 
+export type WalletTransactionKind = "top-up" | "purchase" | "refund" | "tip" | "points" | "withdrawal" | "subscription" | "other";
+
 export type WalletTransaction = {
   id: string;
   label: string;
   amountCents: number;
   createdAt: string;
+  kind?: WalletTransactionKind;
+  /** The order this payment was for, so the receipt can be opened again. */
+  orderId?: string;
+  /** A withdrawal stays pending until the card provider confirms it. */
+  status?: "completed" | "pending";
+  detail?: string;
 };
 
 export type SavedCard = {

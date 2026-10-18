@@ -107,6 +107,28 @@ export function OrderDetailScreen() {
       </Card>
 
       <View style={styles.cta}>
+        {order.status !== "cancelled" ? (
+          <Button
+            fullWidth
+            icon="users"
+            label="Split the bill"
+            onPress={() => router.push(`/activity/split/${order.id}` as Href)}
+            style={styles.trackGap}
+            testID="split-bill"
+            variant="soft"
+          />
+        ) : null}
+        {order.status !== "cancelled" ? (
+          <Button
+            fullWidth
+            icon="file-text"
+            label="View receipt"
+            onPress={() => router.push(`/activity/receipt/${order.id}` as Href)}
+            style={styles.trackGap}
+            testID="view-receipt"
+            variant="soft"
+          />
+        ) : null}
         {order.status === "delivered" ? (
           <Button
             fullWidth

@@ -3,7 +3,6 @@ import {
   returningProfiles,
   userVouchersSeed,
   savedCardsSeed,
-  subscriberDiscountCents,
   vouchers,
   walletSeed,
 } from "@/data/mock/account";
@@ -18,9 +17,12 @@ import { reelsSeed, reviewsSeed } from "@/data/mock/content";
 import { dealFor, effectivePrice } from "@/data/deals";
 import { deliveryEtaMinutes, deliveryFee, fulfilmentFor, type DeliveryMode, type ThirdPartyTier } from "@/data/delivery";
 import { getListing, getSeller } from "@/data/repository";
-import { invitedSeed, REFERRAL_REWARD_CENTS, referralCodeFor, isSoldOut, voucherProblem, type InvitedFriend, type PriceAlert, type UserVoucher } from "@/data/phase4";
-import { canRedeem, pointsBalance, pointsValueCents } from "@/data/points";
+import { invitedSeed, REFERRAL_REWARD_POINTS, referralCodeFor, isSoldOut, voucherProblem, type InvitedFriend, type PriceAlert, type UserVoucher } from "@/data/phase4";
+import { getPlan, hasPlan, nextMonth, PLUS_FREE_COURIER_OVER_CENTS, PLUS_ORDER_DISCOUNT_CENTS, PLUS_POINTS_MULTIPLIER, STUDY_PASS_PERCENT_OFF_SERVICES, type PlanId, type Subscription } from "@/data/subscriptions";
+import { canRedeem, orderPoints, pointsBalance, pointsValueCents } from "@/data/points";
 import { DEFAULT_SETTINGS } from "@/data/settings";
+import type { EmergencyContact, ReportCategory, SafetyReport } from "@/data/safety";
+import { lostFoundSeed, splitShares, swapsSeed, type LostFoundKind, type LostFoundPost, type SavedSearch, type Split, type SwapPost, type WishCollection } from "@/data/campus";
 import { lookupStudentRecord } from "@/data/studentRecord";
 import type {
   ActivityItem,
@@ -98,11 +100,20 @@ export type DemoState = {
   blocked: BlockedUser[];
   /** Points history beyond what delivered orders earn: redemptions and awards. */
   pointsLedger: PointsEntry[];
-  referral: { referredBy: string | null; rewardPaid: boolean; invited: InvitedFriend[] };
+  referral: { referredBy: string | null; rewardPaid: boolean; firstOrderId: string | null; invited: InvitedFriend[] };
+  subscriptions: Subscription[];
+  emergencyContacts: EmergencyContact[];
+  campusSecurityNumber: string;
+  safetyReports: SafetyReport[];
+  collections: WishCollection[];
+  savedSearches: SavedSearch[];
+  splits: Split[];
+  swaps: SwapPost[];
+  lostFound: LostFoundPost[];
+  /** When the student accepted the Terms, Privacy Policy and Community Rules; null until they do. */
+  termsAcceptedAt: string | null;
   userVouchers: UserVoucher[];
   alerts: PriceAlert[];
-  /** Set once the three-card welcome tour has been seen or skipped. */
-  tourSeen: boolean;
   loginEvents: LoginEvent[];
   reels: Reel[];
   likedReels: string[];
@@ -145,10 +156,20 @@ export function createInitialState(): DemoState {
     settings: DEFAULT_SETTINGS,
     // a demo welcome bonus so there is something to redeem (the seeded past orders earn very little)
     pointsLedger: [{ createdAt: daysAgoIso(10), id: "pt-welcome", label: "Welcome bonus (demo)", points: 300 }],
-    referral: { invited: invitedSeed, referredBy: null, rewardPaid: false },
+    referral: { firstOrderId: null, invited: invitedSeed, referredBy: null, rewardPaid: false },
+    // the demo student starts on Vossie Plus so the R4 order discount keeps working
+    subscriptions: [{ cancelling: false, planId: "plus", renewsAt: nextMonth(), since: daysAgoIso(40) }],
+    termsAcceptedAt: null,
+    emergencyContacts: [],
+    campusSecurityNumber: "",
+    safetyReports: [],
+    collections: [{ id: "col-study", listingIds: [], name: "Study gear" }],
+    savedSearches: [],
+    splits: [],
+    swaps: swapsSeed,
+    lostFound: lostFoundSeed,
     userVouchers: userVouchersSeed,
     alerts: [],
-    tourSeen: false,
     blocked: [{ blockedAt: daysAgoIso(12), id: "user-blocked-1", name: "Sam K." }],
     loginEvents: loginEventsSeed,
     reels: reelsSeed,
@@ -182,6 +203,8 @@ export type DemoAction =
   | { type: "placeOrder" }
   | { type: "addCard"; card: Omit<SavedCard, "id" | "isDefault">; makeDefault: boolean }
   | { type: "removeCard"; cardId: string }
+  | { type: "updateCard"; cardId: string; patch: Partial<Pick<SavedCard, "brand" | "last4" | "expiry" | "holder">>; makeDefault?: boolean }
+  | { type: "withdraw"; amountCents: number; cardId: string }
   | { type: "setDefaultCard"; cardId: string }
   | { type: "addFunds"; amountCents: number; source: string }
   | { type: "sendMessage"; conversationId: string; body: string; place?: string }
@@ -200,7 +223,26 @@ export type DemoAction =
   | { type: "setScheduledFor"; iso: string | null }
   | { type: "toggleAlert"; listingId: string; kind: PriceAlert["kind"] }
   | { type: "reorder"; orderId: string }
-  | { type: "markTourSeen" }
+  | { type: "subscribe"; planId: PlanId }
+  | { type: "cancelSubscription"; planId: PlanId }
+  | { type: "resumeSubscription"; planId: PlanId }
+  | { type: "acceptTerms" }
+  | { type: "createCollection"; name: string }
+  | { type: "deleteCollection"; collectionId: string }
+  | { type: "toggleInCollection"; collectionId: string; listingId: string }
+  | { type: "saveSearch"; query: string }
+  | { type: "removeSavedSearch"; searchId: string }
+  | { type: "createSplit"; orderId: string; names: string[] }
+  | { type: "markSplitPaid"; splitId: string; memberId: string }
+  | { type: "addSwap"; have: string; want: string }
+  | { type: "removeSwap"; swapId: string }
+  | { type: "addLostFound"; kind: LostFoundKind; title: string; place: string }
+  | { type: "resolveLostFound"; postId: string }
+  | { type: "bookTutor"; listingId: string; startsAt: string }
+  | { type: "addEmergencyContact"; name: string; phone: string; relationship: string }
+  | { type: "removeEmergencyContact"; contactId: string }
+  | { type: "setCampusSecurityNumber"; number: string }
+  | { type: "submitSafetyReport"; category: ReportCategory; notes: string }
   | { type: "toggleReelLike"; reelId: string }
   | { type: "addReelComment"; reelId: string; body: string };
 
@@ -251,15 +293,28 @@ export function groupDelivery(state: Pick<DemoState, "checkout">, group: "local"
   return { feeCents: deliveryFee(mode, state.checkout.thirdPartyTier), mode };
 }
 
-export function cartTotals(state: Pick<DemoState, "cart" | "checkout" | "profile">) {
+export function cartTotals(state: Pick<DemoState, "cart" | "checkout" | "profile" | "subscriptions">) {
   const subtotalCents = state.cart.reduce(
     (sum, line) => sum + unitPrice(line) * line.quantity,
     0,
   );
   const itemCount = state.cart.reduce((sum, line) => sum + line.quantity, 0);
   const groups = new Set(state.cart.map((line) => deliveryGroup(state, getListing(line.listingId)?.sellerId ?? "")));
-  const delivery = [...groups].reduce((sum, group) => sum + groupDelivery(state, group).feeCents, 0);
-  const memberDiscount = itemCount > 0 ? subscriberDiscountCents : 0;
+  const plus = hasPlan(state.subscriptions, "plus");
+  const studyPass = hasPlan(state.subscriptions, "study-pass");
+  // Vossie Plus: the Vossie courier is free on orders over R100
+  const delivery = [...groups].reduce((sum, group) => {
+    const { feeCents, mode } = groupDelivery(state, group);
+    return sum + (plus && mode === "campus-courier" && subtotalCents >= PLUS_FREE_COURIER_OVER_CENTS ? 0 : feeCents);
+  }, 0);
+  const serviceSubtotal = state.cart.reduce(
+    (sum, line) => sum + (getListing(line.listingId)?.categoryId === "services" ? unitPrice(line) * line.quantity : 0),
+    0,
+  );
+  const memberDiscount =
+    itemCount > 0
+      ? (plus ? PLUS_ORDER_DISCOUNT_CENTS : 0) + (studyPass ? Math.round((serviceSubtotal * STUDY_PASS_PERCENT_OFF_SERVICES) / 100) : 0)
+      : 0;
   const voucher = state.checkout.voucherCode ? vouchers[state.checkout.voucherCode] : undefined;
   const voucherDiscount = voucher
     ? voucher.centsOff ?? Math.round((subtotalCents * (voucher.percentOff ?? 0)) / 100)
@@ -280,10 +335,6 @@ function addressFor(mode: DeliveryMode, address: string): string {
   if (mode === "collection") return "Campus collection point";
   if (mode === "hub-to-hub") return "Your campus hub (collect there)";
   return address;
-}
-
-function formatReferral(cents: number): string {
-  return `R ${Math.round(cents / 100)}`;
 }
 
 function daysAgoIso(days: number): string {
@@ -458,6 +509,8 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         bySeller.set(sellerId, [...(bySeller.get(sellerId) ?? []), line]);
       }
       const sellerCount = bySeller.size;
+      const plusMember = hasPlan(state.subscriptions, "plus");
+      const groupId = nextId("grp");
       // each delivery group (own campus / other campuses) pays its fee once, split across that group's sellers
       const groupSellers = { local: 0, remote: 0 };
       for (const sellerId of bySeller.keys()) groupSellers[deliveryGroup(state, sellerId)] += 1;
@@ -466,7 +519,9 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         const subtotal = lines.reduce((sum, line) => sum + unitPrice(line) * line.quantity, 0);
         const share = (value: number) => (index === 0 ? value - Math.floor(value / sellerCount) * (sellerCount - 1) : Math.floor(value / sellerCount));
         const group = deliveryGroup(state, sellerId);
-        const { feeCents: groupFee, mode } = groupDelivery(state, group);
+        const { feeCents: rawFee, mode } = groupDelivery(state, group);
+        // Vossie Plus: the Vossie courier is free on orders over R100
+        const groupFee = plusMember && mode === "campus-courier" && totals.subtotalCents >= PLUS_FREE_COURIER_OVER_CENTS ? 0 : rawFee;
         const position = groupSeen[group];
         groupSeen[group] += 1;
         const count = groupSellers[group];
@@ -497,6 +552,8 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
           totalCents: subtotal + delivery - discount,
           placedAt,
           scheduledFor: state.checkout.scheduledFor ?? undefined,
+          pointsMultiplier: plusMember ? PLUS_POINTS_MULTIPLIER : 1,
+          groupId,
           etaMinutes: state.checkout.scheduledFor ? undefined : deliveryEtaMinutes(mode, state.checkout.thirdPartyTier),
           destination: fulfilmentFor(mode) === "delivery" ? (state.checkout.addressPoint ?? undefined) : undefined,
         };
@@ -521,35 +578,26 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       };
       const paidFromWallet = state.checkout.payment === "wallet";
       if (paidFromWallet && state.wallet.balanceCents < totals.totalCents) return state;
-      // the first order after entering a friend's code earns the referral credit
-      const referralDue = Boolean(state.referral.referredBy) && !state.referral.rewardPaid;
-      const spent = paidFromWallet ? totals.totalCents : 0;
-      const wallet = {
-        balanceCents: state.wallet.balanceCents - spent + (referralDue ? REFERRAL_REWARD_CENTS : 0),
-        transactions: [
-          ...(referralDue
-            ? [{ id: nextId("tx"), label: `Referral credit (${state.referral.referredBy})`, amountCents: REFERRAL_REWARD_CENTS, createdAt: placedAt }]
-            : []),
-          ...(paidFromWallet
-            ? [{ id: nextId("tx"), label: `Order ${receipt.number}`, amountCents: -totals.totalCents, createdAt: placedAt }]
-            : []),
-          ...state.wallet.transactions,
-        ],
-      };
+      // the first order after entering a friend's code is the one that earns the referral points once delivered
+      const firstOrderId =
+        state.referral.referredBy && !state.referral.rewardPaid && !state.referral.firstOrderId ? orders[0]!.id : state.referral.firstOrderId;
+      const wallet = paidFromWallet
+        ? {
+            balanceCents: state.wallet.balanceCents - totals.totalCents,
+            transactions: [
+              { id: nextId("tx"), label: `Order ${receipt.number}`, amountCents: -totals.totalCents, createdAt: placedAt, kind: "purchase" as const, orderId: orders[0]!.id },
+              ...state.wallet.transactions,
+            ],
+          }
+        : state.wallet;
       return {
         ...state,
         wallet,
-        referral: referralDue ? { ...state.referral, rewardPaid: true } : state.referral,
+        referral: { ...state.referral, firstOrderId },
         orders: [...orders, ...state.orders],
         cart: [],
         checkout: { ...state.checkout, scheduledFor: null, voucherCode: null },
-        notifications: [
-          ...(referralDue
-            ? [{ id: nextId("n"), title: "Referral credit added", body: `${formatReferral(REFERRAL_REWARD_CENTS)} landed in your wallet.`, createdAt: placedAt, read: false }]
-            : []),
-          notification,
-          ...state.notifications,
-        ],
+        notifications: [notification, ...state.notifications],
         lastReceipt: receipt,
       };
     }
@@ -572,6 +620,39 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         cards: state.cards.map((item) => ({ ...item, isDefault: item.id === action.cardId })),
         checkout: { ...state.checkout, cardId: action.cardId },
       };
+    case "updateCard": {
+      if (!state.cards.some((item) => item.id === action.cardId)) return state;
+      const cards = state.cards.map((item) => {
+        if (item.id === action.cardId) return { ...item, ...action.patch, isDefault: action.makeDefault ? true : item.isDefault };
+        return action.makeDefault ? { ...item, isDefault: false } : item;
+      });
+      return { ...state, cards };
+    }
+    case "withdraw": {
+      const card = state.cards.find((item) => item.id === action.cardId);
+      if (!card || action.amountCents < 5000 || action.amountCents > state.wallet.balanceCents) return state;
+      const at = new Date().toISOString();
+      const brand = card.brand === "visa" ? "Visa" : "Mastercard";
+      return {
+        ...state,
+        wallet: {
+          balanceCents: state.wallet.balanceCents - action.amountCents,
+          transactions: [
+            {
+              amountCents: -action.amountCents,
+              createdAt: at,
+              detail: `To ${brand} ending ${card.last4}. Takes 1 to 3 working days.`,
+              id: nextId("tx"),
+              kind: "withdrawal",
+              label: `Withdrawal to card ending ${card.last4}`,
+              status: "pending",
+            },
+            ...state.wallet.transactions,
+          ],
+        },
+        notifications: [{ id: nextId("n"), title: "Withdrawal requested", body: `We are sending your money to the card ending ${card.last4}.`, createdAt: at, read: false }, ...state.notifications],
+      };
+    }
     case "removeCard": {
       const rest = state.cards.filter((item) => item.id !== action.cardId);
       const cards = rest.length > 0 && !rest.some((item) => item.isDefault) ? rest.map((item, index) => ({ ...item, isDefault: index === 0 })) : rest;
@@ -592,7 +673,7 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         wallet: {
           balanceCents: state.wallet.balanceCents + action.amountCents,
           transactions: [
-            { id: nextId("tx"), label: `Top up via ${action.source}`, amountCents: action.amountCents, createdAt: new Date().toISOString() },
+            { id: nextId("tx"), label: `Top up via ${action.source}`, amountCents: action.amountCents, createdAt: new Date().toISOString(), kind: "top-up" as const },
             ...state.wallet.transactions,
           ],
         },
@@ -630,12 +711,20 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
     case "deliverOrder": {
       const order = state.orders.find((item) => item.id === action.orderId);
       if (!order || order.status === "delivered" || order.status === "cancelled") return state;
-      const earned = Math.floor(order.totalCents / 1000);
+      const earned = orderPoints(order);
+      const at = new Date().toISOString();
+      // the referred student's first delivered order pays 200 points to them (and to their friend, in the backend)
+      const referralDue = state.referral.firstOrderId === order.id && !state.referral.rewardPaid;
       return {
         ...state,
-        orders: state.orders.map((item) => (item.id === order.id ? { ...item, status: "delivered", deliveredAt: new Date().toISOString() } : item)),
+        orders: state.orders.map((item) => (item.id === order.id ? { ...item, status: "delivered", deliveredAt: at } : item)),
+        pointsLedger: referralDue
+          ? [{ id: nextId("pt"), label: `Referral reward (${state.referral.referredBy})`, points: REFERRAL_REWARD_POINTS, createdAt: at }, ...state.pointsLedger]
+          : state.pointsLedger,
+        referral: referralDue ? { ...state.referral, rewardPaid: true } : state.referral,
         notifications: [
-          { id: nextId("n"), title: "Order delivered", body: `Order ${order.number} arrived. You earned ${earned} Vossie points.`, createdAt: new Date().toISOString(), read: false, href: `/activity/order/${order.id}` },
+          ...(referralDue ? [{ id: nextId("n"), title: "Referral reward", body: `You and your friend each earned ${REFERRAL_REWARD_POINTS} points.`, createdAt: at, read: false }] : []),
+          { id: nextId("n"), title: "Order delivered", body: `Order ${order.number} arrived. You earned ${earned} Vossie points.`, createdAt: at, read: false, href: `/activity/order/${order.id}` },
           ...state.notifications,
         ],
       };
@@ -652,7 +741,7 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
           ? {
               balanceCents: state.wallet.balanceCents - action.tipCents,
               transactions: [
-                { id: nextId("tx"), label: `Tip for ${order.courier?.name ?? "your courier"}`, amountCents: -action.tipCents, createdAt: new Date().toISOString() },
+                { id: nextId("tx"), label: `Tip for ${order.courier?.name ?? "your courier"}`, amountCents: -action.tipCents, createdAt: new Date().toISOString(), kind: "tip" as const, orderId: order.id },
                 ...state.wallet.transactions,
               ],
             }
@@ -669,7 +758,7 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         pointsLedger: [{ id: nextId("pt"), label: "Redeemed for wallet credit", points: -action.points, createdAt: at }, ...state.pointsLedger],
         wallet: {
           balanceCents: state.wallet.balanceCents + cents,
-          transactions: [{ id: nextId("tx"), label: `${action.points} points redeemed`, amountCents: cents, createdAt: at }, ...state.wallet.transactions],
+          transactions: [{ id: nextId("tx"), label: `${action.points} points redeemed`, amountCents: cents, createdAt: at, kind: "points" as const }, ...state.wallet.transactions],
         },
       };
     }
@@ -722,8 +811,140 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       }
       return { ...state, cart };
     }
-    case "markTourSeen":
-      return { ...state, tourSeen: true };
+    case "subscribe": {
+      const plan = getPlan(action.planId);
+      if (hasPlan(state.subscriptions, plan.id) || state.wallet.balanceCents < plan.priceCents) return state;
+      const now = new Date().toISOString();
+      return {
+        ...state,
+        subscriptions: [...state.subscriptions.filter((item) => item.planId !== plan.id), { cancelling: false, planId: plan.id, renewsAt: nextMonth(), since: now }],
+        wallet: {
+          balanceCents: state.wallet.balanceCents - plan.priceCents,
+          transactions: [
+            { id: nextId("tx"), label: `${plan.name} subscription`, amountCents: -plan.priceCents, createdAt: now, kind: "subscription", detail: "Monthly plan, first payment" },
+            ...state.wallet.transactions,
+          ],
+        },
+        notifications: [{ id: nextId("n"), title: `Welcome to ${plan.name}`, body: plan.tagline, createdAt: now, read: false }, ...state.notifications],
+      };
+    }
+    case "cancelSubscription":
+      return { ...state, subscriptions: state.subscriptions.map((item) => (item.planId === action.planId ? { ...item, cancelling: true } : item)) };
+    case "resumeSubscription":
+      return { ...state, subscriptions: state.subscriptions.map((item) => (item.planId === action.planId ? { ...item, cancelling: false } : item)) };
+    case "addEmergencyContact":
+      return { ...state, emergencyContacts: [...state.emergencyContacts, { id: nextId("ec"), name: action.name.trim(), phone: action.phone.trim(), relationship: action.relationship.trim() }] };
+    case "removeEmergencyContact":
+      return { ...state, emergencyContacts: state.emergencyContacts.filter((item) => item.id !== action.contactId) };
+    case "setCampusSecurityNumber":
+      return { ...state, campusSecurityNumber: action.number.trim() };
+    case "submitSafetyReport": {
+      if (action.notes.trim().length < 5) return state;
+      const at = new Date().toISOString();
+      return {
+        ...state,
+        safetyReports: [{ category: action.category, createdAt: at, id: nextId("rep"), notes: action.notes.trim(), status: "received" }, ...state.safetyReports],
+        notifications: [{ id: nextId("n"), title: "Report received", body: `Thanks. Our team will look at your ${action.category.toLowerCase()} report.`, createdAt: at, read: false }, ...state.notifications],
+      };
+    }
+    case "createCollection": {
+      const name = action.name.trim();
+      if (name.length < 2 || state.collections.some((item) => item.name.toLowerCase() === name.toLowerCase())) return state;
+      return { ...state, collections: [...state.collections, { id: nextId("col"), listingIds: [], name }] };
+    }
+    case "deleteCollection":
+      return { ...state, collections: state.collections.filter((item) => item.id !== action.collectionId) };
+    case "toggleInCollection":
+      return {
+        ...state,
+        collections: state.collections.map((item) =>
+          item.id !== action.collectionId
+            ? item
+            : { ...item, listingIds: item.listingIds.includes(action.listingId) ? item.listingIds.filter((id) => id !== action.listingId) : [...item.listingIds, action.listingId] },
+        ),
+      };
+    case "saveSearch": {
+      const query = action.query.trim();
+      if (!query || state.savedSearches.some((item) => item.query.toLowerCase() === query.toLowerCase())) return state;
+      const at = new Date().toISOString();
+      return {
+        ...state,
+        savedSearches: [{ createdAt: at, id: nextId("ss"), query }, ...state.savedSearches],
+        notifications: [{ id: nextId("n"), title: "Search saved", body: `We'll tell you when new listings match "${query}".`, createdAt: at, read: false }, ...state.notifications],
+      };
+    }
+    case "removeSavedSearch":
+      return { ...state, savedSearches: state.savedSearches.filter((item) => item.id !== action.searchId) };
+    case "createSplit": {
+      const order = state.orders.find((item) => item.id === action.orderId);
+      const names = action.names.map((name) => name.trim()).filter(Boolean);
+      if (!order || names.length === 0 || state.splits.some((item) => item.orderId === order.id)) return state;
+      const shares = splitShares(order.totalCents, names.length + 1);
+      return {
+        ...state,
+        splits: [
+          {
+            createdAt: new Date().toISOString(),
+            id: nextId("split"),
+            members: names.map((name, index) => ({ id: nextId("sm"), name, shareCents: shares[index + 1]!, status: "pending" as const })),
+            orderId: order.id,
+            totalCents: order.totalCents,
+          },
+          ...state.splits,
+        ],
+      };
+    }
+    case "markSplitPaid": {
+      const split = state.splits.find((item) => item.id === action.splitId);
+      const member = split?.members.find((item) => item.id === action.memberId);
+      if (!split || !member || member.status === "paid") return state;
+      const at = new Date().toISOString();
+      return {
+        ...state,
+        splits: state.splits.map((item) =>
+          item.id === split.id ? { ...item, members: item.members.map((m) => (m.id === member.id ? { ...m, status: "paid" as const } : m)) } : item,
+        ),
+        wallet: {
+          balanceCents: state.wallet.balanceCents + member.shareCents,
+          transactions: [{ id: nextId("tx"), label: `${member.name} paid their share`, amountCents: member.shareCents, createdAt: at, kind: "other" as const, orderId: split.orderId }, ...state.wallet.transactions],
+        },
+      };
+    }
+    case "addSwap": {
+      if (action.have.trim().length < 3 || action.want.trim().length < 3) return state;
+      return { ...state, swaps: [{ author: state.profile?.fullName || "You", createdAt: new Date().toISOString(), have: action.have.trim(), id: nextId("swap"), mine: true, want: action.want.trim() }, ...state.swaps] };
+    }
+    case "removeSwap":
+      return { ...state, swaps: state.swaps.filter((item) => item.id !== action.swapId) };
+    case "addLostFound": {
+      if (action.title.trim().length < 3) return state;
+      return { ...state, lostFound: [{ author: state.profile?.fullName || "You", createdAt: new Date().toISOString(), id: nextId("lf"), kind: action.kind, mine: true, place: action.place.trim(), resolved: false, title: action.title.trim() }, ...state.lostFound] };
+    }
+    case "resolveLostFound":
+      return { ...state, lostFound: state.lostFound.map((item) => (item.id === action.postId ? { ...item, resolved: true } : item)) };
+    case "bookTutor": {
+      const listing = getListing(action.listingId);
+      if (!listing || listing.categoryId !== "services") return state;
+      const seller = getSeller(listing.sellerId);
+      return {
+        ...state,
+        bookings: [
+          {
+            durationMinutes: 60,
+            id: nextId("booking"),
+            location: listing.location,
+            priceCents: effectivePrice(listing),
+            provider: seller?.name ?? "Tutor",
+            startsAt: action.startsAt,
+            status: "upcoming",
+            title: listing.title,
+          },
+          ...state.bookings,
+        ],
+      };
+    }
+    case "acceptTerms":
+      return { ...state, termsAcceptedAt: new Date().toISOString() };
     case "markNotificationsRead":
       return { ...state, notifications: state.notifications.map((item) => ({ ...item, read: true })) };
     case "setSetting":

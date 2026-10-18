@@ -58,8 +58,8 @@ export function deliveryEtaMinutes(mode: DeliveryMode, tier: ThirdPartyTier = "s
 
 export const deliveryLabels: Record<DeliveryMode, string> = {
   collection: "Campus collection",
-  "campus-courier": "Campus courier",
-  "hub-to-hub": "Hub to hub",
+  "campus-courier": "Vossie courier",
+  "hub-to-hub": "Campus hub to hub",
   "third-party": "Third-party courier",
 };
 

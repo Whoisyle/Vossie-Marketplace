@@ -48,9 +48,12 @@ describe("Wallet cards", () => {
     expect(screen.getByTestId("wallet-card-card-demo-visa")).toBeTruthy();
     expect(screen.getByTestId("wallet-card-apple-pay")).toBeTruthy();
     expect(screen.getByTestId("wallet-card-eft")).toBeTruthy();
+    // tapping a saved card opens it for editing
     fireEvent.press(screen.getByTestId("wallet-card-card-demo-mc"));
-    fireEvent.press(screen.getByText("Make default"));
-    expect(screen.getByText(/ending 5555 is now your default/)).toBeTruthy();
+    expect(mockPush).toHaveBeenCalledWith("/account/card/card-demo-mc");
+    // tapping another option selects it and shows its actions
+    fireEvent.press(screen.getByTestId("wallet-card-eft"));
+    expect(screen.getByText("Choose bank")).toBeTruthy();
   });
 
   it("keeps a default after the default card is removed", () => {

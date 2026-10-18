@@ -1,4 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+
+import { Icon } from "@/components";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { THIRD_PARTY_TIERS, deliveryOption, type DeliveryMode, type ThirdPartyTier } from "@/data/delivery";
@@ -37,7 +39,7 @@ export function DeliveryGroup({
         {items}
       </Text>
       <View accessibilityRole="radiogroup" style={styles.modes}>
-        {modes.map((candidate, index) => (
+        {modes.filter((candidate) => candidate !== "collection").map((candidate, index) => (
           <ModeCard
             key={candidate}
             mode={candidate}
@@ -52,6 +54,22 @@ export function DeliveryGroup({
           />
         ))}
       </View>
+      {modes.includes("collection") ? (
+        <Pressable
+          accessibilityLabel="Or collect it yourself, free, ready in 20 minutes"
+          accessibilityRole="radio"
+          accessibilityState={{ checked: mode === "collection" }}
+          onPress={() => {
+            haptic.select();
+            onMode("collection");
+          }}
+          style={[styles.collect, mode === "collection" && styles.collectOn]}
+          testID={`${testPrefix}-collection`}
+        >
+          <Icon color={mode === "collection" ? color.onPrimary : color.heading} name="map-pin" size={14} />
+          <Text style={[styles.collectText, mode === "collection" && styles.onDark]}>Or collect it yourself · Free · Ready in 20 min</Text>
+        </Pressable>
+      ) : null}
       {mode === "third-party" ? (
         <Animated.View entering={FadeInDown.duration(260)} style={styles.tiers} testID={`${testPrefix}-tiers`}>
           <Text style={styles.tiersTitle}>Choose your courier option</Text>
@@ -131,6 +149,9 @@ function ModeCard({
 }
 
 const styles = StyleSheet.create({
+  collect: { alignItems: "center", borderColor: color.borderStrong, borderRadius: corner.pill, borderWidth: 1, flexDirection: "row", gap: 6, minHeight: 38, paddingHorizontal: space.sm },
+  collectOn: { backgroundColor: color.accent, borderColor: color.accent },
+  collectText: { color: color.heading, flex: 1, fontSize: 12, fontWeight: "600" },
   flex: { flex: 1 },
   group: { gap: space.xs, marginTop: space.sm },
   mode: { backgroundColor: color.surfaceSoft, borderCurve: "continuous", borderRadius: corner.md, gap: 2, minHeight: 64, padding: space.sm },

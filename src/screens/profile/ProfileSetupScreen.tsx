@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { Redirect, useRouter } from "expo-router";
+import { Redirect, useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -14,7 +14,7 @@ import { CampusPicker } from "./CampusPicker";
 import { formatSouthAfricanPhone, isValidSouthAfricanPhone } from "./phone";
 import { usePickPhoto } from "./usePickPhoto";
 
-type Errors = { name?: string; phone?: string; campus?: string };
+type Errors = { name?: string; phone?: string; campus?: string; terms?: string };
 
 /** First-time profile setup. Returning users skip straight to Home. */
 export function ProfileSetupScreen() {
@@ -27,6 +27,7 @@ export function ProfileSetupScreen() {
   const [avatarUri, setAvatarUri] = useState<string | undefined>(state.profile?.avatarUri);
   const [campusOpen, setCampusOpen] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
+  const [agreed, setAgreed] = useState(Boolean(state.termsAcceptedAt));
 
   if (!state.profile) return <Redirect href="/sign-in" />;
   const email = state.profile.email;
@@ -36,8 +37,10 @@ export function ProfileSetupScreen() {
     if (fullName.trim().length < 2) next.name = "Enter your full name.";
     if (phone.trim() && !isValidSouthAfricanPhone(phone)) next.phone = "Enter a South African mobile number, like 071 234 5678.";
     if (!campusId) next.campus = "Choose your campus.";
+    if (!agreed) next.terms = "Please agree to the Terms and the Privacy Policy to continue.";
     setErrors(next);
     if (Object.keys(next).length > 0 || !campusId) return;
+    if (!state.termsAcceptedAt) dispatch({ type: "acceptTerms" });
     dispatch({
       profile: {
         avatarUri,
@@ -117,6 +120,34 @@ export function ProfileSetupScreen() {
         <CampusCard campusId={campusId} error={errors.campus} onPress={() => setCampusOpen(true)} testID="profile-setup-campus" />
       </View>
 
+      <View style={styles.terms}>
+        <Pressable
+          accessibilityLabel="I agree to the Terms and the Privacy Policy"
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: agreed }}
+          onPress={() => {
+            setAgreed((value) => !value);
+            setErrors((current) => ({ ...current, terms: undefined }));
+          }}
+          style={styles.termsRow}
+          testID="agree-terms"
+        >
+          <View style={[styles.box, agreed && styles.boxOn]}>{agreed ? <Icon color={color.onPrimary} name="check" size={14} /> : null}</View>
+          <Text style={styles.termsText}>
+            I agree to the{" "}
+            <Text onPress={() => router.push("/legal/terms" as Href)} style={styles.termsLink}>
+              Terms and Conditions
+            </Text>{" "}
+            and the{" "}
+            <Text onPress={() => router.push("/legal/privacy" as Href)} style={styles.termsLink}>
+              Privacy Policy
+            </Text>
+            .
+          </Text>
+        </Pressable>
+        {errors.terms ? <Text style={styles.error}>{errors.terms}</Text> : null}
+      </View>
+
       <CampusPicker
         onClose={() => setCampusOpen(false)}
         onSelect={(campus) => {
@@ -151,6 +182,12 @@ const styles = StyleSheet.create({
   photo: { alignItems: "center", gap: space.xs, marginTop: space.md },
   photoLabel: { color: color.heading, fontSize: 13, fontWeight: "600" },
   pressed: { opacity: 0.7 },
+  box: { alignItems: "center", backgroundColor: color.surface, borderColor: color.borderStrong, borderRadius: 6, borderWidth: 2, height: 24, justifyContent: "center", width: 24 },
+  boxOn: { backgroundColor: color.primary, borderColor: color.primary },
+  terms: { gap: space.xxs, marginTop: space.md },
+  termsLink: { color: color.link, fontWeight: "700", textDecorationLine: "underline" },
+  termsRow: { alignItems: "center", flexDirection: "row", gap: space.sm, minHeight: 44 },
+  termsText: { color: color.textSecondary, flex: 1, fontSize: 13, lineHeight: 19 },
   verified: { alignItems: "center", flexDirection: "row", gap: 4 },
   verifiedText: { color: color.success, fontSize: 12, fontWeight: "700" },
 });

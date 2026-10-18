@@ -2,9 +2,10 @@ import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Button, Card, Chip, Icon, Screen, Sheet, TextField, useToast } from "@/components";
+import { AppHeader, Button, Card, Chip, Icon, RadioRow, Screen, Sheet, StatusBadge, TextField, useToast } from "@/components";
 import { eftBanks } from "@/screens/cart/payment";
 import { dateAndTime, formatRand } from "@/data/format";
+import { MIN_WITHDRAW_CENTS, withdrawMessages, withdrawProblem } from "@/data/wallet";
 import { confirmWithBiometrics } from "@/lib/biometric";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
@@ -22,6 +23,10 @@ export function WalletScreen() {
   const { dispatch, state } = useDemoStore();
   const [open, setOpen] = useState(false);
   const [bankOpen, setBankOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [withdrawCard, setWithdrawCard] = useState<string | null>(null);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const items = walletItems({ balanceCents: state.wallet.balanceCents, bank: state.checkout.bank, cards: state.cards });
   const [selected, setSelected] = useWalletSelection(items);
   const current = items[Math.min(selected, items.length - 1)]!;
@@ -48,6 +53,28 @@ export function WalletScreen() {
     toast.show(`${formatRand(amountCents)} added to your wallet`);
   };
 
+  const startWithdraw = () => {
+    setWithdrawCard(state.cards.find((item) => item.isDefault)?.id ?? state.cards[0]?.id ?? null);
+    setWithdrawAmount("");
+    setWithdrawError(null);
+    setWithdrawOpen(true);
+  };
+
+  const withdraw = async (amountCents: number | null) => {
+    const problem = withdrawProblem({ amountCents: amountCents ?? 0, balanceCents: state.wallet.balanceCents, hasCard: Boolean(withdrawCard) });
+    if (amountCents === null || problem) {
+      setWithdrawError(problem ? withdrawMessages[problem] : "Enter an amount like 150 or 150.50.");
+      return;
+    }
+    if (!(await confirmWithBiometrics(state.settings.biometric, "Confirm your withdrawal"))) {
+      setWithdrawError("Withdrawal cancelled. Face ID or your passcode wasn't confirmed.");
+      return;
+    }
+    dispatch({ amountCents, cardId: withdrawCard!, type: "withdraw" });
+    setWithdrawOpen(false);
+    toast.show(`${formatRand(amountCents)} is on its way to your card`);
+  };
+
   return (
     <Screen>
       <AppHeader back subtitle="Manage your Vossie balance." title="Wallet" />
@@ -56,12 +83,15 @@ export function WalletScreen() {
         <Text accessibilityLiveRegion="polite" style={styles.balanceValue}>
           {formatRand(state.wallet.balanceCents, { fixed: true })}
         </Text>
-        <Button label="Add funds" onPress={() => setOpen(true)} size="sm" variant="light" />
+        <View style={styles.balanceActions}>
+          <Button label="Add funds" onPress={() => setOpen(true)} size="sm" variant="light" />
+          <Button icon="arrow-up-right" label="Withdraw" onPress={startWithdraw} size="sm" testID="withdraw" variant="light" />
+        </View>
       </Card>
       <Text style={styles.demo}>Demo wallet: no real money moves.</Text>
 
       <Text style={styles.heading}>Cards and payment options</Text>
-      <WalletCarousel items={items} onAdd={() => router.push("/cart/add-card" as Href)} onSelect={setSelected} selected={selected} />
+      <WalletCarousel items={items} onAdd={() => router.push("/cart/add-card" as Href)} onEditCard={(cardId) => router.push(`/account/card/${cardId}` as Href)} onSelect={setSelected} selected={selected} />
       <View style={styles.actions} testID="wallet-actions">
         {current.kind === "card" ? (
           <>
@@ -114,7 +144,7 @@ export function WalletScreen() {
       <Text style={styles.heading}>Recent transactions</Text>
       <View style={styles.list}>
         {state.wallet.transactions.map((tx) => (
-          <Card key={tx.id} style={styles.tx} variant="row">
+          <Card key={tx.id} onPress={() => router.push(`/account/transaction/${tx.id}` as Href)} style={styles.tx} testID={`tx-${tx.id}`} variant="row">
             <View style={[styles.txIcon, tx.amountCents < 0 && styles.txIconOut]}>
               <Icon
                 color={tx.amountCents < 0 ? color.danger : color.success}
@@ -128,12 +158,55 @@ export function WalletScreen() {
               </Text>
               <Text style={text.caption}>{dateAndTime(tx.createdAt)}</Text>
             </View>
+            {tx.status === "pending" ? <StatusBadge label="Pending" tone="warning" /> : null}
             <Text style={[styles.amount, { color: tx.amountCents < 0 ? color.danger : color.success }]}>
               {formatRand(tx.amountCents, { signed: true })}
             </Text>
+            <Icon color={color.textMuted} name="chevron-right" size={16} />
           </Card>
         ))}
       </View>
+
+      <Sheet onClose={() => setWithdrawOpen(false)} title="Withdraw to a card" visible={withdrawOpen}>
+        {state.cards.length === 0 ? (
+          <>
+            <Text style={text.body}>Add a card first, then you can withdraw to it.</Text>
+            <Button fullWidth label="Add a card" onPress={() => { setWithdrawOpen(false); router.push("/cart/add-card" as Href); }} />
+          </>
+        ) : (
+          <>
+            <Text style={text.caption}>Available: {formatRand(state.wallet.balanceCents)}. Smallest withdrawal {formatRand(MIN_WITHDRAW_CENTS)}.</Text>
+            {state.cards.map((card) => (
+              <RadioRow
+                key={card.id}
+                onPress={() => setWithdrawCard(card.id)}
+                selected={withdrawCard === card.id}
+                subtitle={`Expires ${card.expiry}`}
+                title={`${card.brand === "visa" ? "Visa" : "Mastercard"} ending ${card.last4}`}
+              />
+            ))}
+            <View style={styles.presets}>
+              {[10000, 20000].map((cents) => (
+                <Chip key={cents} label={formatRand(cents)} onPress={() => void withdraw(cents)} />
+              ))}
+              <Chip label={`All ${formatRand(state.wallet.balanceCents)}`} onPress={() => void withdraw(state.wallet.balanceCents)} />
+            </View>
+            <TextField
+              error={withdrawError ?? undefined}
+              keyboardType="decimal-pad"
+              label="Other amount (R)"
+              onChangeText={(value) => {
+                setWithdrawAmount(value);
+                setWithdrawError(null);
+              }}
+              placeholder="150"
+              value={withdrawAmount}
+            />
+            <Button fullWidth label="Withdraw" onPress={() => void withdraw(parseRandToCents(withdrawAmount))} testID="confirm-withdraw" />
+            <Text style={text.caption}>Demo: no money moves. A real withdrawal goes back to your card through the payment provider and takes 1 to 3 working days.</Text>
+          </>
+        )}
+      </Sheet>
 
       <Sheet onClose={() => setBankOpen(false)} title="Choose your bank" visible={bankOpen}>
         <View style={styles.presets}>
@@ -176,6 +249,7 @@ export function WalletScreen() {
 }
 
 const styles = StyleSheet.create({
+  balanceActions: { flexDirection: "row", gap: space.xs },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: space.xs, marginTop: space.sm },
   amount: { fontSize: 14, fontWeight: "700" },
   balance: { gap: space.xs, marginTop: space.sm },
