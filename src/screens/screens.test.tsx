@@ -22,6 +22,7 @@ const mockPush = jest.fn();
 const mockReplace = jest.fn();
 
 jest.mock("expo-router", () => ({
+  useFocusEffect: () => undefined,
   useLocalSearchParams: () => ({ id: "burger-chips" }),
   useRouter: () => ({
     back: jest.fn(),

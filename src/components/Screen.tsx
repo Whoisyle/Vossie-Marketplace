@@ -8,9 +8,12 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
-import { SafeAreaView, type Edge } from "react-native-safe-area-context";
+import Animated, { useAnimatedStyle } from "react-native-reanimated";
+import { SafeAreaView, type Edge, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { color, size, space } from "@/theme/tokens";
+
+import { TAB_BAR_HEIGHT, useTabChrome } from "./nav/TabChrome";
 
 type ScreenProps = {
   children: ReactNode;
@@ -34,6 +37,14 @@ export function Screen({
   testID,
 }: ScreenProps) {
   const edges: Edge[] = inTabs ? ["top", "left", "right"] : ["top", "left", "right", "bottom"];
+  const chrome = useTabChrome();
+  const insets = useSafeAreaInsets();
+  // the floating bar sits over the page, so tab screens leave room for it
+  const clearance = TAB_BAR_HEIGHT + Math.max(insets.bottom, space.sm) + space.md;
+  const footerStyle = useAnimatedStyle(() => ({
+    // when the bar slides away the pinned action settles lower to use the space
+    transform: [{ translateY: inTabs && chrome ? chrome.hidden.get() * (TAB_BAR_HEIGHT - 8) : 0 }],
+  }));
   const body = (
     <View style={[styles.content, contentStyle]}>{children}</View>
   );
@@ -46,7 +57,9 @@ export function Screen({
       >
         {scroll ? (
           <ScrollView
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[styles.scrollContent, inTabs && { paddingBottom: clearance }]}
+            onScroll={inTabs ? chrome?.onScroll : undefined}
+            scrollEventThrottle={16}
             keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
@@ -56,7 +69,11 @@ export function Screen({
         ) : (
           body
         )}
-        {footer ? <View style={styles.footer}>{footer}</View> : null}
+        {footer ? (
+          <Animated.View style={[styles.footer, inTabs && { paddingBottom: clearance - space.md }, footerStyle]}>
+            {footer}
+          </Animated.View>
+        ) : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

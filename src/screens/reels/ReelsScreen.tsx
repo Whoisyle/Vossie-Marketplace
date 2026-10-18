@@ -1,7 +1,8 @@
-import { useRouter, type Href } from "expo-router";
-import { useState } from "react";
+import { useFocusEffect, useRouter, type Href } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
+  PanResponder,
   Pressable,
   Share,
   StyleSheet,
@@ -11,6 +12,9 @@ import {
 } from "react-native";
 
 import { Button, Icon, Sheet, useToast, type IconName } from "@/components";
+import { useTabChrome } from "@/components/nav/TabChrome";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { haptic } from "@/lib/haptics";
 import type { Reel } from "@/data/types";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
@@ -20,6 +24,29 @@ export function ReelsScreen() {
   const router = useRouter();
   const toast = useToast();
   const [height, setHeight] = useState(0);
+  const chrome = useTabChrome();
+  const insets = useSafeAreaInsets();
+
+  // Reels is full screen: the bar goes away while you are here and a swipe up from the bottom edge brings it back
+  useFocusEffect(
+    useCallback(() => {
+      chrome?.lock(true);
+      return () => chrome?.lock(false);
+    }, [chrome]),
+  );
+  const edgeSwipe = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_e, g) => g.dy < -8 && Math.abs(g.dy) > Math.abs(g.dx),
+        onPanResponderRelease: (_e, g) => {
+          if (g.dy < -24 || g.vy < -0.5) {
+            haptic.tap();
+            chrome?.peek();
+          }
+        },
+      }),
+    [chrome],
+  );
   const { dispatch, state } = useDemoStore();
   const [commentsFor, setCommentsFor] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -68,7 +95,7 @@ export function ReelsScreen() {
                 </View>
               </Pressable>
 
-              <View style={[styles.actions, { bottom: space.xl }]}>
+              <View style={[styles.actions, { bottom: space.xl + insets.bottom }]}>
                 <Action
                   active={liked}
                   icon="heart"
@@ -85,7 +112,7 @@ export function ReelsScreen() {
                 <Action icon="share-2" label="Share" onPress={() => void share(item)} title="Share" />
               </View>
 
-              <View style={[styles.caption, { bottom: space.xl }]}>
+              <View style={[styles.caption, { bottom: space.xl + insets.bottom }]}>
                 <Text style={styles.seller}>{item.seller}</Text>
                 <Text numberOfLines={3} style={styles.captionText}>
                   {item.caption}
@@ -105,6 +132,10 @@ export function ReelsScreen() {
         showsVerticalScrollIndicator={false}
         snapToAlignment="start"
       />
+
+      <View {...edgeSwipe.panHandlers} style={[styles.edge, { height: 36 + insets.bottom }]}>
+        <View style={styles.handle} />
+      </View>
 
       <Sheet onClose={() => setCommentsFor(null)} title="Comments" visible={Boolean(active)}>
         {active?.comments.length === 0 ? <Text style={text.bodySmall}>Be the first to comment.</Text> : null}
@@ -178,6 +209,8 @@ const styles = StyleSheet.create({
   caption: { gap: space.xs, left: space.md, position: "absolute", right: 88 },
   captionText: { color: color.onPrimary, fontSize: 14, lineHeight: 20 },
   center: { alignItems: "center", flex: 1, justifyContent: "center" },
+  edge: { alignItems: "center", bottom: 0, justifyContent: "flex-end", left: 0, paddingBottom: 8, position: "absolute", right: 0 },
+  handle: { backgroundColor: "rgba(255,255,255,0.55)", borderRadius: 2, height: 4, width: 38 },
   comment: { gap: 2, paddingVertical: space.xs },
   composer: { alignItems: "center", flexDirection: "row", gap: space.xs, marginTop: space.sm },
   input: {

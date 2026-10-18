@@ -2,6 +2,7 @@ import { Redirect } from "expo-router";
 import { Tabs } from "expo-router/tabs";
 
 import { TabBar } from "@/components";
+import { TabChromeProvider } from "@/components/nav/TabChrome";
 import { useDemoStore } from "@/state/DemoStore";
 
 export default function TabsLayout() {
@@ -10,6 +11,7 @@ export default function TabsLayout() {
   if (state.isNewUser) return <Redirect href="/profile-setup" />;
 
   return (
+    <TabChromeProvider>
     <Tabs
       backBehavior="history"
       screenOptions={{ headerShown: false }}
@@ -22,5 +24,6 @@ export default function TabsLayout() {
       <Tabs.Screen name="cart" options={{ title: "Cart" }} />
       <Tabs.Screen name="account" options={{ title: "Account" }} />
     </Tabs>
+    </TabChromeProvider>
   );
 }
