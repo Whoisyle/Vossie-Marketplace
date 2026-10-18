@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppHeader, Avatar, Button, Icon, Screen, TextField } from "@/components";
 import type { CampusId } from "@/data/types";
+import { formatStudentNumber } from "@/data/studentRecord";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, gradient, space } from "@/theme/tokens";
 
@@ -22,7 +23,7 @@ export function ProfileSetupScreen() {
   const pickPhoto = usePickPhoto();
   const [fullName, setFullName] = useState(state.profile?.fullName ?? "");
   const [phone, setPhone] = useState(state.profile?.phone ?? "");
-  const [campusId, setCampusId] = useState<CampusId | null>(null);
+  const [campusId, setCampusId] = useState<CampusId | null>(state.profile?.campusId ?? null);
   const [avatarUri, setAvatarUri] = useState<string | undefined>(state.profile?.avatarUri);
   const [campusOpen, setCampusOpen] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
@@ -93,6 +94,17 @@ export function ProfileSetupScreen() {
         />
         <TextField label="Email" locked right={<Icon name="lock" size={16} color={color.textMuted} />} value={email} />
         <TextField
+          label="Student number"
+          locked
+          right={
+            <View style={styles.verified}>
+              <Icon color={color.success} name="check-circle" size={16} />
+              <Text style={styles.verifiedText}>Verified</Text>
+            </View>
+          }
+          value={state.profile.studentNumber ? formatStudentNumber(state.profile.studentNumber) : ""}
+        />
+        <TextField
           autoComplete="tel"
           error={errors.phone}
           keyboardType="phone-pad"
@@ -139,4 +151,6 @@ const styles = StyleSheet.create({
   photo: { alignItems: "center", gap: space.xs, marginTop: space.md },
   photoLabel: { color: color.heading, fontSize: 13, fontWeight: "600" },
   pressed: { opacity: 0.7 },
+  verified: { alignItems: "center", flexDirection: "row", gap: 4 },
+  verifiedText: { color: color.success, fontSize: 12, fontWeight: "700" },
 });

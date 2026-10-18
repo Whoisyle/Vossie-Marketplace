@@ -18,7 +18,7 @@ export type CampusId =
   | "tyger-valley-cape-town"
   | "nelspruit-mbombela";
 
-export type Campus = { id: CampusId; name: string };
+export type Campus = { id: CampusId; name: string; region: string };
 
 export type CategoryId = "food" | "books" | "electronics" | "fashion" | "services";
 
@@ -32,6 +32,8 @@ export type Profile = {
   email: string;
   phone: string;
   campusId: CampusId;
+  /** Pulled from the Eduvos student record (mock for now, see data/studentRecord.ts). */
+  studentNumber?: string;
   avatarUri?: string;
   isVerifiedStudent: boolean;
   role: Role;

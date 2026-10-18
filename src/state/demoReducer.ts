@@ -17,6 +17,7 @@ import {
 import { reelsSeed, reviewsSeed } from "@/data/mock/content";
 import { effectivePrice } from "@/data/deals";
 import { getListing } from "@/data/repository";
+import { lookupStudentRecord } from "@/data/studentRecord";
 import type {
   ActivityItem,
   Booking,
@@ -213,7 +214,8 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
     case "signIn": {
       const email = action.email.trim().toLowerCase();
       const known = state.knownProfiles.find((profile) => profile.email.toLowerCase() === email);
-      if (known) return { ...state, profile: known, isNewUser: false };
+      const record = lookupStudentRecord(email);
+      if (known) return { ...state, profile: { ...known, studentNumber: known.studentNumber ?? record.studentNumber }, isNewUser: false };
       return {
         ...state,
         isNewUser: true,
@@ -222,7 +224,8 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
           fullName: "",
           email,
           phone: "",
-          campusId: "potchefstroom",
+          campusId: record.campusId,
+          studentNumber: record.studentNumber,
           isVerifiedStudent: true,
           role: "buyer",
         },

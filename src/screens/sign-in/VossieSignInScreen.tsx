@@ -97,7 +97,7 @@ export function VossieSignInScreen() {
     haptic.press();
     burst.set(withTiming(1, { duration: 620, easing: ease.out }));
     timer.current = setTimeout(() => {
-      router.push({ params: { email: email.trim().toLowerCase() }, pathname: "/otp" });
+      router.push({ params: { email: email.trim().toLowerCase() }, pathname: "/verified" });
     }, 700);
   };
 

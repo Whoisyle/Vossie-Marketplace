@@ -58,7 +58,7 @@ describe("VossieSignInScreen", () => {
     fireEvent.changeText(screen.getByPlaceholderText("Email, phone or Skype"), "eduv230953@vossie.net");
     fireEvent.press(screen.getByTestId("sign-in-next"));
     act(() => jest.runAllTimers());
-    expect(mockPush).toHaveBeenCalledWith({ params: { email: "eduv230953@vossie.net" }, pathname: "/otp" });
+    expect(mockPush).toHaveBeenCalledWith({ params: { email: "eduv230953@vossie.net" }, pathname: "/verified" });
   });
 
   it("opens account help", () => {

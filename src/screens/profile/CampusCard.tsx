@@ -90,12 +90,16 @@ export function CampusCard({
             </Animated.View>
           </View>
           <View style={styles.texts}>
-            <Text style={[styles.label, campusId ? styles.onDark : null]}>Your campus</Text>
+            <Text style={[styles.label, campusId ? styles.onDark : null]}>
+              {campusId ? "Your campus · from your student record" : "Your campus"}
+            </Text>
             <Text numberOfLines={1} style={[styles.value, campusId ? styles.onDark : styles.placeholder]}>
               {campusId ? getCampusName(campusId) : "Tap to choose"}
             </Text>
           </View>
-          <Icon color={campusId ? color.onPrimary : color.textSecondary} name="chevron-down" size={20} />
+          <View style={[styles.change, campusId ? styles.changeOnDark : null]}>
+            <Text style={[styles.changeText, campusId ? styles.onDark : null]}>{campusId ? "Change" : "Choose"}</Text>
+          </View>
         </Animated.View>
       </Pressable>
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -119,6 +123,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
   },
   cardError: { borderColor: color.danger },
+  change: { alignItems: "center", backgroundColor: color.surfaceIcon, borderRadius: corner.pill, justifyContent: "center", minHeight: 32, paddingHorizontal: space.sm },
+  changeOnDark: { backgroundColor: "rgba(255, 255, 255, 0.2)" },
+  changeText: { color: color.heading, fontSize: 13, fontWeight: "700" },
   error: { color: color.danger, fontSize: 12, marginLeft: space.xxs },
   invite: { backgroundColor: color.mist, borderRadius: 22, height: 44, position: "absolute", width: 44 },
   label: { color: color.textMuted, fontSize: 11 },

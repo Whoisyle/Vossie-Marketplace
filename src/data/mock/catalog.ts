@@ -11,18 +11,18 @@ const img = {
 } as const;
 
 export const campuses: Campus[] = [
-  { id: "midrand-head-office", name: "Midrand (Head Office)" },
-  { id: "bedfordview", name: "Bedfordview" },
-  { id: "pretoria", name: "Pretoria" },
-  { id: "potchefstroom", name: "Potchefstroom" },
-  { id: "vaal-vanderbijlpark", name: "Vaal (Vanderbijlpark)" },
-  { id: "bloemfontein", name: "Bloemfontein" },
-  { id: "durban-umhlanga", name: "Durban (Umhlanga)" },
-  { id: "east-london", name: "East London" },
-  { id: "nelson-mandela-bay-gqeberha", name: "Nelson Mandela Bay (Gqeberha)" },
-  { id: "cape-town-mowbray", name: "Cape Town (Mowbray)" },
-  { id: "tyger-valley-cape-town", name: "Tyger Valley (Cape Town)" },
-  { id: "nelspruit-mbombela", name: "Nelspruit (Mbombela)" },
+  { id: "midrand-head-office", name: "Midrand (Head Office)", region: "Gauteng" },
+  { id: "bedfordview", name: "Bedfordview", region: "Gauteng" },
+  { id: "pretoria", name: "Pretoria", region: "Gauteng" },
+  { id: "potchefstroom", name: "Potchefstroom", region: "North West" },
+  { id: "vaal-vanderbijlpark", name: "Vaal (Vanderbijlpark)", region: "Gauteng" },
+  { id: "bloemfontein", name: "Bloemfontein", region: "Free State" },
+  { id: "durban-umhlanga", name: "Durban (Umhlanga)", region: "KwaZulu-Natal" },
+  { id: "east-london", name: "East London", region: "Eastern Cape" },
+  { id: "nelson-mandela-bay-gqeberha", name: "Nelson Mandela Bay (Gqeberha)", region: "Eastern Cape" },
+  { id: "cape-town-mowbray", name: "Cape Town (Mowbray)", region: "Western Cape" },
+  { id: "tyger-valley-cape-town", name: "Tyger Valley (Cape Town)", region: "Western Cape" },
+  { id: "nelspruit-mbombela", name: "Nelspruit (Mbombela)", region: "Mpumalanga" },
 ];
 
 export const categories: Category[] = [
