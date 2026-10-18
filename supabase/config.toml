@@ -1,0 +1,8 @@
+# Supabase configuration for Vossie Marketplace
+# This file is committed; secrets live in ignored .env files only.
+
+project_id = "vossie-marketplace"
+db_port = 5432
+studio_port = 54323
+inbucket_port = 54324
+api_port = 54321

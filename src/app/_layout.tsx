@@ -1,44 +1,25 @@
-import { useEffect, useRef } from "react";
-import { AppState, type AppStateStatus } from "react-native";
 import { Stack } from "expo-router/stack";
-import { router } from "expo-router";
 
-import { colors } from "@/theme";
+import { ToastProvider } from "@/components";
+import { DemoStoreProvider } from "@/state/DemoStore";
+import { color } from "@/theme/tokens";
 
 export default function RootLayout() {
-  const appState = useRef<AppStateStatus>(AppState.currentState);
-  const wasBackgrounded = useRef(false);
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener("change", (nextState) => {
-      const previousState = appState.current;
-      appState.current = nextState;
-
-      if (nextState === "background") {
-        wasBackgrounded.current = true;
-        return;
-      }
-
-      if (nextState === "active" && wasBackgrounded.current && previousState === "background") {
-        wasBackgrounded.current = false;
-        router.replace("/");
-      }
-    });
-
-    return () => subscription.remove();
-  }, []);
-
   return (
-    <Stack
-      screenOptions={{
-        contentStyle: { backgroundColor: colors.background },
-        headerBackButtonDisplayMode: "minimal",
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: colors.background },
-        headerTintColor: colors.accent,
-      }}
-    >
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-    </Stack>
+    <DemoStoreProvider>
+      <ToastProvider>
+        <Stack
+          screenOptions={{
+            contentStyle: { backgroundColor: color.background },
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="index" options={{ autoHideHomeIndicator: true }} />
+          <Stack.Screen name="sign-in" options={{ title: "Sign In" }} />
+          <Stack.Screen name="profile-setup" options={{ gestureEnabled: false, title: "Set up your profile" }} />
+          <Stack.Screen name="(tabs)" options={{ animation: "fade", gestureEnabled: false }} />
+        </Stack>
+      </ToastProvider>
+    </DemoStoreProvider>
   );
 }

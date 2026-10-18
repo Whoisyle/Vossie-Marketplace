@@ -1,0 +1,257 @@
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import { Button, Sheet } from "@/components";
+import { useDemoStore } from "@/state/DemoStore";
+import { color, space } from "@/theme/tokens";
+
+import { isValidEmail } from "./validation";
+
+// Bubble geometry measured from design/screens/03-sign-in-microsoft.png on a
+// 560 x 1205 frame: x and radius scale with width, y with height.
+const BUBBLES = [
+  { x: 150, y: 160, r: 165 },
+  { x: 470, y: 85, r: 120 },
+  { x: 340, y: 255, r: 58 },
+  { x: 520, y: 335, r: 115 },
+  { x: 280, y: 605, r: 300 },
+  { x: 505, y: 835, r: 68 },
+  { x: 165, y: 1005, r: 150 },
+  { x: 400, y: 945, r: 60 },
+  { x: 410, y: 1100, r: 105 },
+] as const;
+
+const MICROSOFT_SQUARES = ["#F25022", "#7FBA00", "#00A4EF", "#FFB900"] as const;
+
+function MicrosoftLogo() {
+  return (
+    <View accessibilityLabel="Microsoft" accessibilityRole="image" style={styles.logoRow}>
+      <View style={styles.squares}>
+        {MICROSOFT_SQUARES.map((fill) => (
+          <View key={fill} style={[styles.square, { backgroundColor: fill }]} />
+        ))}
+      </View>
+      <Text style={styles.logoText}>Microsoft</Text>
+    </View>
+  );
+}
+
+export function VossieSignInScreen() {
+  const router = useRouter();
+  const { dispatch } = useDemoStore();
+  const { height, width } = useWindowDimensions();
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cardWidth = Math.min(width * 0.82, 440);
+
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
+
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        setSubmitting(false);
+        setError("");
+      },
+      [],
+    ),
+  );
+
+  const submit = () => {
+    Keyboard.dismiss();
+    if (!email.trim()) {
+      setError("Enter your email, phone or Skype name.");
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setError("Enter a valid email address, like eduv123456@vossie.net.");
+      return;
+    }
+    setError("");
+    setSubmitting(true);
+    timer.current = setTimeout(() => {
+      dispatch({ email, type: "signIn" });
+      router.replace("/home");
+    }, 700);
+  };
+
+  return (
+    <SafeAreaView edges={["left", "right"]} style={styles.safeArea}>
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        pointerEvents="none"
+        style={StyleSheet.absoluteFill}
+      >
+        {BUBBLES.map((bubble, index) => {
+          const radius = (bubble.r / 560) * width;
+          return (
+            <View
+              key={index}
+              style={[
+                styles.bubble,
+                {
+                  borderRadius: radius,
+                  height: radius * 2,
+                  left: (bubble.x / 560) * width - radius,
+                  top: (bubble.y / 1205) * height - radius,
+                  width: radius * 2,
+                },
+              ]}
+            />
+          );
+        })}
+      </View>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.flex}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={[styles.card, { width: cardWidth }]} testID="sign-in-card">
+            <MicrosoftLogo />
+            <Text accessibilityRole="header" style={styles.title}>
+              Sign In
+            </Text>
+            <TextInput
+              accessibilityHint="Your Eduvos Microsoft account email"
+              accessibilityLabel="Email, phone or Skype"
+              autoCapitalize="none"
+              autoComplete="email"
+              autoCorrect={false}
+              editable={!submitting}
+              keyboardType="email-address"
+              onChangeText={(value) => {
+                setEmail(value);
+                if (error) setError("");
+              }}
+              onSubmitEditing={submit}
+              placeholder="Email, phone or Skype"
+              placeholderTextColor="#8A8A8A"
+              returnKeyType="next"
+              selectionColor={color.microsoftBlue}
+              style={[styles.input, error ? styles.inputError : null]}
+              textContentType="username"
+              value={email}
+            />
+            {error ? (
+              <Text accessibilityLiveRegion="polite" style={styles.error}>
+                {error}
+              </Text>
+            ) : null}
+            <Pressable
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => setHelpOpen(true)}
+              style={({ pressed }) => [styles.linkButton, pressed && styles.pressed]}
+            >
+              <Text style={styles.link}>Can’t access your account?</Text>
+            </Pressable>
+            <View style={styles.actions}>
+              <Pressable
+                accessibilityLabel="Next"
+                accessibilityRole="button"
+                accessibilityState={{ busy: submitting, disabled: submitting }}
+                disabled={submitting}
+                onPress={submit}
+                style={({ pressed }) => [styles.next, pressed && styles.nextPressed]}
+                testID="sign-in-next"
+              >
+                {submitting ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.nextText}>Next</Text>
+                )}
+              </Pressable>
+            </View>
+            <Text style={styles.demoNote}>Vossie demo · no password is requested</Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <Sheet onClose={() => setHelpOpen(false)} title="Can’t access your account?" visible={helpOpen}>
+        <View style={styles.helpBody}>
+          <Text style={styles.helpText}>
+            Your Vossie sign-in uses your Eduvos Microsoft account. To reset your
+            password or unlock your account, contact Eduvos IT support or use the
+            Microsoft account recovery page.
+          </Text>
+          <Text style={styles.helpText}>Vossie will never ask for your password.</Text>
+          <Button label="Got it" onPress={() => setHelpOpen(false)} fullWidth />
+        </View>
+      </Sheet>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  actions: { alignItems: "flex-end", marginTop: space.lg },
+  bubble: { backgroundColor: color.accent, position: "absolute" },
+  card: {
+    alignSelf: "center",
+    backgroundColor: "#FFFFFF",
+    borderCurve: "continuous",
+    borderRadius: 20,
+    boxShadow: "0 10px 30px rgba(16, 33, 40, 0.18)",
+    paddingHorizontal: 28,
+    paddingVertical: 30,
+  },
+  demoNote: { color: "#9AA1A6", fontSize: 11, marginTop: space.md },
+  error: { color: "#C42B1C", fontSize: 13, marginTop: space.xs },
+  flex: { flex: 1 },
+  helpBody: { gap: space.md, paddingBottom: space.md },
+  helpText: { color: color.text, fontSize: 15, lineHeight: 22 },
+  input: {
+    borderBottomColor: "#7FA7E6",
+    borderBottomWidth: 1.5,
+    color: "#1B1B1B",
+    fontSize: 15,
+    marginTop: space.lg,
+    minHeight: 44,
+    paddingVertical: space.xs,
+  },
+  inputError: { borderBottomColor: "#C42B1C" },
+  link: { color: "#0067B8", fontSize: 12 },
+  linkButton: { alignSelf: "flex-start", justifyContent: "center", minHeight: 36, marginTop: space.xs },
+  logoRow: { alignItems: "center", flexDirection: "row", gap: 8 },
+  logoText: { color: "#737373", fontSize: 22, fontWeight: "600", letterSpacing: -0.2 },
+  next: {
+    alignItems: "center",
+    backgroundColor: color.microsoftBlue,
+    borderRadius: 4,
+    justifyContent: "center",
+    minHeight: 40,
+    minWidth: 118,
+    paddingHorizontal: space.lg,
+  },
+  nextPressed: { backgroundColor: "#0B5CA6" },
+  nextText: { color: "#FFFFFF", fontSize: 15, fontWeight: "600" },
+  pressed: { opacity: 0.6 },
+  safeArea: { backgroundColor: "#FFFFFF", flex: 1 },
+  scrollContent: { flexGrow: 1, justifyContent: "center", paddingVertical: space.xxl },
+  square: { height: 11, width: 11 },
+  squares: { flexDirection: "row", flexWrap: "wrap", gap: 1.5, width: 23.5 },
+  title: { color: "#1B1B1B", fontSize: 26, fontWeight: "700", marginTop: space.lg },
+});

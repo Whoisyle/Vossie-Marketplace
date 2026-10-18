@@ -19,14 +19,14 @@ When documents conflict, **stop and report the conflict**. Do not silently pick 
 
 ## Current repository status
 
-ADR 0001 and the application-foundation document approve a universal Expo engineering foundation. A product-neutral application shell now exists. Product behaviour remains **unspecified** until the canonical product and screen specifications are committed or linked.
+ADR 0001 and the application-foundation document approve a universal Expo engineering foundation. A product-neutral application shell now exists. The project owner has approved initial Marketplace MVP scope; a working product draft and backend contract draft capture those decisions. Production identity, no-show and handoff-issue outcomes, privacy, moderation, the complete 177-screen map, and other open decisions remain **unresolved**.
 
 ## Where to look
 
 | Domain | Path | Status |
 |--------|------|--------|
-| Product | `docs/product/` | Reserved; empty of approved specs |
-| Architecture | `docs/architecture/` | **Foundation approved**; domain architecture pending |
+| Product | `docs/product/` | **Working draft** — `marketplace-mvp.md`; canonical full specification pending |
+| Architecture | `docs/architecture/` | **Foundation approved**; MVP backend contracts are a discovery draft |
 | UI/UX | `docs/ui-ux/` | Reserved; empty of approved specs |
 | Security | `docs/security/` | Reserved; engineering rules apply |
 | Commerce | `docs/commerce/` | Reserved |

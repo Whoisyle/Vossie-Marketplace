@@ -1,4 +1,4 @@
----
+use ---
 name: forge
 description: FORGE — Vossie backend/application engineer. Use proactively for server architecture, APIs, server actions, business logic, background jobs, backend validation, application services, transactions, and application-level state machines.
 model: inherit

@@ -2,6 +2,8 @@ import type { TextStyle } from "react-native";
 import { Platform } from "react-native";
 import { Color } from "expo-router";
 
+export { color, corner, shadow, size, space, text } from "./tokens";
+
 export const colors = {
   brandCream: "#F4EBDD",
   label: Platform.select({
@@ -68,6 +70,10 @@ export const radius = {
   full: 9999,
 } as const;
 
+export const touchTargets = {
+  minimum: 44,
+} as const;
+
 export const motion = {
   splashHold: 4800,
 } as const;
@@ -78,4 +84,5 @@ export const type = {
   body: { fontSize: 17, fontWeight: "400", color: colors.label },
   subhead: { fontSize: 15, fontWeight: "400", color: colors.secondaryLabel },
   caption: { fontSize: 12, fontWeight: "500", color: colors.secondaryLabel },
+  micro: { fontSize: 11, fontWeight: "400", color: colors.secondaryLabel },
 } as const satisfies Record<string, TextStyle>;

@@ -21,16 +21,16 @@
     "plugins": [
       "expo-router",
       [
-        "expo-camera",
+        "expo-image-picker",
         {
-          "cameraPermission": "Vossie uses your camera to scan your Eduvos QR code and sign you in securely."
+          "photosPermission": "Vossie uses your photos so you can choose a profile picture."
         }
       ],
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F4EBDD",
-          "image": "./assets/branding/vossie-wordmark.png",
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/branding/vossie-wordmark.svg",
           "imageWidth": 220,
           "resizeMode": "contain"
         }
