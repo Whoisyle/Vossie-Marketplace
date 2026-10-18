@@ -162,7 +162,7 @@ describe("referrals", () => {
     ids.referralCode = code;
   });
 
-  it("rejects bad codes and your own, and pays both once on the friend's first order", async () => {
+  it("rejects bad codes and your own, and pays both 200 points once, when the friend's first order completes", async () => {
     await fails(rpc(u.stranger, "public.apply_referral_code('NOPE-0000')"), /invalid_code/);
     await fails(rpc(u.buyer, "public.apply_referral_code($1)", [ids.referralCode]), /own_code/);
     const friend = await newUser(db, "friend@vossie.net", { display_name: "Kamo" });
@@ -172,20 +172,22 @@ describe("referrals", () => {
     await fails(rpc(friend, "public.apply_referral_code($1)", [ids.referralCode]), /already_referred/);
     assert.equal((await one(friend, "select status from referrals")).status, "joined");
 
-    const referrerBefore = await wallet(u.buyer);
-    const friendBefore = await wallet(friend);
-    await place(friend, ids.burger.option); // R60 paid from the wallet
-    assert.equal(await wallet(u.buyer), referrerBefore + 3000n);
-    assert.equal(await wallet(friend), friendBefore - 6000n + 3000n);
+    const referrerBefore = (await rpc(u.buyer, "public.my_points()")).points;
+    const walletBefore = await wallet(u.buyer);
+    const { so } = await deliver(friend, ids.burger.option);
+    assert.equal((await one(friend, "select status from referrals")).status, "joined", "not rewarded before the order completes");
+    await rpc(friend, "public.buyer_confirm_received($1)", [so.id]);
     assert.equal((await one(friend, "select status from referrals")).status, "rewarded");
+    assert.equal((await rpc(u.buyer, "public.my_points()")).points, referrerBefore + 200);
+    assert.equal((await rpc(friend, "public.my_points()")).points, 7 + 200, "R75 order = 7 points, plus 200");
+    assert.equal(await wallet(u.buyer), walletBefore, "no wallet credit any more");
     assert.equal((await q(u.buyer, "select * from referrals")).length, 1, "the referrer sees the invite");
     assert.equal((await q(u.stranger, "select * from referrals")).length, 0);
 
-    await place(friend, ids.burger.option); // second order: no second reward
-    assert.equal(await wallet(u.buyer), referrerBefore + 3000n);
+    const second = await deliver(friend, ids.burger.option);
+    await rpc(friend, "public.buyer_confirm_received($1)", [second.so.id]);
+    assert.equal((await rpc(u.buyer, "public.my_points()")).points, referrerBefore + 200, "paid once");
     await fails(rpc(u.buyer2, "public.apply_referral_code($1)", [ids.referralCode]), /already_ordered/);
-    await walletMatchesLedger(u.buyer);
-    await walletMatchesLedger(friend);
     await ledgerBalanced();
   });
 });

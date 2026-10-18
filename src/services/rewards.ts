@@ -63,3 +63,27 @@ export const isVerifiedSeller = (sellerId: string) => rpc<boolean>("is_verified_
 
 /** Puts the available items from a past order back in the cart; returns how many lines were added. */
 export const reorderToCart = (sellerOrderId: string) => rpc<number>("reorder_to_cart", { p_seller_order_id: sellerOrderId });
+
+// ---- subscriptions, safety and withdrawals ------------------------------------------------------------------
+
+/** Plans are paid monthly from the wallet. The perks are applied by the app for now (see backend.md). */
+export const subscribePlan = (planId: "plus" | "seller-pro" | "study-pass") => rpc<string>("subscribe_plan", { p_plan_id: planId });
+export const cancelSubscription = (planId: string) => rpc("cancel_subscription", { p_plan_id: planId });
+export const resumeSubscription = (planId: string) => rpc("resume_subscription", { p_plan_id: planId });
+export async function listPlans() {
+  return unwrap(await supabase.from("subscription_plans").select("id, name, price_cents, audience, perks").order("price_cents"));
+}
+export async function listMySubscriptions() {
+  return unwrap(await supabase.from("subscriptions").select("id, plan_id, status, cancel_at_period_end, started_at, current_period_end"));
+}
+
+export const addEmergencyContact = (name: string, phone: string, relationship = "") =>
+  rpc<string>("add_emergency_contact", { p_name: name, p_phone: phone, p_relationship: relationship });
+export const removeEmergencyContact = (id: string) => rpc("remove_emergency_contact", { p_id: id });
+export const setCampusSecurityNumber = (number: string) => rpc("set_campus_security_number", { p_number: number });
+export const submitSafetyReport = (category: "User" | "Listing" | "Delivery or courier" | "Safety incident" | "Other", notes: string) =>
+  rpc<string>("submit_safety_report", { p_category: category, p_notes: notes });
+
+/** Withdraw wallet money (minimum R50) back to a saved card. The key makes a retry safe. */
+export const requestCardWithdrawal = (amountCents: number, paymentMethodId: string, idempotencyKey: string) =>
+  rpc<string>("request_card_withdrawal", { p_amount_cents: amountCents, p_payment_method_id: paymentMethodId, p_idempotency_key: idempotencyKey });

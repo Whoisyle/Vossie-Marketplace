@@ -100,6 +100,11 @@ Round 3: upright student card on Verified; delivery split by campus (hub to hub 
 Phase 4 built: Vossie Points ring and redeem, courier rating and tips, referrals, voucher wallet with one-tap apply, order for later, price and stock alerts with sold-out items, report and block everywhere with blocked sellers hidden, verified seller badge, reorder, shared tracking link (vossie://track/<order>), welcome tour, skeleton loading, offline bar, sounds (off by default) and Face ID or Touch ID before payments, adding funds and redeeming. Database migration and tests for these.
 Not done: Eduvos SSO, real payment provider (so card tips and Apple Pay or Google Pay stay mock), real carriers for third-party and hub to hub, a real notification and email service, the courier's own navigation, seller and courier apps (19 Oct).
 
+## Round 4 (2026-10-18, later)
+
+Removed the welcome tour. Delivery wording is now Vossie courier, Campus hub to hub (other-campus items only) and Third-party courier (three speeds), with free collection as a small option. Receipts can be opened again from Activity, order detail and wallet transactions. Wallet cards are at real card proportions, move by themselves and open an edit screen; transactions open with details and the receipt; withdraw goes back to a card. Account: upright student card, Subscriptions (Vossie Plus, Seller Pro, Study Pass), Coupons and offers, Refer friends (200 points each), Safety (check-up, contacts and emergency numbers, share trip, report), Terms and policies (DRAFT text, accepted at sign-up), Wishlist and saved searches, Campus extras (book swap, tutor booking, lost and found), Split the bill on orders.
+Waiting on the owner: a photo of the real Eduvos card (the card is NOT yet styled like it), the official Eduvos logo file, campus security numbers, final subscription prices and perks, lawyer-reviewed legal text.
+
 ## Phases (owner chose four, reviewing on the iPhone after each)
 
 1. Intro, Welcome, sign-in, **OTP**, profile setup, **floating navbar**, Home (filters, carousel, banners, recents, personalised greeting).

@@ -87,6 +87,10 @@ Ratings and tips (`rate_courier`, tip from the wallet into `courier_payable`), V
 
 Differences between the demo app and the database to settle with the owner: the app awards points when an order is marked delivered, the database when it completes after the issue window; the app takes a tip from the order's payment method, the database only from the wallet until the payment provider is live; hub-to-hub and third-party delivery are app-only so far (the database still has `campus_handoff` and `vossie_delivery`, plus carrier bookings); the welcome points and the demo vouchers exist only in the app.
 
+## Round 4 additions (`20261019000200_subscriptions_safety_withdrawals.sql`)
+
+Subscriptions (`subscription_plans`, `subscriptions`, `subscribe_plan`, `cancel_subscription`, `resume_subscription`, `renew_subscriptions` for a scheduled job), safety (`emergency_contacts`, `safety_settings`, `safety_reports` with staff read), card withdrawals (`withdrawal_requests`, `request_card_withdrawal`, trusted `settle_withdrawal`), and referrals now pay 200 points when the friend's first seller order completes (replaces the R30 wallet credit). Tests: `supabase/tests/phase5.test.mjs`. App-only for now: wishlist collections, saved searches, book swap, lost and found, bill splits, and applying subscription perks in `quote_cart`.
+
 ## What is deliberately not built (external gates and open decisions)
 
 | Item | Why |
