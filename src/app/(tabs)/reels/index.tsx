@@ -1,5 +1,5 @@
-import { UpcomingScreen } from "@/screens/shared/UpcomingScreen";
+import { ReelsScreen } from "@/screens/reels/ReelsScreen";
 
-export default function ReelsTab() {
-  return <UpcomingScreen icon="video" step={6} title="Reels" />;
+export default function Route() {
+  return <ReelsScreen />;
 }
