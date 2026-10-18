@@ -10,8 +10,6 @@ import {
   Icon,
   RadioRow,
   Screen,
-  Sheet,
-  TextField,
   useToast,
 } from "@/components";
 import { formatRand } from "@/data/format";
@@ -32,8 +30,6 @@ export function CheckoutScreen() {
   const { address, cardId, fulfilment, payment, voucherCode } = state.checkout;
   const [voucherInput, setVoucherInput] = useState("");
   const [voucherError, setVoucherError] = useState<string | null>(null);
-  const [addressOpen, setAddressOpen] = useState(false);
-  const [addressDraft, setAddressDraft] = useState(address);
   const [placing, setPlacing] = useState(false);
   const [payState, setPayState] = useState<PayState>("idle");
   const [payError, setPayError] = useState<string | null>(null);
@@ -121,12 +117,12 @@ export function CheckoutScreen() {
       <AppHeader back title="Checkout" />
 
       <Text style={styles.heading}>Delivery Address</Text>
-      <Card onPress={() => { setAddressDraft(address); setAddressOpen(true); }} style={styles.addressCard} variant="soft">
+      <Card onPress={() => router.push("/cart/address" as Href)} style={styles.addressCard} variant="soft">
         <Icon name="map-pin" size={18} />
         <Text numberOfLines={2} style={styles.addressText}>
           {address}
         </Text>
-        <Text style={styles.edit}>Edit</Text>
+        <Text style={styles.edit}>{state.checkout.addressPoint ? "Change" : "Pin on map"}</Text>
       </Card>
 
       <Text style={styles.heading}>Delivery or Collection</Text>
@@ -255,24 +251,6 @@ export function CheckoutScreen() {
         <SummaryRow bold label="Total" value={formatRand(totals.totalCents, { fixed: true })} />
       </Card>
 
-      <Sheet onClose={() => setAddressOpen(false)} title="Delivery address" visible={addressOpen}>
-        <TextField
-          autoCapitalize="words"
-          label="Address"
-          multiline
-          onChangeText={setAddressDraft}
-          value={addressDraft}
-        />
-        <Button
-          disabled={addressDraft.trim().length < 5}
-          fullWidth
-          label="Save address"
-          onPress={() => {
-            dispatch({ address: addressDraft.trim(), type: "setAddress" });
-            setAddressOpen(false);
-          }}
-        />
-      </Sheet>
     </Screen>
   );
 }

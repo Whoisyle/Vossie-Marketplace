@@ -80,3 +80,15 @@ jest.mock("expo-haptics", () => ({
   ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" },
   NotificationFeedbackType: { Success: "success", Error: "error", Warning: "warning" },
 }));
+
+// the native map has no Jest implementation: render plain views and a no-op animateToRegion
+jest.mock("react-native-maps", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  const MapView = React.forwardRef((props, ref) => {
+    React.useImperativeHandle(ref, () => ({ animateToRegion: jest.fn() }));
+    return React.createElement(View, { testID: "native-map" }, props.children);
+  });
+  const Passthrough = ({ children }) => React.createElement(View, null, children);
+  return { __esModule: true, default: MapView, Marker: Passthrough, Polyline: () => null };
+});

@@ -114,6 +114,8 @@ export type Order = {
   totalCents: number;
   placedAt: string;
   etaMinutes?: number;
+  /** Where the delivery goes, when the student pinned it on the map. */
+  destination?: { latitude: number; longitude: number };
   courier?: { name: string; vehicle: string; rating: number };
 };
 

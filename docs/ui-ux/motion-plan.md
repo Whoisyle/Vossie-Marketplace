@@ -30,7 +30,7 @@
 | Intro to Welcome | Replace the warp with a **liquid ink reveal**: the landed dot swells into a navy circle that floods the screen and then drains away to reveal Welcome. |
 | Welcome | Unchanged. |
 | Sign-in bubbles | Slow soft drift at varied sizes and speeds in the new tints, **react to touch** (lean toward the finger, ripple on focus, soft burst on Next) and **tilt parallax** with phone motion. |
-| OTP | Add a real code-entry step after the email (the database already issues 6-digit email codes). Animated digit boxes, success and error states, resend timer. Owner will supply the reference GIF. |
+| OTP | **Replaced (owner, 2026-10-18)** by an animated Verified screen: checks the student record, shows email, student number and campus, then continues by itself. Profile setup shows the locked student number and a pre-filled campus with a Change picker (search plus cards). Student record is mock data (`src/data/studentRecord.ts`) until the backend returns it. Original plan: add a real code-entry step after the email (the database already issues 6-digit email codes). Animated digit boxes, success and error states, resend timer. Owner will supply the reference GIF. |
 | Profile setup | Introduce the new colours as accents only. Animate the campus card (picker opens as a spring sheet; selected campus animates into the card). |
 | Navbar | Floating iOS-style bar with a **sliding glass pill** behind the active tab, spring icon bounce, label fade. Slowly slides away on scroll down (swipe up) and slowly returns on scroll up. |
 | Reels | Navbar hidden; **swipe from the bottom edge** brings it back. New reels icon (owner to supply the file). Double tap likes with a heart burst. Overlay shows store name, campus and a short description. |
@@ -78,6 +78,11 @@ Main action colour is **slate #35505C with a soft gradient** (Welcome button, Co
 | Trending on campus, smart suggestions as you type, back in stock and price drop alerts, reorder in one tap | All yes | trending view, alerts table and notifications |
 
 These are additions to the backend; they are not in the current schema. Each gets a migration and tests when its phase starts.
+
+## Phase 3 build notes (2026-10-18)
+
+Built: payment methods (Apple Pay, Google Pay, card, wallet, instant EFT with banks; logos are stand-ins), pay button states, animated receipt, `VossieMap` (react-native-maps, web placeholder), order tracking with a simulated courier, address picker with a pin, store location card. Full-screen map screens hide the navbar and bring it back with a swipe up from the bottom edge (`BottomEdgeReveal`, same as Reels).
+Not built: receipt and order emails (need an Edge Function and the email provider), the courier's own navigation view (belongs with the courier app pass), real courier positions (need a location table and the phone permission), street-address search (needs a geocoder). Map coordinates are approximate city centres (`src/data/geo.ts`).
 
 ## Phases (owner chose four, reviewing on the iPhone after each)
 

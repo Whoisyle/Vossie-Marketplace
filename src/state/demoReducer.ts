@@ -63,6 +63,8 @@ export type DemoState = {
   checkout: {
     fulfilment: Fulfilment;
     address: string;
+    /** The map pin for the delivery address, when one was chosen. */
+    addressPoint: { latitude: number; longitude: number } | null;
     payment: PaymentMethod;
     cardId: string | null;
     bank: string | null;
@@ -96,6 +98,7 @@ export function createInitialState(): DemoState {
     checkout: {
       fulfilment: "delivery",
       address: "123 Campus Drive, Eduvos Potchefstroom, Meyer Street, 2531",
+      addressPoint: null,
       payment: "apple-pay",
       cardId: null,
       bank: null,
@@ -132,7 +135,7 @@ export type DemoAction =
   | { type: "addToCart"; listingId: string; optionId?: string; quantity: number }
   | { type: "setCartQuantity"; lineId: string; quantity: number }
   | { type: "setFulfilment"; fulfilment: Fulfilment }
-  | { type: "setAddress"; address: string }
+  | { type: "setAddress"; address: string; point?: { latitude: number; longitude: number } | null }
   | { type: "setPayment"; payment: PaymentMethod; cardId?: string | null; bank?: string | null }
   | { type: "applyVoucher"; code: string | null }
   | { type: "placeOrder" }
@@ -336,7 +339,7 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
     case "setFulfilment":
       return { ...state, checkout: { ...state.checkout, fulfilment: action.fulfilment } };
     case "setAddress":
-      return { ...state, checkout: { ...state.checkout, address: action.address } };
+      return { ...state, checkout: { ...state.checkout, address: action.address, addressPoint: action.point ?? null } };
     case "setPayment":
       return {
         ...state,
@@ -383,6 +386,7 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
           totalCents: subtotal + delivery - discount,
           placedAt,
           etaMinutes: state.checkout.fulfilment === "delivery" ? 60 : 20,
+          destination: state.checkout.fulfilment === "delivery" ? (state.checkout.addressPoint ?? undefined) : undefined,
         };
       });
       const receipt: Receipt = {

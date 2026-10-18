@@ -16,7 +16,9 @@ import {
   SegmentedTabs,
   StarRating,
 } from "@/components";
+import { VossieMap } from "@/components/map/VossieMap";
 import { shortDate, formatRand } from "@/data/format";
+import { storeLocation } from "@/data/geo";
 import { getCampusName, getListings, getSeller } from "@/data/repository";
 import type { Listing } from "@/data/types";
 import { useDetail } from "@/lib/paths";
@@ -131,6 +133,18 @@ export function StorefrontScreen() {
 
       <Text style={[text.bodySmall, styles.bio]}>{seller.bio}</Text>
 
+      <View accessibilityLabel={`Where to find ${seller.name}`} style={styles.findUs}>
+        <VossieMap
+          accessibilityLabel={`Map showing ${seller.name}`}
+          initialRegion={{ ...storeLocation(seller.id, seller.campusId), latitudeDelta: 0.004, longitudeDelta: 0.004 }}
+          interactive={false}
+          markers={[{ coordinate: storeLocation(seller.id, seller.campusId), id: "store", kind: "store", title: seller.name }]}
+          style={styles.findUsMap}
+          testID="store-map"
+        />
+        <Text style={styles.findUsText}>Find us: {seller.location}</Text>
+      </View>
+
       <View style={styles.actions}>
         <View style={styles.flex}>
           <Button
@@ -197,6 +211,9 @@ const styles = StyleSheet.create({
   actions: { flexDirection: "row", gap: space.sm, marginTop: space.sm },
   avatarRing: { borderColor: color.mist, borderRadius: 36, borderWidth: 2, padding: 2 },
   bio: { marginTop: space.sm },
+  findUs: { borderRadius: corner.lg, marginTop: space.md, overflow: "hidden" },
+  findUsMap: { height: 130 },
+  findUsText: { backgroundColor: color.surfaceSoft, color: color.heading, fontSize: 13, fontWeight: "600", padding: space.sm },
   cover: { borderCurve: "continuous", borderRadius: corner.xl, gap: space.sm, marginTop: space.xs, overflow: "hidden", padding: space.md },
   coverBubbleA: { backgroundColor: "rgba(183,196,204,0.12)", borderRadius: 80, height: 160, position: "absolute", right: -40, top: -50, width: 160 },
   coverBubbleB: { backgroundColor: "rgba(183,196,204,0.08)", borderRadius: 40, bottom: -20, height: 80, position: "absolute", right: 80, width: 80 },

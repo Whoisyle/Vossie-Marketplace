@@ -28,6 +28,7 @@ export function ConfirmationScreen() {
     pop.set(reduced ? 1 : withSpring(1, spring.bouncy));
   }, [hasReceipt, pop, reduced]);
   const rise = (delay: number) => FadeInDown.delay(delay).duration(380);
+  const firstDelivery = state.orders.find((order) => receipt?.orderIds.includes(order.id) && order.fulfilment === "delivery");
   const method = state.orders.find((order) => receipt?.orderIds.includes(order.id))?.paymentMethod;
 
   if (!receipt) {
@@ -81,7 +82,7 @@ export function ConfirmationScreen() {
       </Text>
       <Button
         label="Track my order"
-        onPress={() => router.replace("/activity/orders" as Href)}
+        onPress={() => router.replace((firstDelivery ? `/activity/track/${firstDelivery.id}` : "/activity/orders") as Href)}
         style={styles.track}
         variant="outline"
       />

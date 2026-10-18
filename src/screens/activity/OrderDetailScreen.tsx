@@ -98,6 +98,16 @@ export function OrderDetailScreen() {
       </Card>
 
       <View style={styles.cta}>
+        {order.fulfilment === "delivery" && order.status !== "delivered" && order.status !== "cancelled" ? (
+          <Button
+            fullWidth
+            icon="map"
+            label="Track on map"
+            onPress={() => router.push(`/activity/track/${order.id}` as Href)}
+            style={styles.trackGap}
+            testID="track-order"
+          />
+        ) : null}
         <Button fullWidth icon="message-circle" label="Message seller" onPress={messageSeller} variant="outline" />
       </View>
     </Screen>
@@ -122,5 +132,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   heading: { ...text.sectionTitle, marginBottom: space.xs, marginTop: space.md },
   inline: { alignItems: "center", flexDirection: "row", gap: space.xs },
+  trackGap: { marginBottom: space.xs },
   row: { alignItems: "center", flexDirection: "row", gap: space.sm, justifyContent: "space-between", paddingVertical: 3 },
 });
