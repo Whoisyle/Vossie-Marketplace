@@ -40,6 +40,7 @@ jest.mock("react-native-reanimated", () => {
       }
       return output[output.length - 1];
     },
+    interpolateColor: (_value, _input, output) => output[0],
     useSharedValue: (initial) => React.useRef(shared(initial)).current,
     useDerivedValue: (fn) => shared(fn()),
     useAnimatedStyle: (fn) => { try { return fn(); } catch { return {}; } },

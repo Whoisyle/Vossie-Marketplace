@@ -2,9 +2,9 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Avatar, Button, Icon, MenuRow, Screen, TextField, useToast } from "@/components";
-import { getCampusName } from "@/data/repository";
+import { AppHeader, Avatar, Button, Icon, Screen, TextField, useToast } from "@/components";
 import type { CampusId } from "@/data/types";
+import { CampusCard } from "@/screens/profile/CampusCard";
 import { CampusPicker } from "@/screens/profile/CampusPicker";
 import { formatSouthAfricanPhone, isValidSouthAfricanPhone } from "@/screens/profile/phone";
 import { usePickPhoto } from "@/screens/profile/usePickPhoto";
@@ -82,7 +82,7 @@ export function EditProfileScreen() {
           placeholder="071 234 5678"
           value={phone}
         />
-        <MenuRow label={getCampusName(campusId)} onPress={() => setCampusOpen(true)} value="Campus" />
+        <CampusCard campusId={campusId} onPress={() => setCampusOpen(true)} />
       </View>
       <CampusPicker onClose={() => setCampusOpen(false)} onSelect={setCampusId} selected={campusId} visible={campusOpen} />
     </Screen>

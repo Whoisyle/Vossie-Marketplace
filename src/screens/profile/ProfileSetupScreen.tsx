@@ -1,13 +1,14 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { Redirect, useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Avatar, Button, Icon, MenuRow, Screen, TextField } from "@/components";
-import { getCampusName } from "@/data/repository";
+import { AppHeader, Avatar, Button, Icon, Screen, TextField } from "@/components";
 import type { CampusId } from "@/data/types";
 import { useDemoStore } from "@/state/DemoStore";
-import { color, space } from "@/theme/tokens";
+import { color, gradient, space } from "@/theme/tokens";
 
+import { CampusCard } from "./CampusCard";
 import { CampusPicker } from "./CampusPicker";
 import { formatSouthAfricanPhone, isValidSouthAfricanPhone } from "./phone";
 import { usePickPhoto } from "./usePickPhoto";
@@ -54,6 +55,7 @@ export function ProfileSetupScreen() {
       footer={<Button fullWidth label="Continue" onPress={submit} size="lg" testID="profile-setup-continue" />}
       inTabs={false}
     >
+      <LinearGradient colors={["#DCE5EA", "#FFFFFF"]} pointerEvents="none" style={styles.wash} />
       <AppHeader subtitle="Tell us a little about you to get started." title="Set up your profile" />
 
       <View style={styles.photo}>
@@ -67,7 +69,9 @@ export function ProfileSetupScreen() {
           }}
           style={({ pressed }) => pressed && styles.pressed}
         >
-          <Avatar name={fullName || email} size={96} uri={avatarUri} />
+          <LinearGradient colors={gradient.mist} end={{ x: 1, y: 1 }} start={{ x: 0, y: 0 }} style={styles.avatarRing}>
+            <Avatar name={fullName || email} size={96} uri={avatarUri} />
+          </LinearGradient>
           <View style={styles.editBadge}>
             <Icon name="edit-2" size={12} color={color.heading} />
           </View>
@@ -98,15 +102,7 @@ export function ProfileSetupScreen() {
           textContentType="telephoneNumber"
           value={phone}
         />
-        <View style={styles.campusField}>
-          <MenuRow
-            label={campusId ? getCampusName(campusId) : "Choose your campus"}
-            onPress={() => setCampusOpen(true)}
-            testID="profile-setup-campus"
-            value={campusId ? undefined : "Campus"}
-          />
-          {errors.campus ? <Text style={styles.error}>{errors.campus}</Text> : null}
-        </View>
+        <CampusCard campusId={campusId} error={errors.campus} onPress={() => setCampusOpen(true)} testID="profile-setup-campus" />
       </View>
 
       <CampusPicker
@@ -123,7 +119,8 @@ export function ProfileSetupScreen() {
 }
 
 const styles = StyleSheet.create({
-  campusField: { gap: space.xxs },
+  avatarRing: { alignItems: "center", borderRadius: 54, height: 108, justifyContent: "center", width: 108 },
+  wash: { height: 300, left: -space.xl, position: "absolute", right: -space.xl, top: -space.xl },
   editBadge: {
     alignItems: "center",
     backgroundColor: color.surfaceIcon,

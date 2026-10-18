@@ -1,5 +1,8 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
+import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+
+import { duration, ease } from "@/theme/motion";
 
 import { color, corner, space } from "@/theme/tokens";
 
@@ -11,22 +14,38 @@ type TextFieldProps = Omit<TextInputProps, "style"> & {
 };
 
 /** Boxed field with a small label on top, as in Edit Profile. */
-export function TextField({ error, label, locked = false, right, ...inputProps }: TextFieldProps) {
+export function TextField({ error, label, locked = false, onBlur, onFocus, right, ...inputProps }: TextFieldProps) {
+  const focus = useSharedValue(0);
+  const [focused, setFocused] = useState(false);
+  const ringStyle = useAnimatedStyle(() => ({
+    borderColor: interpolateColor(focus.get(), [0, 1], [color.border, color.accent]),
+    boxShadow: `0 0 0 ${focus.get() * 4}px rgba(183, 196, 204, ${0.55 * focus.get()})`,
+  }));
   return (
     <View style={styles.wrapper}>
-      <View style={[styles.box, error ? styles.boxError : null, locked && styles.boxLocked]}>
+      <Animated.View style={[styles.box, error ? styles.boxError : null, locked && styles.boxLocked, !error && !locked && ringStyle]}>
         <View style={styles.inner}>
-          <Text style={styles.label}>{label}</Text>
+          <Text style={[styles.label, focused && styles.labelFocused]}>{label}</Text>
           <TextInput
             accessibilityLabel={label}
             editable={!locked}
             placeholderTextColor={color.textMuted}
             style={[styles.input, locked && styles.inputLocked]}
             {...inputProps}
+            onBlur={(event) => {
+              setFocused(false);
+              focus.set(withTiming(0, { duration: duration.base, easing: ease.out }));
+              onBlur?.(event);
+            }}
+            onFocus={(event) => {
+              setFocused(true);
+              focus.set(withTiming(1, { duration: duration.base, easing: ease.out }));
+              onFocus?.(event);
+            }}
           />
         </View>
         {right}
-      </View>
+      </Animated.View>
       {error ? (
         <Text accessibilityLiveRegion="polite" style={styles.error}>
           {error}
@@ -54,5 +73,6 @@ const styles = StyleSheet.create({
   input: { color: color.text, fontSize: 15, minHeight: 26, paddingVertical: 2 },
   inputLocked: { color: color.textSecondary },
   label: { color: color.textMuted, fontSize: 11 },
+  labelFocused: { color: color.accent, fontWeight: "600" },
   wrapper: { gap: space.xxs },
 });
