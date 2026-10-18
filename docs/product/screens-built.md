@@ -33,3 +33,15 @@ Status of the frontend demo. Every screen runs on the in-memory demo store (`src
 ## Not verified
 
 Chrome web export was checked against the references. The physical iPhone (Expo Go) pass and Guardian review from `docs/engineering/page-build-loop.md` have not been run for these screens.
+
+## Motion pass additions (2026-10-18)
+
+| Screen | Route | Notes |
+| --- | --- | --- |
+| One-time code | `/otp` | Demo code `123456` unless `EXPO_PUBLIC_USE_BACKEND=true`. |
+| Explore | `/explore` | Featured carousel, top stores, trending, recent searches, live suggestions, filters, results with alternatives. |
+| Store page | `/home/store/[id]` (also under `/explore` and `/reels`) | Cover, follow, message, placeholder promo, Menu or Listings, Specials, Services, Reviews. |
+| Ratings and reviews | `/home/review/[id]` (also under `/explore`, `/reels`) | Only a buyer with a delivered order can post, once. Everyone can read. |
+| Reels | `/reels` | Double tap likes with a heart burst, tap pauses, store and campus overlay, navbar hidden, edge swipe brings it back. |
+
+Promo banners are placeholders. Review rules match the database (`leave_review`).
