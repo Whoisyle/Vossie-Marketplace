@@ -12,7 +12,7 @@ import { ActivityScreen } from "./activity/ActivityScreen";
 import { MyOrdersScreen } from "./activity/MyOrdersScreen";
 import { CartScreen } from "./cart/CartScreen";
 import { CheckoutScreen } from "./cart/CheckoutScreen";
-import { ConfirmationScreen } from "./cart/ConfirmationScreen";
+import { arrivalText, ConfirmationScreen, receiptText } from "./cart/ConfirmationScreen";
 import { ExploreScreen } from "./explore/ExploreScreen";
 import { HomeScreen } from "./home/HomeScreen";
 import { ListingDetailScreen } from "./listing/ListingDetailScreen";
@@ -124,6 +124,22 @@ describe("shopping flow", () => {
     const placed = demoReducer(withCart(), { type: "placeOrder" });
     renderWithProviders(<ConfirmationScreen />, placed);
     expect(screen.getByText(/Thank you/)).toBeTruthy();
-    expect(screen.getByText("Order details")).toBeTruthy();
+    expect(screen.getByTestId("receipt-paper")).toBeTruthy();
+    expect(screen.getByText("Payment received")).toBeTruthy();
+    expect(screen.getByText("Paid")).toBeTruthy();
+    expect(screen.getByText("Burger & Chips", { exact: false })).toBeTruthy();
+    expect(screen.getByText(/You'll earn \d+ Vossie points? when your order is delivered/)).toBeTruthy();
+    expect(screen.getByTestId("track-order-cta")).toBeTruthy();
+  });
+
+  it("builds a plain-text receipt for sharing", () => {
+    const placed = demoReducer(withCart(), { type: "placeOrder" });
+    const orders = placed.orders.filter((order) => placed.lastReceipt!.orderIds.includes(order.id));
+    const text = receiptText({ number: placed.lastReceipt!.number, orders, paidWith: "Apple Pay", placedAt: placed.lastReceipt!.placedAt, totalCents: placed.lastReceipt!.totalCents });
+    expect(text).toContain(`Vossie receipt ${placed.lastReceipt!.number}`);
+    expect(text).toContain("Burger & Chips");
+    expect(text).toContain("paid with Apple Pay");
+    expect(arrivalText({ deliveryMode: "hub-to-hub", fulfilment: "collection" })).toMatch(/1 to 2 days/);
+    expect(arrivalText({ deliveryMode: "campus-courier", etaMinutes: 60, fulfilment: "delivery" })).toBe("About 60 min");
   });
 });

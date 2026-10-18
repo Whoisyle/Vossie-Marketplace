@@ -90,28 +90,69 @@ describe("Account", () => {
 });
 
 describe("Delivery options at checkout", () => {
-  it("offers hub to hub and a third-party courier for a seller on another campus", () => {
-    const cart = demoReducer(signedIn(), { listingId: "kota-special", quantity: 1, type: "addToCart" });
-    renderWithProviders(<CheckoutScreen />, cart);
-    expect(screen.getByTestId("mode-hub-to-hub")).toBeTruthy();
-    expect(screen.getByTestId("mode-third-party")).toBeTruthy();
+  // Vossie couriers work 07:00 to 21:00 in the demo, so pin the clock to midday
+  beforeEach(() => {
+    jest.useFakeTimers({ now: new Date(2026, 9, 18, 12, 0) });
+  });
+  afterEach(() => jest.useRealTimers());
+
+  it("offers hub to hub only for items from another campus", () => {
+    const remoteOnly = demoReducer(signedIn(), { listingId: "kota-special", quantity: 1, type: "addToCart" });
+    const view = renderWithProviders(<CheckoutScreen />, remoteOnly);
+    expect(screen.getByTestId("remote-hub-to-hub")).toBeTruthy();
+    expect(screen.getByTestId("remote-third-party")).toBeTruthy();
+    expect(screen.queryByTestId("mode-group")).toBeNull();
     expect(screen.queryByTestId("mode-campus-courier")).toBeNull();
-    expect(screen.getByText(/travels hub to hub/)).toBeTruthy();
+    view.unmount();
+
+    const localOnly = demoReducer(signedIn(), { listingId: "burger-chips", optionId: "small", quantity: 1, type: "addToCart" });
+    renderWithProviders(<CheckoutScreen />, localOnly);
+    expect(screen.queryByTestId("remote-group")).toBeNull();
+    expect(screen.queryByTestId("mode-hub-to-hub")).toBeNull();
+    expect(screen.queryByTestId("remote-hub-to-hub")).toBeNull();
   });
 
-  it("charges the fee of the chosen mode", () => {
+  it("shows both groups when the cart mixes campuses", () => {
+    let cart = demoReducer(signedIn(), { listingId: "burger-chips", optionId: "small", quantity: 1, type: "addToCart" });
+    cart = demoReducer(cart, { listingId: "kota-special", quantity: 1, type: "addToCart" });
+    renderWithProviders(<CheckoutScreen />, cart);
+    expect(screen.getByTestId("mode-group")).toBeTruthy();
+    expect(screen.getByTestId("remote-group")).toBeTruthy();
+    expect(screen.getByText("From another campus")).toBeTruthy();
+  });
+
+  it("gives three options when a third-party courier is chosen", () => {
     const cart = demoReducer(signedIn(), { listingId: "burger-chips", optionId: "small", quantity: 1, type: "addToCart" });
-    const collect = demoReducer(cart, { mode: "collection", type: "setDeliveryMode" });
-    const third = demoReducer(cart, { mode: "third-party", type: "setDeliveryMode" });
-    const hub = demoReducer(cart, { mode: "hub-to-hub", type: "setDeliveryMode" });
-    const fee = (state: DemoState) => {
-      const placed = demoReducer(state, { type: "placeOrder" });
-      return placed.orders[0]!.deliveryFeeCents;
-    };
-    expect(fee(collect)).toBe(0);
+    renderWithProviders(<CheckoutScreen />, cart);
+    expect(screen.queryByTestId("mode-tiers")).toBeNull();
+    fireEvent.press(screen.getByTestId("mode-third-party"));
+    expect(screen.getByTestId("mode-tiers")).toBeTruthy();
+    expect(screen.getByTestId("mode-tier-economy")).toBeTruthy();
+    expect(screen.getByTestId("mode-tier-standard")).toBeTruthy();
+    expect(screen.getByTestId("mode-tier-express")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("mode-tier-express"));
+    // the tier price and the order summary both show the new fee
+    expect(screen.getAllByText(/R 85/).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("charges the fee of each group's chosen mode", () => {
+    const cart = demoReducer(signedIn(), { listingId: "burger-chips", optionId: "small", quantity: 1, type: "addToCart" });
+    const fee = (state: DemoState) => demoReducer(state, { type: "placeOrder" }).orders[0]!.deliveryFeeCents;
+    expect(fee(demoReducer(cart, { mode: "collection", type: "setDeliveryMode" }))).toBe(0);
+    let third = demoReducer(cart, { mode: "third-party", type: "setDeliveryMode" });
     expect(fee(third)).toBe(5500);
-    expect(fee(hub)).toBe(3500);
-    expect(demoReducer(cart, { mode: "hub-to-hub", type: "setDeliveryMode" }).checkout.fulfilment).toBe("collection");
+    third = demoReducer(third, { tier: "economy", type: "setThirdPartyTier" });
+    expect(fee(third)).toBe(4500);
+    third = demoReducer(third, { tier: "express", type: "setThirdPartyTier" });
+    expect(fee(third)).toBe(8500);
+
+    // a mixed cart pays the campus courier for the local item and hub to hub for the other-campus one
+    const mixed = demoReducer(cart, { listingId: "kota-special", quantity: 1, type: "addToCart" });
+    const placed = demoReducer(mixed, { type: "placeOrder" });
+    const byMode = Object.fromEntries(placed.orders.slice(0, 2).map((order) => [order.deliveryMode, order.deliveryFeeCents]));
+    expect(byMode["campus-courier"]).toBe(1500);
+    expect(byMode["hub-to-hub"]).toBe(3500);
+    expect(demoReducer(cart, { mode: "hub-to-hub", type: "setDeliveryMode" }).checkout.remoteMode).toBe("hub-to-hub");
   });
 });
 

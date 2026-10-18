@@ -131,7 +131,7 @@ export function AccountScreen() {
           subtitle="Vossie picks the fastest option that is available"
           title="Auto-pick"
         />
-        {(["campus-courier", "collection", "hub-to-hub", "third-party"] as DeliveryMode[]).map((mode) => {
+        {(["campus-courier", "collection", "third-party"] as DeliveryMode[]).map((mode) => {
           const option = deliveryOption(mode);
           return (
             <RadioRow
@@ -150,7 +150,7 @@ export function AccountScreen() {
         <View style={styles.sheetNote}>
           <Icon name="info" size={14} />
           <Text style={text.caption}>
-            Hub to hub is used when a seller is on another campus. A third-party courier is offered when no Vossie courier is free.
+            Items from another campus always go hub to hub (you can switch to a third-party courier at checkout). A third-party courier is also offered when no Vossie courier is free.
           </Text>
         </View>
       </Sheet>

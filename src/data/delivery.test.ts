@@ -1,4 +1,13 @@
-import { availableModes, courierAvailable, fulfilmentFor, isCrossCampus, recommendedMode } from "./delivery";
+import {
+  availableModes,
+  courierAvailable,
+  deliveryFee,
+  fulfilmentFor,
+  isCrossCampus,
+  recommendedMode,
+  splitByCampus,
+  THIRD_PARTY_TIERS,
+} from "./delivery";
 import { nextTier, pointsBalance, pointsForOrder, pointsValueCents, tierFor, WELCOME_POINTS } from "./points";
 
 describe("delivery modes", () => {
@@ -32,6 +41,30 @@ describe("delivery modes", () => {
     expect(fulfilmentFor("third-party")).toBe("delivery");
     expect(fulfilmentFor("hub-to-hub")).toBe("collection");
     expect(fulfilmentFor("collection")).toBe("collection");
+  });
+});
+
+describe("groups and third-party tiers", () => {
+  it("splits items into this campus and other campuses", () => {
+    const items = [
+      { campus: "potchefstroom" as const, id: "a" },
+      { campus: "pretoria" as const, id: "b" },
+    ];
+    const { local, remote } = splitByCampus("potchefstroom", items, (item) => item.campus);
+    expect(local.map((item) => item.id)).toEqual(["a"]);
+    expect(remote.map((item) => item.id)).toEqual(["b"]);
+  });
+
+  it("never offers hub to hub for items on the buyer's own campus", () => {
+    expect(availableModes({ courierFree: true, crossCampus: false })).not.toContain("hub-to-hub");
+    expect(availableModes({ courierFree: false, crossCampus: false })).not.toContain("hub-to-hub");
+  });
+
+  it("has three third-party choices with their own fees", () => {
+    expect(THIRD_PARTY_TIERS).toHaveLength(3);
+    expect(deliveryFee("third-party", "economy")).toBeLessThan(deliveryFee("third-party", "standard"));
+    expect(deliveryFee("third-party", "express")).toBeGreaterThan(deliveryFee("third-party", "standard"));
+    expect(deliveryFee("campus-courier", "express")).toBe(1500);
   });
 });
 

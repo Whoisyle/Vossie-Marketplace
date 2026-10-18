@@ -18,6 +18,7 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Icon, StudentCard, type IconName } from "@/components";
+import { cardHeight } from "@/components/StudentCard";
 import { getCampusName } from "@/data/repository";
 import { formatStudentNumber, lookupStudentRecord } from "@/data/studentRecord";
 import { haptic } from "@/lib/haptics";
@@ -42,13 +43,15 @@ export const TOTAL_MS = SCAN_MS + FIELD_COUNT * FILL_STEP_MS + 350 + VERIFIED_HO
 
 type Phase = "scan" | "fill" | "verified" | "flood";
 
-const SCAN_TRAVEL = 200;
 
 export function VerifiedScreen() {
   const router = useRouter();
   const { dispatch } = useDemoStore();
   const reduced = useReducedMotion();
   const { height, width } = useWindowDimensions();
+  // the card is upright and as big as the screen allows, at real card proportions
+  const cardWidth = Math.min(width - 88, Math.max(200, Math.round((height - 250) * 0.631)), 290);
+  const cardH = cardHeight(cardWidth);
   const { email = "" } = useLocalSearchParams<{ email?: string }>();
   const record = lookupStudentRecord(email);
   const campusName = getCampusName(record.campusId);
@@ -103,7 +106,7 @@ export function VerifiedScreen() {
     return () => timers.forEach(clearTimeout);
   }, [flood, ripple, scan, stamp]);
 
-  const scanStyle = useAnimatedStyle(() => ({ opacity: 0.9, transform: [{ translateY: scan.get() * SCAN_TRAVEL }] }));
+  const scanStyle = useAnimatedStyle(() => ({ opacity: 0.9, transform: [{ translateY: scan.get() * (cardH - 56) }] }));
   const stampStyle = useAnimatedStyle(() => ({
     opacity: Math.min(1, stamp.get() * 1.5),
     transform: [{ scale: stamp.get() }, { rotate: "-10deg" }],
@@ -136,7 +139,7 @@ export function VerifiedScreen() {
 
       <View style={styles.stage}>
         {checking ? (
-          <View style={styles.skeleton} testID="record-skeleton">
+          <View style={[styles.skeleton, { height: cardH, width: cardWidth }]} testID="record-skeleton">
             <FieldRow done={filled >= 1} icon="mail" label="Student email" value={email} visible={phase === "fill"} />
             <FieldRow done={filled >= 2} icon="hash" label="Student number" value={formatStudentNumber(record.studentNumber)} visible={filled >= 1} />
             <FieldRow done={filled >= 3} icon="map-pin" label="Campus" value={campusName} visible={filled >= 2} />
@@ -149,7 +152,7 @@ export function VerifiedScreen() {
         ) : (
           <Animated.View entering={ZoomIn.springify().damping(14)} style={styles.cardWrap}>
             {!reduced ? <Bubbles /> : null}
-            <StudentCard campusName={campusName} name={emailName(email)} studentNumber={record.studentNumber} />
+            <StudentCard campusName={campusName} name={emailName(email)} studentNumber={record.studentNumber} vertical width={cardWidth} />
             <View pointerEvents="none" style={styles.stampSpot}>
               <Animated.View style={[styles.ripple, rippleStyle]} />
               <Animated.View style={[styles.stamp, stampStyle]}>
@@ -240,14 +243,14 @@ function Bubble({ bubble }: { bubble: (typeof BUBBLES)[number] }) {
 const styles = StyleSheet.create({
   bubble: { backgroundColor: color.mist, bottom: 0, position: "absolute" },
   bubbles: { ...StyleSheet.absoluteFill, overflow: "visible" },
-  cardWrap: { alignSelf: "stretch" },
+  cardWrap: { alignSelf: "center" },
   flood: {
     alignSelf: "center",
     backgroundColor: color.ink,
     bottom: "-60%",
     position: "absolute",
   },
-  header: { alignItems: "center", gap: space.xs, marginTop: 72, paddingHorizontal: space.lg },
+  header: { alignItems: "center", gap: space.xs, marginTop: 40, paddingHorizontal: space.lg },
   placeholder: { backgroundColor: color.surfaceIcon, borderRadius: 6, height: 14, marginTop: 2, width: "70%" },
   ripple: { backgroundColor: color.mist, borderRadius: 30, height: 60, position: "absolute", width: 60 },
   row: { alignItems: "center", flexDirection: "row", gap: space.sm },
@@ -266,11 +269,11 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
     borderWidth: 1.5,
     gap: space.md,
-    height: SCAN_TRAVEL + 56,
+    justifyContent: "space-evenly",
     overflow: "hidden",
     padding: space.md,
   },
-  stage: { marginHorizontal: space.lg, marginTop: space.xl },
+  stage: { alignItems: "center", marginHorizontal: space.lg, marginTop: space.lg },
   stamp: {
     alignItems: "center",
     backgroundColor: color.primary,
@@ -281,7 +284,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: 60,
   },
-  stampSpot: { alignItems: "center", bottom: -22, justifyContent: "center", position: "absolute", right: 18 },
+  stampSpot: { alignItems: "center", bottom: 56, justifyContent: "center", position: "absolute", right: -14 },
   subtitle: { color: color.textSecondary, fontSize: 15, lineHeight: 22, textAlign: "center" },
   tick: { alignItems: "center", backgroundColor: color.success, borderRadius: 11, height: 22, justifyContent: "center", width: 22 },
   title: { color: color.heading, fontSize: 26, fontWeight: "700", textAlign: "center" },

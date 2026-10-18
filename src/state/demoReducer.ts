@@ -15,8 +15,8 @@ import {
 } from "@/data/mock/activity";
 import { reelsSeed, reviewsSeed } from "@/data/mock/content";
 import { effectivePrice } from "@/data/deals";
-import { DELIVERY_FEES, fulfilmentFor, type DeliveryMode } from "@/data/delivery";
-import { getListing } from "@/data/repository";
+import { deliveryEtaMinutes, deliveryFee, fulfilmentFor, type DeliveryMode, type ThirdPartyTier } from "@/data/delivery";
+import { getListing, getSeller } from "@/data/repository";
 import { lookupStudentRecord } from "@/data/studentRecord";
 import type {
   ActivityItem,
@@ -70,7 +70,11 @@ export type DemoState = {
     payment: PaymentMethod;
     cardId: string | null;
     bank: string | null;
+    /** How the items from the student's own campus are delivered. */
     deliveryMode: DeliveryMode;
+    /** How items from other campuses are delivered: hub to hub or a third-party courier. */
+    remoteMode: DeliveryMode;
+    thirdPartyTier: ThirdPartyTier;
     voucherCode: string | null;
   };
   orders: Order[];
@@ -107,6 +111,8 @@ export function createInitialState(): DemoState {
       cardId: null,
       bank: null,
       deliveryMode: "campus-courier",
+      remoteMode: "hub-to-hub",
+      thirdPartyTier: "standard",
       voucherCode: null,
     },
     orders: ordersSeed,
@@ -140,7 +146,8 @@ export type DemoAction =
   | { type: "addToCart"; listingId: string; optionId?: string; quantity: number }
   | { type: "setCartQuantity"; lineId: string; quantity: number }
   | { type: "setFulfilment"; fulfilment: Fulfilment }
-  | { type: "setDeliveryMode"; mode: DeliveryMode }
+  | { type: "setDeliveryMode"; mode: DeliveryMode; group?: "local" | "remote" }
+  | { type: "setThirdPartyTier"; tier: ThirdPartyTier }
   | { type: "setPreferredDelivery"; mode: DeliveryMode | null }
   | { type: "setAddress"; address: string; point?: { latitude: number; longitude: number } | null }
   | { type: "setPayment"; payment: PaymentMethod; cardId?: string | null; bank?: string | null }
@@ -191,13 +198,27 @@ export function unitPrice(line: Pick<CartLine, "listingId" | "optionId">): numbe
   return effectivePrice(listing, option?.priceCents ?? listing.priceCents);
 }
 
-export function cartTotals(state: Pick<DemoState, "cart" | "checkout">) {
+/** Which delivery group a seller's items fall in for this student: their own campus or another one. */
+export function deliveryGroup(state: Pick<DemoState, "profile">, sellerId: string): "local" | "remote" {
+  const seller = getSeller(sellerId);
+  const buyerCampus = state.profile?.campusId;
+  return seller && buyerCampus && seller.campusId !== buyerCampus ? "remote" : "local";
+}
+
+/** The mode and fee for a delivery group, from the student's choices. */
+export function groupDelivery(state: Pick<DemoState, "checkout">, group: "local" | "remote") {
+  const mode = group === "remote" ? state.checkout.remoteMode : state.checkout.deliveryMode;
+  return { feeCents: deliveryFee(mode, state.checkout.thirdPartyTier), mode };
+}
+
+export function cartTotals(state: Pick<DemoState, "cart" | "checkout" | "profile">) {
   const subtotalCents = state.cart.reduce(
     (sum, line) => sum + unitPrice(line) * line.quantity,
     0,
   );
   const itemCount = state.cart.reduce((sum, line) => sum + line.quantity, 0);
-  const delivery = itemCount > 0 ? DELIVERY_FEES[state.checkout.deliveryMode] : 0;
+  const groups = new Set(state.cart.map((line) => deliveryGroup(state, getListing(line.listingId)?.sellerId ?? "")));
+  const delivery = [...groups].reduce((sum, group) => sum + groupDelivery(state, group).feeCents, 0);
   const memberDiscount = itemCount > 0 ? subscriberDiscountCents : 0;
   const voucher = state.checkout.voucherCode ? vouchers[state.checkout.voucherCode] : undefined;
   const voucherDiscount = voucher
@@ -219,14 +240,6 @@ function addressFor(mode: DeliveryMode, address: string): string {
   if (mode === "collection") return "Campus collection point";
   if (mode === "hub-to-hub") return "Your campus hub (collect there)";
   return address;
-}
-
-/** Minutes to show as the estimate; hub to hub takes days, so it has none. */
-function etaFor(mode: DeliveryMode): number | undefined {
-  if (mode === "collection") return 20;
-  if (mode === "campus-courier") return 60;
-  if (mode === "third-party") return 90;
-  return undefined;
 }
 
 function orderNumber() {
@@ -361,8 +374,14 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       const deliveryMode = action.fulfilment === "delivery" ? "campus-courier" : "collection";
       return { ...state, checkout: { ...state.checkout, fulfilment: action.fulfilment, deliveryMode } };
     }
-    case "setDeliveryMode":
+    case "setDeliveryMode": {
+      // hub to hub only ever applies to items from another campus
+      const group = action.mode === "hub-to-hub" ? "remote" : (action.group ?? "local");
+      if (group === "remote") return { ...state, checkout: { ...state.checkout, remoteMode: action.mode } };
       return { ...state, checkout: { ...state.checkout, deliveryMode: action.mode, fulfilment: fulfilmentFor(action.mode) } };
+    }
+    case "setThirdPartyTier":
+      return { ...state, checkout: { ...state.checkout, thirdPartyTier: action.tier } };
     case "setPreferredDelivery":
       return { ...state, preferredDelivery: action.mode };
     case "setAddress":
@@ -384,10 +403,19 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         bySeller.set(sellerId, [...(bySeller.get(sellerId) ?? []), line]);
       }
       const sellerCount = bySeller.size;
+      // each delivery group (own campus / other campuses) pays its fee once, split across that group's sellers
+      const groupSellers = { local: 0, remote: 0 };
+      for (const sellerId of bySeller.keys()) groupSellers[deliveryGroup(state, sellerId)] += 1;
+      const groupSeen = { local: 0, remote: 0 };
       const orders: Order[] = [...bySeller.entries()].map(([sellerId, lines], index) => {
         const subtotal = lines.reduce((sum, line) => sum + unitPrice(line) * line.quantity, 0);
         const share = (value: number) => (index === 0 ? value - Math.floor(value / sellerCount) * (sellerCount - 1) : Math.floor(value / sellerCount));
-        const delivery = share(totals.deliveryFeeCents);
+        const group = deliveryGroup(state, sellerId);
+        const { feeCents: groupFee, mode } = groupDelivery(state, group);
+        const position = groupSeen[group];
+        groupSeen[group] += 1;
+        const count = groupSellers[group];
+        const delivery = position === 0 ? groupFee - Math.floor(groupFee / count) * (count - 1) : Math.floor(groupFee / count);
         const discount = Math.min(subtotal, share(totals.discountCents));
         return {
           id: nextId("order"),
@@ -404,17 +432,17 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
             };
           }),
           status: "placed",
-          fulfilment: fulfilmentFor(state.checkout.deliveryMode),
-          deliveryMode: state.checkout.deliveryMode,
-          address: addressFor(state.checkout.deliveryMode, state.checkout.address),
+          fulfilment: fulfilmentFor(mode),
+          deliveryMode: mode,
+          address: addressFor(mode, state.checkout.address),
           paymentMethod: state.checkout.payment,
           subtotalCents: subtotal,
           deliveryFeeCents: delivery,
           discountCents: discount,
           totalCents: subtotal + delivery - discount,
           placedAt,
-          etaMinutes: etaFor(state.checkout.deliveryMode),
-          destination: fulfilmentFor(state.checkout.deliveryMode) === "delivery" ? (state.checkout.addressPoint ?? undefined) : undefined,
+          etaMinutes: deliveryEtaMinutes(mode, state.checkout.thirdPartyTier),
+          destination: fulfilmentFor(mode) === "delivery" ? (state.checkout.addressPoint ?? undefined) : undefined,
         };
       });
       const receipt: Receipt = {
