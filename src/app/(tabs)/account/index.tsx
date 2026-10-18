@@ -1,5 +1,5 @@
-import { UpcomingScreen } from "@/screens/shared/UpcomingScreen";
+import { AccountScreen } from "@/screens/account/AccountScreen";
 
-export default function AccountTab() {
-  return <UpcomingScreen icon="user" step={5} title="Your account" />;
+export default function Route() {
+  return <AccountScreen />;
 }
