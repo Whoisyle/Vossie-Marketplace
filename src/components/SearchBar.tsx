@@ -1,11 +1,22 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import Animated, {
+  FadeInDown,
+  FadeOutUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
+import { duration } from "@/theme/motion";
 import { color, corner, space } from "@/theme/tokens";
 
 import { Icon } from "./Icon";
 
 type SearchBarProps = {
   placeholder?: string;
+  /** When set, the idle hint cycles through these (only in the tappable, non-typing bar). */
+  placeholders?: string[];
   value?: string;
   onChangeText?: (value: string) => void;
   onSubmit?: () => void;
@@ -22,22 +33,50 @@ export function SearchBar({
   onPress,
   onSubmit,
   placeholder = "Search products, service and sellers",
+  placeholders,
   value,
 }: SearchBarProps) {
   const height = compact ? 44 : 56;
+  const lift = useSharedValue(0);
+  const [hint, setHint] = useState(0);
+  const cycling = Boolean(onPress && placeholders && placeholders.length > 1);
+
+  useEffect(() => {
+    if (!cycling) return;
+    const timer = setInterval(() => setHint((current) => (current + 1) % placeholders!.length), 3_200);
+    return () => clearInterval(timer);
+  }, [cycling, placeholders]);
+
+  const barStyle = useAnimatedStyle(() => ({
+    boxShadow: `0 ${2 + lift.get() * 6}px ${8 + lift.get() * 10}px rgba(30, 42, 56, ${0.05 + lift.get() * 0.08})`,
+    transform: [{ scale: 1 - lift.get() * 0.015 }],
+  }));
+
   if (onPress) {
+    const label = cycling ? placeholders![hint]! : placeholder;
     return (
       <Pressable
         accessibilityHint="Opens search"
         accessibilityLabel={placeholder}
         accessibilityRole="search"
         onPress={onPress}
-        style={({ pressed }) => [styles.bar, { height }, pressed && styles.pressed]}
+        onPressIn={() => lift.set(withTiming(1, { duration: 100 }))}
+        onPressOut={() => lift.set(withTiming(0, { duration: duration.base }))}
       >
-        <Icon name="search" size={compact ? 16 : 22} color={color.textSecondary} />
-        <Text numberOfLines={1} style={styles.placeholder}>
-          {placeholder}
-        </Text>
+        <Animated.View style={[styles.bar, { height }, barStyle]}>
+          <Icon name="search" size={compact ? 16 : 22} color={color.textSecondary} />
+          <View style={styles.hintBox}>
+            <Animated.Text
+              entering={FadeInDown.duration(320)}
+              exiting={FadeOutUp.duration(240)}
+              key={label}
+              numberOfLines={1}
+              style={styles.placeholder}
+            >
+              {label}
+            </Animated.Text>
+          </View>
+        </Animated.View>
       </Pressable>
     );
   }
@@ -80,7 +119,8 @@ const styles = StyleSheet.create({
     gap: space.sm,
     paddingHorizontal: space.md,
   },
+  hintBox: { flex: 1, height: 22, justifyContent: "center", overflow: "hidden" },
   input: { color: color.text, flex: 1, fontSize: 14, height: "100%" },
-  placeholder: { color: color.textMuted, flex: 1, fontSize: 14 },
-  pressed: { opacity: 0.75 },
+  placeholder: { color: color.textMuted, fontSize: 14 },
 });
+

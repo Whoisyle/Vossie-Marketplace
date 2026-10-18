@@ -17,6 +17,11 @@ jest.mock("react-native-reanimated", () => {
       set: (next) => { ref.current = typeof next === "function" ? next(ref.current) : next; },
     };
   };
+  // entering/exiting/layout animations are chainable builders: FadeInDown.delay(80).springify()
+  const layoutAnimation = () => {
+    const chain = new Proxy(function () {}, { get: () => chain, apply: () => chain });
+    return chain;
+  };
   const identity = (value) => value;
   const easing = () => (t) => t;
   const Easing = {
@@ -29,6 +34,12 @@ jest.mock("react-native-reanimated", () => {
     __esModule: true,
     default: { View: create(View), Text: create(Text), ScrollView: create(ScrollView), Image: create(Image), createAnimatedComponent: (C) => C },
     Easing,
+    FadeIn: layoutAnimation(),
+    FadeInDown: layoutAnimation(),
+    FadeInUp: layoutAnimation(),
+    FadeOut: layoutAnimation(),
+    FadeOutUp: layoutAnimation(),
+    LinearTransition: layoutAnimation(),
     Extrapolation: { CLAMP: "clamp", EXTEND: "extend", IDENTITY: "identity" },
     interpolate: (value, input, output) => {
       if (value <= input[0]) return output[0];

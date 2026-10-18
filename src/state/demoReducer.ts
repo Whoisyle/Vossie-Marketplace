@@ -51,6 +51,8 @@ export type DemoState = {
   knownProfiles: Profile[];
   favourites: string[];
   following: string[];
+  /** Listings opened most recently, newest first. */
+  recentViews: string[];
   cart: CartLine[];
   checkout: {
     fulfilment: Fulfilment;
@@ -80,6 +82,7 @@ export function createInitialState(): DemoState {
     knownProfiles: returningProfiles,
     favourites: ["mint-laptop"],
     following: ["plato-coffee"],
+    recentViews: [],
     cart: [],
     checkout: {
       fulfilment: "delivery",
@@ -111,6 +114,7 @@ export type DemoAction =
   | { type: "deleteAccount" }
   | { type: "switchRole"; role: Role }
   | { type: "toggleFavourite"; listingId: string }
+  | { type: "viewListing"; listingId: string }
   | { type: "toggleFollow"; sellerId: string }
   | { type: "addToCart"; listingId: string; optionId?: string; quantity: number }
   | { type: "setCartQuantity"; lineId: string; quantity: number }
@@ -227,6 +231,11 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         favourites: state.favourites.includes(action.listingId)
           ? state.favourites.filter((id) => id !== action.listingId)
           : [...state.favourites, action.listingId],
+      };
+    case "viewListing":
+      return {
+        ...state,
+        recentViews: [action.listingId, ...state.recentViews.filter((id) => id !== action.listingId)].slice(0, 12),
       };
     case "toggleFollow":
       return {

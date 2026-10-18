@@ -70,7 +70,7 @@ describe("tab screens render for a signed-in user", () => {
 describe("shopping flow", () => {
   it("opens a listing from Home", () => {
     renderWithProviders(<HomeScreen />, signedIn());
-    fireEvent.press(screen.getByTestId("listing-card-burger-chips"));
+    fireEvent.press(screen.getAllByTestId("listing-card-burger-chips")[0]!);
     expect(mockPush).toHaveBeenCalledWith("/home/listing/burger-chips");
   });
 

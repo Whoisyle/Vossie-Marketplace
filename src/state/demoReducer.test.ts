@@ -68,4 +68,17 @@ describe("demo store", () => {
     expect(state.wallet.balanceCents).toBe(24500 + 10000);
     expect(state.wallet.transactions[0]?.label).toBe("Top up via card •••• 4242");
   });
+
+  it("remembers recently viewed listings, newest first, without repeats", () => {
+    let state = signedIn();
+    for (const listingId of ["a", "b", "c", "a"]) state = demoReducer(state, { listingId, type: "viewListing" });
+    expect(state.recentViews).toEqual(["a", "c", "b"]);
+  });
+
+  it("keeps only the latest twelve views", () => {
+    let state = signedIn();
+    for (let i = 0; i < 20; i += 1) state = demoReducer(state, { listingId: `l${i}`, type: "viewListing" });
+    expect(state.recentViews).toHaveLength(12);
+    expect(state.recentViews[0]).toBe("l19");
+  });
 });

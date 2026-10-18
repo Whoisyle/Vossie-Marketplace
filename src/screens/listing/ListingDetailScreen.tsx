@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import {
@@ -33,6 +33,11 @@ export function ListingDetailScreen() {
     listing?.options[1]?.id ?? listing?.options[0]?.id,
   );
   const [quantity, setQuantity] = useState(1);
+
+  // remember what was looked at for Home's recents and recommendations
+  useEffect(() => {
+    if (id) dispatch({ listingId: id, type: "viewListing" });
+  }, [dispatch, id]);
 
   if (!listing) {
     return (
