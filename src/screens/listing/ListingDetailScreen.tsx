@@ -13,10 +13,12 @@ import {
   Media,
   QuantityStepper,
   Screen,
+  StarRating,
   useToast,
 } from "@/components";
 import { formatRand } from "@/data/format";
 import { getListing, getSeller } from "@/data/repository";
+import { useDetail } from "@/lib/paths";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, corner, space, text } from "@/theme/tokens";
 
@@ -25,6 +27,7 @@ export function ListingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const toast = useToast();
+  const open = useDetail();
   const { dispatch, state } = useDemoStore();
   const listing = getListing(id);
   const seller = listing ? getSeller(listing.sellerId) : undefined;
@@ -126,12 +129,22 @@ export function ListingDetailScreen() {
             {listing.title}
           </Text>
           <Text style={styles.price}>{formatRand(unit)}</Text>
-          <View style={styles.ratingRow}>
-            <Icon color="#E8A317" name="star" size={14} />
+          <Pressable
+            accessibilityHint="Opens ratings and reviews"
+            accessibilityLabel={`${listing.rating.toFixed(1)} stars, ${listing.ratingCount} reviews`}
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={() => router.push(open("review", listing.id))}
+            style={styles.ratingRow}
+            testID="open-reviews"
+          >
+            <StarRating size={15} value={listing.rating} />
             <Text style={text.bodySmall}>
               {listing.rating.toFixed(1)} ({listing.ratingCount})
             </Text>
-          </View>
+            <Text style={styles.reviewLink}>Reviews</Text>
+            <Icon color={color.link} name="chevron-right" size={14} />
+          </Pressable>
         </View>
         <HeartButton
           active={favourite}
@@ -147,7 +160,7 @@ export function ListingDetailScreen() {
       </View>
 
       {seller ? (
-        <Card style={styles.sellerCard} variant="soft">
+        <Card onPress={() => router.push(open("store", seller.id))} style={styles.sellerCard} variant="soft">
           <Avatar name={seller.name} size={48} />
           <View style={styles.flex}>
             <Text numberOfLines={1} style={text.cardTitle}>
@@ -272,7 +285,8 @@ const styles = StyleSheet.create({
   options: { flexDirection: "row", gap: space.xs },
   pills: { flexDirection: "row", flexWrap: "wrap", gap: space.xs, marginTop: space.sm },
   price: { color: color.text, fontSize: 22, fontWeight: "700", marginTop: 2 },
-  ratingRow: { alignItems: "center", flexDirection: "row", gap: 4, marginTop: 2 },
+  ratingRow: { alignItems: "center", flexDirection: "row", gap: 6, marginTop: 4, minHeight: 28 },
+  reviewLink: { color: color.link, fontSize: 13, fontWeight: "600" },
   sellerCard: { alignItems: "center", flexDirection: "row", gap: space.sm, marginTop: space.md },
   thumb: { borderRadius: corner.sm, flex: 1, overflow: "hidden", width: 56 },
   thumbs: { gap: space.xs, width: 56 },

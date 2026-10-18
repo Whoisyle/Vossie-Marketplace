@@ -1,17 +1,12 @@
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, type Href } from "expo-router";
+import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
-import Animated, {
-  FadeInDown,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import {
   AppHeader,
   EmptyState,
+  FilterButton,
   HeaderIconButton,
   Icon,
   ListingCard,
@@ -26,10 +21,9 @@ import { formatRand } from "@/data/format";
 import { firstName, forYou, greeting, recentListings } from "@/data/personalise";
 import { getCampusName, getCategories, getListings } from "@/data/repository";
 import type { CategoryId, Listing } from "@/data/types";
-import { haptic } from "@/lib/haptics";
+import { useDetail } from "@/lib/paths";
 import { useDemoStore } from "@/state/DemoStore";
-import { duration } from "@/theme/motion";
-import { color, corner, gradient, size, space, text } from "@/theme/tokens";
+import { color, corner, size, space, text } from "@/theme/tokens";
 
 import { CategoryPager } from "./CategoryPager";
 import { FiltersSheet } from "./FiltersSheet";
@@ -43,6 +37,7 @@ const HINTS = ["Search burgers and coffee", "Search tutors and study rooms", "Se
 /** Home tab: greeting, search with filters, promos, your recents and picks, and swipeable category pages. */
 export function HomeScreen() {
   const router = useRouter();
+  const detail = useDetail();
   const toast = useToast();
   const { width } = useWindowDimensions();
   const { dispatch, state } = useDemoStore();
@@ -72,7 +67,7 @@ export function HomeScreen() {
   );
   const recents = useMemo(() => recentListings(everything, state.recentViews), [everything, state.recentViews]);
 
-  const open = (listing: Listing) => router.push(`/home/listing/${listing.id}` as Href);
+  const open = (listing: Listing) => router.push(detail("listing", listing.id));
   const resetFilters = () => setFilters(NO_FILTERS);
 
   const renderPage = (key: CategoryFilter) => {
@@ -178,34 +173,6 @@ export function HomeScreen() {
   );
 }
 
-function FilterButton({ count, onPress }: { count: number; onPress: () => void }) {
-  const press = useSharedValue(0);
-  const style = useAnimatedStyle(() => ({ transform: [{ scale: 1 - press.get() * 0.08 }] }));
-  return (
-    <Pressable
-      accessibilityLabel={count > 0 ? `Filters, ${count} active` : "Filters"}
-      accessibilityRole="button"
-      onPress={() => {
-        haptic.tap();
-        onPress();
-      }}
-      onPressIn={() => press.set(withTiming(1, { duration: 80 }))}
-      onPressOut={() => press.set(withTiming(0, { duration: duration.base }))}
-      testID="open-filters"
-    >
-      <Animated.View style={[styles.filter, style]}>
-        <LinearGradient colors={gradient.ink} end={{ x: 1, y: 1 }} start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
-        <Icon color={color.onPrimary} name="sliders" size={20} />
-        {count > 0 ? (
-          <View style={styles.filterBadge}>
-            <Text style={styles.filterBadgeText}>{count}</Text>
-          </View>
-        ) : null}
-      </Animated.View>
-    </Pressable>
-  );
-}
-
 function MiniRow({ listings, onPress }: { listings: Listing[]; onPress: (listing: Listing) => void }) {
   return (
     <View style={styles.miniWrap}>
@@ -234,27 +201,6 @@ function MiniRow({ listings, onPress }: { listings: Listing[]; onPress: (listing
 const styles = StyleSheet.create({
   campus: { color: color.accent, fontSize: 12, fontWeight: "600" },
   campusRow: { alignItems: "center", flexDirection: "row", gap: 4 },
-  filter: {
-    alignItems: "center",
-    borderRadius: corner.lg,
-    boxShadow: "0 8px 16px rgba(30, 42, 56, 0.22)",
-    height: 56,
-    justifyContent: "center",
-    overflow: "hidden",
-    width: 56,
-  },
-  filterBadge: {
-    alignItems: "center",
-    backgroundColor: color.mist,
-    borderRadius: 9,
-    height: 18,
-    justifyContent: "center",
-    minWidth: 18,
-    position: "absolute",
-    right: 6,
-    top: 6,
-  },
-  filterBadgeText: { color: color.ink, fontSize: 10, fontWeight: "800" },
   flex: { flex: 1 },
   greeting: { gap: 2, marginBottom: space.sm },
   grid: { gap: space.xs, paddingTop: space.xs },

@@ -23,6 +23,7 @@ const mockReplace = jest.fn();
 
 jest.mock("expo-router", () => ({
   useFocusEffect: () => undefined,
+  usePathname: () => "/home",
   useLocalSearchParams: () => ({ id: "burger-chips" }),
   useRouter: () => ({
     back: jest.fn(),
