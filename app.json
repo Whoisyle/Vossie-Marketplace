@@ -8,25 +8,15 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "za.co.vossie.marketplace",
-      "icon": {
-        "light": "./assets/branding/app-icon/icon.png",
-        "dark": "./assets/branding/app-icon/icon-dark.png"
-      }
+      "bundleIdentifier": "za.co.vossie.marketplace"
     },
     "android": {
       "package": "za.co.vossie.marketplace",
-      "predictiveBackGestureEnabled": true,
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/branding/app-icon/adaptive-foreground.png",
-        "monochromeImage": "./assets/branding/app-icon/adaptive-monochrome.png",
-        "backgroundColor": "#E8E6E2"
-      }
+      "predictiveBackGestureEnabled": true
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/branding/app-icon/favicon.png"
+      "output": "static"
     },
     "plugins": [
       "expo-router",
@@ -63,7 +53,6 @@
         "projectId": "1136195b-ce99-42ad-9935-a9c3a4e4aef8"
       }
     },
-    "owner": "paballokalis-team",
-    "icon": "./assets/branding/app-icon/icon.png"
+    "owner": "paballokalis-team"
   }
 }
