@@ -16,14 +16,9 @@ import { getSeller } from "@/data/repository";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
 
+import { paymentLabels } from "../cart/payment";
 import { ORDER_STEPS, progressStep, statusInfo } from "./orderStatus";
 
-const paymentLabels = {
-  "apple-pay": "Apple Pay",
-  card: "Card",
-  "google-pay": "Google Pay",
-  wallet: "Vossie wallet",
-} as const;
 
 /** One order: status, progress, items, totals and a way to message the seller. */
 export function OrderDetailScreen() {

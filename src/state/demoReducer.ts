@@ -64,6 +64,7 @@ export type DemoState = {
     address: string;
     payment: PaymentMethod;
     cardId: string | null;
+    bank: string | null;
     voucherCode: string | null;
   };
   orders: Order[];
@@ -96,6 +97,7 @@ export function createInitialState(): DemoState {
       address: "123 Campus Drive, Eduvos Potchefstroom, Meyer Street, 2531",
       payment: "apple-pay",
       cardId: null,
+      bank: null,
       voucherCode: null,
     },
     orders: ordersSeed,
@@ -130,7 +132,7 @@ export type DemoAction =
   | { type: "setCartQuantity"; lineId: string; quantity: number }
   | { type: "setFulfilment"; fulfilment: Fulfilment }
   | { type: "setAddress"; address: string }
-  | { type: "setPayment"; payment: PaymentMethod; cardId?: string | null }
+  | { type: "setPayment"; payment: PaymentMethod; cardId?: string | null; bank?: string | null }
   | { type: "applyVoucher"; code: string | null }
   | { type: "placeOrder" }
   | { type: "addCard"; card: Omit<SavedCard, "id" | "isDefault">; makeDefault: boolean }
@@ -335,7 +337,7 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
     case "setPayment":
       return {
         ...state,
-        checkout: { ...state.checkout, payment: action.payment, cardId: action.cardId ?? state.checkout.cardId },
+        checkout: { ...state.checkout, payment: action.payment, cardId: action.cardId ?? state.checkout.cardId, bank: action.bank ?? state.checkout.bank },
       };
     case "applyVoucher":
       return { ...state, checkout: { ...state.checkout, voucherCode: action.code } };
@@ -398,8 +400,19 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         read: false,
         href: `/activity/order/${orders[0]!.id}`,
       };
+      const paidFromWallet = state.checkout.payment === "wallet";
+      if (paidFromWallet && state.wallet.balanceCents < totals.totalCents) return state;
       return {
         ...state,
+        wallet: paidFromWallet
+          ? {
+              balanceCents: state.wallet.balanceCents - totals.totalCents,
+              transactions: [
+                { id: nextId("tx"), label: `Order ${receipt.number}`, amountCents: -totals.totalCents, createdAt: placedAt },
+                ...state.wallet.transactions,
+              ],
+            }
+          : state.wallet,
         orders: [...orders, ...state.orders],
         cart: [],
         checkout: { ...state.checkout, voucherCode: null },

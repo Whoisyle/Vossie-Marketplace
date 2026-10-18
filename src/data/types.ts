@@ -78,7 +78,7 @@ export type CartLine = {
 
 export type Fulfilment = "delivery" | "collection";
 
-export type PaymentMethod = "apple-pay" | "google-pay" | "card" | "wallet";
+export type PaymentMethod = "apple-pay" | "google-pay" | "card" | "wallet" | "eft";
 
 export type OrderStatus =
   | "placed"

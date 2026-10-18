@@ -109,4 +109,18 @@ describe("search history and reviews", () => {
   it("does not allow a signed-out visitor to review", () => {
     expect(reviewEligibility(createInitialState(), "iced-latte")).toBe("signed_out");
   });
+
+  it("takes the total from the wallet when paying with it, and refuses when the balance is too low", () => {
+    let state = signedIn();
+    state = demoReducer(state, { listingId: "burger-chips", optionId: "small", quantity: 1, type: "addToCart" });
+    state = demoReducer(state, { payment: "wallet", type: "setPayment" });
+    const total = cartTotals(state).totalCents;
+    const paid = demoReducer(state, { type: "placeOrder" });
+    expect(paid.wallet.balanceCents).toBe(state.wallet.balanceCents - total);
+    expect(paid.wallet.transactions[0]?.amountCents).toBe(-total);
+
+    const broke = demoReducer({ ...state, wallet: { ...state.wallet, balanceCents: 0 } }, { type: "placeOrder" });
+    expect(broke.cart).toHaveLength(1);
+    expect(broke.orders).toHaveLength(state.orders.length);
+  });
 });

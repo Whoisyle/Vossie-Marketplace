@@ -1,5 +1,5 @@
 import { useRouter, type Href } from "expo-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import {
@@ -17,6 +17,9 @@ import {
 import { formatRand } from "@/data/format";
 import { vouchers } from "@/data/mock/account";
 import type { PaymentMethod } from "@/data/types";
+import { BrandMark } from "./BrandMark";
+import { PayButton, PROCESSING_MS, SUCCESS_HOLD_MS, type PayState } from "./PayButton";
+import { checkPayment, eftBanks } from "./payment";
 import { useCartTotals, useDemoStore } from "@/state/DemoStore";
 import { color, corner, space, text } from "@/theme/tokens";
 
@@ -32,6 +35,10 @@ export function CheckoutScreen() {
   const [addressOpen, setAddressOpen] = useState(false);
   const [addressDraft, setAddressDraft] = useState(address);
   const [placing, setPlacing] = useState(false);
+  const [payState, setPayState] = useState<PayState>("idle");
+  const [payError, setPayError] = useState<string | null>(null);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
   if (state.cart.length === 0 && !placing) {
     return (
@@ -70,23 +77,45 @@ export function CheckoutScreen() {
   };
 
   const pay = () => {
-    setPlacing(true);
-    dispatch({ type: "placeOrder" });
-    router.replace("/cart/confirmation" as Href);
+    const outcome = checkPayment({
+      bank: state.checkout.bank,
+      hasCard: Boolean(card),
+      method: payment,
+      totalCents: totals.totalCents,
+      walletCents: state.wallet.balanceCents,
+    });
+    setPayError(null);
+    setPayState("processing");
+    timers.current.push(
+      setTimeout(() => {
+        if (!outcome.ok) {
+          setPayError(outcome.reason);
+          setPayState("failed");
+          return;
+        }
+        setPlacing(true);
+        setPayState("success");
+        dispatch({ type: "placeOrder" });
+        timers.current.push(setTimeout(() => router.replace("/cart/confirmation" as Href), SUCCESS_HOLD_MS));
+      }, PROCESSING_MS),
+    );
   };
 
   return (
     <Screen
       footer={
-        <Button
-          fullWidth
-          iconRight="arrow-right"
-          label={`Pay Now · ${formatRand(totals.totalCents, { fixed: true })}`}
-          loading={placing}
-          onPress={pay}
-          size="lg"
-          testID="pay-now"
-        />
+        <>
+          {payError ? (
+            <Text accessibilityLiveRegion="polite" style={styles.payError}>
+              {payError}
+            </Text>
+          ) : null}
+          <PayButton
+            label={`Pay Now · ${formatRand(totals.totalCents, { fixed: true })}`}
+            onPress={pay}
+            state={payState}
+          />
+        </>
       }
     >
       <AppHeader back title="Checkout" />
@@ -121,23 +150,55 @@ export function CheckoutScreen() {
       <Text style={styles.heading}>Payment Method</Text>
       <Card variant="soft">
         <RadioRow
+          left={<BrandMark kind="apple-pay" />}
           onPress={() => select("apple-pay")}
           selected={payment === "apple-pay"}
           subtitle="Pay with your Apple Pay account"
           title="Apple Pay"
         />
         <RadioRow
+          left={<BrandMark kind="google-pay" />}
           onPress={() => select("google-pay")}
           selected={payment === "google-pay"}
           subtitle="Pay with your Google Pay account"
           title="Google Pay"
         />
         <RadioRow
+          left={<BrandMark kind={card?.brand ?? "visa"} />}
           onPress={() => select("card")}
           selected={payment === "card"}
           subtitle={card ? `${card.brand === "visa" ? "Visa" : "Mastercard"} ending ${card.last4}` : "Add a card to pay with"}
           title={card?.brand === "mastercard" ? "Mastercard" : "Visa Card"}
         />
+        <RadioRow
+          left={<BrandMark kind="wallet" />}
+          onPress={() => select("wallet")}
+          selected={payment === "wallet"}
+          subtitle={`Balance ${formatRand(state.wallet.balanceCents)}`}
+          title="Vossie Wallet"
+        />
+        <RadioRow
+          left={<BrandMark kind="eft" />}
+          onPress={() => select("eft")}
+          selected={payment === "eft"}
+          subtitle={state.checkout.bank ? `Pay from ${state.checkout.bank}` : "Pay straight from your bank"}
+          title="Instant EFT"
+        />
+        {payment === "eft" ? (
+          <View accessibilityLabel="Choose your bank" style={styles.banks}>
+            {eftBanks.map((bank) => (
+              <Pressable
+                accessibilityRole="radio"
+                accessibilityState={{ checked: state.checkout.bank === bank }}
+                key={bank}
+                onPress={() => dispatch({ bank, payment: "eft", type: "setPayment" })}
+                style={[styles.bank, state.checkout.bank === bank && styles.bankSelected]}
+              >
+                <Text style={[styles.bankText, state.checkout.bank === bank && styles.bankTextSelected]}>{bank}</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
         <Pressable
           accessibilityRole="button"
           onPress={() => router.push("/cart/add-card" as Href)}
@@ -256,6 +317,12 @@ function SummaryRow({ bold = false, label, value }: { label: string; value: stri
 const styles = StyleSheet.create({
   addCard: { alignItems: "center", flexDirection: "row", gap: space.xs, minHeight: 44, paddingHorizontal: space.xs },
   addCardText: { color: color.link, fontSize: 14, fontWeight: "600" },
+  bank: { borderColor: color.borderStrong, borderRadius: corner.pill, borderWidth: 1, justifyContent: "center", minHeight: 36, paddingHorizontal: space.sm },
+  bankSelected: { backgroundColor: color.primary, borderColor: color.primary },
+  bankText: { color: color.heading, fontSize: 13, fontWeight: "600" },
+  bankTextSelected: { color: color.onPrimary },
+  banks: { flexDirection: "row", flexWrap: "wrap", gap: space.xs, paddingBottom: space.xs, paddingLeft: space.xl },
+  payError: { color: color.danger, fontSize: 13, marginBottom: space.xs, textAlign: "center" },
   addressCard: { alignItems: "center", flexDirection: "row", gap: space.sm },
   addressText: { ...text.body, flex: 1 },
   appliedRow: { alignItems: "center", flexDirection: "row", gap: space.sm },

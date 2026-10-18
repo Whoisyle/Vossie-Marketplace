@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react-native";
+import { act, fireEvent, screen } from "@testing-library/react-native";
 
 import { createInitialState, demoReducer, type DemoState } from "@/state/demoReducer";
 import { renderWithProviders } from "@/test/renderWithProviders";
@@ -98,8 +98,26 @@ describe("shopping flow", () => {
     fireEvent.changeText(screen.getByLabelText("Voucher code"), "welcome20");
     fireEvent.press(screen.getByText("Apply"));
     expect(screen.getByText(/WELCOME20/)).toBeTruthy();
+    jest.useFakeTimers();
     fireEvent.press(screen.getByTestId("pay-now"));
+    expect(screen.getByText("Processing payment…")).toBeTruthy();
+    act(() => { jest.advanceTimersByTime(1400); });
+    expect(screen.getByText("Payment successful")).toBeTruthy();
+    act(() => { jest.advanceTimersByTime(1000); });
     expect(mockReplace).toHaveBeenCalledWith("/cart/confirmation");
+    jest.useRealTimers();
+  });
+
+  it("fails the payment, with a reason, when the wallet cannot cover the total", () => {
+    const poor = { ...withCart(), wallet: { balanceCents: 100, transactions: [] } };
+    renderWithProviders(<CheckoutScreen />, demoReducer(poor, { payment: "wallet", type: "setPayment" }));
+    jest.useFakeTimers();
+    fireEvent.press(screen.getByTestId("pay-now"));
+    act(() => { jest.advanceTimersByTime(1400); });
+    expect(screen.getByText("Payment failed, tap to retry")).toBeTruthy();
+    expect(screen.getByText(/wallet balance is too low/)).toBeTruthy();
+    expect(mockReplace).not.toHaveBeenCalled();
+    jest.useRealTimers();
   });
 
   it("shows the receipt after an order is placed", () => {

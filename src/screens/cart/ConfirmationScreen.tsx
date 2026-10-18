@@ -1,10 +1,16 @@
 import { useRouter, type Href } from "expo-router";
+import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import Animated, { FadeInDown, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from "react-native-reanimated";
 
 import { AppHeader, Button, Card, EmptyState, Icon, Screen } from "@/components";
 import { formatRand, longDate } from "@/data/format";
+import { haptic } from "@/lib/haptics";
 import { useDemoStore } from "@/state/DemoStore";
+import { spring } from "@/theme/motion";
 import { color, space, text } from "@/theme/tokens";
+
+import { paymentLabels } from "./payment";
 
 /** Order confirmation shown after Pay Now, built from the demo receipt. */
 export function ConfirmationScreen() {
@@ -12,6 +18,17 @@ export function ConfirmationScreen() {
   const { state } = useDemoStore();
   const receipt = state.lastReceipt;
   const firstName = state.profile?.fullName.split(" ")[0] ?? "";
+  const reduced = useReducedMotion();
+  const pop = useSharedValue(reduced ? 1 : 0);
+  const tickStyle = useAnimatedStyle(() => ({ opacity: pop.get(), transform: [{ scale: pop.get() }] }));
+  const hasReceipt = Boolean(receipt);
+  useEffect(() => {
+    if (!hasReceipt) return;
+    haptic.success();
+    pop.set(reduced ? 1 : withSpring(1, spring.bouncy));
+  }, [hasReceipt, pop, reduced]);
+  const rise = (delay: number) => FadeInDown.delay(delay).duration(380);
+  const method = state.orders.find((order) => receipt?.orderIds.includes(order.id))?.paymentMethod;
 
   if (!receipt) {
     return (
@@ -34,18 +51,20 @@ export function ConfirmationScreen() {
     >
       <AppHeader />
       <View style={styles.hero}>
-        <View style={styles.tick}>
+        <Animated.View style={[styles.tick, tickStyle]}>
           <Icon color={color.onPrimary} name="check" size={40} />
-        </View>
+        </Animated.View>
         <Text accessibilityRole="header" style={styles.thanks}>
           Thank you{firstName ? `, ${firstName}` : ""}
         </Text>
       </View>
 
+      <Animated.View entering={rise(260)}>
       <Card style={styles.card}>
         <Text style={text.cardTitle}>Order details</Text>
         <Row label="Order number" value={receipt.number} />
         <Row label="Order date" value={longDate(receipt.placedAt)} />
+        {method ? <Row label="Paid with" value={paymentLabels[method]} /> : null}
         <Row label="Total items" value={`${receipt.itemCount} ${receipt.itemCount === 1 ? "Product" : "Products"}`} />
         <View style={styles.divider} />
         <Text style={text.cardTitle}>Details</Text>
@@ -54,7 +73,9 @@ export function ConfirmationScreen() {
         {receipt.discountCents > 0 ? <Row label="Discounts" value={`- ${formatRand(receipt.discountCents)}`} /> : null}
         <Row bold label="Total price" value={formatRand(receipt.totalCents, { fixed: true })} />
       </Card>
+      </Animated.View>
 
+      <Animated.View entering={rise(480)}>
       <Text style={styles.note}>
         Note: if you need some help please contact customer services on the Help page.
       </Text>
@@ -64,6 +85,7 @@ export function ConfirmationScreen() {
         style={styles.track}
         variant="outline"
       />
+      </Animated.View>
     </Screen>
   );
 }
