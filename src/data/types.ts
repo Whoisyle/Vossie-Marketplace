@@ -180,6 +180,7 @@ export type SavedCard = {
 export type Reel = {
   id: string;
   seller: string;
+  sellerId?: string;
   caption: string;
   listingId?: string;
   likes: number;
@@ -195,4 +196,17 @@ export type LoginEvent = {
   location: string;
   at: string;
   current: boolean;
+};
+
+export type Review = {
+  id: string;
+  listingId: string;
+  sellerId: string;
+  /** Display name shown with the review. */
+  author: string;
+  rating: 1 | 2 | 3 | 4 | 5;
+  body: string;
+  createdAt: string;
+  /** True for reviews written by the signed-in student on this device. */
+  mine?: boolean;
 };

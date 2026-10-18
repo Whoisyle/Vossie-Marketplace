@@ -14,7 +14,7 @@ import {
   ordersSeed,
   recentActivitySeed,
 } from "@/data/mock/activity";
-import { reelsSeed } from "@/data/mock/content";
+import { reelsSeed, reviewsSeed } from "@/data/mock/content";
 import { getListing } from "@/data/repository";
 import type {
   ActivityItem,
@@ -29,6 +29,7 @@ import type {
   PaymentMethod,
   Profile,
   Reel,
+  Review,
   Role,
   SavedCard,
   WalletTransaction,
@@ -53,6 +54,9 @@ export type DemoState = {
   following: string[];
   /** Listings opened most recently, newest first. */
   recentViews: string[];
+  /** Last searches, newest first. */
+  recentSearches: string[];
+  reviews: Review[];
   cart: CartLine[];
   checkout: {
     fulfilment: Fulfilment;
@@ -83,6 +87,8 @@ export function createInitialState(): DemoState {
     favourites: ["mint-laptop"],
     following: ["plato-coffee"],
     recentViews: [],
+    recentSearches: [],
+    reviews: reviewsSeed,
     cart: [],
     checkout: {
       fulfilment: "delivery",
@@ -115,6 +121,9 @@ export type DemoAction =
   | { type: "switchRole"; role: Role }
   | { type: "toggleFavourite"; listingId: string }
   | { type: "viewListing"; listingId: string }
+  | { type: "addSearch"; query: string }
+  | { type: "clearSearches" }
+  | { type: "addReview"; listingId: string; rating: 1 | 2 | 3 | 4 | 5; body: string }
   | { type: "toggleFollow"; sellerId: string }
   | { type: "addToCart"; listingId: string; optionId?: string; quantity: number }
   | { type: "setCartQuantity"; lineId: string; quantity: number }
@@ -138,6 +147,27 @@ let sequence = 0;
 function nextId(prefix: string) {
   sequence += 1;
   return `${prefix}-${Date.now().toString(36)}-${sequence}`;
+}
+
+/** "Vumisa Dlamini" becomes "Vumisa D."; a single name stays as it is. */
+export function reviewerName(fullName: string): string {
+  const [first = "You", second] = fullName.trim().split(/\s+/);
+  return second ? `${first} ${second[0]!.toUpperCase()}.` : first;
+}
+
+export type ReviewEligibility = "can_review" | "already_reviewed" | "needs_purchase" | "signed_out";
+
+/**
+ * Same rule the database enforces: only a signed-in buyer with a completed order for the listing can review it,
+ * once. Everyone else can read reviews but not write one.
+ */
+export function reviewEligibility(state: Pick<DemoState, "orders" | "profile" | "reviews">, listingId: string): ReviewEligibility {
+  if (!state.profile) return "signed_out";
+  if (state.reviews.some((review) => review.listingId === listingId && review.mine)) return "already_reviewed";
+  const completed = state.orders.some(
+    (order) => order.status === "delivered" && order.lines.some((line) => line.listingId === listingId),
+  );
+  return completed ? "can_review" : "needs_purchase";
 }
 
 export function unitPrice(line: Pick<CartLine, "listingId" | "optionId">): number {
@@ -237,6 +267,31 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         ...state,
         recentViews: [action.listingId, ...state.recentViews.filter((id) => id !== action.listingId)].slice(0, 12),
       };
+    case "addSearch": {
+      const query = action.query.trim();
+      if (query.length < 2) return state;
+      const rest = state.recentSearches.filter((item) => item.toLowerCase() !== query.toLowerCase());
+      return { ...state, recentSearches: [query, ...rest].slice(0, 8) };
+    }
+    case "clearSearches":
+      return { ...state, recentSearches: [] };
+    case "addReview": {
+      const eligibility = reviewEligibility(state, action.listingId);
+      if (eligibility !== "can_review") return state;
+      const listing = getListing(action.listingId);
+      if (!listing) return state;
+      const review: Review = {
+        author: reviewerName(state.profile?.fullName ?? ""),
+        mine: true,
+        body: action.body.trim().slice(0, 280),
+        createdAt: new Date().toISOString(),
+        id: nextId("rv"),
+        listingId: listing.id,
+        rating: action.rating,
+        sellerId: listing.sellerId,
+      };
+      return { ...state, reviews: [review, ...state.reviews] };
+    }
     case "toggleFollow":
       return {
         ...state,

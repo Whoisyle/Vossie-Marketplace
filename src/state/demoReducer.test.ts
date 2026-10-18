@@ -1,4 +1,4 @@
-import { cartTotals, createInitialState, demoReducer, type DemoState } from "./demoReducer";
+import { cartTotals, createInitialState, demoReducer, reviewEligibility, type DemoState } from "./demoReducer";
 
 function signedIn(email = "eduv230953@vossie.net"): DemoState {
   return demoReducer(createInitialState(), { email, type: "signIn" });
@@ -80,5 +80,33 @@ describe("demo store", () => {
     for (let i = 0; i < 20; i += 1) state = demoReducer(state, { listingId: `l${i}`, type: "viewListing" });
     expect(state.recentViews).toHaveLength(12);
     expect(state.recentViews[0]).toBe("l19");
+  });
+});
+
+describe("search history and reviews", () => {
+  it("keeps recent searches newest first without duplicates and ignores tiny ones", () => {
+    let state = signedIn();
+    for (const query of ["latte", "books", "x", "Latte"]) state = demoReducer(state, { query, type: "addSearch" });
+    expect(state.recentSearches).toEqual(["Latte", "books"]);
+    state = demoReducer(state, { type: "clearSearches" });
+    expect(state.recentSearches).toEqual([]);
+  });
+
+  it("lets a student review only what they have received, once", () => {
+    let state = signedIn();
+    expect(reviewEligibility(state, "iced-latte")).toBe("can_review");
+    expect(reviewEligibility(state, "mint-laptop")).toBe("needs_purchase");
+    const withBad = demoReducer(state, { body: "nope", listingId: "mint-laptop", rating: 5, type: "addReview" });
+    expect(withBad.reviews).toHaveLength(state.reviews.length);
+
+    state = demoReducer(state, { body: "Lovely and cold.", listingId: "iced-latte", rating: 5, type: "addReview" });
+    expect(state.reviews[0]).toMatchObject({ author: "Vumisa", listingId: "iced-latte", mine: true, rating: 5 });
+    expect(reviewEligibility(state, "iced-latte")).toBe("already_reviewed");
+    const again = demoReducer(state, { body: "twice", listingId: "iced-latte", rating: 1, type: "addReview" });
+    expect(again.reviews).toHaveLength(state.reviews.length);
+  });
+
+  it("does not allow a signed-out visitor to review", () => {
+    expect(reviewEligibility(createInitialState(), "iced-latte")).toBe("signed_out");
   });
 });
