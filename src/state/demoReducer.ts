@@ -1,5 +1,4 @@
 import {
-  deliveryFeeCents,
   loginEventsSeed,
   returningProfiles,
   savedCardsSeed,
@@ -16,6 +15,7 @@ import {
 } from "@/data/mock/activity";
 import { reelsSeed, reviewsSeed } from "@/data/mock/content";
 import { effectivePrice } from "@/data/deals";
+import { DELIVERY_FEES, fulfilmentFor, type DeliveryMode } from "@/data/delivery";
 import { getListing } from "@/data/repository";
 import { lookupStudentRecord } from "@/data/studentRecord";
 import type {
@@ -52,6 +52,8 @@ export type DemoState = {
   profile: Profile | null;
   isNewUser: boolean;
   knownProfiles: Profile[];
+  /** The student's preferred delivery option; used to pre-select at checkout when it is available. */
+  preferredDelivery: DeliveryMode | null;
   favourites: string[];
   following: string[];
   /** Listings opened most recently, newest first. */
@@ -68,6 +70,7 @@ export type DemoState = {
     payment: PaymentMethod;
     cardId: string | null;
     bank: string | null;
+    deliveryMode: DeliveryMode;
     voucherCode: string | null;
   };
   orders: Order[];
@@ -89,6 +92,7 @@ export function createInitialState(): DemoState {
     profile: null,
     isNewUser: false,
     knownProfiles: returningProfiles,
+    preferredDelivery: null,
     favourites: ["mint-laptop"],
     following: ["plato-coffee"],
     recentViews: [],
@@ -102,6 +106,7 @@ export function createInitialState(): DemoState {
       payment: "apple-pay",
       cardId: null,
       bank: null,
+      deliveryMode: "campus-courier",
       voucherCode: null,
     },
     orders: ordersSeed,
@@ -135,6 +140,8 @@ export type DemoAction =
   | { type: "addToCart"; listingId: string; optionId?: string; quantity: number }
   | { type: "setCartQuantity"; lineId: string; quantity: number }
   | { type: "setFulfilment"; fulfilment: Fulfilment }
+  | { type: "setDeliveryMode"; mode: DeliveryMode }
+  | { type: "setPreferredDelivery"; mode: DeliveryMode | null }
   | { type: "setAddress"; address: string; point?: { latitude: number; longitude: number } | null }
   | { type: "setPayment"; payment: PaymentMethod; cardId?: string | null; bank?: string | null }
   | { type: "applyVoucher"; code: string | null }
@@ -190,7 +197,7 @@ export function cartTotals(state: Pick<DemoState, "cart" | "checkout">) {
     0,
   );
   const itemCount = state.cart.reduce((sum, line) => sum + line.quantity, 0);
-  const delivery = state.checkout.fulfilment === "delivery" && itemCount > 0 ? deliveryFeeCents : 0;
+  const delivery = itemCount > 0 ? DELIVERY_FEES[state.checkout.deliveryMode] : 0;
   const memberDiscount = itemCount > 0 ? subscriberDiscountCents : 0;
   const voucher = state.checkout.voucherCode ? vouchers[state.checkout.voucherCode] : undefined;
   const voucherDiscount = voucher
@@ -206,6 +213,20 @@ export function cartTotals(state: Pick<DemoState, "cart" | "checkout">) {
     discountCents,
     totalCents: Math.max(0, subtotalCents + delivery - discountCents),
   };
+}
+
+function addressFor(mode: DeliveryMode, address: string): string {
+  if (mode === "collection") return "Campus collection point";
+  if (mode === "hub-to-hub") return "Your campus hub (collect there)";
+  return address;
+}
+
+/** Minutes to show as the estimate; hub to hub takes days, so it has none. */
+function etaFor(mode: DeliveryMode): number | undefined {
+  if (mode === "collection") return 20;
+  if (mode === "campus-courier") return 60;
+  if (mode === "third-party") return 90;
+  return undefined;
 }
 
 function orderNumber() {
@@ -336,8 +357,14 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
             ? state.cart.filter((line) => line.id !== action.lineId)
             : state.cart.map((line) => (line.id === action.lineId ? { ...line, quantity: action.quantity } : line)),
       };
-    case "setFulfilment":
-      return { ...state, checkout: { ...state.checkout, fulfilment: action.fulfilment } };
+    case "setFulfilment": {
+      const deliveryMode = action.fulfilment === "delivery" ? "campus-courier" : "collection";
+      return { ...state, checkout: { ...state.checkout, fulfilment: action.fulfilment, deliveryMode } };
+    }
+    case "setDeliveryMode":
+      return { ...state, checkout: { ...state.checkout, deliveryMode: action.mode, fulfilment: fulfilmentFor(action.mode) } };
+    case "setPreferredDelivery":
+      return { ...state, preferredDelivery: action.mode };
     case "setAddress":
       return { ...state, checkout: { ...state.checkout, address: action.address, addressPoint: action.point ?? null } };
     case "setPayment":
@@ -377,16 +404,17 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
             };
           }),
           status: "placed",
-          fulfilment: state.checkout.fulfilment,
-          address: state.checkout.fulfilment === "delivery" ? state.checkout.address : "Campus collection point",
+          fulfilment: fulfilmentFor(state.checkout.deliveryMode),
+          deliveryMode: state.checkout.deliveryMode,
+          address: addressFor(state.checkout.deliveryMode, state.checkout.address),
           paymentMethod: state.checkout.payment,
           subtotalCents: subtotal,
           deliveryFeeCents: delivery,
           discountCents: discount,
           totalCents: subtotal + delivery - discount,
           placedAt,
-          etaMinutes: state.checkout.fulfilment === "delivery" ? 60 : 20,
-          destination: state.checkout.fulfilment === "delivery" ? (state.checkout.addressPoint ?? undefined) : undefined,
+          etaMinutes: etaFor(state.checkout.deliveryMode),
+          destination: fulfilmentFor(state.checkout.deliveryMode) === "delivery" ? (state.checkout.addressPoint ?? undefined) : undefined,
         };
       });
       const receipt: Receipt = {

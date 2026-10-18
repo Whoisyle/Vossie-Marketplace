@@ -19,6 +19,7 @@ export { Screen } from "./Screen";
 export { SearchBar } from "./SearchBar";
 export { Sheet } from "./Sheet";
 export { StatusBadge } from "./StatusBadge";
+export { StudentCard } from "./StudentCard";
 export { TabBar, TABS } from "./TabBar";
 export { TextField } from "./TextField";
 export { ToastProvider, useToast } from "./Toast";

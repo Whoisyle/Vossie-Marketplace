@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, EmptyState, Icon, ProgressTrack, Screen, AppHeader, StatusBadge, useToast } from "@/components";
@@ -86,6 +86,16 @@ export function TrackOrderScreen() {
     router.push(`/account/inbox/courier-${order.id}` as Href);
   };
 
+  // dials the courier's real number once couriers are set up with one; until then say so
+  const call = () => {
+    const phone = order.courier?.phone?.replace(/[^\d+]/g, "");
+    if (!phone) {
+      toast.show("This courier's phone number isn't set up yet");
+      return;
+    }
+    void Linking.openURL(`tel:${phone}`).catch(() => toast.show("Couldn't open the phone app"));
+  };
+
   return (
     <SafeAreaView edges={["top"]} style={styles.screen}>
       <VossieMap
@@ -140,7 +150,7 @@ export function TrackOrderScreen() {
                 {order.courier.vehicle} · {order.courier.rating.toFixed(1)}★
               </Text>
             </View>
-            <Button icon="phone" label="Call" onPress={() => toast.show("Calling couriers isn't available in the demo")} size="sm" variant="soft" />
+            <Button icon="phone" label="Call" onPress={call} size="sm" variant="soft" />
             <Button icon="message-circle" label="Chat" onPress={chat} size="sm" />
           </View>
         ) : (

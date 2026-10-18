@@ -84,6 +84,16 @@ These are additions to the backend; they are not in the current schema. Each get
 Built: payment methods (Apple Pay, Google Pay, card, wallet, instant EFT with banks; logos are stand-ins), pay button states, animated receipt, `VossieMap` (react-native-maps, web placeholder), order tracking with a simulated courier, address picker with a pin, store location card. Full-screen map screens hide the navbar and bring it back with a swipe up from the bottom edge (`BottomEdgeReveal`, same as Reels).
 Not built: receipt and order emails (need an Edge Function and the email provider), the courier's own navigation view (belongs with the courier app pass), real courier positions (need a location table and the phone permission), street-address search (needs a geocoder). Map coordinates are approximate city centres (`src/data/geo.ts`).
 
+## Round 2 changes (owner, 2026-10-18)
+
+- Verified screen: one sequence of scan, fill-in ticks, digital student card with stamp and bubbles, then an ink flood.
+- Explore order: promo banner, search, trending, categories, featured (auto-moving), listings with "Top stores near you" inserted after the third row.
+- Home gets an auto-moving "Hot deals" carousel; featured carousels move every 3.8 s, pause after a touch and stop with Reduce Motion.
+- Filters sheet: sort, price, rating, open now, deals only, live result count on the button.
+- Delivery (decided): auto-pick with override. Same campus: Vossie campus courier (R15), collection (free), third-party courier (R55) when no Vossie courier is free (07:00 to 21:00 in the demo). Seller on another campus: hub to hub (R35, 1 to 2 days, collect at the buyer's hub) or a third-party courier. Demo fees and times; real ones are open owner decisions.
+- Call button dials `order.courier.phone` once a courier has one; until then it says so. No demo number is invented.
+- Points (decided): 1 point per R10 on delivered orders, 10 points = R1, tiers Bronze 0, Silver 500, Gold 1500. Shown on Account now; redeeming, bonuses and the progress ring are Phase 4.
+
 ## Phases (owner chose four, reviewing on the iPhone after each)
 
 1. Intro, Welcome, sign-in, **OTP**, profile setup, **floating navbar**, Home (filters, carousel, banners, recents, personalised greeting).

@@ -1,3 +1,4 @@
+import { dealFor, effectivePrice } from "@/data/deals";
 import { listings } from "@/data/mock/catalog";
 
 import { activeFilterCount, applyFilters, isOpenNow, NO_FILTERS, parseOpenHours, priceLabel } from "./filters";
@@ -23,9 +24,9 @@ describe("home filters", () => {
   });
 
   it("filters by price and rating together", () => {
-    const result = applyFilters(listings, { maxPriceCents: 10_000, minRating: 4.5, openNow: false });
+    const result = applyFilters(listings, { ...NO_FILTERS, maxPriceCents: 10_000, minRating: 4.5 });
     expect(result.length).toBeGreaterThan(0);
-    expect(result.every((listing) => listing.priceCents <= 10_000 && listing.rating >= 4.5)).toBe(true);
+    expect(result.every((listing) => effectivePrice(listing) <= 10_000 && listing.rating >= 4.5)).toBe(true);
   });
 
   it("filters by open now", () => {
@@ -36,8 +37,28 @@ describe("home filters", () => {
   });
 
   it("counts and labels", () => {
-    expect(activeFilterCount({ maxPriceCents: 5_000, minRating: 4, openNow: true })).toBe(3);
+    expect(activeFilterCount({ ...NO_FILTERS, maxPriceCents: 5_000, minRating: 4, openNow: true })).toBe(3);
     expect(priceLabel(null)).toBe("Any price");
     expect(priceLabel(25_000)).toBe("Up to R 250");
+  });
+
+  it("keeps only deals and prices them after the deal", () => {
+    const deals = applyFilters(listings, { ...NO_FILTERS, dealsOnly: true });
+    expect(deals.length).toBeGreaterThan(3);
+    expect(deals.every((listing) => dealFor(listing.id) > 0)).toBe(true);
+    // a 30% denim jacket (R280) costs R196 after the deal, so a R200 cap keeps it
+    expect(applyFilters(listings, { ...NO_FILTERS, maxPriceCents: 20_000 }).some((listing) => listing.id === "denim-jacket")).toBe(true);
+  });
+
+  it("sorts by price, rating and newest", () => {
+    const low = applyFilters(listings, { ...NO_FILTERS, sort: "price-low" });
+    expect(effectivePrice(low[0]!)).toBeLessThanOrEqual(effectivePrice(low[1]!));
+    const high = applyFilters(listings, { ...NO_FILTERS, sort: "price-high" });
+    expect(effectivePrice(high[0]!)).toBeGreaterThanOrEqual(effectivePrice(high[1]!));
+    const rated = applyFilters(listings, { ...NO_FILTERS, sort: "top-rated" });
+    expect(rated[0]!.rating).toBeGreaterThanOrEqual(rated[1]!.rating);
+    const newest = applyFilters(listings, { ...NO_FILTERS, sort: "newest" });
+    expect(newest[0]!.createdDaysAgo).toBeLessThanOrEqual(newest[1]!.createdDaysAgo);
+    expect(activeFilterCount({ ...NO_FILTERS, sort: "newest" })).toBe(1);
   });
 });

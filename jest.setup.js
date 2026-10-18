@@ -36,6 +36,7 @@ jest.mock("react-native-reanimated", () => {
     Easing,
     FadeIn: layoutAnimation(),
     FadeInDown: layoutAnimation(),
+    ZoomIn: layoutAnimation(),
     FadeInUp: layoutAnimation(),
     FadeOut: layoutAnimation(),
     FadeOutUp: layoutAnimation(),

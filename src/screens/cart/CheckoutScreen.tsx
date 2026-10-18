@@ -12,7 +12,17 @@ import {
   Screen,
   useToast,
 } from "@/components";
+import {
+  availableModes,
+  courierAvailable,
+  deliveryOption,
+  fulfilmentFor,
+  isCrossCampus,
+  recommendedMode,
+  type DeliveryMode,
+} from "@/data/delivery";
 import { formatRand } from "@/data/format";
+import { getListing } from "@/data/repository";
 import { vouchers } from "@/data/mock/account";
 import type { PaymentMethod } from "@/data/types";
 import { BrandMark } from "./BrandMark";
@@ -27,7 +37,7 @@ export function CheckoutScreen() {
   const toast = useToast();
   const { dispatch, state } = useDemoStore();
   const totals = useCartTotals();
-  const { address, cardId, fulfilment, payment, voucherCode } = state.checkout;
+  const { address, cardId, payment, voucherCode } = state.checkout;
   const [voucherInput, setVoucherInput] = useState("");
   const [voucherError, setVoucherError] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
@@ -35,6 +45,25 @@ export function CheckoutScreen() {
   const [payError, setPayError] = useState<string | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
+
+  // delivery options depend on where the sellers are and whether a Vossie courier is free
+  const buyerCampus = state.profile?.campusId ?? "potchefstroom";
+  const crossCampus = isCrossCampus(
+    buyerCampus,
+    state.cart.flatMap((line) => getListing(line.listingId)?.campusId ?? []),
+  );
+  const courierFree = courierAvailable();
+  const modes = availableModes({ courierFree, crossCampus });
+  const deliveryMode = state.checkout.deliveryMode;
+  const preferred = state.preferredDelivery;
+  // auto-pick: keep the choice if it is still possible, otherwise move to the best available one
+  useEffect(() => {
+    if (!modes.includes(deliveryMode)) {
+      dispatch({ mode: recommendedMode({ courierFree, crossCampus, preferred }), type: "setDeliveryMode" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [crossCampus, courierFree, deliveryMode]);
+  const needsAddress = fulfilmentFor(deliveryMode) === "delivery";
 
   if (state.cart.length === 0 && !placing) {
     return (
@@ -116,32 +145,38 @@ export function CheckoutScreen() {
     >
       <AppHeader back title="Checkout" />
 
-      <Text style={styles.heading}>Delivery Address</Text>
-      <Card onPress={() => router.push("/cart/address" as Href)} style={styles.addressCard} variant="soft">
-        <Icon name="map-pin" size={18} />
-        <Text numberOfLines={2} style={styles.addressText}>
-          {address}
-        </Text>
-        <Text style={styles.edit}>{state.checkout.addressPoint ? "Change" : "Pin on map"}</Text>
-      </Card>
-
-      <Text style={styles.heading}>Delivery or Collection</Text>
-      <View style={styles.row}>
-        <Choice
-          detail="Approx. 1 hour"
-          label="Delivery"
-          onPress={() => dispatch({ fulfilment: "delivery", type: "setFulfilment" })}
-          price={formatRand(1500)}
-          selected={fulfilment === "delivery"}
-        />
-        <Choice
-          detail="Ready in 20 min"
-          label="Campus Collection"
-          onPress={() => dispatch({ fulfilment: "collection", type: "setFulfilment" })}
-          price="Free"
-          selected={fulfilment === "collection"}
-        />
+      <Text style={styles.heading}>How do you want it?</Text>
+      <View accessibilityRole="radiogroup" style={styles.modes}>
+        {modes.map((mode, index) => (
+          <ModeCard
+            key={mode}
+            mode={mode}
+            onPress={() => dispatch({ mode, type: "setDeliveryMode" })}
+            recommended={index === 0}
+            selected={deliveryMode === mode}
+          />
+        ))}
       </View>
+      {crossCampus ? (
+        <Text style={styles.hint}>
+          Part of your order is from another campus, so it travels hub to hub. A third-party courier can bring it faster for a higher fee.
+        </Text>
+      ) : !courierFree ? (
+        <Text style={styles.hint}>Vossie couriers are off duty right now, so a third-party courier is offered.</Text>
+      ) : null}
+
+      {needsAddress ? (
+        <>
+          <Text style={styles.heading}>Delivery Address</Text>
+          <Card onPress={() => router.push("/cart/address" as Href)} style={styles.addressCard} variant="soft">
+            <Icon name="map-pin" size={18} />
+            <Text numberOfLines={2} style={styles.addressText}>
+              {address}
+            </Text>
+            <Text style={styles.edit}>{state.checkout.addressPoint ? "Change" : "Pin on map"}</Text>
+          </Card>
+        </>
+      ) : null}
 
       <Text style={styles.heading}>Payment Method</Text>
       <Card variant="soft">
@@ -255,30 +290,40 @@ export function CheckoutScreen() {
   );
 }
 
-function Choice({
-  detail,
-  label,
+function ModeCard({
+  mode,
   onPress,
-  price,
+  recommended,
   selected,
 }: {
-  label: string;
-  detail: string;
-  price: string;
+  mode: DeliveryMode;
+  recommended: boolean;
   selected: boolean;
   onPress: () => void;
 }) {
+  const option = deliveryOption(mode);
+  const price = option.feeCents ? formatRand(option.feeCents) : "Free";
   return (
     <Pressable
-      accessibilityLabel={`${label}, ${price}, ${detail}`}
+      accessibilityLabel={`${option.label}, ${price}, ${option.eta}. ${option.detail}`}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
       onPress={onPress}
-      style={[styles.choice, selected && styles.choiceSelected]}
+      style={[styles.mode, selected && styles.modeSelected]}
+      testID={`mode-${mode}`}
     >
-      <Text style={[styles.choiceLabel, selected && styles.choiceTextSelected]}>{label}</Text>
-      <Text style={[styles.choiceMeta, selected && styles.choiceTextSelected]}>{price}</Text>
-      <Text style={[styles.choiceMeta, selected && styles.choiceTextSelected]}>{detail}</Text>
+      <View style={styles.modeTop}>
+        <Text style={[styles.choiceLabel, selected && styles.choiceTextSelected]}>{option.label}</Text>
+        {recommended ? (
+          <View style={[styles.tag, selected && styles.tagOn]}>
+            <Text style={[styles.tagText, selected && styles.choiceTextSelected]}>Recommended</Text>
+          </View>
+        ) : null}
+        <Text style={[styles.modePrice, selected && styles.choiceTextSelected]}>{price}</Text>
+      </View>
+      <Text style={[styles.choiceMeta, selected && styles.choiceTextSelected]}>
+        {option.eta} · {option.detail}
+      </Text>
     </Pressable>
   );
 }
@@ -301,6 +346,15 @@ const styles = StyleSheet.create({
   bankTextSelected: { color: color.onPrimary },
   banks: { flexDirection: "row", flexWrap: "wrap", gap: space.xs, paddingBottom: space.xs, paddingLeft: space.xl },
   payError: { color: color.danger, fontSize: 13, marginBottom: space.xs, textAlign: "center" },
+  hint: { ...text.caption, marginTop: space.xs },
+  mode: { backgroundColor: color.surfaceSoft, borderCurve: "continuous", borderRadius: corner.md, gap: 2, minHeight: 64, padding: space.sm },
+  modePrice: { color: color.heading, fontSize: 15, fontWeight: "700", marginLeft: "auto" },
+  modeSelected: { backgroundColor: color.accent },
+  modeTop: { alignItems: "center", flexDirection: "row", gap: space.xs },
+  modes: { gap: space.xs },
+  tag: { backgroundColor: color.surfaceIcon, borderRadius: corner.pill, paddingHorizontal: 8, paddingVertical: 2 },
+  tagOn: { backgroundColor: "rgba(255, 255, 255, 0.2)" },
+  tagText: { color: color.heading, fontSize: 10, fontWeight: "700" },
   addressCard: { alignItems: "center", flexDirection: "row", gap: space.sm },
   addressText: { ...text.body, flex: 1 },
   appliedRow: { alignItems: "center", flexDirection: "row", gap: space.sm },

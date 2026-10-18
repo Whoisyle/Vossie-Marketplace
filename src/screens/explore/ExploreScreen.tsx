@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { Fragment, type ReactNode, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import Animated, { FadeInDown, FadeOutUp } from "react-native-reanimated";
 
@@ -15,6 +15,7 @@ import {
   SectionHeader,
   type IconName,
 } from "@/components";
+import { effectivePrice } from "@/data/deals";
 import { formatRand } from "@/data/format";
 import { alternatives, searchListings, suggest, type Suggestion } from "@/data/search";
 import { getCategories, getListings, getSellers } from "@/data/repository";
@@ -55,6 +56,7 @@ export function ExploreScreen() {
   const typing = query.trim().length > 0 && submitted === null;
   const suggestions = useMemo(() => (typing ? suggest(query, everything, sellers, categories) : []), [categories, everything, query, sellers, typing]);
   const filterCount = activeFilterCount(filters);
+  const showingIdle = !typing && submitted === null && category === null;
 
   const results = useMemo(() => {
     if (submitted === null && category === null) return [];
@@ -90,24 +92,27 @@ export function ExploreScreen() {
     }
   };
 
-  const grid = (items: Listing[]) => {
+  const grid = (items: Listing[], inserted?: { afterRow: number; node: ReactNode }) => {
     const rows: Listing[][] = [];
     for (let i = 0; i < items.length; i += 2) rows.push(items.slice(i, i + 2));
     return (
       <View style={styles.grid}>
         {rows.map((pair, rowIndex) => (
-          <Animated.View entering={FadeInDown.delay(rowIndex * 55).duration(300)} key={pair.map((l) => l.id).join("-")} style={styles.row}>
-            {pair.map((listing) => (
-              <ListingCard
-                favourite={state.favourites.includes(listing.id)}
-                key={listing.id}
-                listing={listing}
-                onPress={() => router.push(open("listing", listing.id))}
-                onToggleFavourite={() => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
-              />
-            ))}
-            {pair.length === 1 ? <View style={styles.flex} /> : null}
-          </Animated.View>
+          <Fragment key={pair.map((l) => l.id).join("-")}>
+            <Animated.View entering={FadeInDown.delay(Math.min(rowIndex, 4) * 55).duration(300)} style={styles.row}>
+              {pair.map((listing) => (
+                <ListingCard
+                  favourite={state.favourites.includes(listing.id)}
+                  key={listing.id}
+                  listing={listing}
+                  onPress={() => router.push(open("listing", listing.id))}
+                  onToggleFavourite={() => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
+                />
+              ))}
+              {pair.length === 1 ? <View style={styles.flex} /> : null}
+            </Animated.View>
+            {inserted && rowIndex === inserted.afterRow ? inserted.node : null}
+          </Fragment>
         ))}
       </View>
     );
@@ -116,6 +121,11 @@ export function ExploreScreen() {
   return (
     <Screen testID="explore-screen">
       <AppHeader title="Explore" />
+      {showingIdle ? (
+        <Animated.View entering={FadeInDown.duration(320)} style={styles.promo}>
+          <PromoCarousel width={pageWidth} />
+        </Animated.View>
+      ) : null}
       <View style={styles.searchRow}>
         <View style={styles.flex}>
           <SearchBar
@@ -209,37 +219,7 @@ export function ExploreScreen() {
             </Animated.View>
           ) : null}
 
-          <Animated.View entering={FadeInDown.delay(50).duration(320)} style={styles.section}>
-            <SectionHeader title="Featured" />
-            <FeaturedCarousel
-              favourites={state.favourites}
-              listings={featured}
-              onOpen={(listing) => router.push(open("listing", listing.id))}
-              onToggleFavourite={(listing) => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
-              width={pageWidth}
-            />
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.delay(100).duration(320)} style={styles.section}>
-            <PromoCarousel width={pageWidth} />
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.delay(150).duration(320)} style={styles.section}>
-            <SectionHeader title="Top stores near you" />
-            <ScrollView contentContainerStyle={styles.storeRow} horizontal showsHorizontalScrollIndicator={false} style={styles.bleed}>
-              {topStores.map((seller) => (
-                <StoreCard
-                  following={state.following.includes(seller.id)}
-                  key={seller.id}
-                  onFollow={() => dispatch({ sellerId: seller.id, type: "toggleFollow" })}
-                  onOpen={() => router.push(open("store", seller.id))}
-                  seller={seller}
-                />
-              ))}
-            </ScrollView>
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.delay(200).duration(320)} style={styles.section}>
+          <Animated.View entering={FadeInDown.delay(60).duration(320)} style={styles.section}>
             <SectionHeader title="Trending on campus" />
             <ScrollView contentContainerStyle={styles.storeRow} horizontal showsHorizontalScrollIndicator={false} style={styles.bleed}>
               {trending.map((listing, index) => (
@@ -255,14 +235,14 @@ export function ExploreScreen() {
                     <Text numberOfLines={1} style={text.cardTitle}>
                       {listing.title}
                     </Text>
-                    <Text style={text.caption}>{formatRand(listing.priceCents)}</Text>
+                    <Text style={text.caption}>{formatRand(effectivePrice(listing))}</Text>
                   </View>
                 </Pressable>
               ))}
             </ScrollView>
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.delay(250).duration(320)} style={styles.section}>
+          <Animated.View entering={FadeInDown.delay(110).duration(320)} style={styles.section}>
             <SectionHeader title="Browse by category" />
             <View style={styles.chipRow}>
               {categories.map((item) => (
@@ -280,10 +260,44 @@ export function ExploreScreen() {
               ))}
             </View>
           </Animated.View>
+
+          <Animated.View entering={FadeInDown.delay(160).duration(320)} style={styles.section}>
+            <SectionHeader title="Featured" />
+            <FeaturedCarousel
+              favourites={state.favourites}
+              listings={featured}
+              onOpen={(listing) => router.push(open("listing", listing.id))}
+              onToggleFavourite={(listing) => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
+              width={pageWidth}
+            />
+          </Animated.View>
+
+          <View style={styles.section}>
+            <SectionHeader title="More to explore" />
+            {grid(everything, {
+              afterRow: 2,
+              node: (
+                <View style={styles.storesBlock}>
+                  <SectionHeader title="Top stores near you" />
+                  <ScrollView contentContainerStyle={styles.storeRow} horizontal showsHorizontalScrollIndicator={false} style={styles.bleed}>
+                    {topStores.map((seller) => (
+                      <StoreCard
+                        following={state.following.includes(seller.id)}
+                        key={seller.id}
+                        onFollow={() => dispatch({ sellerId: seller.id, type: "toggleFollow" })}
+                        onOpen={() => router.push(open("store", seller.id))}
+                        seller={seller}
+                      />
+                    ))}
+                  </ScrollView>
+                </View>
+              ),
+            })}
+          </View>
         </>
       )}
 
-      <FiltersSheet filters={filters} onApply={setFilters} onClose={() => setFiltersOpen(false)} visible={filtersOpen} />
+      <FiltersSheet filters={filters} listings={everything} onApply={setFilters} onClose={() => setFiltersOpen(false)} visible={filtersOpen} />
     </Screen>
   );
 }
@@ -296,6 +310,8 @@ const styles = StyleSheet.create({
   grid: { gap: space.xs },
   link: { color: color.link, fontSize: 13, fontWeight: "600" },
   pressed: { opacity: 0.7 },
+  promo: { marginBottom: space.sm },
+  storesBlock: { marginVertical: space.sm },
   results: { marginTop: space.md },
   resultsHead: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: space.xs },
   row: { flexDirection: "row", gap: space.xs },

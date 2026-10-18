@@ -12,6 +12,7 @@ import {
   StatusBadge,
 } from "@/components";
 import { dateAndTime, formatRand } from "@/data/format";
+import { deliveryLabels, hasLiveMap } from "@/data/delivery";
 import { getSeller } from "@/data/repository";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
@@ -94,11 +95,13 @@ export function OrderDetailScreen() {
       <Text style={styles.heading}>{order.fulfilment === "delivery" ? "Delivery address" : "Collection point"}</Text>
       <Card>
         <Text style={text.body}>{order.address}</Text>
-        <Text style={text.caption}>Paid with {paymentLabels[order.paymentMethod]}</Text>
+        <Text style={text.caption}>
+          {order.deliveryMode ? `${deliveryLabels[order.deliveryMode]} · ` : ""}Paid with {paymentLabels[order.paymentMethod]}
+        </Text>
       </Card>
 
       <View style={styles.cta}>
-        {order.fulfilment === "delivery" && order.status !== "delivered" && order.status !== "cancelled" ? (
+        {hasLiveMap(order.deliveryMode ?? (order.fulfilment === "delivery" ? "campus-courier" : "collection")) && order.status !== "delivered" && order.status !== "cancelled" ? (
           <Button
             fullWidth
             icon="map"

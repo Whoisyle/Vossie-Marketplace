@@ -116,7 +116,10 @@ export type Order = {
   etaMinutes?: number;
   /** Where the delivery goes, when the student pinned it on the map. */
   destination?: { latitude: number; longitude: number };
-  courier?: { name: string; vehicle: string; rating: number };
+  /** How it gets to the student; older orders without one are treated as campus courier or collection. */
+  deliveryMode?: import("./delivery").DeliveryMode;
+  /** phone is the number the Call button dials; empty until couriers are set up with real numbers. */
+  courier?: { name: string; vehicle: string; rating: number; phone?: string };
 };
 
 export type BookingStatus = "upcoming" | "completed" | "cancelled";

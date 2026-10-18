@@ -17,6 +17,7 @@ import {
   useToast,
   type FilterOption,
 } from "@/components";
+import { withDeals } from "@/data/deals";
 import { formatRand } from "@/data/format";
 import { firstName, forYou, greeting, recentListings } from "@/data/personalise";
 import { getCampusName, getCategories, getListings } from "@/data/repository";
@@ -24,6 +25,8 @@ import type { CategoryId, Listing } from "@/data/types";
 import { useDetail } from "@/lib/paths";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, corner, size, space, text } from "@/theme/tokens";
+
+import { FeaturedCarousel } from "@/screens/explore/ExploreParts";
 
 import { CategoryPager } from "./CategoryPager";
 import { FiltersSheet } from "./FiltersSheet";
@@ -65,6 +68,7 @@ export function HomeScreen() {
       }),
     [everything, state.favourites, state.following, state.orders, state.recentViews],
   );
+  const hotDeals = useMemo(() => withDeals(everything).slice(0, 6), [everything]);
   const recents = useMemo(() => recentListings(everything, state.recentViews), [everything, state.recentViews]);
 
   const open = (listing: Listing) => router.push(detail("listing", listing.id));
@@ -144,6 +148,19 @@ export function HomeScreen() {
         <PromoCarousel onPress={() => toast.show("Promotions are placeholders for now")} width={pageWidth} />
       </Animated.View>
 
+      {hotDeals.length > 0 ? (
+        <Animated.View entering={FadeInDown.delay(160).duration(380)} style={styles.section}>
+          <SectionHeader onAction={() => router.navigate("/explore")} title="Hot deals" />
+          <FeaturedCarousel
+            favourites={state.favourites}
+            listings={hotDeals}
+            onOpen={open}
+            onToggleFavourite={(listing) => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
+            width={pageWidth}
+          />
+        </Animated.View>
+      ) : null}
+
       {recents.length > 0 ? (
         <Animated.View entering={FadeInDown.duration(320)} style={styles.section}>
           <SectionHeader title="Pick up where you left off" />
@@ -165,6 +182,7 @@ export function HomeScreen() {
 
       <FiltersSheet
         filters={filters}
+        listings={everything}
         onApply={setFilters}
         onClose={() => setFiltersOpen(false)}
         visible={filtersOpen}

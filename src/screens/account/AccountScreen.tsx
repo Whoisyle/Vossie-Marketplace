@@ -4,7 +4,6 @@ import { StyleSheet, Text, View } from "react-native";
 
 import {
   AppHeader,
-  Avatar,
   Button,
   Card,
   Icon,
@@ -12,9 +11,12 @@ import {
   RadioRow,
   Screen,
   Sheet,
-  StatusBadge,
+  StudentCard,
   useToast,
 } from "@/components";
+import { deliveryLabels, deliveryOption, type DeliveryMode } from "@/data/delivery";
+import { formatRand } from "@/data/format";
+import { nextTier, pointsBalance, pointsValueCents, tierFor } from "@/data/points";
 import { getCampusName } from "@/data/repository";
 import type { Role } from "@/data/types";
 import { useDemoStore } from "@/state/DemoStore";
@@ -32,34 +34,65 @@ export function AccountScreen() {
   const toast = useToast();
   const { dispatch, state } = useDemoStore();
   const [roleOpen, setRoleOpen] = useState(false);
+  const [deliveryOpen, setDeliveryOpen] = useState(false);
   const profile = state.profile;
   if (!profile) return null;
 
   const go = (path: string) => router.push(path as Href);
   const unread = state.conversations.filter((item) => item.unread).length;
+  const points = pointsBalance(state.orders);
+  const tier = tierFor(points);
+  const upcoming = nextTier(points);
 
   return (
     <Screen testID="account-screen">
       <AppHeader title="Your account" />
-      <Card style={styles.profile} variant="soft">
-        <Avatar name={profile.fullName} size={56} uri={profile.avatarUri} />
-        <View style={styles.flex}>
-          <Text numberOfLines={1} style={text.pageTitle}>
-            {profile.fullName}
-          </Text>
-          {profile.isVerifiedStudent ? (
-            <StatusBadge icon="shield" label="Verified Student" tone="neutral" />
-          ) : null}
+      <View style={styles.cardGap}>
+        <StudentCard
+          avatarUri={profile.avatarUri}
+          campusName={getCampusName(profile.campusId)}
+          name={profile.fullName}
+          studentNumber={profile.studentNumber}
+          verified={profile.isVerifiedStudent}
+        />
+      </View>
+
+      <Card onPress={() => go("/account/wallet")} style={styles.points} testID="points-card" variant="soft">
+        <View style={styles.pointsTop}>
+          <View style={styles.flex}>
+            <Text style={text.caption}>Vossie Points · {tier.label}</Text>
+            <Text style={styles.pointsValue}>{points.toLocaleString("en-ZA")} pts</Text>
+            <Text style={text.caption}>Worth {formatRand(pointsValueCents(points))} in wallet credit</Text>
+          </View>
+          <View style={styles.tierBadge}>
+            <Icon color={color.ink} name="award" size={14} />
+            <Text style={styles.tierText}>{tier.label}</Text>
+          </View>
         </View>
+        {upcoming ? (
+          <View style={styles.progressBlock}>
+            <View accessibilityLabel={`${Math.round(upcoming.progress * 100)} percent of the way to ${upcoming.tier.label}`} accessibilityRole="progressbar" style={styles.bar}>
+              <View style={[styles.barFill, { width: `${Math.max(4, Math.round(upcoming.progress * 100))}%` }]} />
+            </View>
+            <Text style={text.caption}>
+              {upcoming.remaining} more points to {upcoming.tier.label}
+            </Text>
+          </View>
+        ) : (
+          <Text style={text.caption}>You are at the top tier.</Text>
+        )}
+        <Text style={text.caption}>Earn 1 point for every R10 you spend. Redeeming points comes soon.</Text>
       </Card>
 
       <Card style={styles.facts}>
         <Fact label="Current campus" value={getCampusName(profile.campusId)} />
         <Fact label="Active workspace" value={roleLabels[profile.role]} />
+        <Fact label="Delivery" value={state.preferredDelivery ? deliveryLabels[state.preferredDelivery] : "Auto-pick"} />
       </Card>
 
       <View style={styles.menu}>
         <MenuRow icon="repeat" label="Switch role" onPress={() => setRoleOpen(true)} />
+        <MenuRow icon="truck" label="Delivery preferences" onPress={() => setDeliveryOpen(true)} value={state.preferredDelivery ? deliveryLabels[state.preferredDelivery] : "Auto-pick"} />
         <MenuRow icon="edit-2" label="Edit Profile" onPress={() => go("/account/edit-profile")} />
         <MenuRow icon="credit-card" label="Wallet" onPress={() => go("/account/wallet")} />
         <MenuRow
@@ -84,6 +117,43 @@ export function AccountScreen() {
           variant="outline"
         />
       </View>
+
+      <Sheet onClose={() => setDeliveryOpen(false)} title="Delivery preferences" visible={deliveryOpen}>
+        <Text style={[text.bodySmall, styles.sheetIntro]}>
+          Checkout picks the best option for each order and you can always change it there. Choose what you would like it to pick first.
+        </Text>
+        <RadioRow
+          onPress={() => {
+            dispatch({ mode: null, type: "setPreferredDelivery" });
+            setDeliveryOpen(false);
+          }}
+          selected={state.preferredDelivery === null}
+          subtitle="Vossie picks the fastest option that is available"
+          title="Auto-pick"
+        />
+        {(["campus-courier", "collection", "hub-to-hub", "third-party"] as DeliveryMode[]).map((mode) => {
+          const option = deliveryOption(mode);
+          return (
+            <RadioRow
+              key={mode}
+              onPress={() => {
+                dispatch({ mode, type: "setPreferredDelivery" });
+                setDeliveryOpen(false);
+                toast.show(`${option.label} saved`);
+              }}
+              selected={state.preferredDelivery === mode}
+              subtitle={`${option.eta} · ${option.feeCents ? formatRand(option.feeCents) : "Free"} · ${option.detail}`}
+              title={option.label}
+            />
+          );
+        })}
+        <View style={styles.sheetNote}>
+          <Icon name="info" size={14} />
+          <Text style={text.caption}>
+            Hub to hub is used when a seller is on another campus. A third-party courier is offered when no Vossie courier is free.
+          </Text>
+        </View>
+      </Sheet>
 
       <Sheet onClose={() => setRoleOpen(false)} title="Switch role" visible={roleOpen}>
         {(Object.keys(roleLabels) as Role[]).map((role) => (
@@ -120,6 +190,16 @@ function Fact({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  bar: { backgroundColor: color.mist, borderRadius: 4, height: 8, overflow: "hidden" },
+  barFill: { backgroundColor: color.primary, borderRadius: 4, height: 8 },
+  cardGap: { marginTop: space.sm },
+  points: { gap: space.sm, marginTop: space.sm },
+  pointsTop: { alignItems: "center", flexDirection: "row", gap: space.sm },
+  pointsValue: { color: color.heading, fontSize: 26, fontWeight: "800" },
+  progressBlock: { gap: 4 },
+  sheetIntro: { marginBottom: space.xs },
+  tierBadge: { alignItems: "center", backgroundColor: color.mist, borderRadius: 14, flexDirection: "row", gap: 4, paddingHorizontal: 10, paddingVertical: 5 },
+  tierText: { color: color.ink, fontSize: 12, fontWeight: "800" },
   fact: { flexDirection: "row", gap: space.sm, justifyContent: "space-between", paddingVertical: 6 },
   factValue: { color: color.heading, flexShrink: 1, fontSize: 14, fontWeight: "600" },
   facts: { marginTop: space.sm },

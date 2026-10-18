@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -9,9 +9,10 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 
 import { Avatar, HeartButton, Icon, Media, StarRating } from "@/components";
+import { dealFor, effectivePrice } from "@/data/deals";
 import { formatRand } from "@/data/format";
 import { getCampusName } from "@/data/repository";
 import type { Listing, Seller } from "@/data/types";
@@ -19,14 +20,24 @@ import { haptic } from "@/lib/haptics";
 import { duration, spring } from "@/theme/motion";
 import { color, corner, gradient, space } from "@/theme/tokens";
 
-/** Big swipeable cards for the best-rated listings. Snaps to each card; the active card sits slightly forward. */
+/** How long each card stays before the carousel moves on by itself, and how long it waits after a touch. */
+export const AUTO_ADVANCE_MS = 3800;
+export const RESUME_AFTER_TOUCH_MS = 6000;
+
+/**
+ * Big swipeable cards for the best-rated listings. Snaps to each card; the active card sits slightly forward.
+ * It moves on by itself every few seconds, stops while a finger is on it, and does not auto-move with Reduce Motion.
+ */
 export function FeaturedCarousel({
   favourites,
   listings,
   onOpen,
   onToggleFavourite,
   width,
+  autoPlay = true,
 }: {
+  /** Moves on by itself; turn off where a still carousel is better. */
+  autoPlay?: boolean;
   listings: Listing[];
   favourites: string[];
   width: number;
@@ -36,6 +47,24 @@ export function FeaturedCarousel({
   const cardWidth = Math.min(width * 0.72, 300);
   const snap = cardWidth + space.xs;
   const [page, setPage] = useState(0);
+  const reduced = useReducedMotion();
+  const scroller = useRef<ScrollView>(null);
+  const pageRef = useRef(0);
+  const pausedUntil = useRef(0);
+  useEffect(() => {
+    pageRef.current = page;
+  });
+
+  useEffect(() => {
+    if (!autoPlay || reduced || listings.length < 2) return;
+    const timer = setInterval(() => {
+      if (Date.now() < pausedUntil.current) return;
+      const next = (pageRef.current + 1) % listings.length;
+      scroller.current?.scrollTo({ animated: true, x: next * snap });
+      setPage(next);
+    }, AUTO_ADVANCE_MS);
+    return () => clearInterval(timer);
+  }, [autoPlay, listings.length, reduced, snap]);
 
   const onEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const next = Math.round(event.nativeEvent.contentOffset.x / snap);
@@ -50,6 +79,10 @@ export function FeaturedCarousel({
         decelerationRate="fast"
         horizontal
         onMomentumScrollEnd={onEnd}
+        onScrollBeginDrag={() => {
+          pausedUntil.current = Date.now() + RESUME_AFTER_TOUCH_MS;
+        }}
+        ref={scroller}
         showsHorizontalScrollIndicator={false}
         snapToInterval={snap}
         style={styles.bleed}
@@ -97,7 +130,7 @@ function FeaturedCard({
   }, [active, lift]);
   const style = useAnimatedStyle(() => ({ opacity: 0.85 + lift.get() * 0.15, transform: [{ scale: 0.95 + lift.get() * 0.05 }] }));
   return (
-    <Pressable accessibilityLabel={`${listing.title}, ${formatRand(listing.priceCents)}, ${listing.rating} stars`} accessibilityRole="button" onPress={onOpen}>
+    <Pressable accessibilityLabel={`${listing.title}, ${formatRand(effectivePrice(listing))}, ${listing.rating} stars`} accessibilityRole="button" onPress={onOpen}>
       <Animated.View style={[styles.featured, { width: cardWidth }, style]}>
         <Media radius={0} source={listing.images[0]} style={StyleSheet.absoluteFill} />
         <LinearGradient colors={["rgba(30,42,56,0)", "rgba(30,42,56,0.82)"]} pointerEvents="none" style={styles.featuredShade} />
@@ -106,7 +139,7 @@ function FeaturedCard({
         </View>
         <View style={styles.featuredTag}>
           <Icon color={color.ink} name="award" size={12} />
-          <Text style={styles.featuredTagText}>Featured</Text>
+          <Text style={styles.featuredTagText}>{dealFor(listing.id) > 0 ? `-${dealFor(listing.id)}% deal` : "Featured"}</Text>
         </View>
         <View style={styles.featuredInfo}>
           <Text numberOfLines={1} style={styles.featuredTitle}>
@@ -115,7 +148,8 @@ function FeaturedCard({
           <View style={styles.featuredMeta}>
             <StarRating size={12} value={listing.rating} />
             <Text style={styles.featuredMetaText}>{listing.rating.toFixed(1)}</Text>
-            <Text style={styles.featuredPrice}>{formatRand(listing.priceCents)}</Text>
+            {dealFor(listing.id) > 0 ? <Text style={styles.featuredWas}>{formatRand(listing.priceCents)}</Text> : null}
+            <Text style={styles.featuredPrice}>{formatRand(effectivePrice(listing))}</Text>
           </View>
         </View>
       </Animated.View>
@@ -184,6 +218,7 @@ const styles = StyleSheet.create({
   featuredMeta: { alignItems: "center", flexDirection: "row", gap: 6 },
   featuredMetaText: { color: color.onPrimary, flex: 1, fontSize: 12, fontWeight: "600" },
   featuredPrice: { color: color.onPrimary, fontSize: 15, fontWeight: "800" },
+  featuredWas: { color: "rgba(255,255,255,0.7)", fontSize: 12, textDecorationLine: "line-through" },
   featuredRow: { gap: space.xs, paddingHorizontal: space.lg },
   featuredShade: { bottom: 0, height: 110, left: 0, position: "absolute", right: 0 },
   featuredTag: { alignItems: "center", backgroundColor: color.mist, borderRadius: 12, flexDirection: "row", gap: 4, left: 10, paddingHorizontal: 8, paddingVertical: 4, position: "absolute", top: 10 },

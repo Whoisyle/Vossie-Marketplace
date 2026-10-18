@@ -1,5 +1,7 @@
 import type { Campus, Category, Listing, Seller } from "../types";
 
+import { moreListings, moreSellers } from "./moreCatalog";
+
 const img = {
   calculator: require("../../../assets/demo/calculator.jpg"),
   greenFolders: require("../../../assets/demo/green-folders.jpg"),
@@ -33,7 +35,7 @@ export const categories: Category[] = [
   { id: "services", name: "Services", icon: "tool" },
 ];
 
-export const sellers: Seller[] = [
+const baseSellers: Seller[] = [
   { id: "campusbites", name: "CampusBites", campusId: "potchefstroom", location: "Eduvos Potchefstroom food court", bio: "Flame-grilled burgers, wraps and chips made fresh between lectures.", rating: 4.9, ratingCount: 152, followers: 1240 },
   { id: "plato-coffee", name: "Plato Coffee", campusId: "potchefstroom", location: "Eduvos Potchefstroom, main entrance", bio: "Speciality coffee and iced lattes for long study sessions.", rating: 4.8, ratingCount: 318, followers: 2104 },
   { id: "varsity-cafe", name: "Varsity Cafe", campusId: "potchefstroom", location: "Student centre, ground floor", bio: "Healthy bowls, matcha and toasties.", rating: 4.6, ratingCount: 97, followers: 640 },
@@ -47,7 +49,7 @@ export const sellers: Seller[] = [
   { id: "pretoria-eats", name: "Tshwane Eats", campusId: "pretoria", location: "Eduvos Pretoria canteen", bio: "Kotas and wraps for Pretoria campus.", rating: 4.5, ratingCount: 120, followers: 530 },
 ];
 
-export const listings: Listing[] = [
+const baseListings: Listing[] = [
   {
     id: "burger-chips",
     title: "Burger & Chips",
@@ -378,3 +380,6 @@ export const listings: Listing[] = [
     createdDaysAgo: 2,
   },
 ];
+
+export const sellers: Seller[] = [...baseSellers, ...moreSellers];
+export const listings: Listing[] = [...baseListings, ...moreListings];
