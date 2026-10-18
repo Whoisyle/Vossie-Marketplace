@@ -16,6 +16,7 @@ import {
   StarRating,
   useToast,
 } from "@/components";
+import { dealFor, effectivePrice } from "@/data/deals";
 import { formatRand } from "@/data/format";
 import { getListing, getSeller } from "@/data/repository";
 import { useDetail } from "@/lib/paths";
@@ -58,7 +59,8 @@ export function ListingDetailScreen() {
   }
 
   const option = listing.options.find((item) => item.id === optionId);
-  const unit = option?.priceCents ?? listing.priceCents;
+  const percent = dealFor(listing.id);
+  const unit = effectivePrice(listing, option?.priceCents ?? listing.priceCents);
   const favourite = state.favourites.includes(listing.id);
   const following = seller ? state.following.includes(seller.id) : false;
   const thumbs = listing.images.length > 1 ? listing.images : [];
@@ -128,7 +130,17 @@ export function ListingDetailScreen() {
           <Text accessibilityRole="header" style={styles.title}>
             {listing.title}
           </Text>
-          <Text style={styles.price}>{formatRand(unit)}</Text>
+          <View style={styles.priceRow}>
+            <Text style={styles.price}>{formatRand(unit)}</Text>
+            {percent > 0 ? (
+              <>
+                <Text style={styles.was}>{formatRand(option?.priceCents ?? listing.priceCents)}</Text>
+                <View style={styles.dealPill}>
+                  <Text style={styles.dealPillText}>-{percent}%</Text>
+                </View>
+              </>
+            ) : null}
+          </View>
           <Pressable
             accessibilityHint="Opens ratings and reviews"
             accessibilityLabel={`${listing.rating.toFixed(1)} stars, ${listing.ratingCount} reviews`}
@@ -210,7 +222,7 @@ export function ListingDetailScreen() {
                 >
                   <Text style={[styles.optionLabel, selected && styles.optionTextSelected]}>{item.label}</Text>
                   <Text style={[styles.optionPrice, selected && styles.optionTextSelected]}>
-                    {formatRand(item.priceCents)}
+                    {formatRand(effectivePrice(listing, item.priceCents))}
                   </Text>
                 </Pressable>
               );
@@ -284,7 +296,11 @@ const styles = StyleSheet.create({
   optionTextSelected: { color: color.onPrimary },
   options: { flexDirection: "row", gap: space.xs },
   pills: { flexDirection: "row", flexWrap: "wrap", gap: space.xs, marginTop: space.sm },
-  price: { color: color.text, fontSize: 22, fontWeight: "700", marginTop: 2 },
+  dealPill: { backgroundColor: color.mist, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
+  dealPillText: { color: color.ink, fontSize: 12, fontWeight: "800" },
+  price: { color: color.text, fontSize: 22, fontWeight: "700" },
+  priceRow: { alignItems: "center", flexDirection: "row", gap: space.xs, marginTop: 2 },
+  was: { color: color.textMuted, fontSize: 14, textDecorationLine: "line-through" },
   ratingRow: { alignItems: "center", flexDirection: "row", gap: 6, marginTop: 4, minHeight: 28 },
   reviewLink: { color: color.link, fontSize: 13, fontWeight: "600" },
   sellerCard: { alignItems: "center", flexDirection: "row", gap: space.sm, marginTop: space.md },

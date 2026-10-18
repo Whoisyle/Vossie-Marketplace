@@ -36,7 +36,7 @@ export function SearchBar({
   placeholders,
   value,
 }: SearchBarProps) {
-  const height = compact ? 44 : 56;
+  const height = compact ? 44 : 52;
   const lift = useSharedValue(0);
   const [hint, setHint] = useState(0);
   const cycling = Boolean(onPress && placeholders && placeholders.length > 1);

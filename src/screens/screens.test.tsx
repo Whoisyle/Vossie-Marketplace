@@ -87,7 +87,7 @@ describe("shopping flow", () => {
     expect(screen.getByText("Your cart is empty")).toBeTruthy();
     renderWithProviders(<CartScreen />, withCart());
     expect(screen.getByText("Burger & Chips")).toBeTruthy();
-    expect(screen.getByText(/Checkout · R 120/)).toBeTruthy();
+    expect(screen.getByText(/Checkout · R 96/)).toBeTruthy();
   });
 
   it("validates a voucher and then places the order", () => {

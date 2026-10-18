@@ -54,9 +54,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: corner.lg,
     boxShadow: "0 8px 16px rgba(30, 42, 56, 0.22)",
-    height: 56,
+    height: 52,
     justifyContent: "center",
     overflow: "hidden",
-    width: 56,
+    width: 52,
   },
 });

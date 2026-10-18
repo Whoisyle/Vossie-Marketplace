@@ -15,6 +15,7 @@ import {
   recentActivitySeed,
 } from "@/data/mock/activity";
 import { reelsSeed, reviewsSeed } from "@/data/mock/content";
+import { effectivePrice } from "@/data/deals";
 import { getListing } from "@/data/repository";
 import type {
   ActivityItem,
@@ -174,7 +175,7 @@ export function unitPrice(line: Pick<CartLine, "listingId" | "optionId">): numbe
   const listing = getListing(line.listingId);
   if (!listing) return 0;
   const option = listing.options.find((item) => item.id === line.optionId);
-  return option?.priceCents ?? listing.priceCents;
+  return effectivePrice(listing, option?.priceCents ?? listing.priceCents);
 }
 
 export function cartTotals(state: Pick<DemoState, "cart" | "checkout">) {
