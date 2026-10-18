@@ -67,10 +67,11 @@ export function HomeScreen() {
       forYou(everything, {
         favourites: state.favourites,
         following: state.following,
+        interests: state.interests,
         orders: state.orders,
         recentViews: state.recentViews,
       }),
-    [everything, state.favourites, state.following, state.orders, state.recentViews],
+    [everything, state.favourites, state.following, state.interests, state.orders, state.recentViews],
   );
   const hotDeals = useMemo(() => withDeals(everything).slice(0, 6), [everything]);
   const recents = useMemo(() => recentListings(everything, state.recentViews), [everything, state.recentViews]);

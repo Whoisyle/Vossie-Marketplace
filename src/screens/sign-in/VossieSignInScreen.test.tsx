@@ -53,12 +53,37 @@ describe("VossieSignInScreen", () => {
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
-  it("sends a valid email on to the one-time code step", () => {
+  it("sends a new student to verification", () => {
+    renderWithProviders(<VossieSignInScreen />);
+    fireEvent.changeText(screen.getByPlaceholderText("Email, phone or Skype"), "eduv240111@vossie.net");
+    fireEvent.press(screen.getByTestId("sign-in-next"));
+    act(() => jest.runAllTimers());
+    expect(mockPush).toHaveBeenCalledWith({ params: { email: "eduv240111@vossie.net" }, pathname: "/verified" });
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it("signs a returning student straight in to Home", () => {
     renderWithProviders(<VossieSignInScreen />);
     fireEvent.changeText(screen.getByPlaceholderText("Email, phone or Skype"), "eduv230953@vossie.net");
     fireEvent.press(screen.getByTestId("sign-in-next"));
     act(() => jest.runAllTimers());
-    expect(mockPush).toHaveBeenCalledWith({ params: { email: "eduv230953@vossie.net" }, pathname: "/verified" });
+    expect(mockReplace).toHaveBeenCalledWith("/home");
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("offers the two demo accounts, one tap each", () => {
+    renderWithProviders(<VossieSignInScreen />);
+    expect(screen.getByTestId("demo-accounts")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("demo-vumisa"));
+    act(() => jest.runAllTimers());
+    expect(mockReplace).toHaveBeenCalledWith("/home");
+  });
+
+  it("starts the new demo account on the verification path", () => {
+    renderWithProviders(<VossieSignInScreen />);
+    fireEvent.press(screen.getByTestId("demo-kamo"));
+    act(() => jest.runAllTimers());
+    expect(mockPush).toHaveBeenCalledWith({ params: { email: "eduv240111@vossie.net" }, pathname: "/verified" });
   });
 
   it("opens account help", () => {

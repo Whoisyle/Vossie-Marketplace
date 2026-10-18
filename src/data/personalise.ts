@@ -14,6 +14,8 @@ export function firstName(fullName: string): string {
 }
 
 export type Taste = {
+  /** Categories the student said they like when they joined. */
+  interests?: CategoryId[];
   favourites: string[];
   following: string[];
   orders: Pick<Order, "lines">[];
@@ -32,6 +34,7 @@ export function forYou(listings: Listing[], taste: Taste, limit = 8): Listing[] 
     const listing = byId.get(id);
     if (listing) categoryWeight.set(listing.categoryId, (categoryWeight.get(listing.categoryId) ?? 0) + weight);
   };
+  taste.interests?.forEach((id) => categoryWeight.set(id, (categoryWeight.get(id) ?? 0) + 2));
   taste.favourites.forEach((id) => bump(id, 3));
   taste.recentViews.forEach((id) => bump(id, 1));
   taste.orders.forEach((order) => order.lines.forEach((line) => bump(line.listingId, 2)));

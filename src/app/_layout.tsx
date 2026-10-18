@@ -17,6 +17,7 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ autoHideHomeIndicator: true }} />
           <Stack.Screen name="sign-in" options={{ title: "Sign In" }} />
           <Stack.Screen name="verified" options={{ gestureEnabled: false, title: "Verified" }} />
+          <Stack.Screen name="onboarding" options={{ gestureEnabled: false, title: "Make Vossie yours" }} />
           <Stack.Screen name="profile-setup" options={{ gestureEnabled: false, title: "Set up your profile" }} />
           <Stack.Screen name="(tabs)" options={{ animation: "fade", gestureEnabled: false }} />
         </Stack>

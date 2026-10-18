@@ -29,6 +29,7 @@ import { lookupStudentRecord } from "@/data/studentRecord";
 import type {
   ActivityItem,
   AppSettings,
+  CategoryId,
   BlockedUser,
   Booking,
   CampusId,
@@ -106,6 +107,8 @@ export type DemoState = {
   pointsLedger: PointsEntry[];
   referral: { referredBy: string | null; rewardPaid: boolean; firstOrderId: string | null; invited: InvitedFriend[] };
   subscriptions: Subscription[];
+  /** Categories the student picked when they joined; they shape For you and Home. */
+  interests: CategoryId[];
   emergencyContacts: EmergencyContact[];
   campusSecurityNumber: string;
   /** Numbers for the student's campus, read from the database (empty until the backend is on). */
@@ -170,6 +173,7 @@ export function createInitialState(): DemoState {
     // the demo student starts on Vossie Plus so the R4 order discount keeps working
     subscriptions: [{ cancelling: false, planId: "plus", renewsAt: nextMonth(), since: daysAgoIso(40) }],
     termsAcceptedAt: null,
+    interests: [],
     emergencyContacts: [],
     campusSecurityNumber: "",
     campusContacts: [],
@@ -241,6 +245,7 @@ export type DemoAction =
   | { type: "cancelSubscription"; planId: PlanId }
   | { type: "resumeSubscription"; planId: PlanId }
   | { type: "acceptTerms" }
+  | { type: "setInterests"; interests: CategoryId[] }
   | { type: "createCollection"; name: string }
   | { type: "deleteCollection"; collectionId: string }
   | { type: "toggleInCollection"; collectionId: string; listingId: string }
@@ -1051,6 +1056,8 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         ],
       };
     }
+    case "setInterests":
+      return { ...state, interests: action.interests };
     case "acceptTerms":
       return { ...state, termsAcceptedAt: new Date().toISOString() };
     case "markNotificationsRead":

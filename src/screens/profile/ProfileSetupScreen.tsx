@@ -51,7 +51,7 @@ export function ProfileSetupScreen() {
       },
       type: "completeProfile",
     });
-    router.replace("/home");
+    router.replace("/onboarding");
   };
 
   return (

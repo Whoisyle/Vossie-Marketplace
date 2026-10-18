@@ -41,6 +41,12 @@
         {
           "faceIDPermission": "Vossie uses Face ID to confirm payments, wallet actions and your account protection."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#35505C"
+        }
       ]
     ],
     "experiments": {
