@@ -23,7 +23,6 @@ import {
 
 import { Button, Sheet } from "@/components";
 import { haptic } from "@/lib/haptics";
-import { useDemoStore } from "@/state/DemoStore";
 import { duration, ease, spring } from "@/theme/motion";
 import { color, space } from "@/theme/tokens";
 
@@ -47,7 +46,6 @@ function MicrosoftLogo() {
 
 export function VossieSignInScreen() {
   const router = useRouter();
-  const { dispatch } = useDemoStore();
   const { height, width } = useWindowDimensions();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -99,8 +97,7 @@ export function VossieSignInScreen() {
     haptic.press();
     burst.set(withTiming(1, { duration: 620, easing: ease.out }));
     timer.current = setTimeout(() => {
-      dispatch({ email, type: "signIn" });
-      router.replace("/home");
+      router.push({ params: { email: email.trim().toLowerCase() }, pathname: "/otp" });
     }, 700);
   };
 

@@ -6,10 +6,11 @@ import { VossieSignInScreen } from "./VossieSignInScreen";
 import { isValidEmail } from "./validation";
 
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
 
 jest.mock("expo-router", () => ({
   useFocusEffect: () => undefined,
-  useRouter: () => ({ back: jest.fn(), canGoBack: () => true, push: jest.fn(), replace: mockReplace }),
+  useRouter: () => ({ back: jest.fn(), canGoBack: () => true, push: mockPush, replace: mockReplace }),
 }));
 
 describe("sign-in email validation", () => {
@@ -27,6 +28,7 @@ describe("VossieSignInScreen", () => {
   beforeEach(() => {
     jest.useFakeTimers();
     mockReplace.mockClear();
+    mockPush.mockClear();
   });
 
   afterEach(() => jest.useRealTimers());
@@ -51,12 +53,12 @@ describe("VossieSignInScreen", () => {
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
-  it("signs in with a valid email and continues into the app", () => {
+  it("sends a valid email on to the one-time code step", () => {
     renderWithProviders(<VossieSignInScreen />);
     fireEvent.changeText(screen.getByPlaceholderText("Email, phone or Skype"), "eduv230953@vossie.net");
     fireEvent.press(screen.getByTestId("sign-in-next"));
     act(() => jest.runAllTimers());
-    expect(mockReplace).toHaveBeenCalledWith("/home");
+    expect(mockPush).toHaveBeenCalledWith({ params: { email: "eduv230953@vossie.net" }, pathname: "/otp" });
   });
 
   it("opens account help", () => {
