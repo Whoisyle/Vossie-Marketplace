@@ -1,3 +1,4 @@
+import type { UserVoucher } from "../phase4";
 import type {
   LoginEvent,
   Profile,
@@ -41,9 +42,21 @@ export const loginEventsSeed: LoginEvent[] = [
 ];
 
 export const vouchers: Record<string, { label: string; percentOff?: number; centsOff?: number }> = {
+  COFFEE5: { centsOff: 500, label: "R5 off" },
+  EXAM15: { label: "15% off", percentOff: 15 },
   VOSSIE10: { label: "10% off", percentOff: 10 },
   WELCOME20: { label: "R20 off", centsOff: 2000 },
 };
+
+const inDays = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString();
+
+/** The student's voucher wallet (demo). One has already expired, to show how that looks. */
+export const userVouchersSeed: UserVoucher[] = [
+  { code: "WELCOME20", detail: "On any order", expiresAt: inDays(30), label: "R20 off your order", minSpendCents: 0 },
+  { code: "VOSSIE10", detail: "On orders over R50", expiresAt: inDays(14), label: "10% off", minSpendCents: 5000 },
+  { code: "EXAM15", detail: "Books, stationery and tutors over R100", expiresAt: inDays(21), label: "15% off", minSpendCents: 10000 },
+  { code: "COFFEE5", detail: "On any coffee order", expiresAt: inDays(-3), label: "R5 off", minSpendCents: 0 },
+];
 
 export const deliveryFeeCents = 1500;
 export const subscriberDiscountCents = 400;

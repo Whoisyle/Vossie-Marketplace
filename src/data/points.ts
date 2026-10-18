@@ -1,4 +1,4 @@
-import type { Order } from "./types";
+import type { Order, PointsEntry } from "./types";
 
 /**
  * Vossie Points (owner decision, 2026-10-18): 1 point for every R10 spent, 10 points are worth R1.
@@ -22,12 +22,21 @@ export function pointsForOrder(totalCents: number): number {
   return Math.floor(Math.max(0, totalCents) / CENTS_PER_POINT);
 }
 
-/** Points earned from delivered orders plus the welcome gift. */
-export function pointsBalance(orders: Pick<Order, "status" | "totalCents">[]): number {
+/** Points earned from delivered orders plus the welcome gift, plus anything redeemed (negative) or awarded in the ledger. */
+export function pointsBalance(orders: Pick<Order, "status" | "totalCents">[], ledger: Pick<PointsEntry, "points">[] = []): number {
   return (
     WELCOME_POINTS +
-    orders.filter((order) => order.status === "delivered").reduce((sum, order) => sum + pointsForOrder(order.totalCents), 0)
+    orders.filter((order) => order.status === "delivered").reduce((sum, order) => sum + pointsForOrder(order.totalCents), 0) +
+    ledger.reduce((sum, entry) => sum + entry.points, 0)
   );
+}
+
+/** Points can be redeemed in steps of 100 (R10 each step), up to the balance. */
+export const REDEEM_STEP = 100;
+export const REDEEM_OPTIONS = [100, 250, 500];
+
+export function canRedeem(balance: number, points: number): boolean {
+  return points >= REDEEM_STEP && points <= balance;
 }
 
 /** Rand value of a points balance, in cents (10 points = R1). */

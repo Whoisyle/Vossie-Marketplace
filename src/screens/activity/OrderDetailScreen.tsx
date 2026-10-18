@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
+import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import {
@@ -10,6 +11,7 @@ import {
   ProgressTrack,
   Screen,
   StatusBadge,
+  useToast,
 } from "@/components";
 import { dateAndTime, formatRand } from "@/data/format";
 import { deliveryLabels, hasLiveMap } from "@/data/delivery";
@@ -18,6 +20,7 @@ import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
 
 import { paymentLabels } from "../cart/payment";
+import { CourierRatingSheet } from "./CourierRatingSheet";
 import { ORDER_STEPS, progressStep, statusInfo } from "./orderStatus";
 
 
@@ -25,7 +28,9 @@ import { ORDER_STEPS, progressStep, statusInfo } from "./orderStatus";
 export function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const toast = useToast();
   const { dispatch, state } = useDemoStore();
+  const [rateOpen, setRateOpen] = useState(false);
   const order = state.orders.find((item) => item.id === id);
 
   if (!order) {
@@ -43,6 +48,7 @@ export function OrderDetailScreen() {
   }
 
   const seller = getSeller(order.sellerId);
+  const canRate = order.status === "delivered" && order.fulfilment === "delivery" && !order.courierRating;
   const info = statusInfo(order.status);
   const messageSeller = () => {
     if (!seller) return;
@@ -101,6 +107,23 @@ export function OrderDetailScreen() {
       </Card>
 
       <View style={styles.cta}>
+        {order.status === "delivered" ? (
+          <Button
+            fullWidth
+            icon="repeat"
+            label="Reorder"
+            onPress={() => {
+              dispatch({ orderId: order.id, type: "reorder" });
+              toast.show("Added to your cart");
+              router.push("/cart" as Href);
+            }}
+            style={styles.trackGap}
+            testID="reorder"
+          />
+        ) : null}
+        {canRate ? (
+          <Button fullWidth icon="star" label="Rate courier and tip" onPress={() => setRateOpen(true)} style={styles.trackGap} testID="rate-courier" variant="soft" />
+        ) : null}
         {hasLiveMap(order.deliveryMode ?? (order.fulfilment === "delivery" ? "campus-courier" : "collection")) && order.status !== "delivered" && order.status !== "cancelled" ? (
           <Button
             fullWidth
@@ -113,6 +136,7 @@ export function OrderDetailScreen() {
         ) : null}
         <Button fullWidth icon="message-circle" label="Message seller" onPress={messageSeller} variant="outline" />
       </View>
+      <CourierRatingSheet onClose={() => setRateOpen(false)} order={order} visible={rateOpen} />
     </Screen>
   );
 }

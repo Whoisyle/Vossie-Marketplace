@@ -1,5 +1,7 @@
 import { Platform } from "react-native";
 
+import { playSound } from "./sounds";
+
 /**
  * Soft haptic feedback. Safe everywhere: does nothing on web, in tests, or when the module is missing,
  * and never throws. Use sparingly: taps, likes and success, never on scroll ticks.
@@ -37,9 +39,11 @@ export const haptic = {
     void load()?.selectionAsync().catch(() => undefined);
   },
   success() {
+    playSound("success");
     void load()?.notificationAsync(load()!.NotificationFeedbackType.Success).catch(() => undefined);
   },
   error() {
+    playSound("error");
     void load()?.notificationAsync(load()!.NotificationFeedbackType.Error).catch(() => undefined);
   },
 };

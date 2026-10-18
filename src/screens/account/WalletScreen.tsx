@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { AppHeader, Button, Card, Chip, Icon, Screen, Sheet, TextField, useToast } from "@/components";
 import { eftBanks } from "@/screens/cart/payment";
 import { dateAndTime, formatRand } from "@/data/format";
+import { confirmWithBiometrics } from "@/lib/biometric";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
 
@@ -27,13 +28,17 @@ export function WalletScreen() {
   const [custom, setCustom] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const add = (amountCents: number | null) => {
+  const add = async (amountCents: number | null) => {
     if (amountCents === null || amountCents <= 0) {
       setError("Enter an amount like 150 or 150.50.");
       return;
     }
     if (amountCents > MAX_TOP_UP_CENTS) {
       setError(`The most you can add at once is ${formatRand(MAX_TOP_UP_CENTS)}.`);
+      return;
+    }
+    if (!(await confirmWithBiometrics(state.settings.biometric, "Confirm to add funds"))) {
+      setError("Funds weren't added: Face ID or your passcode wasn't confirmed.");
       return;
     }
     dispatch({ amountCents, source: "card", type: "addFunds" });
@@ -150,7 +155,7 @@ export function WalletScreen() {
       <Sheet onClose={() => setOpen(false)} title="Add funds" visible={open}>
         <View style={styles.presets}>
           {PRESETS.map((cents) => (
-            <Chip key={cents} label={formatRand(cents)} onPress={() => add(cents)} />
+            <Chip key={cents} label={formatRand(cents)} onPress={() => void add(cents)} />
           ))}
         </View>
         <TextField
@@ -164,7 +169,7 @@ export function WalletScreen() {
           placeholder="150"
           value={custom}
         />
-        <Button fullWidth label="Add funds" onPress={() => add(parseRandToCents(custom))} />
+        <Button fullWidth label="Add funds" onPress={() => void add(parseRandToCents(custom))} />
       </Sheet>
     </Screen>
   );

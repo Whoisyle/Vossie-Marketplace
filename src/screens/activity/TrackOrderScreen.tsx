@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, Share, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, EmptyState, Icon, ProgressTrack, Screen, AppHeader, StatusBadge, useToast } from "@/components";
@@ -11,10 +11,16 @@ import { getSeller } from "@/data/repository";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, corner, space, text } from "@/theme/tokens";
 
+import { CourierRatingSheet } from "./CourierRatingSheet";
 import { ORDER_STEPS, progressStep, statusInfo } from "./orderStatus";
 
 /** How long the demo courier takes to ride the whole route. Real positions will come from the courier's phone. */
 export const DEMO_RIDE_MS = 90_000;
+
+/** The link shared to follow an order. It opens in the Vossie app (scheme vossie://) for people who have it. */
+export function trackingLink(orderId: string): string {
+  return `vossie://track/${orderId}`;
+}
 const TICK_MS = 1_000;
 
 /** Fraction of the route covered after `elapsedMs`, 0 to 1. */
@@ -35,6 +41,7 @@ export function TrackOrderScreen() {
   const order = state.orders.find((item) => item.id === id);
   const seller = order ? getSeller(order.sellerId) : undefined;
   const [elapsed, setElapsed] = useState(0);
+  const [rateOpen, setRateOpen] = useState(false);
   const riding = order?.status === "on-the-way";
 
   useEffect(() => {
@@ -80,6 +87,24 @@ export function TrackOrderScreen() {
         : order.status === "ready"
           ? "Ready for pickup"
           : "Waiting for the seller";
+
+  // a link to follow this order, only when the student allows it in Security and Settings; opens in the Vossie app
+  const shareTracking = async () => {
+    if (!state.settings.shareTracking) {
+      toast.show("Turn on sharing in Security and Settings first");
+      return;
+    }
+    try {
+      await Share.share({ message: `Follow my Vossie order ${order.number}: ${trackingLink(order.id)}` });
+    } catch {
+      toast.show("Sharing isn't available here");
+    }
+  };
+
+  const markDelivered = () => {
+    dispatch({ orderId: order.id, type: "deliverOrder" });
+    setRateOpen(true);
+  };
 
   const chat = () => {
     dispatch({ conversationId: `courier-${order.id}`, kind: "courier", name: order.courier?.name ?? "Courier", orderId: order.id, type: "openConversation" });
@@ -156,10 +181,26 @@ export function TrackOrderScreen() {
         ) : (
           <Text style={text.bodySmall}>A courier is assigned once the seller has your order ready.</Text>
         )}
+        <View style={styles.actions}>
+          <View style={styles.flex}>
+            <Button icon="share-2" label="Share tracking" onPress={() => void shareTracking()} size="sm" testID="share-tracking" variant="outline" />
+          </View>
+          {arrived && !delivered ? (
+            <View style={styles.flex}>
+              <Button label="Mark delivered (demo)" onPress={markDelivered} size="sm" testID="mark-delivered" />
+            </View>
+          ) : null}
+          {delivered && !order.courierRating ? (
+            <View style={styles.flex}>
+              <Button icon="star" label="Rate and tip" onPress={() => setRateOpen(true)} size="sm" testID="rate-courier" />
+            </View>
+          ) : null}
+        </View>
         <Text style={styles.demo}>Demo tracking: the courier position is simulated.</Text>
       </View>
 
       <BottomEdgeReveal dark />
+      <CourierRatingSheet onClose={() => setRateOpen(false)} order={order} visible={rateOpen} />
     </SafeAreaView>
   );
 }
@@ -188,6 +229,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: space.md,
   },
+  actions: { flexDirection: "row", gap: space.xs },
   courier: { alignItems: "center", flexDirection: "row", gap: space.xs },
   courierIcon: { alignItems: "center", backgroundColor: color.primary, borderRadius: 20, height: 40, justifyContent: "center", width: 40 },
   demo: { color: color.textMuted, fontSize: 11, textAlign: "center" },

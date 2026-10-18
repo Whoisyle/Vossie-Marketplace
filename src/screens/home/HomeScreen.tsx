@@ -10,14 +10,17 @@ import {
   HeaderIconButton,
   Icon,
   ListingCard,
+  ListingsSkeleton,
   Media,
   Screen,
   SearchBar,
   SectionHeader,
+  useFirstLoad,
   useToast,
   type FilterOption,
 } from "@/components";
 import { withDeals } from "@/data/deals";
+import { hideBlocked } from "@/data/phase4";
 import { formatRand } from "@/data/format";
 import { firstName, forYou, greeting, recentListings } from "@/data/personalise";
 import { getCampusName, getCategories, getListings } from "@/data/repository";
@@ -57,7 +60,8 @@ export function HomeScreen() {
     () => [{ key: "all", label: "All" }, ...getCategories().map((item) => ({ key: item.id, label: item.name }))],
     [],
   );
-  const everything = useMemo(() => getListings({ campusId }), [campusId]);
+  const everything = useMemo(() => hideBlocked(getListings({ campusId }), state.blocked), [campusId, state.blocked]);
+  const loading = useFirstLoad("home");
   const picks = useMemo(
     () =>
       forYou(everything, {
@@ -111,6 +115,15 @@ export function HomeScreen() {
       </View>
     );
   };
+
+  if (loading) {
+    return (
+      <Screen testID="home-screen">
+        <AppHeader large />
+        <ListingsSkeleton testID="home-skeleton" />
+      </Screen>
+    );
+  }
 
   return (
     <Screen testID="home-screen">

@@ -114,6 +114,12 @@ export type Order = {
   totalCents: number;
   placedAt: string;
   etaMinutes?: number;
+  /** Chosen with Order for later: the time the student wants it. */
+  scheduledFor?: string;
+  deliveredAt?: string;
+  /** The student's rating of the courier (1 to 5) and the tip they added after delivery. */
+  courierRating?: 1 | 2 | 3 | 4 | 5;
+  tipCents?: number;
   /** Where the delivery goes, when the student pinned it on the map. */
   destination?: { latitude: number; longitude: number };
   /** How it gets to the student; older orders without one are treated as campus courier or collection. */
@@ -239,3 +245,6 @@ export type AppSettings = {
 };
 
 export type BlockedUser = { id: string; name: string; blockedAt: string };
+
+/** One line in the Vossie Points history. Earning on orders is worked out from delivered orders; these are the rest. */
+export type PointsEntry = { id: string; label: string; points: number; createdAt: string };

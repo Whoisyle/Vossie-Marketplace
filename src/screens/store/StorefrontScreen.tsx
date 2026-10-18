@@ -14,11 +14,14 @@ import {
   ListingCard,
   Screen,
   SegmentedTabs,
+  Sheet,
   StarRating,
+  useToast,
 } from "@/components";
 import { VossieMap } from "@/components/map/VossieMap";
 import { shortDate, formatRand } from "@/data/format";
 import { dealFor } from "@/data/deals";
+import { isVerifiedSeller } from "@/data/phase4";
 import { storeLocation } from "@/data/geo";
 import { getCampusName, getListings, getSeller } from "@/data/repository";
 import type { Listing } from "@/data/types";
@@ -37,7 +40,9 @@ export function StorefrontScreen() {
   const { width } = useWindowDimensions();
   const { dispatch, state } = useDemoStore();
   const seller = getSeller(id);
+  const toast = useToast();
   const [tab, setTab] = useState<Tab>("menu");
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const all = useMemo(() => (seller ? getListings({ sellerId: seller.id }) : []), [seller]);
   const goods = all.filter((listing) => listing.categoryId !== "services");
@@ -115,7 +120,14 @@ export function StorefrontScreen() {
 
   return (
     <Screen testID="storefront">
-      <AppHeader back />
+      <AppHeader
+        back
+        right={
+          <Pressable accessibilityLabel="More options" accessibilityRole="button" hitSlop={8} onPress={() => setMoreOpen(true)} style={styles.more} testID="store-more">
+            <Icon color={color.heading} name="more-horizontal" size={20} />
+          </Pressable>
+        }
+      />
       <View style={styles.cover}>
         <LinearGradient colors={gradient.ink} end={{ x: 1, y: 1 }} start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
         <View style={styles.coverBubbleA} />
@@ -125,9 +137,17 @@ export function StorefrontScreen() {
             <Avatar name={seller.name} size={64} />
           </View>
           <View style={styles.flex}>
-            <Text numberOfLines={1} style={styles.name}>
-              {seller.name}
-            </Text>
+            <View style={styles.nameRow}>
+              <Text numberOfLines={1} style={[styles.name, styles.nameShrink]}>
+                {seller.name}
+              </Text>
+              {isVerifiedSeller(seller) ? (
+                <View style={styles.verified} testID="verified-badge">
+                  <Icon color={color.ink} name="check-circle" size={11} />
+                  <Text style={styles.verifiedText}>Verified</Text>
+                </View>
+              ) : null}
+            </View>
             <View style={styles.locationRow}>
               <Icon color={color.mist} name="map-pin" size={12} />
               <Text numberOfLines={1} style={styles.location}>
@@ -218,11 +238,41 @@ export function StorefrontScreen() {
           </View>
         )
       ) : null}
+      <Sheet onClose={() => setMoreOpen(false)} title={seller.name} visible={moreOpen}>
+        <Button
+          fullWidth
+          icon="flag"
+          label="Report this store"
+          onPress={() => {
+            setMoreOpen(false);
+            toast.show("Thanks, our team will take a look");
+          }}
+          variant="outline"
+        />
+        <Button
+          fullWidth
+          icon="slash"
+          label={`Block ${seller.name}`}
+          onPress={() => {
+            dispatch({ name: seller.name, type: "blockUser", userId: `seller-${seller.id}` });
+            setMoreOpen(false);
+            toast.show(`${seller.name} blocked. Their listings are hidden`);
+            router.back();
+          }}
+          testID="block-store"
+          variant="danger"
+        />
+      </Sheet>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  more: { alignItems: "center", height: 44, justifyContent: "center", width: 44 },
+  nameRow: { alignItems: "center", flexDirection: "row", gap: 8 },
+  nameShrink: { flexShrink: 1 },
+  verified: { alignItems: "center", backgroundColor: color.mist, borderRadius: 10, flexDirection: "row", gap: 3, paddingHorizontal: 7, paddingVertical: 2 },
+  verifiedText: { color: color.ink, fontSize: 10, fontWeight: "800" },
   actions: { flexDirection: "row", gap: space.sm, marginTop: space.sm },
   avatarRing: { borderColor: color.mist, borderRadius: 36, borderWidth: 2, padding: 2 },
   bio: { marginTop: space.sm },

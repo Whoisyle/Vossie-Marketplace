@@ -10,12 +10,15 @@ import {
   FilterButton,
   Icon,
   ListingCard,
+  ListingsSkeleton,
   Screen,
   SearchBar,
   SectionHeader,
+  useFirstLoad,
   type IconName,
 } from "@/components";
 import { effectivePrice } from "@/data/deals";
+import { hideBlocked } from "@/data/phase4";
 import { formatRand } from "@/data/format";
 import { alternatives, searchListings, suggest, type Suggestion } from "@/data/search";
 import { getCategories, getListings, getSellers } from "@/data/repository";
@@ -47,8 +50,12 @@ export function ExploreScreen() {
   const campusId = state.profile?.campusId ?? null;
 
   const categories = useMemo(() => getCategories(), []);
-  const sellers = useMemo(() => getSellers().filter((seller) => !campusId || seller.campusId === campusId), [campusId]);
-  const everything = useMemo(() => getListings({ campusId }), [campusId]);
+  const sellers = useMemo(
+    () => getSellers().filter((seller) => (!campusId || seller.campusId === campusId) && !state.blocked.some((item) => item.id === `seller-${seller.id}`)),
+    [campusId, state.blocked],
+  );
+  const everything = useMemo(() => hideBlocked(getListings({ campusId }), state.blocked), [campusId, state.blocked]);
+  const loading = useFirstLoad("explore");
   const featured = useMemo(() => [...everything].sort((a, b) => b.rating * 10 + b.ratingCount / 100 - (a.rating * 10 + a.ratingCount / 100)).slice(0, 6), [everything]);
   const topStores = useMemo(() => [...sellers].sort((a, b) => b.rating - a.rating || b.ratingCount - a.ratingCount).slice(0, 8), [sellers]);
   const trending = useMemo(() => [...everything].sort((a, b) => b.ratingCount - a.ratingCount).slice(0, 8), [everything]);
@@ -117,6 +124,15 @@ export function ExploreScreen() {
       </View>
     );
   };
+
+  if (loading) {
+    return (
+      <Screen testID="explore-screen">
+        <AppHeader title="Explore" />
+        <ListingsSkeleton testID="explore-skeleton" />
+      </Screen>
+    );
+  }
 
   return (
     <Screen testID="explore-screen">

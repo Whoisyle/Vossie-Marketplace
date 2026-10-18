@@ -11,7 +11,11 @@ export function Chip({
   onPress,
   selected = false,
   size = "md",
+  disabled = false,
+  testID,
 }: {
+  disabled?: boolean;
+  testID?: string;
   label: string;
   selected?: boolean;
   onPress?: () => void;
@@ -24,14 +28,17 @@ export function Chip({
     <Pressable
       accessibilityLabel={count !== undefined ? `${label}, ${count}` : label}
       accessibilityRole="button"
-      accessibilityState={{ selected }}
+      accessibilityState={{ disabled, selected }}
+      disabled={disabled}
       hitSlop={6}
       onPress={onPress}
+      testID={testID}
       style={({ pressed }) => [
         styles.chip,
         size === "sm" ? styles.small : styles.medium,
         { backgroundColor: selected ? color.accent : color.surfaceSoft },
         pressed && styles.pressed,
+        disabled && { opacity: 0.4 },
       ]}
     >
       {icon ? <Icon name={icon} size={13} color={fg} /> : null}

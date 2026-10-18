@@ -25,10 +25,12 @@ import { ease, seeded, spring } from "@/theme/motion";
 import { color, corner, space, text } from "@/theme/tokens";
 
 import { BrandMark } from "./BrandMark";
+import { slotLabel } from "./CheckoutScreen";
 import { paymentLabels } from "./payment";
 
 /** What the receipt says about when the order arrives. */
-export function arrivalText(order: Pick<Order, "deliveryMode" | "etaMinutes" | "fulfilment">): string {
+export function arrivalText(order: Pick<Order, "deliveryMode" | "etaMinutes" | "fulfilment"> & { scheduledFor?: string }): string {
+  if (order.scheduledFor) return `Scheduled for ${slotLabel(order.scheduledFor)}`;
   if (order.deliveryMode === "hub-to-hub") return "1 to 2 days, collect at your campus hub";
   if (order.etaMinutes) return `About ${order.etaMinutes} min`;
   return order.fulfilment === "delivery" ? "On its way soon" : "Ready soon";

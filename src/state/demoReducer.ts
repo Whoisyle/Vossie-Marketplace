@@ -1,6 +1,7 @@
 import {
   loginEventsSeed,
   returningProfiles,
+  userVouchersSeed,
   savedCardsSeed,
   subscriberDiscountCents,
   vouchers,
@@ -14,9 +15,11 @@ import {
   recentActivitySeed,
 } from "@/data/mock/activity";
 import { reelsSeed, reviewsSeed } from "@/data/mock/content";
-import { effectivePrice } from "@/data/deals";
+import { dealFor, effectivePrice } from "@/data/deals";
 import { deliveryEtaMinutes, deliveryFee, fulfilmentFor, type DeliveryMode, type ThirdPartyTier } from "@/data/delivery";
 import { getListing, getSeller } from "@/data/repository";
+import { invitedSeed, REFERRAL_REWARD_CENTS, referralCodeFor, isSoldOut, voucherProblem, type InvitedFriend, type PriceAlert, type UserVoucher } from "@/data/phase4";
+import { canRedeem, pointsBalance, pointsValueCents } from "@/data/points";
 import { DEFAULT_SETTINGS } from "@/data/settings";
 import { lookupStudentRecord } from "@/data/studentRecord";
 import type {
@@ -32,6 +35,7 @@ import type {
   NotificationItem,
   Order,
   PaymentMethod,
+  PointsEntry,
   Profile,
   Reel,
   Review,
@@ -79,6 +83,8 @@ export type DemoState = {
     remoteMode: DeliveryMode;
     thirdPartyTier: ThirdPartyTier;
     voucherCode: string | null;
+    /** Order for later: the chosen time slot (ISO), or null for as soon as possible. */
+    scheduledFor: string | null;
   };
   orders: Order[];
   bookings: Booking[];
@@ -90,6 +96,13 @@ export type DemoState = {
   twoFactor: boolean;
   settings: AppSettings;
   blocked: BlockedUser[];
+  /** Points history beyond what delivered orders earn: redemptions and awards. */
+  pointsLedger: PointsEntry[];
+  referral: { referredBy: string | null; rewardPaid: boolean; invited: InvitedFriend[] };
+  userVouchers: UserVoucher[];
+  alerts: PriceAlert[];
+  /** Set once the three-card welcome tour has been seen or skipped. */
+  tourSeen: boolean;
   loginEvents: LoginEvent[];
   reels: Reel[];
   likedReels: string[];
@@ -119,6 +132,7 @@ export function createInitialState(): DemoState {
       remoteMode: "hub-to-hub",
       thirdPartyTier: "standard",
       voucherCode: null,
+      scheduledFor: null,
     },
     orders: ordersSeed,
     bookings: bookingsSeed,
@@ -129,6 +143,12 @@ export function createInitialState(): DemoState {
     cards: savedCardsSeed,
     twoFactor: true,
     settings: DEFAULT_SETTINGS,
+    // a demo welcome bonus so there is something to redeem (the seeded past orders earn very little)
+    pointsLedger: [{ createdAt: daysAgoIso(10), id: "pt-welcome", label: "Welcome bonus (demo)", points: 300 }],
+    referral: { invited: invitedSeed, referredBy: null, rewardPaid: false },
+    userVouchers: userVouchersSeed,
+    alerts: [],
+    tourSeen: false,
     blocked: [{ blockedAt: daysAgoIso(12), id: "user-blocked-1", name: "Sam K." }],
     loginEvents: loginEventsSeed,
     reels: reelsSeed,
@@ -173,6 +193,14 @@ export type DemoAction =
   | { type: "unblockUser"; userId: string }
   | { type: "blockUser"; userId: string; name: string }
   | { type: "signOutOtherSessions" }
+  | { type: "deliverOrder"; orderId: string }
+  | { type: "rateCourier"; orderId: string; rating: 1 | 2 | 3 | 4 | 5; tipCents: number }
+  | { type: "redeemPoints"; points: number }
+  | { type: "applyReferral"; code: string }
+  | { type: "setScheduledFor"; iso: string | null }
+  | { type: "toggleAlert"; listingId: string; kind: PriceAlert["kind"] }
+  | { type: "reorder"; orderId: string }
+  | { type: "markTourSeen" }
   | { type: "toggleReelLike"; reelId: string }
   | { type: "addReelComment"; reelId: string; body: string };
 
@@ -252,6 +280,10 @@ function addressFor(mode: DeliveryMode, address: string): string {
   if (mode === "collection") return "Campus collection point";
   if (mode === "hub-to-hub") return "Your campus hub (collect there)";
   return address;
+}
+
+function formatReferral(cents: number): string {
+  return `R ${Math.round(cents / 100)}`;
 }
 
 function daysAgoIso(days: number): string {
@@ -407,8 +439,15 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
         ...state,
         checkout: { ...state.checkout, payment: action.payment, cardId: action.cardId ?? state.checkout.cardId, bank: action.bank ?? state.checkout.bank },
       };
-    case "applyVoucher":
+    case "applyVoucher": {
+      if (action.code) {
+        const owned = state.userVouchers.find((item) => item.code === action.code);
+        if (voucherProblem(owned, cartTotals(state).subtotalCents)) return state;
+      }
       return { ...state, checkout: { ...state.checkout, voucherCode: action.code } };
+    }
+    case "setScheduledFor":
+      return { ...state, checkout: { ...state.checkout, scheduledFor: action.iso } };
     case "placeOrder": {
       if (state.cart.length === 0) return state;
       const totals = cartTotals(state);
@@ -457,7 +496,8 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
           discountCents: discount,
           totalCents: subtotal + delivery - discount,
           placedAt,
-          etaMinutes: deliveryEtaMinutes(mode, state.checkout.thirdPartyTier),
+          scheduledFor: state.checkout.scheduledFor ?? undefined,
+          etaMinutes: state.checkout.scheduledFor ? undefined : deliveryEtaMinutes(mode, state.checkout.thirdPartyTier),
           destination: fulfilmentFor(mode) === "delivery" ? (state.checkout.addressPoint ?? undefined) : undefined,
         };
       });
@@ -481,21 +521,35 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       };
       const paidFromWallet = state.checkout.payment === "wallet";
       if (paidFromWallet && state.wallet.balanceCents < totals.totalCents) return state;
+      // the first order after entering a friend's code earns the referral credit
+      const referralDue = Boolean(state.referral.referredBy) && !state.referral.rewardPaid;
+      const spent = paidFromWallet ? totals.totalCents : 0;
+      const wallet = {
+        balanceCents: state.wallet.balanceCents - spent + (referralDue ? REFERRAL_REWARD_CENTS : 0),
+        transactions: [
+          ...(referralDue
+            ? [{ id: nextId("tx"), label: `Referral credit (${state.referral.referredBy})`, amountCents: REFERRAL_REWARD_CENTS, createdAt: placedAt }]
+            : []),
+          ...(paidFromWallet
+            ? [{ id: nextId("tx"), label: `Order ${receipt.number}`, amountCents: -totals.totalCents, createdAt: placedAt }]
+            : []),
+          ...state.wallet.transactions,
+        ],
+      };
       return {
         ...state,
-        wallet: paidFromWallet
-          ? {
-              balanceCents: state.wallet.balanceCents - totals.totalCents,
-              transactions: [
-                { id: nextId("tx"), label: `Order ${receipt.number}`, amountCents: -totals.totalCents, createdAt: placedAt },
-                ...state.wallet.transactions,
-              ],
-            }
-          : state.wallet,
+        wallet,
+        referral: referralDue ? { ...state.referral, rewardPaid: true } : state.referral,
         orders: [...orders, ...state.orders],
         cart: [],
-        checkout: { ...state.checkout, voucherCode: null },
-        notifications: [notification, ...state.notifications],
+        checkout: { ...state.checkout, scheduledFor: null, voucherCode: null },
+        notifications: [
+          ...(referralDue
+            ? [{ id: nextId("n"), title: "Referral credit added", body: `${formatReferral(REFERRAL_REWARD_CENTS)} landed in your wallet.`, createdAt: placedAt, read: false }]
+            : []),
+          notification,
+          ...state.notifications,
+        ],
         lastReceipt: receipt,
       };
     }
@@ -573,6 +627,103 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
           conversation.id === action.conversationId ? { ...conversation, unread: false } : conversation,
         ),
       };
+    case "deliverOrder": {
+      const order = state.orders.find((item) => item.id === action.orderId);
+      if (!order || order.status === "delivered" || order.status === "cancelled") return state;
+      const earned = Math.floor(order.totalCents / 1000);
+      return {
+        ...state,
+        orders: state.orders.map((item) => (item.id === order.id ? { ...item, status: "delivered", deliveredAt: new Date().toISOString() } : item)),
+        notifications: [
+          { id: nextId("n"), title: "Order delivered", body: `Order ${order.number} arrived. You earned ${earned} Vossie points.`, createdAt: new Date().toISOString(), read: false, href: `/activity/order/${order.id}` },
+          ...state.notifications,
+        ],
+      };
+    }
+    case "rateCourier": {
+      const order = state.orders.find((item) => item.id === action.orderId);
+      if (!order || order.status !== "delivered" || order.courierRating) return state;
+      // a tip comes off the wallet when the order was paid from it and there is enough; otherwise it goes to the order's payment method
+      const fromWallet = action.tipCents > 0 && order.paymentMethod === "wallet" && state.wallet.balanceCents >= action.tipCents;
+      return {
+        ...state,
+        orders: state.orders.map((item) => (item.id === order.id ? { ...item, courierRating: action.rating, tipCents: action.tipCents } : item)),
+        wallet: fromWallet
+          ? {
+              balanceCents: state.wallet.balanceCents - action.tipCents,
+              transactions: [
+                { id: nextId("tx"), label: `Tip for ${order.courier?.name ?? "your courier"}`, amountCents: -action.tipCents, createdAt: new Date().toISOString() },
+                ...state.wallet.transactions,
+              ],
+            }
+          : state.wallet,
+      };
+    }
+    case "redeemPoints": {
+      const balance = pointsBalance(state.orders, state.pointsLedger);
+      if (!canRedeem(balance, action.points)) return state;
+      const cents = pointsValueCents(action.points);
+      const at = new Date().toISOString();
+      return {
+        ...state,
+        pointsLedger: [{ id: nextId("pt"), label: "Redeemed for wallet credit", points: -action.points, createdAt: at }, ...state.pointsLedger],
+        wallet: {
+          balanceCents: state.wallet.balanceCents + cents,
+          transactions: [{ id: nextId("tx"), label: `${action.points} points redeemed`, amountCents: cents, createdAt: at }, ...state.wallet.transactions],
+        },
+      };
+    }
+    case "applyReferral": {
+      const code = action.code.trim().toUpperCase();
+      if (state.referral.referredBy || !state.profile) return state;
+      if (code === referralCodeFor(state.profile.fullName || state.profile.email, state.profile.studentNumber)) return state;
+      return { ...state, referral: { ...state.referral, referredBy: code } };
+    }
+    case "toggleAlert": {
+      const exists = state.alerts.some((item) => item.listingId === action.listingId && item.kind === action.kind);
+      if (exists) return { ...state, alerts: state.alerts.filter((item) => !(item.listingId === action.listingId && item.kind === action.kind)) };
+      const listing = getListing(action.listingId);
+      if (!listing) return state;
+      const now = new Date().toISOString();
+      const alert: PriceAlert = { kind: action.kind, listingId: listing.id, priceCents: listing.priceCents, setAt: now };
+      // a price-drop alert on something already discounted, or a back-in-stock alert on something that is in stock, fires straight away
+      const fireNow =
+        (action.kind === "price-drop" && dealFor(listing.id) > 0) || (action.kind === "back-in-stock" && !isSoldOut(listing.id));
+      return {
+        ...state,
+        alerts: [...state.alerts, alert],
+        notifications: fireNow
+          ? [
+              {
+                id: nextId("n"),
+                title: action.kind === "price-drop" ? "Price drop" : "Back in stock",
+                body: action.kind === "price-drop" ? `${listing.title} is now ${dealFor(listing.id)}% off.` : `${listing.title} is available.`,
+                createdAt: now,
+                read: false,
+                href: `/home/listing/${listing.id}`,
+              },
+              ...state.notifications,
+            ]
+          : state.notifications,
+      };
+    }
+    case "reorder": {
+      const order = state.orders.find((item) => item.id === action.orderId);
+      if (!order) return state;
+      let cart = state.cart;
+      for (const line of order.lines) {
+        const listing = getListing(line.listingId);
+        if (!listing || isSoldOut(listing.id)) continue;
+        const optionId = listing.options.find((option) => option.label === line.optionLabel)?.id;
+        const existing = cart.find((item) => item.listingId === line.listingId && item.optionId === optionId);
+        cart = existing
+          ? cart.map((item) => (item.id === existing.id ? { ...item, quantity: item.quantity + line.quantity } : item))
+          : [...cart, { id: nextId("line"), listingId: line.listingId, optionId, quantity: line.quantity }];
+      }
+      return { ...state, cart };
+    }
+    case "markTourSeen":
+      return { ...state, tourSeen: true };
     case "markNotificationsRead":
       return { ...state, notifications: state.notifications.map((item) => ({ ...item, read: true })) };
     case "setSetting":

@@ -6,6 +6,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { AppHeader, Button, EmptyState, Icon, ListingCard, Screen, SectionHeader, type IconName } from "@/components";
 import { dealFor } from "@/data/deals";
+import { hideBlocked } from "@/data/phase4";
 import { getPromo, promoListings, promoPercent, promoTargetName } from "@/data/promos";
 import { getCategory } from "@/data/repository";
 import type { Listing } from "@/data/types";
@@ -25,7 +26,10 @@ export function PromoScreen() {
   const open = useDetail();
   const { dispatch, state } = useDemoStore();
   const promo = getPromo(id);
-  const { deals, others } = useMemo(() => (promo ? promoListings(promo) : { deals: [], others: [] }), [promo]);
+  const { deals, others } = useMemo(() => {
+    const found = promo ? promoListings(promo) : { deals: [], others: [] };
+    return { deals: hideBlocked(found.deals, state.blocked), others: hideBlocked(found.others, state.blocked) };
+  }, [promo, state.blocked]);
 
   if (!promo) {
     return (

@@ -7,9 +7,11 @@ import {
   Button,
   Card,
   EmptyState,
+  Chip,
   Icon,
   RadioRow,
   Screen,
+  Sheet,
   useToast,
 } from "@/components";
 import {
@@ -22,6 +24,9 @@ import {
 import { formatRand } from "@/data/format";
 import { getListing } from "@/data/repository";
 import { vouchers } from "@/data/mock/account";
+import { scheduleSlots, voucherProblem } from "@/data/phase4";
+import { confirmWithBiometrics } from "@/lib/biometric";
+import { useOnline } from "@/lib/useOnline";
 import type { PaymentMethod } from "@/data/types";
 import { BrandMark } from "./BrandMark";
 import { DeliveryGroup } from "./DeliveryChoice";
@@ -42,6 +47,11 @@ export function CheckoutScreen() {
   const [placing, setPlacing] = useState(false);
   const [payState, setPayState] = useState<PayState>("idle");
   const [payError, setPayError] = useState<string | null>(null);
+  const [slotsOpen, setSlotsOpen] = useState(false);
+  const [slotDay, setSlotDay] = useState<"Today" | "Tomorrow">("Today");
+  const online = useOnline();
+  const [now] = useState(() => Date.now());
+  const liveVouchers = state.userVouchers.filter((item) => new Date(item.expiresAt).getTime() >= now);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
@@ -94,10 +104,15 @@ export function CheckoutScreen() {
     dispatch({ cardId: method === "card" ? card?.id : undefined, payment: method, type: "setPayment" });
   };
 
-  const applyVoucher = () => {
-    const code = voucherInput.trim().toUpperCase();
+  const applyCode = (raw: string) => {
+    const code = raw.trim().toUpperCase();
     if (!vouchers[code]) {
       setVoucherError("That code isn't valid.");
+      return;
+    }
+    const problem = voucherProblem(state.userVouchers.find((item) => item.code === code), totals.subtotalCents);
+    if (problem) {
+      setVoucherError(problem);
       return;
     }
     setVoucherError(null);
@@ -105,8 +120,29 @@ export function CheckoutScreen() {
     setVoucherInput("");
     toast.show(`${vouchers[code].label} applied`);
   };
+  const applyVoucher = () => applyCode(voucherInput);
 
   const pay = () => {
+    if (!online) {
+      setPayError("You're offline. Reconnect to pay.");
+      setPayState("failed");
+      return;
+    }
+    if (state.settings.biometric) {
+      setPayError(null);
+      void confirmWithBiometrics(true, "Confirm your payment").then((ok) => {
+        if (ok) startPayment();
+        else {
+          setPayError("Payment cancelled. Face ID or your passcode wasn't confirmed.");
+          setPayState("failed");
+        }
+      });
+      return;
+    }
+    startPayment();
+  };
+
+  const startPayment = () => {
     const outcome = checkPayment({
       bank: state.checkout.bank,
       hasCard: Boolean(card),
@@ -193,6 +229,36 @@ export function CheckoutScreen() {
             </Text>
             <Text style={styles.edit}>{state.checkout.addressPoint ? "Change" : "Pin on map"}</Text>
           </Card>
+        </>
+      ) : null}
+
+      {hasLocal ? (
+        <>
+          <Text style={styles.heading}>When?</Text>
+          <View style={styles.when}>
+            <Pressable
+              accessibilityRole="radio"
+              accessibilityState={{ checked: !state.checkout.scheduledFor }}
+              onPress={() => dispatch({ iso: null, type: "setScheduledFor" })}
+              style={[styles.whenCard, !state.checkout.scheduledFor && styles.whenOn]}
+              testID="when-now"
+            >
+              <Icon color={!state.checkout.scheduledFor ? color.onPrimary : color.heading} name="zap" size={16} />
+              <Text style={[styles.whenText, !state.checkout.scheduledFor && styles.whenTextOn]}>As soon as possible</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="radio"
+              accessibilityState={{ checked: Boolean(state.checkout.scheduledFor) }}
+              onPress={() => setSlotsOpen(true)}
+              style={[styles.whenCard, Boolean(state.checkout.scheduledFor) && styles.whenOn]}
+              testID="when-later"
+            >
+              <Icon color={state.checkout.scheduledFor ? color.onPrimary : color.heading} name="clock" size={16} />
+              <Text style={[styles.whenText, Boolean(state.checkout.scheduledFor) && styles.whenTextOn]}>
+                {state.checkout.scheduledFor ? slotLabel(state.checkout.scheduledFor) : "Order for later"}
+              </Text>
+            </Pressable>
+          </View>
         </>
       ) : null}
 
@@ -285,6 +351,23 @@ export function CheckoutScreen() {
             <Button disabled={!voucherInput.trim()} label="Apply" onPress={applyVoucher} size="sm" />
           </View>
           {voucherError ? <Text style={styles.error}>{voucherError}</Text> : null}
+          {liveVouchers.length > 0 ? (
+            <View style={styles.myVouchers}>
+              <Text style={text.caption}>Your vouchers</Text>
+              <View style={styles.voucherChips}>
+                {liveVouchers.map((item) => (
+                    <Chip
+                      disabled={Boolean(voucherProblem(item, totals.subtotalCents))}
+                      icon="tag"
+                      key={item.code}
+                      label={`${item.code} · ${item.label}`}
+                      onPress={() => applyCode(item.code)}
+                      testID={`use-voucher-${item.code}`}
+                    />
+                  ))}
+              </View>
+            </View>
+          ) : null}
         </>
       )}
 
@@ -304,8 +387,40 @@ export function CheckoutScreen() {
         <SummaryRow bold label="Total" value={formatRand(totals.totalCents, { fixed: true })} />
       </Card>
 
+      <Sheet onClose={() => setSlotsOpen(false)} title="Order for later" visible={slotsOpen}>
+        <View style={styles.dayRow}>
+          {(["Today", "Tomorrow"] as const).map((day) => (
+            <Chip key={day} label={day} onPress={() => setSlotDay(day)} selected={slotDay === day} />
+          ))}
+        </View>
+        <View style={styles.slotGrid}>
+          {scheduleSlots().filter((slot) => slot.day === slotDay).map((slot) => (
+            <Chip
+              key={slot.iso}
+              label={slot.label}
+              onPress={() => {
+                dispatch({ iso: slot.iso, type: "setScheduledFor" });
+                setSlotsOpen(false);
+              }}
+              selected={state.checkout.scheduledFor === slot.iso}
+              testID={`slot-${slot.label}`}
+            />
+          ))}
+        </View>
+        {scheduleSlots().every((slot) => slot.day !== slotDay) ? <Text style={text.bodySmall}>No more slots today. Pick tomorrow.</Text> : null}
+        <Text style={text.caption}>The seller is reminded before your time so it is ready when you are.</Text>
+      </Sheet>
     </Screen>
   );
+}
+
+/** "Today 14:30" or "Tomorrow 09:00" for a chosen slot. */
+export function slotLabel(iso: string, now: Date = new Date()): string {
+  const at = new Date(iso);
+  const sameDay = at.toDateString() === now.toDateString();
+  const hh = String(at.getHours()).padStart(2, "0");
+  const mm = String(at.getMinutes()).padStart(2, "0");
+  return `${sameDay ? "Today" : "Tomorrow"} ${hh}:${mm}`;
 }
 
 function SummaryRow({ bold = false, label, value }: { label: string; value: string; bold?: boolean }) {
@@ -327,6 +442,15 @@ const styles = StyleSheet.create({
   banks: { flexDirection: "row", flexWrap: "wrap", gap: space.xs, paddingBottom: space.xs, paddingLeft: space.xl },
   payError: { color: color.danger, fontSize: 13, marginBottom: space.xs, textAlign: "center" },
   hint: { ...text.caption, marginTop: space.xs },
+  dayRow: { flexDirection: "row", gap: space.xs, marginBottom: space.sm },
+  myVouchers: { gap: space.xxs, marginTop: space.xs },
+  slotGrid: { flexDirection: "row", flexWrap: "wrap", gap: space.xs, marginBottom: space.sm },
+  voucherChips: { flexDirection: "row", flexWrap: "wrap", gap: space.xs },
+  when: { flexDirection: "row", gap: space.xs },
+  whenCard: { alignItems: "center", backgroundColor: color.surfaceSoft, borderCurve: "continuous", borderRadius: corner.md, flex: 1, flexDirection: "row", gap: 6, minHeight: 52, padding: space.sm },
+  whenOn: { backgroundColor: color.accent },
+  whenText: { color: color.heading, flex: 1, fontSize: 13, fontWeight: "700" },
+  whenTextOn: { color: color.onPrimary },
   addressCard: { alignItems: "center", flexDirection: "row", gap: space.sm },
   addressText: { ...text.body, flex: 1 },
   appliedRow: { alignItems: "center", flexDirection: "row", gap: space.sm },

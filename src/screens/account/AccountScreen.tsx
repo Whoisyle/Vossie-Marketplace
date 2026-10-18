@@ -35,12 +35,13 @@ export function AccountScreen() {
   const { dispatch, state } = useDemoStore();
   const [roleOpen, setRoleOpen] = useState(false);
   const [deliveryOpen, setDeliveryOpen] = useState(false);
+  const [now] = useState(() => Date.now());
   const profile = state.profile;
   if (!profile) return null;
 
   const go = (path: string) => router.push(path as Href);
   const unread = state.conversations.filter((item) => item.unread).length;
-  const points = pointsBalance(state.orders);
+  const points = pointsBalance(state.orders, state.pointsLedger);
   const tier = tierFor(points);
   const upcoming = nextTier(points);
 
@@ -57,7 +58,7 @@ export function AccountScreen() {
         />
       </View>
 
-      <Card onPress={() => go("/account/wallet")} style={styles.points} testID="points-card" variant="soft">
+      <Card onPress={() => go("/account/points")} style={styles.points} testID="points-card" variant="soft">
         <View style={styles.pointsTop}>
           <View style={styles.flex}>
             <Text style={text.caption}>Vossie Points · {tier.label}</Text>
@@ -81,7 +82,7 @@ export function AccountScreen() {
         ) : (
           <Text style={text.caption}>You are at the top tier.</Text>
         )}
-        <Text style={text.caption}>Earn 1 point for every R10 you spend. Redeeming points comes soon.</Text>
+        <Text style={text.caption}>Earn 1 point for every R10 you spend. Tap to redeem or see your history.</Text>
       </Card>
 
       <Card style={styles.facts}>
@@ -95,6 +96,9 @@ export function AccountScreen() {
         <MenuRow icon="truck" label="Delivery preferences" onPress={() => setDeliveryOpen(true)} value={state.preferredDelivery ? deliveryLabels[state.preferredDelivery] : "Auto-pick"} />
         <MenuRow icon="edit-2" label="Edit Profile" onPress={() => go("/account/edit-profile")} />
         <MenuRow icon="credit-card" label="Wallet" onPress={() => go("/account/wallet")} />
+        <MenuRow icon="award" label="Vossie Points" onPress={() => go("/account/points")} value={`${points.toLocaleString("en-ZA")} pts`} />
+        <MenuRow icon="tag" label="My vouchers" onPress={() => go("/account/vouchers")} value={`${state.userVouchers.filter((item) => new Date(item.expiresAt).getTime() >= now).length} active`} />
+        <MenuRow icon="gift" label="Refer a friend" onPress={() => go("/account/referral")} />
         <MenuRow
           icon="mail"
           label="Inbox"

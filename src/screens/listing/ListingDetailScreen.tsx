@@ -13,10 +13,12 @@ import {
   Media,
   QuantityStepper,
   Screen,
+  Sheet,
   StarRating,
   useToast,
 } from "@/components";
 import { dealFor, effectivePrice } from "@/data/deals";
+import { isSoldOut, isVerifiedSeller } from "@/data/phase4";
 import { formatRand } from "@/data/format";
 import { getListing, getSeller } from "@/data/repository";
 import { useDetail } from "@/lib/paths";
@@ -37,6 +39,7 @@ export function ListingDetailScreen() {
     listing?.options[1]?.id ?? listing?.options[0]?.id,
   );
   const [quantity, setQuantity] = useState(1);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   // remember what was looked at for Home's recents and recommendations
   useEffect(() => {
@@ -62,6 +65,8 @@ export function ListingDetailScreen() {
   const percent = dealFor(listing.id);
   const unit = effectivePrice(listing, option?.priceCents ?? listing.priceCents);
   const favourite = state.favourites.includes(listing.id);
+  const soldOut = isSoldOut(listing.id);
+  const hasAlert = (kind: "price-drop" | "back-in-stock") => state.alerts.some((item) => item.listingId === listing.id && item.kind === kind);
   const following = seller ? state.following.includes(seller.id) : false;
   const thumbs = listing.images.length > 1 ? listing.images : [];
   const imageCount = Math.max(listing.images.length, 1);
@@ -80,20 +85,41 @@ export function ListingDetailScreen() {
     <Screen
       footer={
         <View style={styles.footer}>
-          <QuantityStepper onChange={setQuantity} value={quantity} />
+          {soldOut ? null : <QuantityStepper onChange={setQuantity} value={quantity} />}
           <View style={styles.flex}>
-            <Button
-              fullWidth
-              icon="shopping-cart"
-              label={`Add to Cart · ${formatRand(unit * quantity)}`}
-              onPress={addToCart}
-              testID="add-to-cart"
-            />
+            {soldOut ? (
+              <Button
+                fullWidth
+                icon="bell"
+                label={hasAlert("back-in-stock") ? "We'll tell you when it's back" : "Sold out · Notify me"}
+                onPress={() => {
+                  dispatch({ kind: "back-in-stock", listingId: listing.id, type: "toggleAlert" });
+                  toast.show(hasAlert("back-in-stock") ? "Alert removed" : "We'll let you know when it's back");
+                }}
+                testID="notify-back-in-stock"
+                variant={hasAlert("back-in-stock") ? "outline" : "primary"}
+              />
+            ) : (
+              <Button
+                fullWidth
+                icon="shopping-cart"
+                label={`Add to Cart · ${formatRand(unit * quantity)}`}
+                onPress={addToCart}
+                testID="add-to-cart"
+              />
+            )}
           </View>
         </View>
       }
     >
-      <AppHeader back />
+      <AppHeader
+        back
+        right={
+          <Pressable accessibilityLabel="More options" accessibilityRole="button" hitSlop={8} onPress={() => setMoreOpen(true)} style={styles.more} testID="listing-more">
+            <Icon color={color.heading} name="more-horizontal" size={20} />
+          </Pressable>
+        }
+      />
       <View style={styles.gallery}>
         <View style={styles.hero}>
           <Media
@@ -165,6 +191,32 @@ export function ListingDetailScreen() {
         />
       </View>
 
+      {soldOut ? (
+        <View style={styles.soldOut}>
+          <Icon color={color.warning} name="alert-circle" size={16} />
+          <Text style={styles.soldOutText}>Sold out right now</Text>
+        </View>
+      ) : null}
+
+      <View style={styles.alerts}>
+        <Pressable
+          accessibilityLabel="Tell me when the price drops"
+          accessibilityRole="switch"
+          accessibilityState={{ checked: hasAlert("price-drop") }}
+          onPress={() => {
+            dispatch({ kind: "price-drop", listingId: listing.id, type: "toggleAlert" });
+            toast.show(hasAlert("price-drop") ? "Price alert removed" : "We'll tell you when the price drops");
+          }}
+          style={[styles.alertChip, hasAlert("price-drop") && styles.alertChipOn]}
+          testID="alert-price-drop"
+        >
+          <Icon color={hasAlert("price-drop") ? color.onPrimary : color.heading} name="trending-down" size={14} />
+          <Text style={[styles.alertText, hasAlert("price-drop") && styles.alertTextOn]}>
+            {hasAlert("price-drop") ? "Price alert on" : "Alert me if the price drops"}
+          </Text>
+        </Pressable>
+      </View>
+
       <View style={styles.pills}>
         <Info icon="clock" label={listing.openHours} />
         <Info icon="package" label={`Ready in ${listing.pickupTime}`} />
@@ -175,10 +227,14 @@ export function ListingDetailScreen() {
         <Card onPress={() => router.push(open("store", seller.id))} style={styles.sellerCard} variant="soft">
           <Avatar name={seller.name} size={48} />
           <View style={styles.flex}>
-            <Text numberOfLines={1} style={text.cardTitle}>
-              {seller.name}
-            </Text>
+            <View style={styles.nameRow}>
+              <Text numberOfLines={1} style={[text.cardTitle, styles.nameText]}>
+                {seller.name}
+              </Text>
+              {isVerifiedSeller(seller) ? <Icon color={color.link} name="check-circle" size={15} /> : null}
+            </View>
             <Text numberOfLines={1} style={text.caption}>
+              {isVerifiedSeller(seller) ? "Verified seller · " : ""}
               {seller.location}
             </Text>
           </View>
@@ -230,6 +286,33 @@ export function ListingDetailScreen() {
           </View>
         </>
       ) : null}
+      <Sheet onClose={() => setMoreOpen(false)} title={listing.title} visible={moreOpen}>
+        <Button
+          fullWidth
+          icon="flag"
+          label="Report this listing"
+          onPress={() => {
+            setMoreOpen(false);
+            toast.show("Thanks, our team will take a look");
+          }}
+          variant="outline"
+        />
+        {seller ? (
+          <Button
+            fullWidth
+            icon="slash"
+            label={`Block ${seller.name}`}
+            onPress={() => {
+              dispatch({ name: seller.name, type: "blockUser", userId: `seller-${seller.id}` });
+              setMoreOpen(false);
+              toast.show(`${seller.name} blocked. Their listings are hidden`);
+              router.back();
+            }}
+            testID="block-seller"
+            variant="danger"
+          />
+        ) : null}
+      </Sheet>
     </Screen>
   );
 }
@@ -246,6 +329,16 @@ function Info({ icon, label }: { icon: "clock" | "package" | "map-pin"; label: s
 }
 
 const styles = StyleSheet.create({
+  alertChip: { alignItems: "center", alignSelf: "flex-start", backgroundColor: color.surfaceSoft, borderRadius: 18, flexDirection: "row", gap: 6, minHeight: 36, paddingHorizontal: 12 },
+  alertChipOn: { backgroundColor: color.primary },
+  alertText: { color: color.heading, fontSize: 13, fontWeight: "600" },
+  alertTextOn: { color: color.onPrimary },
+  alerts: { marginTop: space.sm },
+  more: { alignItems: "center", height: 44, justifyContent: "center", width: 44 },
+  nameRow: { alignItems: "center", flexDirection: "row", gap: 5 },
+  nameText: { flexShrink: 1 },
+  soldOut: { alignItems: "center", backgroundColor: color.warningSoft, borderRadius: 12, flexDirection: "row", gap: 6, marginTop: space.sm, padding: space.sm },
+  soldOutText: { color: color.warning, fontSize: 13, fontWeight: "700" },
   counter: {
     backgroundColor: "rgba(30, 43, 51, 0.55)",
     borderRadius: corner.pill,
