@@ -1,8 +1,78 @@
-# Supabase configuration for Vossie Marketplace
-# This file is committed; secrets live in ignored .env files only.
+# Supabase configuration for Vossie Marketplace (local development with the Supabase CLI).
+# This file is committed; secrets live in ignored .env files and in Supabase secret storage only.
 
 project_id = "vossie-marketplace"
-db_port = 5432
-studio_port = 54323
-inbucket_port = 54324
-api_port = 54321
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+extra_search_path = ["public", "extensions"]
+max_rows = 200
+
+[db]
+port = 54322
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "exp://127.0.0.1:8081"
+additional_redirect_urls = ["exp://127.0.0.1:8081", "http://localhost:8081", "vossiemarketplace://"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+# Demo sign-in is an email one-time code (OTP). Replace with Eduvos Entra OIDC when the contract exists.
+enable_confirmations = false
+secure_password_change = true
+max_frequency = "60s"
+otp_length = 6
+otp_expiry = 3600
+
+[auth.rate_limit]
+email_sent = 4
+sign_in_sign_ups = 30
+token_verifications = 30
+
+# Rejects demo sign-ups outside the demo email domain. See public.hook_before_user_created.
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/public/hook_before_user_created"
+
+[edge_runtime]
+enabled = true
+policy = "per_worker"
+
+[functions.payments-create]
+verify_jwt = true
+
+[functions.payments-mock-capture]
+verify_jwt = true
+
+# Provider webhooks carry no Supabase JWT; they are authenticated by signature instead.
+[functions.payments-webhook]
+verify_jwt = false
+
+[functions.notify-dispatch]
+verify_jwt = false

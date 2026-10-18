@@ -63,6 +63,8 @@ create table public.notifications (
   data jsonb not null default '{}',
   read_at timestamptz,
   email_required boolean not null default false,
+  push_sent_at timestamptz,
+  email_sent_at timestamptz,
   created_at timestamptz not null default now()
 );
 create index notifications_user_idx on public.notifications (user_id, created_at desc);
