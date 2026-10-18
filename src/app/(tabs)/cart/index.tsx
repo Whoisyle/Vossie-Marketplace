@@ -1,5 +1,5 @@
-import { UpcomingScreen } from "@/screens/shared/UpcomingScreen";
+import { CartScreen } from "@/screens/cart/CartScreen";
 
 export default function CartTab() {
-  return <UpcomingScreen icon="shopping-cart" step={3} title="Checkout" />;
+  return <CartScreen />;
 }
