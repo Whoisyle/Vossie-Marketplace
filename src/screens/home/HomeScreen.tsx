@@ -97,7 +97,7 @@ export function HomeScreen() {
                   favourite={state.favourites.includes(listing.id)}
                   key={listing.id}
                   listing={listing}
-                  onPress={() => router.push(`/listing/${listing.id}` as Href)}
+                  onPress={() => router.push(`/home/listing/${listing.id}` as Href)}
                   onToggleFavourite={() => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
                 />
               ))}
