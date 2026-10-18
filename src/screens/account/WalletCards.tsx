@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -9,11 +9,13 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from "react-native-reanimated";
+import Svg, { Path } from "react-native-svg";
 
 import { Icon } from "@/components";
-import { cardHeight } from "@/components/StudentCard";
+import { landscapeHeight } from "@/components/StudentCard";
 import { formatRand } from "@/data/format";
 import type { SavedCard } from "@/data/types";
 import { haptic } from "@/lib/haptics";
@@ -22,14 +24,19 @@ import { color, corner, gradient, space } from "@/theme/tokens";
 
 import { BrandMark } from "../cart/BrandMark";
 
-/** Cards are drawn at real card proportions (85.6 x 54 mm, held upright). */
-export const WALLET_CARD_WIDTH = 210;
-export const WALLET_CARD_HEIGHT = cardHeight(WALLET_CARD_WIDTH);
+/** Cards are drawn landscape at real card proportions (85.6 x 54 mm). */
+export const WALLET_CARD_WIDTH = 300;
+export const WALLET_CARD_HEIGHT = landscapeHeight(WALLET_CARD_WIDTH);
+const GAP = space.sm;
+
+/** The card width that fits the screen, leaving the next card peeking in at the edge. */
+export function walletCardWidth(screenWidth: number): number {
+  return Math.min(340, Math.max(260, screenWidth - space.lg * 2 - 28));
+}
 
 /** How long the carousel stays on a card before moving on, and how long it waits after a touch. */
 export const WALLET_AUTO_MS = 3800;
 export const WALLET_RESUME_MS = 6000;
-const GAP = space.sm;
 
 export type WalletItem =
   | { kind: "card"; id: string; card: SavedCard }
@@ -61,32 +68,70 @@ export function walletItems(input: {
   ];
 }
 
-/** Medium, upright cards in a swipeable row. The one in the middle is lifted; the others sit back a little. */
-/** The face of one saved card, drawn at card size; also used as the live preview when editing a card. */
-export function CardFace({ card, width = WALLET_CARD_WIDTH }: { card: SavedCard; width?: number }) {
-  const look = lookFor({ card, id: card.id, kind: "card" });
+/**
+ * The face of a payment card: a deep gradient with soft wave lines, drawn at real card proportions. Everything on
+ * the wallet screen that looks like a card (saved cards, the balance, the edit preview) is built on this.
+ */
+export function CardSurface({
+  children,
+  colors,
+  dashed = false,
+  testID,
+  width,
+}: {
+  width: number;
+  colors?: readonly [string, string];
+  dashed?: boolean;
+  children?: ReactNode;
+  testID?: string;
+}) {
+  const height = landscapeHeight(width);
   return (
-    <View style={[styles.card, { height: cardHeight(width), width }]} testID="card-face">
-      {look.colors ? <LinearGradient colors={look.colors} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} /> : null}
-      <View pointerEvents="none" style={styles.bubble} />
-      <View style={styles.top}>
-        <BrandMark kind={card.brand} />
-        {look.tag ? (
-          <View style={styles.tag}>
-            <Text style={styles.tagText}>{look.tag}</Text>
-          </View>
-        ) : null}
-      </View>
-      <View style={styles.chip} />
-      <View style={styles.bottom}>
-        <Text style={[styles.title, styles.onDark]}>{look.title}</Text>
-        <Text style={[styles.sub, styles.onDarkMuted]}>{look.sub}</Text>
-        {look.foot ? <Text style={[styles.foot, styles.onDarkMuted]}>{look.foot}</Text> : null}
-      </View>
+    <View style={[styles.card, dashed && styles.dashed, { height, width }]} testID={testID}>
+      {colors ? <LinearGradient colors={colors} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} /> : null}
+      {colors ? (
+        <Svg height={height} pointerEvents="none" style={StyleSheet.absoluteFill} width={width}>
+          {[0, 1, 2, 3, 4].map((line) => (
+            <Path
+              d={`M ${-20} ${height * (0.35 + line * 0.09)} C ${width * 0.3} ${height * (0.05 + line * 0.1)}, ${width * 0.55} ${height * (0.95 - line * 0.08)}, ${width + 20} ${height * (0.3 + line * 0.07)}`}
+              fill="none"
+              key={line}
+              stroke="rgba(255,255,255,0.13)"
+              strokeWidth={1}
+            />
+          ))}
+        </Svg>
+      ) : null}
+      <View style={styles.inner}>{children}</View>
     </View>
   );
 }
 
+/** The face of one saved card; also used as the live preview when editing a card. */
+export function CardFace({ card, width = WALLET_CARD_WIDTH }: { card: SavedCard; width?: number }) {
+  const mc = card.brand === "mastercard";
+  return (
+    <CardSurface colors={mc ? ["#10161F", "#1B2B3C"] : ["#16243A", "#2A5B6B"]} testID="card-face" width={width}>
+      <View style={styles.row}>
+        <Text style={styles.bank}>Vossie</Text>
+        <Text style={styles.tier}>{card.isDefault ? "Default · " : ""}{mc ? "Mastercard" : "Visa"}</Text>
+      </View>
+      <Text style={styles.number}>•••• •••• •••• {card.last4}</Text>
+      <View style={styles.rowEnd}>
+        <View style={styles.flex}>
+          <Text style={styles.small}>VALID THRU</Text>
+          <Text style={styles.value}>{card.expiry}</Text>
+          <Text numberOfLines={1} style={styles.holder}>
+            {(card.holder || "Cardholder").toUpperCase()}
+          </Text>
+        </View>
+        <BrandMark kind={card.brand} />
+      </View>
+    </CardSurface>
+  );
+}
+
+/** Landscape cards in a swipeable row that moves on by itself. The next card peeks in at the edge. */
 export function WalletCarousel({
   items,
   onAdd,
@@ -101,9 +146,11 @@ export function WalletCarousel({
   /** Tapping a saved card opens it for editing. */
   onEditCard: (cardId: string) => void;
 }) {
+  const { width: screenWidth } = useWindowDimensions();
+  const cardWidth = walletCardWidth(screenWidth);
   const scroller = useRef<ScrollView>(null);
   const reduced = useReducedMotion();
-  const snap = WALLET_CARD_WIDTH + GAP;
+  const snap = cardWidth + GAP;
   const pausedUntil = useRef(0);
   const current = useRef(selected);
   useEffect(() => {
@@ -133,7 +180,7 @@ export function WalletCarousel({
   return (
     <View>
       <ScrollView
-        contentContainerStyle={styles.row}
+        contentContainerStyle={styles.scrollRow}
         decelerationRate="fast"
         horizontal
         onMomentumScrollEnd={onEnd}
@@ -159,6 +206,7 @@ export function WalletCarousel({
                 onSelect(index);
               }
             }}
+            width={cardWidth}
           />
         ))}
       </ScrollView>
@@ -171,114 +219,140 @@ export function WalletCarousel({
   );
 }
 
-function WalletCard({ active, item, onPress }: { item: WalletItem; active: boolean; onPress: () => void }) {
+function WalletCard({ active, item, onPress, width }: { item: WalletItem; active: boolean; onPress: () => void; width: number }) {
   const lift = useSharedValue(active ? 1 : 0);
   useEffect(() => {
     lift.set(withSpring(active ? 1 : 0, spring.soft));
   }, [active, lift]);
-  const style = useAnimatedStyle(() => ({ opacity: 0.82 + lift.get() * 0.18, transform: [{ scale: 0.95 + lift.get() * 0.05 }] }));
-  const look = lookFor(item);
+  const style = useAnimatedStyle(() => ({ opacity: 0.85 + lift.get() * 0.15, transform: [{ scale: 0.96 + lift.get() * 0.04 }] }));
+  const label = labelFor(item);
 
   return (
-    <Pressable accessibilityLabel={look.label} accessibilityRole="button" accessibilityState={{ selected: active }} onPress={onPress} testID={`wallet-card-${item.id}`}>
-      <Animated.View style={[styles.card, item.kind === "add" && styles.addCard, style]}>
-        {look.colors ? <LinearGradient colors={look.colors} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} /> : null}
-        <View pointerEvents="none" style={styles.bubble} />
-        <View style={styles.top}>
-          {item.kind === "add" ? (
-            <View style={styles.plus}>
-              <Icon color={color.heading} name="plus" size={22} />
-            </View>
-          ) : (
-            <BrandMark kind={look.mark} />
-          )}
-          {look.tag ? (
-            <View style={styles.tag}>
-              <Text style={styles.tagText}>{look.tag}</Text>
-            </View>
-          ) : null}
-        </View>
-        {item.kind === "card" ? <View style={styles.chip} /> : null}
-        <View style={styles.bottom}>
-          <Text style={[styles.title, look.dark ? styles.onLight : styles.onDark]}>{look.title}</Text>
-          <Text style={[styles.sub, look.dark ? styles.onLightMuted : styles.onDarkMuted]}>{look.sub}</Text>
-          {look.foot ? <Text style={[styles.foot, look.dark ? styles.onLightMuted : styles.onDarkMuted]}>{look.foot}</Text> : null}
-        </View>
-      </Animated.View>
+    <Pressable accessibilityLabel={label} accessibilityRole="button" accessibilityState={{ selected: active }} onPress={onPress} testID={`wallet-card-${item.id}`}>
+      <Animated.View style={style}>{item.kind === "card" ? <CardFace card={item.card} width={width} /> : <OtherFace item={item} width={width} />}</Animated.View>
     </Pressable>
   );
 }
 
-type Look = {
-  title: string;
-  sub: string;
-  foot?: string;
-  tag?: string;
-  label: string;
-  mark: Parameters<typeof BrandMark>[0]["kind"];
-  colors?: readonly [string, string];
-  dark: boolean;
-};
-
-function lookFor(item: WalletItem): Look {
+function OtherFace({ item, width }: { item: Exclude<WalletItem, { kind: "card" }>; width: number }) {
   switch (item.kind) {
-    case "card": {
-      const mc = item.card.brand === "mastercard";
-      return {
-        colors: mc ? gradient.ink : gradient.primary,
-        dark: false,
-        foot: `${item.card.holder || "Cardholder"} · ${item.card.expiry}`,
-        label: `${mc ? "Mastercard" : "Visa"} ending ${item.card.last4}${item.card.isDefault ? ", default" : ""}`,
-        mark: item.card.brand,
-        sub: mc ? "Mastercard" : "Visa",
-        tag: item.card.isDefault ? "Default" : undefined,
-        title: `•••• ${item.card.last4}`,
-      };
-    }
     case "apple-pay":
-      return { colors: ["#1C1C1E", "#000000"], dark: false, foot: item.ready ? "Ready on this iPhone" : "iPhone only", label: `Apple Pay, ${item.ready ? "ready" : "not on this phone"}`, mark: "apple-pay", sub: "Pay with Face ID or Touch ID", tag: item.ready ? "Ready" : "Not on this phone", title: "Apple Pay" };
+      return (
+        <CardSurface colors={["#1C1C1E", "#000000"]} width={width}>
+          <View style={styles.row}>
+            <Text style={styles.bank}>Apple Pay</Text>
+            <Text style={styles.tier}>{item.ready ? "Ready" : "Not on this phone"}</Text>
+          </View>
+          <Text style={styles.big}>Pay with Face ID</Text>
+          <View style={styles.rowEnd}>
+            <Text style={[styles.small, styles.flex]}>{item.ready ? "Ready on this iPhone" : "iPhone only"}</Text>
+            <BrandMark kind="apple-pay" />
+          </View>
+        </CardSurface>
+      );
     case "google-pay":
-      return { colors: ["#FFFFFF", "#E8EEF1"], dark: true, foot: item.ready ? "Ready on this phone" : "Android only", label: `Google Pay, ${item.ready ? "ready" : "not on this phone"}`, mark: "google-pay", sub: "Pay with your Google account", tag: item.ready ? "Ready" : "Not on this phone", title: "Google Pay" };
+      return (
+        <CardSurface colors={["#F7F9FA", "#DCE5EA"]} width={width}>
+          <View style={styles.row}>
+            <Text style={[styles.bank, styles.dark]}>Google Pay</Text>
+            <Text style={[styles.tier, styles.darkMuted]}>{item.ready ? "Ready" : "Not on this phone"}</Text>
+          </View>
+          <Text style={[styles.big, styles.dark]}>Pay with Google</Text>
+          <View style={styles.rowEnd}>
+            <Text style={[styles.small, styles.darkMuted, styles.flex]}>{item.ready ? "Ready on this phone" : "Android only"}</Text>
+            <BrandMark kind="google-pay" />
+          </View>
+        </CardSurface>
+      );
     case "wallet":
-      return { colors: gradient.teal, dark: false, foot: "Top up any time", label: `Vossie Wallet, ${formatRand(item.balanceCents)}`, mark: "wallet", sub: "Vossie Wallet", title: formatRand(item.balanceCents) };
+      return (
+        <CardSurface colors={gradient.teal} width={width}>
+          <View style={styles.row}>
+            <Text style={styles.bank}>Vossie Wallet</Text>
+            <Text style={styles.tier}>Balance</Text>
+          </View>
+          <Text style={styles.big}>{formatRand(item.balanceCents)}</Text>
+          <View style={styles.rowEnd}>
+            <Text style={[styles.small, styles.flex]}>Top up any time</Text>
+            <BrandMark kind="wallet" />
+          </View>
+        </CardSurface>
+      );
     case "eft":
-      return { colors: gradient.soft, dark: true, foot: "Pay straight from your bank", label: `Instant EFT${item.bank ? `, ${item.bank}` : ""}`, mark: "eft", sub: item.bank ? `Linked to ${item.bank}` : "Choose your bank at checkout", tag: item.bank ? "Linked" : undefined, title: "Instant EFT" };
+      return (
+        <CardSurface colors={["#E8EEF1", "#CBD8DF"]} width={width}>
+          <View style={styles.row}>
+            <Text style={[styles.bank, styles.dark]}>Instant EFT</Text>
+            <Text style={[styles.tier, styles.darkMuted]}>{item.bank ? "Linked" : "Not linked"}</Text>
+          </View>
+          <Text style={[styles.big, styles.dark]}>{item.bank ?? "Choose your bank"}</Text>
+          <View style={styles.rowEnd}>
+            <Text style={[styles.small, styles.darkMuted, styles.flex]}>Pay straight from your bank</Text>
+            <BrandMark kind="eft" />
+          </View>
+        </CardSurface>
+      );
     default:
-      return { dark: true, label: "Add a new card", mark: "card", sub: "Visa or Mastercard", title: "Add a card" };
+      return (
+        <CardSurface dashed width={width}>
+          <View style={styles.addCenter}>
+            <View style={styles.plus}>
+              <Icon color={color.heading} name="plus" size={22} />
+            </View>
+            <Text style={[styles.big, styles.dark]}>Add a card</Text>
+            <Text style={[styles.small, styles.darkMuted]}>Visa or Mastercard</Text>
+          </View>
+        </CardSurface>
+      );
+  }
+}
+
+function labelFor(item: WalletItem): string {
+  switch (item.kind) {
+    case "card":
+      return `${item.card.brand === "mastercard" ? "Mastercard" : "Visa"} ending ${item.card.last4}${item.card.isDefault ? ", default" : ""}. Opens the card to edit.`;
+    case "apple-pay":
+      return `Apple Pay, ${item.ready ? "ready" : "not on this phone"}`;
+    case "google-pay":
+      return `Google Pay, ${item.ready ? "ready" : "not on this phone"}`;
+    case "wallet":
+      return `Vossie Wallet, ${formatRand(item.balanceCents)}`;
+    case "eft":
+      return `Instant EFT${item.bank ? `, ${item.bank}` : ""}`;
+    default:
+      return "Add a new card";
   }
 }
 
 const styles = StyleSheet.create({
-  addCard: { backgroundColor: color.surfaceSoft, borderColor: color.borderStrong, borderStyle: "dashed", borderWidth: 1.5 },
+  addCenter: { alignItems: "center", flex: 1, gap: 4, justifyContent: "center" },
+  bank: { color: color.onPrimary, fontSize: 15, fontWeight: "800", letterSpacing: 0.5 },
+  big: { color: color.onPrimary, fontSize: 26, fontVariant: ["tabular-nums"], fontWeight: "800" },
   bleed: { marginHorizontal: -space.lg },
-  bottom: { gap: 2, marginTop: "auto" },
-  bubble: { backgroundColor: "rgba(255, 255, 255, 0.10)", borderRadius: 80, height: 160, position: "absolute", right: -60, top: -50, width: 160 },
   card: {
     backgroundColor: color.surface,
     borderCurve: "continuous",
-    borderRadius: corner.xl,
-    boxShadow: "0 10px 24px rgba(30, 42, 56, 0.2)",
-    height: WALLET_CARD_HEIGHT,
+    borderRadius: corner.lg,
+    boxShadow: "0 10px 24px rgba(30, 42, 56, 0.22)",
     overflow: "hidden",
-    padding: space.md,
-    width: WALLET_CARD_WIDTH,
   },
-  chip: { backgroundColor: "rgba(255, 255, 255, 0.28)", borderRadius: 6, height: 28, marginTop: space.md, width: 40 },
+  dark: { color: color.heading },
+  darkMuted: { color: color.textSecondary },
+  dashed: { backgroundColor: color.surfaceSoft, borderColor: color.borderStrong, borderStyle: "dashed", borderWidth: 1.5, boxShadow: "none" },
   dot: { backgroundColor: color.mist, borderRadius: 3, height: 6, width: 6 },
   dotActive: { backgroundColor: color.ink, width: 18 },
   dots: { alignItems: "center", flexDirection: "row", gap: 5, justifyContent: "center", marginTop: space.sm },
-  foot: { fontSize: 11, marginTop: 4 },
-  onDark: { color: color.onPrimary },
-  onDarkMuted: { color: "rgba(255, 255, 255, 0.78)" },
-  onLight: { color: color.heading },
-  onLightMuted: { color: color.textSecondary },
+  flex: { flex: 1 },
+  holder: { color: color.onPrimary, fontSize: 13, fontWeight: "700", letterSpacing: 1, marginTop: 2 },
+  inner: { flex: 1, justifyContent: "space-between", padding: space.md },
+  number: { color: color.onPrimary, fontSize: 20, fontVariant: ["tabular-nums"], fontWeight: "700", letterSpacing: 2 },
   plus: { alignItems: "center", backgroundColor: color.surfaceIcon, borderRadius: 22, height: 44, justifyContent: "center", width: 44 },
-  row: { gap: GAP, paddingHorizontal: space.lg, paddingVertical: space.xs },
-  sub: { fontSize: 12 },
-  tag: { backgroundColor: "rgba(255, 255, 255, 0.22)", borderRadius: corner.pill, paddingHorizontal: 8, paddingVertical: 3 },
-  tagText: { color: color.mist, fontSize: 10, fontWeight: "800" },
-  title: { fontSize: 22, fontVariant: ["tabular-nums"], fontWeight: "800" },
-  top: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
+  row: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
+  rowEnd: { alignItems: "flex-end", flexDirection: "row", justifyContent: "space-between" },
+  scrollRow: { gap: GAP, paddingHorizontal: space.lg, paddingVertical: space.xs },
+  small: { color: "rgba(255,255,255,0.75)", fontSize: 10, fontWeight: "700", letterSpacing: 1 },
+  tier: { color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: "600" },
+  value: { color: color.onPrimary, fontSize: 14, fontVariant: ["tabular-nums"], fontWeight: "700" },
 });
 
 /** Index of the item to show first: the default card, or the first item. */

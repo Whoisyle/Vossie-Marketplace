@@ -24,6 +24,14 @@ export function CartScreen() {
           onAction={() => router.navigate("/home")}
           title="Your cart is empty"
         />
+        <Button
+          fullWidth
+          icon="users"
+          label={state.group && state.group.status !== "placed" ? "Open your group order" : "Start a group order"}
+          onPress={() => router.push("/cart/group" as Href)}
+          testID="group-order"
+          variant="soft"
+        />
       </Screen>
     );
   }
@@ -74,12 +82,22 @@ export function CartScreen() {
         })}
       </View>
       <Text style={styles.note}>Delivery fees and discounts are shown at checkout.</Text>
+      <Button
+        fullWidth
+        icon="users"
+        label={state.group && state.group.status !== "placed" ? "Open your group order" : "Order with friends"}
+        onPress={() => router.push("/cart/group" as Href)}
+        style={styles.groupButton}
+        testID="group-order"
+        variant="soft"
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   bottomRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginTop: space.xs },
+  groupButton: { marginTop: space.md },
   info: { flex: 1, gap: 2 },
   line: { alignItems: "center", flexDirection: "row", gap: space.sm },
   list: { gap: space.sm, marginTop: space.sm },

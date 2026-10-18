@@ -5,6 +5,7 @@ import { dealFor } from "@/data/deals";
 import { legalDocs } from "@/data/legal";
 import { dialable, safetyCheckup, tripMessage, validContact } from "@/data/safety";
 import { hasPlan, plans } from "@/data/subscriptions";
+import { totp } from "@/lib/totp";
 import { balancesAfter, transactionKind, withdrawProblem } from "@/data/wallet";
 import { cartTotals, createInitialState, demoReducer, type DemoState } from "@/state/demoReducer";
 import { renderWithProviders } from "@/test/renderWithProviders";
@@ -14,6 +15,7 @@ import { CampusExtrasScreen } from "./account/CampusExtrasScreen";
 import { brandFor, CardEditScreen, cardEditErrors } from "./account/CardEditScreen";
 import { LegalListScreen, LegalReaderScreen } from "./account/LegalScreens";
 import { SafetyScreen } from "./account/SafetyScreen";
+import { SecurityScreen } from "./account/SecurityScreen";
 import { SubscriptionsScreen } from "./account/SubscriptionsScreen";
 import { TransactionScreen } from "./account/TransactionScreen";
 import { VouchersScreen } from "./account/VouchersScreen";
@@ -111,10 +113,10 @@ describe("referral points, terms and offers", () => {
   it("lists the three documents with a draft notice and opens one", () => {
     renderWithProviders(<LegalListScreen />, signedIn());
     for (const doc of legalDocs) expect(screen.getByText(doc.title)).toBeTruthy();
-    expect(screen.getByText(/needs legal review/)).toBeTruthy();
+    expect(screen.queryByText(/draft/i)).toBeNull();
     mockParams = { id: "terms" };
     renderWithProviders(<LegalReaderScreen />, signedIn());
-    expect(screen.getByText(/1\. Who can use Vossie/)).toBeTruthy();
+    expect(screen.getByText(/2\. Who can use Vossie/)).toBeTruthy();
   });
 
   it("records that the student accepted the terms", () => {
@@ -171,7 +173,7 @@ describe("receipts again", () => {
 
 describe("wallet cards and transactions", () => {
   it("draws cards at real card proportions and moves the carousel by itself", () => {
-    expect(WALLET_CARD_HEIGHT / WALLET_CARD_WIDTH).toBeCloseTo(85.6 / 54, 1);
+    expect(WALLET_CARD_WIDTH / WALLET_CARD_HEIGHT).toBeCloseTo(85.6 / 54, 1);
     jest.useFakeTimers();
     const onSelect = jest.fn();
     const items = walletItems({ balanceCents: 1000, bank: null, cards: signedIn().cards, os: "ios" });
@@ -279,13 +281,70 @@ describe("safety", () => {
     expect(tripMessage({ kind: "order", link: "vossie://track/1", name: "V" })).toContain("vossie://track/1");
   });
 
-  it("shows the check-up first, with fixes that work", () => {
+  it("shows the check-up first, and Face ID can be switched on from a fix", async () => {
     renderWithProviders(<SafetyScreen />, signedIn());
     expect(screen.getByTestId("sos")).toBeTruthy();
     expect(screen.getByTestId("tab-checkup")).toBeTruthy();
     expect(screen.getByTestId("check-biometric")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("fix-biometric"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("fix-biometric"));
+    });
     expect(screen.queryByTestId("fix-biometric")).toBeNull();
+  });
+
+  it("only turns two-factor on with a correct authenticator code, and off again with one", async () => {
+    renderWithProviders(<SafetyScreen />, signedIn());
+    fireEvent.press(screen.getByTestId("fix-two-factor"));
+    expect(screen.getByTestId("two-factor-qr")).toBeTruthy();
+    const secret = String(screen.getByTestId("two-factor-key").props.children).replace(/\s/g, "");
+    expect(secret).toMatch(/^[A-Z2-7]{32}$/);
+
+    fireEvent.changeText(screen.getByLabelText("6-digit code"), "000000");
+    fireEvent.press(screen.getByTestId("two-factor-confirm"));
+    expect(screen.getByText(/That code isn't right/)).toBeTruthy();
+    expect(screen.getByTestId("fix-two-factor")).toBeTruthy();
+
+    fireEvent.changeText(screen.getByLabelText("6-digit code"), totp(secret));
+    fireEvent.press(screen.getByTestId("two-factor-confirm"));
+    expect(screen.queryByTestId("fix-two-factor")).toBeNull();
+  });
+
+  it("asks for a code to turn two-factor off in Security and Settings", () => {
+    const secret = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP";
+    const on = demoReducer(signedIn(), { secret, type: "enableTwoFactor" });
+    renderWithProviders(<SecurityScreen />, on);
+    fireEvent(screen.getByLabelText("Two-factor authentication"), "valueChange", false);
+    expect(screen.getByText("Turn off two-factor sign-in")).toBeTruthy();
+    fireEvent.changeText(screen.getByLabelText("6-digit code"), "111111");
+    fireEvent.press(screen.getByTestId("two-factor-confirm"));
+    expect(screen.getByText(/That code isn't right/)).toBeTruthy();
+    fireEvent.changeText(screen.getByLabelText("6-digit code"), totp(secret));
+    fireEvent.press(screen.getByTestId("two-factor-confirm"));
+    expect(screen.getByLabelText("Two-factor authentication").props.value).toBe(false);
+  });
+
+  it("signs out other devices from the check-up", () => {
+    renderWithProviders(<SafetyScreen />, signedIn());
+    fireEvent.press(screen.getByTestId("fix-sessions"));
+    expect(screen.queryByTestId("fix-sessions")).toBeNull();
+  });
+
+  it("shows the campus numbers from the database and counts them in the check-up", () => {
+    const state = demoReducer(signedIn(), {
+      contacts: [{ campusId: "potchefstroom", id: "cc-1", kind: "security", label: "Campus security desk", phone: "018 299 1111" }],
+      type: "setCampusContacts",
+    });
+    renderWithProviders(<SafetyScreen />, state);
+    expect(screen.queryByTestId("fix-security-number")).toBeNull();
+    fireEvent.press(screen.getByText("Contacts"));
+    expect(screen.getByTestId("campus-contact-cc-1")).toBeTruthy();
+    expect(screen.getByText("018 299 1111")).toBeTruthy();
+  });
+
+  it("says so when the campus has no number yet", () => {
+    renderWithProviders(<SafetyScreen />, signedIn());
+    fireEvent.press(screen.getByText("Contacts"));
+    expect(screen.getByText(/hasn't added its security number yet/)).toBeTruthy();
   });
 
   it("adds a trusted contact and shows emergency numbers", () => {

@@ -35,7 +35,13 @@
           "resizeMode": "contain"
         }
       ],
-      "expo-audio"
+      "expo-audio",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Vossie uses Face ID to confirm payments, wallet actions and your account protection."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,7 +1,7 @@
 import type { WalletTransaction, WalletTransactionKind } from "./types";
 
 /** Smallest withdrawal. A real limit comes from the card provider; this is a demo value. */
-export const MIN_WITHDRAW_CENTS = 5000;
+export const MIN_WITHDRAW_CENTS = 6000;
 
 export const kindLabels: Record<WalletTransactionKind, string> = {
   other: "Wallet activity",
@@ -50,5 +50,5 @@ export function withdrawProblem(input: { amountCents: number; balanceCents: numb
 export const withdrawMessages: Record<Exclude<WithdrawProblem, null>, string> = {
   "no-card": "Add a card to withdraw to.",
   "too-much": "That's more than your wallet balance.",
-  "too-small": "The smallest withdrawal is R50.",
+  "too-small": "The smallest withdrawal is R60.",
 };

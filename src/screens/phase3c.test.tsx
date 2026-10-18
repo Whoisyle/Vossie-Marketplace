@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react-native";
+import { act, fireEvent, screen } from "@testing-library/react-native";
 
 import { dayLabel } from "@/data/format";
 import { getPromo, promoDefs, promoListings, promoPercent } from "@/data/promos";
@@ -72,14 +72,16 @@ describe("Security and settings", () => {
     expect(securityScore({ biometric: true, otherSessions: 0, twoFactor: true })).toEqual({ score: 3, total: 3 });
   });
 
-  it("has sections for privacy, notifications, app and data, and toggles a setting", () => {
+  it("has sections for privacy, notifications, app and data, and toggles a setting", async () => {
     renderWithProviders(<SecurityScreen />, signedIn());
     for (const title of ["Sign in and security", "Privacy", "Notifications", "App", "Your data"]) {
       expect(screen.getByText(title)).toBeTruthy();
     }
+    expect(screen.getByText("0 of 3 protections on")).toBeTruthy();
+    await act(async () => {
+      fireEvent(screen.getByLabelText("Face ID or Touch ID"), "valueChange", true);
+    });
     expect(screen.getByText("1 of 3 protections on")).toBeTruthy();
-    fireEvent(screen.getByLabelText("Face ID or Touch ID"), "valueChange", true);
-    expect(screen.getByText("2 of 3 protections on")).toBeTruthy();
   });
 
   it("shows and clears blocked people", () => {

@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 import { AppHeader, Button, Card, Chip, Icon, RadioRow, Screen, Sheet, StatusBadge, TextField, useToast } from "@/components";
 import { eftBanks } from "@/screens/cart/payment";
@@ -10,7 +10,7 @@ import { confirmWithBiometrics } from "@/lib/biometric";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
 
-import { walletItems, WalletCarousel, useWalletSelection } from "./WalletCards";
+import { CardSurface, walletCardWidth, walletItems, WalletCarousel, useWalletSelection } from "./WalletCards";
 import { parseRandToCents } from "./walletAmount";
 
 const PRESETS = [10000, 20000, 50000];
@@ -20,6 +20,7 @@ const MAX_TOP_UP_CENTS = 500_000;
 export function WalletScreen() {
   const toast = useToast();
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
   const { dispatch, state } = useDemoStore();
   const [open, setOpen] = useState(false);
   const [bankOpen, setBankOpen] = useState(false);
@@ -78,16 +79,22 @@ export function WalletScreen() {
   return (
     <Screen>
       <AppHeader back subtitle="Manage your Vossie balance." title="Wallet" />
-      <Card style={styles.balance} variant="primary">
-        <Text style={styles.balanceLabel}>Available balance</Text>
-        <Text accessibilityLiveRegion="polite" style={styles.balanceValue}>
-          {formatRand(state.wallet.balanceCents, { fixed: true })}
-        </Text>
+      <View style={styles.balanceWrap} testID="balance-card">
+        <CardSurface colors={["#2A4658", "#16243A"]} width={Math.min(walletCardWidth(screenWidth) + 24, screenWidth - space.lg * 2)}>
+          <View style={styles.balanceRow}>
+            <Text style={styles.balanceBrand}>Vossie Wallet</Text>
+            <Text style={styles.balanceTier}>Available balance</Text>
+          </View>
+          <Text accessibilityLiveRegion="polite" style={styles.balanceValue}>
+            {formatRand(state.wallet.balanceCents, { fixed: true })}
+          </Text>
+          <Text style={styles.balanceName}>{(state.profile?.fullName ?? "").toUpperCase()}</Text>
+        </CardSurface>
         <View style={styles.balanceActions}>
-          <Button label="Add funds" onPress={() => setOpen(true)} size="sm" variant="light" />
-          <Button icon="arrow-up-right" label="Withdraw" onPress={startWithdraw} size="sm" testID="withdraw" variant="light" />
+          <Button label="Add funds" onPress={() => setOpen(true)} size="sm" />
+          <Button icon="arrow-up-right" label="Withdraw" onPress={startWithdraw} size="sm" testID="withdraw" variant="soft" />
         </View>
-      </Card>
+      </View>
       <Text style={styles.demo}>Demo wallet: no real money moves.</Text>
 
       <Text style={styles.heading}>Cards and payment options</Text>
@@ -252,9 +259,12 @@ const styles = StyleSheet.create({
   balanceActions: { flexDirection: "row", gap: space.xs },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: space.xs, marginTop: space.sm },
   amount: { fontSize: 14, fontWeight: "700" },
-  balance: { gap: space.xs, marginTop: space.sm },
-  balanceLabel: { color: color.onPrimary, fontSize: 13, opacity: 0.85 },
-  balanceValue: { color: color.onPrimary, fontSize: 32, fontWeight: "700" },
+  balanceBrand: { color: color.onPrimary, fontSize: 15, fontWeight: "800", letterSpacing: 0.5 },
+  balanceName: { color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: "700", letterSpacing: 1 },
+  balanceRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
+  balanceTier: { color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: "600" },
+  balanceValue: { color: color.onPrimary, fontSize: 34, fontVariant: ["tabular-nums"], fontWeight: "800" },
+  balanceWrap: { alignItems: "center", gap: space.sm, marginTop: space.sm },
   demo: { ...text.caption, marginTop: space.xs },
   flex: { flex: 1 },
   heading: { ...text.sectionTitle, marginBottom: space.xs, marginTop: space.md },

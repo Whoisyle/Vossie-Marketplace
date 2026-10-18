@@ -1,15 +1,16 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
+import QRCode from "react-native-qrcode-svg";
 
 import { formatStudentNumber } from "@/data/studentRecord";
-import { seeded } from "@/theme/motion";
 import { color, corner, gradient, space } from "@/theme/tokens";
 
 import { Avatar } from "./Avatar";
 import { Icon } from "./Icon";
 import { Wordmark } from "./Wordmark";
 
-/** A bank card is 85.6 x 54 mm; held upright the width is 0.631 of the height. */
+/** A bank card is 85.6 x 54 mm. Landscape it is 1.585 wide for every 1 high; held upright the width is 0.631 of the height. */
+export const CARD_RATIO = 85.6 / 54;
 export const CARD_ASPECT = 54 / 85.6;
 
 /** Height of an upright card of the given width, at real card proportions. */
@@ -17,12 +18,20 @@ export function cardHeight(width: number): number {
   return Math.round(width / CARD_ASPECT);
 }
 
-const BARS = Array.from({ length: 34 }, (_, index) => 1 + Math.round(seeded(index + 5) * 3));
+/** Height of a landscape card of the given width, at real card proportions. */
+export function landscapeHeight(width: number): number {
+  return Math.round(width / CARD_RATIO);
+}
+
+/** What the card's QR code holds: the student number, so campus staff can look the student up. */
+export function studentQrValue(studentNumber?: string): string {
+  return `vossie://student/${(studentNumber ?? "").replace(/\D/g, "")}`;
+}
 
 /**
- * The digital student card: navy gradient, wordmark, name, student number and campus. `vertical` is the
- * full-size upright card shown on the Verified screen; the default is the compact one at the top of Account.
- * The student number comes from the Eduvos record (mock until the backend).
+ * The digital student card. `vertical` is the upright card at real card size: a deep navy face with soft curved
+ * shapes, the student's photo, name, student number and campus, the Vossie wordmark and a QR code. The default is
+ * the compact horizontal strip. The student number comes from the Eduvos record (mock until the backend).
  */
 export function StudentCard({
   avatarUri,
@@ -46,38 +55,22 @@ export function StudentCard({
   const label = `Student card. ${name}. Student number ${studentNumber ? number : "not available"}. ${campusName}.${verified ? " Verified." : ""}`;
 
   if (vertical) {
+    const height = cardHeight(width);
+    const qr = Math.round(width * 0.27);
     return (
-      <View accessibilityLabel={label} accessible style={[styles.upright, { height: cardHeight(width), width }]} testID="student-card">
-        <LinearGradient colors={gradient.ink} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
-        <View pointerEvents="none" style={styles.uBubbleA} />
-        <View pointerEvents="none" style={styles.uBubbleB} />
+      <View accessibilityLabel={label} accessible style={[styles.upright, { height, width }]} testID="student-card">
+        <LinearGradient colors={["#14233A", "#0B1626"]} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
+        {/* the soft curved shapes at the top of the card */}
+        <View pointerEvents="none" style={[styles.shapeA, { height: width * 1.25, width: width * 1.25 }]}>
+          <LinearGradient colors={["#1F3A5F", "#16294A"]} end={{ x: 1, y: 1 }} start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
+        </View>
+        <View pointerEvents="none" style={[styles.shapeB, { height: width * 0.95, width: width * 0.95 }]}>
+          <LinearGradient colors={["#25497A", "#1B3558"]} end={{ x: 1, y: 1 }} start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
+        </View>
+
         <View style={styles.uTop}>
-          <Wordmark tone="white" width={110} />
-          <Text style={styles.kind}>STUDENT CARD</Text>
-        </View>
-        <View style={styles.uPhoto}>
           <View style={styles.uPhotoRing}>
-            <Avatar name={name} size={112} uri={avatarUri} />
-          </View>
-        </View>
-        <View style={styles.uIdentity}>
-          <Text numberOfLines={2} style={styles.uName}>
-            {name || "Vossie student"}
-          </Text>
-          <Text style={styles.uLabel}>STUDENT NUMBER</Text>
-          <Text style={styles.uNumber}>{number}</Text>
-        </View>
-        <View style={styles.uCampus}>
-          <Icon color={color.mist} name="map-pin" size={14} />
-          <Text numberOfLines={1} style={styles.campusText}>
-            {campusName}
-          </Text>
-        </View>
-        <View style={styles.uFooter}>
-          <View style={styles.bars}>
-            {BARS.map((weight, index) => (
-              <View key={index} style={[styles.bar, { width: weight }]} />
-            ))}
+            <Avatar name={name} size={Math.round(width * 0.3)} uri={avatarUri} />
           </View>
           {verified ? (
             <View style={styles.verified}>
@@ -86,6 +79,23 @@ export function StudentCard({
             </View>
           ) : null}
         </View>
+
+        <View style={styles.uText}>
+          <Text style={styles.uKind}>STUDENT CARD</Text>
+          <Text numberOfLines={2} style={styles.uName}>
+            {name || "Vossie student"}
+          </Text>
+          <Text style={styles.uSub}>Eduvos student · {campusName}</Text>
+          <Text style={styles.uLabel}>STUDENT NUMBER</Text>
+          <Text style={styles.uNumber}>{number}</Text>
+        </View>
+
+        <View style={styles.uBottom}>
+          <Wordmark tone="white" width={Math.round(width * 0.42)} />
+          <View accessibilityLabel="Student QR code" style={styles.qrTile}>
+            <QRCode backgroundColor="#FFFFFF" color="#0B1626" size={qr} value={studentQrValue(studentNumber)} />
+          </View>
+        </View>
       </View>
     );
   }
@@ -93,8 +103,6 @@ export function StudentCard({
   return (
     <View accessibilityLabel={label} accessible style={styles.card} testID="student-card">
       <LinearGradient colors={gradient.ink} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
-      <View pointerEvents="none" style={styles.bubbleA} />
-      <View pointerEvents="none" style={styles.bubbleB} />
       <View style={styles.top}>
         <Wordmark tone="white" width={92} />
         <Text style={styles.kind}>STUDENT</Text>
@@ -108,32 +116,15 @@ export function StudentCard({
           <Text style={styles.number}>{number}</Text>
         </View>
       </View>
-      <View style={styles.bottom}>
-        <View style={styles.campus}>
-          <Icon color={color.mist} name="map-pin" size={12} />
-          <Text numberOfLines={1} style={styles.campusText}>
-            {campusName}
-          </Text>
-        </View>
-        {verified ? (
-          <View style={styles.verified}>
-            <Icon color={color.ink} name="check-circle" size={12} />
-            <Text style={styles.verifiedText}>Verified</Text>
-          </View>
-        ) : null}
-      </View>
+      <Text numberOfLines={1} style={styles.campusText}>
+        {campusName}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  bar: { backgroundColor: color.mist, height: 26, opacity: 0.85 },
-  bars: { alignItems: "center", flexDirection: "row", gap: 2, height: 26, overflow: "hidden", width: "100%" },
-  bottom: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
-  bubbleA: { backgroundColor: "rgba(183, 196, 204, 0.12)", borderRadius: 70, height: 140, position: "absolute", right: -30, top: -50, width: 140 },
-  bubbleB: { backgroundColor: "rgba(183, 196, 204, 0.08)", borderRadius: 50, bottom: -40, height: 100, left: -20, position: "absolute", width: 100 },
-  campus: { alignItems: "center", flex: 1, flexDirection: "row", gap: 4 },
-  campusText: { color: color.mist, flex: 1, fontSize: 13 },
+  campusText: { color: color.mist, fontSize: 13 },
   card: {
     borderCurve: "continuous",
     borderRadius: corner.xl,
@@ -147,23 +138,23 @@ const styles = StyleSheet.create({
   middle: { alignItems: "center", flexDirection: "row", gap: space.sm },
   name: { color: color.onPrimary, fontSize: 18, fontWeight: "700" },
   number: { color: color.onPrimary, fontSize: 22, fontVariant: ["tabular-nums"], fontWeight: "800", letterSpacing: 1 },
+  qrTile: { backgroundColor: "#FFFFFF", borderRadius: 10, padding: 6 },
+  shapeA: { borderRadius: 400, opacity: 0.9, overflow: "hidden", position: "absolute", right: "-38%", top: "-20%" },
+  shapeB: { borderRadius: 400, bottom: "34%", left: "-30%", opacity: 0.55, overflow: "hidden", position: "absolute" },
   top: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
-  uBubbleA: { backgroundColor: "rgba(183, 196, 204, 0.12)", borderRadius: 120, height: 240, position: "absolute", right: -80, top: -70, width: 240 },
-  uBubbleB: { backgroundColor: "rgba(183, 196, 204, 0.08)", borderRadius: 90, bottom: -60, height: 180, left: -50, position: "absolute", width: 180 },
-  uCampus: { alignItems: "center", flexDirection: "row", gap: 6, justifyContent: "center" },
-  uFooter: { alignItems: "center", gap: space.sm, marginTop: "auto" },
-  uIdentity: { alignItems: "center", gap: 3 },
-  uLabel: { color: color.mist, fontSize: 10, fontWeight: "700", letterSpacing: 2, marginTop: space.xs },
-  uName: { color: color.onPrimary, fontSize: 22, fontWeight: "800", textAlign: "center" },
-  uNumber: { color: color.onPrimary, fontSize: 28, fontVariant: ["tabular-nums"], fontWeight: "800", letterSpacing: 1.5 },
-  uPhoto: { alignItems: "center" },
-  uPhotoRing: { alignItems: "center", borderColor: "rgba(183, 196, 204, 0.55)", borderRadius: 66, borderWidth: 3, height: 124, justifyContent: "center", width: 124 },
-  uTop: { alignItems: "center", gap: 6 },
+  uBottom: { alignItems: "flex-end", flexDirection: "row", justifyContent: "space-between", marginTop: "auto" },
+  uKind: { color: "rgba(255,255,255,0.7)", fontSize: 10, fontWeight: "700", letterSpacing: 2 },
+  uLabel: { color: "rgba(255,255,255,0.6)", fontSize: 9, fontWeight: "700", letterSpacing: 2, marginTop: space.xs },
+  uName: { color: color.onPrimary, fontSize: 22, fontWeight: "800", lineHeight: 27 },
+  uNumber: { color: color.onPrimary, fontSize: 20, fontVariant: ["tabular-nums"], fontWeight: "800", letterSpacing: 1.5 },
+  uPhotoRing: { alignItems: "center", borderColor: "rgba(255,255,255,0.35)", borderRadius: 60, borderWidth: 3, justifyContent: "center", padding: 3 },
+  uSub: { color: "rgba(255,255,255,0.85)", fontSize: 13 },
+  uText: { gap: 2, marginTop: space.md },
+  uTop: { alignItems: "flex-start", flexDirection: "row", justifyContent: "space-between" },
   upright: {
     borderCurve: "continuous",
-    borderRadius: corner.xl,
-    boxShadow: "0 18px 36px rgba(30, 42, 56, 0.35)",
-    gap: space.sm,
+    borderRadius: 18,
+    boxShadow: "0 18px 36px rgba(11, 22, 38, 0.4)",
     overflow: "hidden",
     padding: space.md,
   },

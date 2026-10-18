@@ -84,6 +84,11 @@ export const setCampusSecurityNumber = (number: string) => rpc("set_campus_secur
 export const submitSafetyReport = (category: "User" | "Listing" | "Delivery or courier" | "Safety incident" | "Other", notes: string) =>
   rpc<string>("submit_safety_report", { p_category: category, p_notes: notes });
 
-/** Withdraw wallet money (minimum R50) back to a saved card. The key makes a retry safe. */
+/** Withdraw wallet money (minimum R60) back to a saved card. The key makes a retry safe. */
 export const requestCardWithdrawal = (amountCents: number, paymentMethodId: string, idempotencyKey: string) =>
   rpc<string>("request_card_withdrawal", { p_amount_cents: amountCents, p_payment_method_id: paymentMethodId, p_idempotency_key: idempotencyKey });
+
+/** The security desk, clinic and hub numbers for a campus, from the database. */
+export async function listCampusContacts(campusId: string) {
+  return unwrap(await supabase.from("campus_contacts").select("id, campus_id, kind, label, phone").eq("campus_id", campusId).order("sort_order"));
+}

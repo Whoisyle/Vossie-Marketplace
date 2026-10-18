@@ -21,7 +21,9 @@ import { invitedSeed, REFERRAL_REWARD_POINTS, referralCodeFor, isSoldOut, vouche
 import { getPlan, hasPlan, nextMonth, PLUS_FREE_COURIER_OVER_CENTS, PLUS_ORDER_DISCOUNT_CENTS, PLUS_POINTS_MULTIPLIER, STUDY_PASS_PERCENT_OFF_SERVICES, type PlanId, type Subscription } from "@/data/subscriptions";
 import { canRedeem, orderPoints, pointsBalance, pointsValueCents } from "@/data/points";
 import { DEFAULT_SETTINGS } from "@/data/settings";
-import type { EmergencyContact, ReportCategory, SafetyReport } from "@/data/safety";
+import { MIN_WITHDRAW_CENTS } from "@/data/wallet";
+import type { CampusContact, EmergencyContact, ReportCategory, SafetyReport } from "@/data/safety";
+import { groupCode, MAX_GROUP_MEMBERS, memberShares, type GroupOrder } from "@/data/group";
 import { lostFoundSeed, splitShares, swapsSeed, type LostFoundKind, type LostFoundPost, type SavedSearch, type Split, type SwapPost, type WishCollection } from "@/data/campus";
 import { lookupStudentRecord } from "@/data/studentRecord";
 import type {
@@ -96,6 +98,8 @@ export type DemoState = {
   wallet: { balanceCents: number; transactions: WalletTransaction[] };
   cards: SavedCard[];
   twoFactor: boolean;
+  /** The authenticator key (base32) when two-factor is on. Kept on this phone in the demo. */
+  twoFactorSecret: string | null;
   settings: AppSettings;
   blocked: BlockedUser[];
   /** Points history beyond what delivered orders earn: redemptions and awards. */
@@ -104,10 +108,14 @@ export type DemoState = {
   subscriptions: Subscription[];
   emergencyContacts: EmergencyContact[];
   campusSecurityNumber: string;
+  /** Numbers for the student's campus, read from the database (empty until the backend is on). */
+  campusContacts: CampusContact[];
   safetyReports: SafetyReport[];
   collections: WishCollection[];
   savedSearches: SavedSearch[];
   splits: Split[];
+  /** The group order being built, if any. */
+  group: GroupOrder | null;
   swaps: SwapPost[];
   lostFound: LostFoundPost[];
   /** When the student accepted the Terms, Privacy Policy and Community Rules; null until they do. */
@@ -152,7 +160,9 @@ export function createInitialState(): DemoState {
     activity: recentActivitySeed,
     wallet: { balanceCents: walletSeed.balanceCents, transactions: walletSeed.transactions },
     cards: savedCardsSeed,
-    twoFactor: true,
+    // starts off, so the Safety check-up has something real to switch on
+    twoFactor: false,
+    twoFactorSecret: null,
     settings: DEFAULT_SETTINGS,
     // a demo welcome bonus so there is something to redeem (the seeded past orders earn very little)
     pointsLedger: [{ createdAt: daysAgoIso(10), id: "pt-welcome", label: "Welcome bonus (demo)", points: 300 }],
@@ -162,10 +172,12 @@ export function createInitialState(): DemoState {
     termsAcceptedAt: null,
     emergencyContacts: [],
     campusSecurityNumber: "",
+    campusContacts: [],
     safetyReports: [],
     collections: [{ id: "col-study", listingIds: [], name: "Study gear" }],
     savedSearches: [],
     splits: [],
+    group: null,
     swaps: swapsSeed,
     lostFound: lostFoundSeed,
     userVouchers: userVouchersSeed,
@@ -212,6 +224,8 @@ export type DemoAction =
   | { type: "markConversationRead"; conversationId: string }
   | { type: "markNotificationsRead" }
   | { type: "setTwoFactor"; enabled: boolean }
+  | { type: "enableTwoFactor"; secret: string }
+  | { type: "disableTwoFactor" }
   | { type: "setSetting"; key: keyof AppSettings; value: AppSettings[keyof AppSettings] }
   | { type: "unblockUser"; userId: string }
   | { type: "blockUser"; userId: string; name: string }
@@ -233,6 +247,13 @@ export type DemoAction =
   | { type: "saveSearch"; query: string }
   | { type: "removeSavedSearch"; searchId: string }
   | { type: "createSplit"; orderId: string; names: string[] }
+  | { type: "startGroup"; name: string }
+  | { type: "addGroupMember"; name: string }
+  | { type: "removeGroupMember"; memberId: string }
+  | { type: "addGroupItem"; memberId: string; listingId: string; optionId?: string; quantity?: number }
+  | { type: "removeGroupItem"; lineId: string }
+  | { type: "groupCheckout" }
+  | { type: "cancelGroup" }
   | { type: "markSplitPaid"; splitId: string; memberId: string }
   | { type: "addSwap"; have: string; want: string }
   | { type: "removeSwap"; swapId: string }
@@ -242,6 +263,7 @@ export type DemoAction =
   | { type: "addEmergencyContact"; name: string; phone: string; relationship: string }
   | { type: "removeEmergencyContact"; contactId: string }
   | { type: "setCampusSecurityNumber"; number: string }
+  | { type: "setCampusContacts"; contacts: CampusContact[] }
   | { type: "submitSafetyReport"; category: ReportCategory; notes: string }
   | { type: "toggleReelLike"; reelId: string }
   | { type: "addReelComment"; reelId: string; body: string };
@@ -590,9 +612,31 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
             ],
           }
         : state.wallet;
+      // a group order splits the bill by what each person added
+      const group = state.group;
+      let groupSplit: Split | null = null;
+      if (group && group.status === "checkout") {
+        const hostId = group.members.find((member) => member.isHost)!.id;
+        const itemCentsByMember: Record<string, number> = {};
+        for (const line of group.lines) {
+          const listing = getListing(line.listingId);
+          const price = listing ? unitPrice({ listingId: line.listingId, optionId: line.optionId }) : 0;
+          itemCentsByMember[line.memberId] = (itemCentsByMember[line.memberId] ?? 0) + price * line.quantity;
+        }
+        const shares = memberShares({ deliveryCents: totals.deliveryFeeCents, discountCents: totals.discountCents, hostId, itemCentsByMember, memberIds: group.members.map((member) => member.id) });
+        groupSplit = {
+          createdAt: placedAt,
+          id: nextId("split"),
+          members: group.members.filter((member) => !member.isHost).map((member) => ({ id: nextId("sm"), name: member.name, shareCents: shares[member.id]!, status: "pending" as const })),
+          orderId: orders[0]!.id,
+          totalCents: totals.totalCents,
+        };
+      }
       return {
         ...state,
         wallet,
+        group: group && group.status === "checkout" ? { ...group, orderId: orders[0]!.id, status: "placed" } : group,
+        splits: groupSplit ? [groupSplit, ...state.splits] : state.splits,
         referral: { ...state.referral, firstOrderId },
         orders: [...orders, ...state.orders],
         cart: [],
@@ -630,7 +674,7 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
     }
     case "withdraw": {
       const card = state.cards.find((item) => item.id === action.cardId);
-      if (!card || action.amountCents < 5000 || action.amountCents > state.wallet.balanceCents) return state;
+      if (!card || action.amountCents < MIN_WITHDRAW_CENTS || action.amountCents > state.wallet.balanceCents) return state;
       const at = new Date().toISOString();
       const brand = card.brand === "visa" ? "Visa" : "Mastercard";
       return {
@@ -836,6 +880,8 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       return { ...state, emergencyContacts: [...state.emergencyContacts, { id: nextId("ec"), name: action.name.trim(), phone: action.phone.trim(), relationship: action.relationship.trim() }] };
     case "removeEmergencyContact":
       return { ...state, emergencyContacts: state.emergencyContacts.filter((item) => item.id !== action.contactId) };
+    case "setCampusContacts":
+      return { ...state, campusContacts: action.contacts };
     case "setCampusSecurityNumber":
       return { ...state, campusSecurityNumber: action.number.trim() };
     case "submitSafetyReport": {
@@ -875,6 +921,68 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
     }
     case "removeSavedSearch":
       return { ...state, savedSearches: state.savedSearches.filter((item) => item.id !== action.searchId) };
+    case "startGroup": {
+      const name = action.name.trim();
+      if (name.length < 2 || (state.group && state.group.status !== "placed")) return state;
+      const hostName = state.profile?.fullName.split(" ")[0] || "You";
+      return {
+        ...state,
+        group: {
+          code: groupCode(name, Date.now()),
+          id: nextId("grp"),
+          lines: [],
+          members: [{ id: nextId("gm"), isHost: true, name: hostName }],
+          name,
+          status: "open",
+        },
+      };
+    }
+    case "addGroupMember": {
+      const group = state.group;
+      const name = action.name.trim();
+      if (!group || group.status !== "open" || name.length < 2 || group.members.length >= MAX_GROUP_MEMBERS) return state;
+      if (group.members.some((member) => member.name.toLowerCase() === name.toLowerCase())) return state;
+      return { ...state, group: { ...group, members: [...group.members, { id: nextId("gm"), isHost: false, name }] } };
+    }
+    case "removeGroupMember": {
+      const group = state.group;
+      const member = group?.members.find((item) => item.id === action.memberId);
+      if (!group || group.status !== "open" || !member || member.isHost) return state;
+      return {
+        ...state,
+        group: { ...group, lines: group.lines.filter((line) => line.memberId !== member.id), members: group.members.filter((item) => item.id !== member.id) },
+      };
+    }
+    case "addGroupItem": {
+      const group = state.group;
+      if (!group || group.status !== "open" || !group.members.some((member) => member.id === action.memberId) || !getListing(action.listingId)) return state;
+      if (isSoldOut(action.listingId)) return state;
+      const quantity = Math.max(1, action.quantity ?? 1);
+      const existing = group.lines.find((line) => line.memberId === action.memberId && line.listingId === action.listingId && line.optionId === action.optionId);
+      return {
+        ...state,
+        group: {
+          ...group,
+          lines: existing
+            ? group.lines.map((line) => (line.id === existing.id ? { ...line, quantity: line.quantity + quantity } : line))
+            : [...group.lines, { id: nextId("gl"), listingId: action.listingId, memberId: action.memberId, optionId: action.optionId, quantity }],
+        },
+      };
+    }
+    case "removeGroupItem": {
+      const group = state.group;
+      if (!group || group.status !== "open") return state;
+      return { ...state, group: { ...group, lines: group.lines.filter((line) => line.id !== action.lineId) } };
+    }
+    case "groupCheckout": {
+      const group = state.group;
+      if (!group || group.status !== "open" || group.lines.length === 0) return state;
+      // the group's items replace the cart, so checkout shows exactly what everyone added
+      const cart: CartLine[] = group.lines.map((line) => ({ id: nextId("line"), listingId: line.listingId, optionId: line.optionId, quantity: line.quantity }));
+      return { ...state, cart, group: { ...group, status: "checkout" } };
+    }
+    case "cancelGroup":
+      return { ...state, group: null };
     case "createSplit": {
       const order = state.orders.find((item) => item.id === action.orderId);
       const names = action.names.map((name) => name.trim()).filter(Boolean);
@@ -955,6 +1063,10 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       return state.blocked.some((item) => item.id === action.userId)
         ? state
         : { ...state, blocked: [...state.blocked, { blockedAt: new Date().toISOString(), id: action.userId, name: action.name }] };
+    case "enableTwoFactor":
+      return { ...state, twoFactor: true, twoFactorSecret: action.secret };
+    case "disableTwoFactor":
+      return { ...state, twoFactor: false, twoFactorSecret: null };
     case "setTwoFactor":
       return { ...state, twoFactor: action.enabled };
     case "signOutOtherSessions":

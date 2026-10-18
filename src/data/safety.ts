@@ -9,6 +9,9 @@ export const emergencyNumbers: { label: string; number: string; detail: string }
   { detail: "From any mobile phone", label: "Emergency", number: "112" },
 ];
 
+/** A campus number kept in the database (security desk, clinic or hub). */
+export type CampusContact = { id: string; campusId: string; kind: "security" | "clinic" | "hub"; label: string; phone: string };
+
 export type EmergencyContact = { id: string; name: string; phone: string; relationship: string };
 
 export const reportCategories = ["User", "Listing", "Delivery or courier", "Safety incident", "Other"] as const;

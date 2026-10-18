@@ -125,6 +125,22 @@ describe("safety", () => {
   });
 });
 
+describe("campus contacts", () => {
+  it("is readable by signed-in students, writable only by trusted code, and hides switched-off rows", async () => {
+    await db.exec(`
+      insert into campus_contacts (campus_id, kind, label, phone) values
+        ('potchefstroom', 'security', 'Campus security desk', '018 299 1111'),
+        ('potchefstroom', 'clinic', 'Campus clinic', '018 299 2222');
+      insert into campus_contacts (campus_id, kind, label, phone, active) values ('pretoria', 'security', 'Old desk', '012 000 0000', false);`);
+    const rows = await q(u.buyer, "select kind, phone from campus_contacts order by kind");
+    assert.deepEqual(rows.map((r) => r.kind), ["clinic", "security"]);
+    await fails(q("anon", "select * from campus_contacts"), /permission denied/);
+    await fails(q(u.buyer, "insert into campus_contacts (campus_id, kind, label, phone) values ('pretoria', 'security', 'Fake', '0123456789')"), /permission denied/);
+    await fails(q(u.buyer, "update campus_contacts set phone = '0000000000'"), /permission denied/);
+    await fails(db.query("insert into campus_contacts (campus_id, kind, label, phone) values ('pretoria', 'security', 'Bad', 'abc')"), /check/);
+  });
+});
+
 describe("card withdrawals", () => {
   let card;
   before(async () => {
@@ -166,8 +182,8 @@ describe("card withdrawals", () => {
     await fails(rpc("service_role", "public.settle_withdrawal($1, true)", [id]), /not_pending/);
 
     const before = await wallet(u.wd);
-    const second = await rpc(u.wd, "public.request_card_withdrawal(5000, $1, 'withdraw-key-9')", [card.card]);
-    assert.equal(await wallet(u.wd), before - 5000n);
+    const second = await rpc(u.wd, "public.request_card_withdrawal(6000, $1, 'withdraw-key-9')", [card.card]);
+    assert.equal(await wallet(u.wd), before - 6000n);
     await rpc("service_role", "public.settle_withdrawal($1, false)", [second]);
     assert.equal(await wallet(u.wd), before, "a failed withdrawal returns the money");
     assert.equal((await q(u.wd, "select * from notifications where kind = 'withdrawal'")).length, 1);

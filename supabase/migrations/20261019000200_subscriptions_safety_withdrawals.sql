@@ -186,6 +186,20 @@ create table public.safety_reports (
 );
 create index safety_reports_reporter_idx on public.safety_reports (reporter_id, created_at desc);
 
+-- Numbers for each campus (security desk, clinic, hub), kept in the database so the owner can fill and update
+-- them without a new app release. Every signed-in student can read them; only trusted code writes them.
+create table public.campus_contacts (
+  id uuid primary key default gen_random_uuid(),
+  campus_id text not null references public.campuses (id),
+  kind text not null check (kind in ('security', 'clinic', 'hub')),
+  label text not null check (length(btrim(label)) >= 2),
+  phone text not null check (phone ~ '^[0-9+ ()-]{9,20}$'),
+  active boolean not null default true,
+  sort_order int not null default 0,
+  unique (campus_id, kind, label)
+);
+create index campus_contacts_campus_idx on public.campus_contacts (campus_id) where active;
+
 create function public.add_emergency_contact(p_name text, p_phone text, p_relationship text default '') returns uuid
 language plpgsql security definer set search_path = public as $$
 declare
@@ -228,13 +242,13 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------------
--- Withdraw wallet money back to a saved card (minimum R50)
+-- Withdraw wallet money back to a saved card (minimum R60)
 -- ---------------------------------------------------------------------------
 create table public.withdrawal_requests (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles (id),
   payment_method_id uuid not null references public.payment_methods (id),
-  amount_cents bigint not null check (amount_cents >= 5000),
+  amount_cents bigint not null check (amount_cents >= 6000),
   status text not null default 'pending' check (status in ('pending', 'paid', 'failed')),
   created_at timestamptz not null default now(),
   settled_at timestamptz
@@ -247,7 +261,7 @@ declare
   v_user uuid := private.require_user();
   v_id uuid;
 begin
-  if p_amount_cents < 5000 or p_amount_cents > 2000000 then raise exception 'invalid_amount' using errcode = '22023'; end if;
+  if p_amount_cents < 6000 or p_amount_cents > 2000000 then raise exception 'invalid_amount' using errcode = '22023'; end if;
   if p_idempotency_key is null or length(p_idempotency_key) < 8 then raise exception 'idempotency_key_required' using errcode = '22023'; end if;
   if not exists (select 1 from public.payment_methods where id = p_payment_method_id and user_id = v_user) then
     raise exception 'forbidden' using errcode = '42501';
@@ -292,21 +306,24 @@ alter table public.emergency_contacts enable row level security;
 alter table public.safety_settings enable row level security;
 alter table public.safety_reports enable row level security;
 alter table public.withdrawal_requests enable row level security;
+alter table public.campus_contacts enable row level security;
 
 create policy subscription_plans_read on public.subscription_plans for select using (active);
 create policy subscriptions_own_read on public.subscriptions for select using (user_id = auth.uid());
 create policy emergency_contacts_own_read on public.emergency_contacts for select using (user_id = auth.uid());
 create policy safety_settings_own_read on public.safety_settings for select using (user_id = auth.uid());
 create policy safety_reports_read on public.safety_reports for select using (reporter_id = auth.uid() or private.is_staff());
+create policy campus_contacts_read on public.campus_contacts for select using (active);
 create policy withdrawal_requests_own_read on public.withdrawal_requests for select using (user_id = auth.uid() or private.is_staff());
 
 revoke all on public.subscription_plans, public.subscriptions, public.emergency_contacts, public.safety_settings,
-  public.safety_reports, public.withdrawal_requests from anon, authenticated;
+  public.safety_reports, public.withdrawal_requests, public.campus_contacts from anon, authenticated;
 grant select on public.subscription_plans to anon, authenticated;
+grant select on public.campus_contacts to authenticated;
 grant select on public.subscriptions, public.emergency_contacts, public.safety_settings, public.safety_reports,
   public.withdrawal_requests to authenticated;
 grant all on public.subscription_plans, public.subscriptions, public.emergency_contacts, public.safety_settings,
-  public.safety_reports, public.withdrawal_requests to service_role;
+  public.safety_reports, public.withdrawal_requests, public.campus_contacts to service_role;
 
 revoke execute on function
   public.subscribe_plan(text), public.cancel_subscription(text), public.resume_subscription(text),

@@ -25,5 +25,6 @@ export { StatusBadge } from "./StatusBadge";
 export { StudentCard } from "./StudentCard";
 export { TabBar, TABS } from "./TabBar";
 export { TextField } from "./TextField";
+export { TwoFactorSheet } from "./TwoFactorSheet";
 export { ToastProvider, useToast } from "./Toast";
 export { Wordmark } from "./Wordmark";

@@ -1,12 +1,14 @@
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { type ReactNode, useState } from "react";
 import { StyleSheet, Switch, Text, View } from "react-native";
 
-import { AppHeader, Button, Card, Icon, MenuRow, RadioRow, Screen, Sheet, useToast } from "@/components";
+import { AppHeader, Button, Card, Icon, MenuRow, RadioRow, Screen, Sheet, TwoFactorSheet, useToast } from "@/components";
 import { dateAndTime } from "@/data/format";
 import type { AppSettings, ProfileVisibility } from "@/data/types";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, corner, space, text } from "@/theme/tokens";
+
+import { useSecurityActions } from "./useSecurityActions";
 
 type Panel = "password" | "logins" | "delete" | "visibility" | "blocked" | "data" | null;
 
@@ -31,6 +33,7 @@ export function SecurityScreen() {
   const close = () => setPanel(null);
   const others = state.loginEvents.filter((event) => !event.current).length;
   const { settings } = state;
+  const security = useSecurityActions();
   const check = securityScore({ biometric: settings.biometric, otherSessions: others, twoFactor: state.twoFactor });
 
   const set = <K extends keyof AppSettings>(key: K, value: AppSettings[K], message?: string) => {
@@ -77,6 +80,7 @@ export function SecurityScreen() {
       </Card>
 
       <Group title="Sign in and security">
+        <MenuRow icon="heart" label="Safety check-up" onPress={() => router.push("/account/safety" as Href)} />
         <MenuRow icon="key" label="Change password" onPress={() => setPanel("password")} />
         <MenuRow
           icon="smartphone"
@@ -84,17 +88,27 @@ export function SecurityScreen() {
           right={
             <Switch
               accessibilityLabel="Two-factor authentication"
-              onValueChange={(enabled) => {
-                dispatch({ enabled, type: "setTwoFactor" });
-                toast.show(`Two-factor authentication ${enabled ? "on" : "off"}`);
-              }}
+              onValueChange={(enabled) => security.startTwoFactor(enabled)}
               thumbColor={color.onPrimary}
               trackColor={{ false: color.borderStrong, true: color.primary }}
               value={state.twoFactor}
             />
           }
         />
-        {toggle("biometric", "Face ID or Touch ID", "Ask before payments and wallet actions")}
+        <MenuRow
+          hint="Ask before payments and wallet actions"
+          label="Face ID or Touch ID"
+          right={
+            <Switch
+              accessibilityLabel="Face ID or Touch ID"
+              disabled={security.busy}
+              onValueChange={(value) => void security.setBiometric(value)}
+              thumbColor={color.onPrimary}
+              trackColor={{ false: color.borderStrong, true: color.primary }}
+              value={settings.biometric}
+            />
+          }
+        />
         <MenuRow icon="monitor" label="Login activity" onPress={() => setPanel("logins")} value={others > 0 ? `${others} other` : undefined} />
       </Group>
 
@@ -136,6 +150,8 @@ export function SecurityScreen() {
         />
         <MenuRow danger icon="trash-2" label="Delete account" onPress={() => setPanel("delete")} />
       </Group>
+
+      <TwoFactorSheet mode={security.twoFactor ?? "enable"} onClose={security.closeTwoFactor} visible={security.twoFactor !== null} />
 
       <Sheet onClose={close} title="Change password" visible={panel === "password"}>
         <Text style={text.body}>

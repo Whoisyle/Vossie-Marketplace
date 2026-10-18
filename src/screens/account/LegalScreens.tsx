@@ -1,9 +1,9 @@
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, EmptyState, Icon, MenuRow, Screen } from "@/components";
-import { getLegalDoc, LEGAL_DRAFT_NOTICE, legalDocs } from "@/data/legal";
-import { color, corner, space, text } from "@/theme/tokens";
+import { AppHeader, EmptyState, MenuRow, Screen } from "@/components";
+import { getLegalDoc, LEGAL_UPDATED, legalDocs } from "@/data/legal";
+import { color, space, text } from "@/theme/tokens";
 
 /** Terms and conditions, privacy policy and community rules, with a note that the text is still a draft. */
 export function LegalListScreen() {
@@ -11,18 +11,18 @@ export function LegalListScreen() {
   return (
     <Screen testID="legal-screen">
       <AppHeader back subtitle="The rules and your rights." title="Terms and policies" />
-      <DraftBanner />
       <View style={styles.list}>
         {legalDocs.map((doc) => (
           <MenuRow
             hint={doc.summary}
-            icon={doc.id === "terms" ? "file-text" : doc.id === "privacy" ? "lock" : "users"}
+            icon={doc.id === "terms" ? "file-text" : doc.id === "privacy" ? "lock" : doc.id === "refunds" ? "rotate-ccw" : doc.id === "seller" ? "briefcase" : "users"}
             key={doc.id}
             label={doc.title}
             onPress={() => router.push(`/legal/${doc.id}` as Href)}
           />
         ))}
       </View>
+      <Text style={styles.updated}>Last updated {LEGAL_UPDATED}</Text>
     </Screen>
   );
 }
@@ -42,7 +42,6 @@ export function LegalReaderScreen() {
   return (
     <Screen inTabs={false} testID="legal-reader">
       <AppHeader back subtitle={`Last updated ${doc.updated}`} title={doc.title} />
-      <DraftBanner />
       {doc.sections.map((section, index) => (
         <View key={section.heading} style={styles.section}>
           <Text accessibilityRole="header" style={styles.heading}>
@@ -59,18 +58,8 @@ export function LegalReaderScreen() {
   );
 }
 
-function DraftBanner() {
-  return (
-    <View accessibilityRole="alert" style={styles.draft}>
-      <Icon color={color.warning} name="alert-triangle" size={16} />
-      <Text style={styles.draftText}>{LEGAL_DRAFT_NOTICE}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  draft: { alignItems: "center", backgroundColor: color.warningSoft, borderRadius: corner.md, flexDirection: "row", gap: 8, marginTop: space.sm, padding: space.sm },
-  draftText: { color: color.warning, flex: 1, fontSize: 13, fontWeight: "600" },
+  updated: { ...text.caption, marginTop: space.md, textAlign: "center" },
   heading: { color: color.heading, fontSize: 16, fontWeight: "800" },
   list: { gap: space.xs, marginTop: space.md },
   section: { gap: space.xs, marginTop: space.md },

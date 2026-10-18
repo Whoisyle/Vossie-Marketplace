@@ -1,5 +1,5 @@
 import { useRouter, type Href } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Linking, Share, StyleSheet, Switch, Text, View } from "react-native";
 
 import {
@@ -15,6 +15,7 @@ import {
   Sheet,
   StatusBadge,
   TextField,
+  TwoFactorSheet,
   useToast,
 } from "@/components";
 import { campusPlaces } from "@/data/geo";
@@ -31,6 +32,8 @@ import {
 import { isActive } from "@/screens/activity/orderStatus";
 import { trackingLink } from "@/screens/activity/TrackOrderScreen";
 import { useDemoStore } from "@/state/DemoStore";
+import { backendEnabled } from "@/services/client";
+import { useSecurityActions } from "./useSecurityActions";
 import { color, corner, space, text } from "@/theme/tokens";
 
 type Tab = "checkup" | "contacts" | "trip" | "report";
@@ -40,6 +43,7 @@ export function SafetyScreen() {
   const router = useRouter();
   const toast = useToast();
   const { dispatch, state } = useDemoStore();
+  const security = useSecurityActions();
   const [tab, setTab] = useState<Tab>("checkup");
   const [addOpen, setAddOpen] = useState(false);
   const [name, setName] = useState("");
@@ -51,15 +55,36 @@ export function SafetyScreen() {
   const [reportError, setReportError] = useState<string | null>(null);
   const [shareWith, setShareWith] = useState<string | null>(null);
 
+  const campusId = state.profile?.campusId ?? "potchefstroom";
+  const campusSecurity = state.campusContacts.filter((item) => item.campusId === campusId && item.kind === "security");
+
+  // the campus numbers live in the database; read them when the backend is on
+  useEffect(() => {
+    if (!backendEnabled || process.env.EXPO_PUBLIC_USE_BACKEND !== "true") return;
+    let cancelled = false;
+    void import("@/services/rewards")
+      .then(({ listCampusContacts }) => listCampusContacts(campusId))
+      .then((rows) => {
+        if (cancelled) return;
+        dispatch({
+          contacts: rows.map((row) => ({ campusId: row.campus_id, id: row.id, kind: row.kind as "security" | "clinic" | "hub", label: row.label, phone: row.phone })),
+          type: "setCampusContacts",
+        });
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [campusId, dispatch]);
+
   const others = state.loginEvents.filter((event) => !event.current).length;
   const check = safetyCheckup({
     biometric: state.settings.biometric,
-    campusSecurityNumber: state.campusSecurityNumber,
+    campusSecurityNumber: campusSecurity[0]?.phone ?? state.campusSecurityNumber,
     contacts: state.emergencyContacts.length,
     otherSessions: others,
     twoFactor: state.twoFactor,
   });
-  const campusId = state.profile?.campusId ?? "potchefstroom";
   const tracked = state.orders.filter((order) => isActive(order) && order.fulfilment === "delivery");
 
   const call = (number: string) => {
@@ -69,8 +94,8 @@ export function SafetyScreen() {
   };
 
   const fix = (id: (typeof check.items)[number]["id"]) => {
-    if (id === "two-factor") dispatch({ enabled: true, type: "setTwoFactor" });
-    else if (id === "biometric") dispatch({ key: "biometric", type: "setSetting", value: true });
+    if (id === "two-factor") security.startTwoFactor(true);
+    else if (id === "biometric") void security.setBiometric(true);
     else if (id === "contact") {
       setTab("contacts");
       setAddOpen(true);
@@ -185,9 +210,19 @@ export function SafetyScreen() {
           </View>
 
           <Text style={styles.heading}>Campus security</Text>
+          {state.campusContacts.filter((item) => item.campusId === campusId).map((contact) => (
+            <Card key={contact.id} style={styles.item} testID={`campus-contact-${contact.id}`} variant="soft">
+              <View style={styles.flex}>
+                <Text style={text.cardTitle}>{contact.label}</Text>
+                <Text style={text.caption}>{contact.phone}</Text>
+              </View>
+              <Button icon="phone" label="Call" onPress={() => call(contact.phone)} size="sm" variant="soft" />
+            </Card>
+          ))}
+          {campusSecurity.length === 0 ? <Text style={text.bodySmall}>Your campus hasn&apos;t added its security number yet. You can save one yourself below.</Text> : null}
           <TextField
             keyboardType="phone-pad"
-            label="Campus security number"
+            label="Your own security number (optional)"
             onChangeText={(value) => dispatch({ number: value, type: "setCampusSecurityNumber" })}
             placeholder="Add your campus security number"
             right={state.campusSecurityNumber ? <Icon color={color.success} name="check-circle" size={16} /> : undefined}
@@ -316,6 +351,8 @@ export function SafetyScreen() {
           </View>
         </View>
       ) : null}
+
+      <TwoFactorSheet mode={security.twoFactor ?? "enable"} onClose={security.closeTwoFactor} visible={security.twoFactor !== null} />
 
       <Sheet onClose={() => setAddOpen(false)} title="Add a trusted contact" visible={addOpen}>
         <TextField autoCapitalize="words" error={contactErrors.name} label="Name" onChangeText={setName} placeholder="Their name" value={name} />
