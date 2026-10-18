@@ -58,6 +58,36 @@ References in the owner's folder: a property app (floating bar, dark filter butt
 
 Notes: connecting screens to the real backend needs the new schema on a Supabase project. Until the owner approves applying it, screens keep working on the demo store behind the `backendEnabled` switch. Live courier position needs a new table and the iPhone location permission.
 
+## Feature additions (owner, 2026-10-18, after review of the first intro build)
+
+Main action colour is **slate #35505C with a soft gradient** (Welcome button, Continue, Pay Now, Add to Cart). Bubbles use matching teal, navy and mist gradients and drift a little quicker and shorter than the first version.
+
+| Feature | Decision | Backend or package it needs |
+| --- | --- | --- |
+| Courier rating and tip | Yes: 1-5 stars and tip chips (R5, R10, R20, custom) after delivery | tips table and ledger posting to the courier payable; courier rating |
+| Face ID / Touch ID | Yes, before payments and wallet actions, with passcode fallback | `expo-local-authentication` (client) |
+| Referral codes | Yes: both get wallet credit after the friend's first order | referrals table, wallet credit rule |
+| Loyalty points | Yes: earn on orders, redeem as wallet credit, progress ring | points ledger |
+| My vouchers wallet | Yes: vouchers and promo codes with expiry, one-tap apply | user vouchers table |
+| Order for later | Yes: time slot picker at checkout | `scheduled_for` on seller orders, seller prep reminders |
+| Subtle sounds | Yes (off in silent mode and in settings) | `expo-audio` and short sound files |
+| Onboarding tour | Yes: 3 animated cards after first sign-in | none |
+| Skeleton loading and offline states | Yes | read-only cache |
+| Dark mode | **No** (owner decision) | none |
+| Safe meet-up spots, share order tracking, verified seller badges, report and block everywhere | All yes | meet-up points table, tracking share token, badge rules |
+| Trending on campus, smart suggestions as you type, back in stock and price drop alerts, reorder in one tap | All yes | trending view, alerts table and notifications |
+
+These are additions to the backend; they are not in the current schema. Each gets a migration and tests when its phase starts.
+
+## Phases (owner chose four, reviewing on the iPhone after each)
+
+1. Intro, Welcome, sign-in, **OTP**, profile setup, **floating navbar**, Home (filters, carousel, banners, recents, personalised greeting).
+2. Explore, Reels, product page, storefront, reviews, search.
+3. Cart, checkout, cards and payment mock-ups, animated receipts and email, maps and live tracking, delivery address picker.
+4. The extra features above (tips, biometrics, referrals, loyalty, vouchers wallet, scheduling, safety, discovery, sounds, tour, skeletons and offline).
+
+Seller and courier apps are a separate pass (19 Oct).
+
 ## New packages (approved)
 
 `react-native-gesture-handler`, `expo-haptics`, `expo-linear-gradient`, `expo-blur`, `expo-sensors`. All run in Expo Go.
