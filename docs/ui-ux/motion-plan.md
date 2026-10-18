@@ -94,6 +94,12 @@ Not built: receipt and order emails (need an Edge Function and the email provide
 - Call button dials `order.courier.phone` once a courier has one; until then it says so. No demo number is invented.
 - Points (decided): 1 point per R10 on delivered orders, 10 points = R1, tiers Bronze 0, Silver 500, Gold 1500. Shown on Account now; redeeming, bonuses and the progress ring are Phase 4.
 
+## Round 3 and Phase 4 (2026-10-18)
+
+Round 3: upright student card on Verified; delivery split by campus (hub to hub only for items from another campus) with three third-party options (economy, standard, express); redesigned paper receipt; wallet card carousel; fuller Security and Settings; real promotions (store or category page, deals first); improved Messages.
+Phase 4 built: Vossie Points ring and redeem, courier rating and tips, referrals, voucher wallet with one-tap apply, order for later, price and stock alerts with sold-out items, report and block everywhere with blocked sellers hidden, verified seller badge, reorder, shared tracking link (vossie://track/<order>), welcome tour, skeleton loading, offline bar, sounds (off by default) and Face ID or Touch ID before payments, adding funds and redeeming. Database migration and tests for these.
+Not done: Eduvos SSO, real payment provider (so card tips and Apple Pay or Google Pay stay mock), real carriers for third-party and hub to hub, a real notification and email service, the courier's own navigation, seller and courier apps (19 Oct).
+
 ## Phases (owner chose four, reviewing on the iPhone after each)
 
 1. Intro, Welcome, sign-in, **OTP**, profile setup, **floating navbar**, Home (filters, carousel, banners, recents, personalised greeting).

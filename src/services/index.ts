@@ -11,6 +11,7 @@ export * as seller from "./seller";
 export * as courier from "./courier";
 export * as money from "./money";
 export * as messaging from "./messaging";
+export * as rewards from "./rewards";
 export * as staff from "./staff";
 export { ServiceError, handoffMessages, toServiceError } from "./errors";
 export type * from "./types";

@@ -81,6 +81,12 @@ Disputes (`open_order_issue`) put the seller order in `disputed` with funds held
 
 Secrets (set in Supabase, never in the app): `PAYMENT_PROVIDER`, `PAYMENT_WEBHOOK_SECRET_<PROVIDER>`, `ALLOW_MOCK_PAYMENTS` (never true in production), `NOTIFY_DISPATCH_SECRET`, `EMAIL_PROVIDER`.
 
+## Phase 4 additions (`20261019000100_phase4_features.sql`)
+
+Ratings and tips (`rate_courier`, tip from the wallet into `courier_payable`), Vossie Points (`points_ledger`, awarded when a seller order completes, `redeem_points`), referrals (`my_referral_code`, `apply_referral_code`, reward on the friend's first paid order), the voucher wallet (`user_vouchers`, `my_vouchers`, `grant_voucher` for trusted code), order for later (`seller_orders.scheduled_for`, `schedule_seller_order`, `send_prep_reminders` for a scheduled job), meet-up spots, shared tracking links (`create_tracking_share`, `shared_tracking` shows status only), price and stock alerts (`toggle_alert` plus triggers on `listing_options`), `is_verified_seller` and `reorder_to_cart`. Block and report already existed (`user_blocks`, `message_reports`). Tests: `supabase/tests/phase4.test.mjs`.
+
+Differences between the demo app and the database to settle with the owner: the app awards points when an order is marked delivered, the database when it completes after the issue window; the app takes a tip from the order's payment method, the database only from the wallet until the payment provider is live; hub-to-hub and third-party delivery are app-only so far (the database still has `campus_handoff` and `vossie_delivery`, plus carrier bookings); the welcome points and the demo vouchers exist only in the app.
+
 ## What is deliberately not built (external gates and open decisions)
 
 | Item | Why |
