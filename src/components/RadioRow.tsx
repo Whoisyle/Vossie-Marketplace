@@ -44,7 +44,9 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.7 },
   radio: {
     alignItems: "center",
-    backgroundColor: "#E4E7E9",
+    backgroundColor: color.surface,
+    borderColor: color.borderStrong,
+    borderWidth: 2,
     borderRadius: 11,
     height: 22,
     justifyContent: "center",

@@ -46,7 +46,7 @@ export function Screen({
       >
         {scroll ? (
           <ScrollView
-            contentContainerStyle={[styles.scrollContent, inTabs && styles.tabClearance]}
+            contentContainerStyle={styles.scrollContent}
             keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
@@ -56,7 +56,7 @@ export function Screen({
         ) : (
           body
         )}
-        {footer ? <View style={[styles.footer, inTabs && styles.footerInTabs]}>{footer}</View> : null}
+        {footer ? <View style={styles.footer}>{footer}</View> : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -79,8 +79,6 @@ const styles = StyleSheet.create({
     paddingTop: space.xs,
     width: "100%",
   },
-  footerInTabs: { paddingBottom: size.tabBar + space.lg },
   safeArea: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingBottom: space.xl },
-  tabClearance: { paddingBottom: size.tabBar + space.xl + space.lg },
 });

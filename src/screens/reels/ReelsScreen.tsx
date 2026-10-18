@@ -7,22 +7,19 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  useWindowDimensions,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, Icon, Sheet, useToast, type IconName } from "@/components";
 import type { Reel } from "@/data/types";
 import { useDemoStore } from "@/state/DemoStore";
-import { color, size, space, text } from "@/theme/tokens";
+import { color, space, text } from "@/theme/tokens";
 
 /** Reels tab: full-screen vertical feed with like, comment, share and a link to the listing. */
 export function ReelsScreen() {
   const router = useRouter();
   const toast = useToast();
-  const insets = useSafeAreaInsets();
-  const { height } = useWindowDimensions();
+  const [height, setHeight] = useState(0);
   const { dispatch, state } = useDemoStore();
   const [commentsFor, setCommentsFor] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -44,8 +41,9 @@ export function ReelsScreen() {
   };
 
   return (
-    <View style={styles.root} testID="reels-screen">
+    <View onLayout={(event) => setHeight(event.nativeEvent.layout.height)} style={styles.root} testID="reels-screen">
       <FlatList
+        extraData={height}
         data={state.reels}
         decelerationRate="fast"
         keyExtractor={(reel) => reel.id}
@@ -70,7 +68,7 @@ export function ReelsScreen() {
                 </View>
               </Pressable>
 
-              <View style={[styles.actions, { bottom: size.tabBar + insets.bottom + space.xl }]}>
+              <View style={[styles.actions, { bottom: space.xl }]}>
                 <Action
                   active={liked}
                   icon="heart"
@@ -87,7 +85,7 @@ export function ReelsScreen() {
                 <Action icon="share-2" label="Share" onPress={() => void share(item)} title="Share" />
               </View>
 
-              <View style={[styles.caption, { bottom: size.tabBar + insets.bottom + space.xl }]}>
+              <View style={[styles.caption, { bottom: space.xl }]}>
                 <Text style={styles.seller}>{item.seller}</Text>
                 <Text numberOfLines={3} style={styles.captionText}>
                   {item.caption}
