@@ -4,7 +4,8 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "types": [
-      "jest"
+      "jest",
+      "node"
     ],
     "paths": {
       "@/*": [
@@ -17,5 +18,11 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "supabase/functions",
+    "supabase/tests",
+    "supabase/scripts"
   ]
 }
