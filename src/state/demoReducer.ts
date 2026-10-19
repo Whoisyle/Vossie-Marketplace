@@ -227,6 +227,8 @@ export type DemoAction =
   | { type: "openConversation"; conversationId: string; name?: string; kind?: Conversation["kind"]; orderId?: string }
   | { type: "markConversationRead"; conversationId: string }
   | { type: "markNotificationsRead" }
+  | { type: "markNotificationRead"; notificationId: string }
+  | { type: "advanceOrder"; orderId: string; status: "accepted" | "preparing" | "on-the-way" | "ready" }
   | { type: "setTwoFactor"; enabled: boolean }
   | { type: "enableTwoFactor"; secret: string }
   | { type: "disableTwoFactor" }
@@ -1060,6 +1062,34 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
       return { ...state, interests: action.interests };
     case "acceptTerms":
       return { ...state, termsAcceptedAt: new Date().toISOString() };
+    case "markNotificationRead":
+      return { ...state, notifications: state.notifications.map((item) => (item.id === action.notificationId ? { ...item, read: true } : item)) };
+    case "advanceOrder": {
+      const order = state.orders.find((item) => item.id === action.orderId);
+      const rank = { placed: 0, accepted: 1, preparing: 2, ready: 3, "on-the-way": 3, delivered: 4, cancelled: -1 } as const;
+      if (!order || order.status === "cancelled" || order.status === "delivered" || rank[action.status] <= rank[order.status]) return state;
+      const seller = getSeller(order.sellerId)?.name ?? "The seller";
+      const at = new Date().toISOString();
+      const copy = {
+        accepted: { body: `${seller} accepted order ${order.number} and will start on it.`, title: "Order accepted" },
+        "on-the-way": { body: `Linda M. picked up order ${order.number} from ${seller} and is on the way.`, title: "Your order is on the way" },
+        preparing: { body: `${seller} is preparing order ${order.number}.`, title: "Order being prepared" },
+        ready: { body: `Order ${order.number} is ready to collect at ${seller}.`, title: "Order ready to collect" },
+      }[action.status];
+      return {
+        ...state,
+        orders: state.orders.map((item) =>
+          item.id === order.id
+            ? {
+                ...item,
+                status: action.status,
+                ...(action.status === "on-the-way" ? { courier: { name: "Linda M.", rating: 4.9, vehicle: "Vossie courier · Bicycle" }, etaMinutes: item.etaMinutes ?? 12 } : {}),
+              }
+            : item,
+        ),
+        notifications: [{ id: nextId("n"), title: copy.title, body: copy.body, createdAt: at, read: false, href: `/activity/order/${order.id}` }, ...state.notifications],
+      };
+    }
     case "markNotificationsRead":
       return { ...state, notifications: state.notifications.map((item) => ({ ...item, read: true })) };
     case "setSetting":
