@@ -97,6 +97,17 @@ export async function runLiveSellerAction(action: SellerAction, state: DemoState
         }
         break;
       }
+      case "sellerAdjustStock": {
+        const listing = seller.listings.find((item) => item.id === action.id);
+        if (listing) {
+          await sellerService.upsertListing(listingInput(listing, campusId), [{ id: listing.optionId, label: "Standard", onHand: Math.max(0, listing.onHand + action.delta), priceCents: listing.priceCents, unlimited: listing.unlimited }]);
+        }
+        break;
+      }
+      case "sellerArchiveListing":
+        // the database has no archived state yet, so an archived product is paused there
+        await sellerService.setListingPaused(action.id, action.archived);
+        break;
       case "sellerSaveBank": {
         const known = await money.listPayoutDestinations();
         if (!known.some((item) => item.account_last4 === action.bank.last4 && item.bank_name === action.bank.bankName)) {
@@ -113,7 +124,7 @@ export async function runLiveSellerAction(action: SellerAction, state: DemoState
         break;
       }
       default:
-        // wizard steps, alerts and the demo-only review need no server call
+        // wizard steps, alerts, the demo review and the courier, promotion, review, case and team screens (still demo) need no server call
         return;
     }
   } finally {

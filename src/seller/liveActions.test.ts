@@ -57,7 +57,7 @@ describe("sending seller actions to the real services", () => {
 
   it("saves a listing and asks for it to be published, and pauses one", async () => {
     seller.upsertListing.mockResolvedValue("listing-1");
-    await runLiveSellerAction({ listing: { category: "food", description: "Tasty", id: "sl-new", onHand: 5, priceCents: 4500, status: "published", title: "Kota", unlimited: false, updatedAt: "" }, type: "sellerSaveListing" }, state(), none);
+    await runLiveSellerAction({ listing: { category: "food", description: "Tasty", id: "sl-new", onHand: 5, priceCents: 4500, status: "published", title: "Kota", photos: [], sku: "VM-0001", unlimited: false, updatedAt: "", variants: [] }, type: "sellerSaveListing" }, state(), none);
     expect(seller.upsertListing).toHaveBeenCalledWith(expect.objectContaining({ id: undefined, title: "Kota", type: "goods" }), [expect.objectContaining({ onHand: 5, priceCents: 4500 })]);
     expect(seller.submitListing).toHaveBeenCalledWith("listing-1");
     await runLiveSellerAction({ id: "listing-1", paused: true, type: "sellerPauseListing" }, state(), none);

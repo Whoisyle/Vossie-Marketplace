@@ -3,10 +3,16 @@ import { act, fireEvent, screen } from "@testing-library/react-native";
 import { createInitialState, demoReducer, type DemoAction, type DemoState } from "@/state/demoReducer";
 import { renderWithProviders } from "@/test/renderWithProviders";
 
+import { AccountScreen } from "@/screens/account/AccountScreen";
+
 import { SellerAccountScreen } from "./SellerAccountScreen";
-import { SellerEarningsScreen } from "./SellerEarningsScreen";
+import { SellerInventoryScreen } from "./SellerInventoryScreen";
+import { SellerAnalyticsScreen, SellerReviewsScreen, SellerStorePreviewScreen } from "./SellerInsightScreens";
+import { SellerCasesScreen, SellerPromotionsScreen, SellerTeamScreen } from "./SellerManageScreens";
+import { SellerHandoverScreen, SellerPrepareScreen } from "./SellerPrepareScreens";
+import { SellerPayoutsScreen } from "./SellerPayoutsScreen";
 import { SellerHomeScreen } from "./SellerHomeScreen";
-import { SellerListingsScreen } from "./SellerListingsScreen";
+import { SellerProductsScreen } from "./SellerProductsScreen";
 import { SellerMessagesScreen } from "./SellerMessagesScreen";
 import { SellerNotificationsScreen } from "./SellerNotificationsScreen";
 import { SellerOrderDetailScreen } from "./SellerOrderDetailScreen";
@@ -131,9 +137,9 @@ describe("seller home", () => {
     renderWithProviders(<SellerHomeScreen />, seller());
     expect(screen.getByText("Needs your attention")).toBeTruthy();
     expect(screen.getByText("New orders")).toBeTruthy();
-    expect(screen.getByText("Active listings")).toBeTruthy();
+    expect(screen.getByText("To ship")).toBeTruthy();
     expect(screen.getByTestId("attention-a-so-2041")).toBeTruthy();
-    expect(screen.getByTestId("attention-a-sl-coffee")).toBeTruthy();
+    expect(screen.getByTestId("attention-a-sl-ti30")).toBeTruthy();
     expect(screen.queryByTestId("verification-banner")).toBeNull();
   });
 
@@ -161,7 +167,7 @@ describe("seller orders", () => {
     fireEvent.press(screen.getByTestId("chip-preparing"));
     expect(screen.getByTestId("order-so-2038")).toBeTruthy();
     fireEvent.press(screen.getByTestId("chip-ready"));
-    expect(screen.getByTestId("order-so-2036")).toBeTruthy();
+    expect(screen.getByTestId("order-so-2035")).toBeTruthy();
   });
 
   it("accepts a new order, which moves to Preparing", () => {
@@ -195,10 +201,9 @@ describe("seller orders", () => {
   it("moves an accepted order on to preparing and ready", () => {
     renderWithProviders(<SellerOrdersScreen />, seller());
     fireEvent.press(screen.getByTestId("chip-preparing"));
-    fireEvent.press(screen.getByTestId("advance-so-2037"));
-    fireEvent.press(screen.getByTestId("advance-so-2037"));
+    fireEvent.press(screen.getByTestId("advance-so-2036"));
     fireEvent.press(screen.getByTestId("chip-ready"));
-    expect(screen.getByTestId("order-so-2037")).toBeTruthy();
+    expect(screen.getByTestId("order-so-2036")).toBeTruthy();
   });
 });
 
@@ -206,15 +211,18 @@ describe("seller order detail", () => {
   it("shows the items, buyer, collection and totals of a new order", () => {
     mockParams = { id: "so-2041" };
     renderWithProviders(<SellerOrderDetailScreen />, seller());
-    expect(screen.getByText("Order #2041")).toBeTruthy();
-    expect(screen.getByText("Thabo N.")).toBeTruthy();
-    expect(screen.getByText("Campus collection")).toBeTruthy();
+    expect(screen.getByText("Order #VM-2041")).toBeTruthy();
+    expect(screen.getByText("Thabo Mokoena")).toBeTruthy();
+    expect(screen.getByText("Courier delivery")).toBeTruthy();
     expect(screen.getByText("Paid in app")).toBeTruthy();
+    expect(screen.getByText("Delivery fee (paid by buyer)")).toBeTruthy();
+    expect(screen.getByText("Vossie platform fee")).toBeTruthy();
+    expect(screen.getByText("You earn")).toBeTruthy();
     expect(screen.getByTestId("slide-accept")).toBeTruthy();
   });
 
   it("completes a ready order only with the right collection code", async () => {
-    mockParams = { id: "so-2036" };
+    mockParams = { id: "so-2035" };
     renderWithProviders(<SellerOrderDetailScreen />, seller());
     fireEvent.changeText(screen.getByTestId("handover-code"), "000000");
     fireEvent.press(screen.getByTestId("handover-confirm"));
@@ -235,29 +243,31 @@ describe("seller order detail", () => {
 
 describe("seller earnings, listings and the rest", () => {
   it("shows the balance, the week as a chart and recent activity", () => {
-    renderWithProviders(<SellerEarningsScreen />, seller());
+    renderWithProviders(<SellerPayoutsScreen />, seller());
     expect(screen.getByText("Available balance")).toBeTruthy();
     expect(screen.getByTestId("week-chart")).toBeTruthy();
-    expect(screen.getAllByText(/Sale ·/).length).toBeGreaterThan(0);
-    expect(screen.getByText("Payout · Bank transfer")).toBeTruthy();
+    expect(screen.getAllByText(/fee R/).length).toBeGreaterThan(0);
+    expect(screen.getByText("Payout to bank")).toBeTruthy();
+    expect(screen.getByTestId("payout-pending")).toBeTruthy();
+    expect(screen.getByTestId("payout-fees")).toBeTruthy();
   });
 
   it("opens the withdraw sheet and asks for a bank the first time", () => {
-    renderWithProviders(<SellerEarningsScreen />, seller());
+    renderWithProviders(<SellerPayoutsScreen />, seller());
     fireEvent.press(screen.getByTestId("open-withdraw"));
     expect(screen.getByText("Withdraw to bank")).toBeTruthy();
     expect(screen.getByText("Account holder")).toBeTruthy();
   });
 
   it("lists the listings, filters low stock, and pauses and restocks", () => {
-    renderWithProviders(<SellerListingsScreen />, seller());
-    expect(screen.getByTestId("listing-sl-burger")).toBeTruthy();
+    renderWithProviders(<SellerProductsScreen />, seller());
+    expect(screen.getByTestId("listing-sl-calculus")).toBeTruthy();
     fireEvent.press(screen.getByTestId("filter-low"));
-    expect(screen.getByTestId("listing-sl-coffee")).toBeTruthy();
-    expect(screen.queryByTestId("listing-sl-burger")).toBeNull();
-    fireEvent.press(screen.getByTestId("pause-sl-coffee"));
+    expect(screen.getByTestId("listing-sl-ti30")).toBeTruthy();
+    expect(screen.queryByTestId("listing-sl-calculus")).toBeNull();
+    fireEvent.press(screen.getByTestId("pause-sl-ti30"));
     fireEvent.press(screen.getByTestId("filter-paused"));
-    expect(screen.getByTestId("listing-sl-coffee")).toBeTruthy();
+    expect(screen.getByTestId("listing-sl-ti30")).toBeTruthy();
   });
 
   it("shows the buyer messages, the notifications and the account", () => {
@@ -265,10 +275,142 @@ describe("seller earnings, listings and the rest", () => {
     renderWithProviders(<SellerMessagesScreen />, state);
     expect(screen.getByText("Messages")).toBeTruthy();
     renderWithProviders(<SellerNotificationsScreen />, state);
-    expect(screen.getByText("New order #2041")).toBeTruthy();
+    expect(screen.getByText("New order #VM-2041")).toBeTruthy();
     renderWithProviders(<SellerAccountScreen />, state);
     expect(screen.getByText("CampusBites")).toBeTruthy();
     fireEvent.press(screen.getByTestId("switch-to-buyer"));
     expect(mockReplace).toHaveBeenCalledWith("/home");
+  });
+});
+
+describe("switching to the seller role from Account", () => {
+  it("opens the first seller screen for someone who has not set up, every time", () => {
+    renderWithProviders(<AccountScreen />, signedIn());
+    fireEvent.press(screen.getByText("Switch role"));
+    fireEvent.press(screen.getByText("Seller"));
+    expect(mockReplace).toHaveBeenCalledWith("/seller-setup/welcome");
+  });
+
+  it("opens Seller Home for a seller whose shop is already set up", () => {
+    renderWithProviders(<AccountScreen />, run(seller(), { role: "buyer", type: "switchRole" }));
+    fireEvent.press(screen.getByText("Switch role"));
+    fireEvent.press(screen.getByText("Seller"));
+    expect(mockReplace).toHaveBeenCalledWith("/seller/home");
+  });
+});
+
+describe("products and inventory", () => {
+  it("searches the products and opens Inventory", () => {
+    renderWithProviders(<SellerProductsScreen />, seller());
+    fireEvent.changeText(screen.getByTestId("product-search"), "lamp");
+    expect(screen.getByTestId("listing-sl-lamp")).toBeTruthy();
+    expect(screen.queryByTestId("listing-sl-calculus")).toBeNull();
+    fireEvent.press(screen.getByTestId("open-inventory"));
+    expect(mockPush).toHaveBeenCalledWith("/seller/products/inventory");
+    fireEvent.changeText(screen.getByTestId("product-search"), "");
+    fireEvent.press(screen.getByTestId("filter-archived"));
+    expect(screen.queryByTestId("listing-sl-lamp")).toBeNull();
+  });
+
+  it("counts stock, warns about the one almost out, and changes it with plus and minus", () => {
+    renderWithProviders(<SellerInventoryScreen />, seller());
+    expect(screen.getByTestId("inv-alert")).toBeTruthy();
+    expect(screen.getByTestId("stock-count-sl-ti30").props.children).toBe(2);
+    fireEvent.press(screen.getByTestId("stock-plus-sl-ti30"));
+    expect(screen.getByTestId("stock-count-sl-ti30").props.children).toBe(3);
+    fireEvent.press(screen.getByTestId("stock-minus-sl-ti30"));
+    fireEvent.press(screen.getByTestId("stock-minus-sl-ti30"));
+    expect(screen.getByTestId("stock-count-sl-ti30").props.children).toBe(1);
+  });
+});
+
+describe("preparing a delivery and handing it to the courier", () => {
+  it("only lets the seller mark ready once everything is packed, then goes to the handover", () => {
+    mockParams = { id: "so-2038" };
+    renderWithProviders(<SellerPrepareScreen />, seller());
+    expect(screen.getByTestId("mark-ready").props.accessibilityState.disabled).toBe(true);
+    for (const id of ["pack-Economics 101 Textbook-", "pack-label"]) fireEvent.press(screen.getByTestId(id));
+    expect(screen.getByTestId("mark-ready").props.accessibilityState.disabled).toBeFalsy();
+    fireEvent.press(screen.getByTestId("mark-ready"));
+    expect(mockReplace).toHaveBeenCalledWith("/seller/orders/handover/so-2038");
+  });
+
+  it("shows the four digit code, waits for a courier and confirms only when sealed and matching", () => {
+    jest.useFakeTimers();
+    mockParams = { id: "so-2035" };
+    renderWithProviders(<SellerHandoverScreen />, run(seller(), { id: "so-2038", to: "ready", type: "sellerAdvanceOrder" }));
+    expect(screen.getByTestId("handover-code-card")).toBeTruthy();
+    expect(screen.getByText("Finding a courier")).toBeTruthy();
+    expect(screen.getByTestId("confirm-handover").props.accessibilityState.disabled).toBe(true);
+    jest.useRealTimers();
+  });
+
+  it("confirms the handover once a courier is there", () => {
+    jest.useFakeTimers();
+    mockParams = { id: "so-2038" };
+    const ready = run(seller(), { id: "so-2038", to: "ready", type: "sellerAdvanceOrder" }, { id: "so-2038", type: "sellerAssignCourier" });
+    renderWithProviders(<SellerHandoverScreen />, ready);
+    expect(screen.getByText("Tebogo K.")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("check-sealed"));
+    fireEvent.press(screen.getByTestId("check-matches"));
+    fireEvent.press(screen.getByTestId("confirm-handover"));
+    act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+    expect(mockReplace).toHaveBeenCalledWith("/seller/orders");
+    jest.useRealTimers();
+  });
+});
+
+describe("store, reviews, analytics, promotions, cases and team", () => {
+  it("shows how buyers see the store", () => {
+    renderWithProviders(<SellerStorePreviewScreen />, seller());
+    expect(screen.getByText("How buyers see you")).toBeTruthy();
+    expect(screen.getByTestId("preview-sl-calculus")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("edit-store"));
+    expect(mockPush).toHaveBeenCalledWith("/seller/account/store");
+  });
+
+  it("shows the rating and sends a reply", () => {
+    renderWithProviders(<SellerReviewsScreen />, seller());
+    expect(screen.getByText("4.8")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("reply-rv-1"));
+    fireEvent.press(screen.getByText("Thank you for your review!"));
+    expect(screen.getByText("Your reply")).toBeTruthy();
+  });
+
+  it("changes the analytics range", () => {
+    renderWithProviders(<SellerAnalyticsScreen />, seller());
+    expect(screen.getByTestId("analytics-revenue")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("chip-30"));
+    expect(screen.getByTestId("analytics-orders")).toBeTruthy();
+  });
+
+  it("switches a promotion and creates one", () => {
+    renderWithProviders(<SellerPromotionsScreen />, seller());
+    expect(screen.getByTestId("promo-pr-first")).toBeTruthy();
+    expect(screen.queryByTestId("promo-pr-exam")).toBeNull();
+    fireEvent.press(screen.getByTestId("create-promotion"));
+    fireEvent.press(screen.getByTestId("template-free-delivery"));
+    expect(screen.getAllByText("Free delivery over R100").length).toBeGreaterThan(0);
+  });
+
+  it("approves a refund and answers a dispute", () => {
+    renderWithProviders(<SellerCasesScreen />, seller());
+    fireEvent.press(screen.getByTestId("approve-cs-2012"));
+    fireEvent.press(screen.getByTestId("respond-cs-1998"));
+    expect(screen.queryByTestId("approve-cs-2012")).toBeNull();
+    fireEvent.press(screen.getByTestId("chip-resolved"));
+    expect(screen.getByText("Refund approved")).toBeTruthy();
+  });
+
+  it("invites a team member and removes them", () => {
+    renderWithProviders(<SellerTeamScreen />, seller());
+    fireEvent.press(screen.getByTestId("invite-team"));
+    fireEvent.changeText(screen.getByLabelText("Email"), "naledi@vossie.net");
+    fireEvent.press(screen.getByTestId("send-invite"));
+    expect(screen.getAllByText("naledi@vossie.net").length).toBeGreaterThan(0);
+    fireEvent.press(screen.getByTestId("remove-tm-2"));
+    expect(screen.queryByTestId("member-tm-2")).toBeNull();
   });
 });

@@ -3,7 +3,9 @@ import { StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { formatRand } from "@/data/format";
+import { feesPaidCents, pendingCents } from "@/seller/selectors";
 
+import { PageTitle, StatTile } from "./parts";
 import { useSeller } from "./hooks";
 import { BarChart, Confetti, CountUpRand } from "./motion";
 import { whenLabel } from "./OrderParts";
@@ -11,26 +13,29 @@ import { SELLER, SellerButton, SellerCard, SellerHeader, SellerHeading, SellerSc
 import { WithdrawSheet } from "./WithdrawSheet";
 
 /** Seller Earnings: the balance that can be withdrawn, the last seven days as bars, and every sale and payout. */
-export function SellerEarningsScreen() {
+export function SellerPayoutsScreen() {
   const view = useSeller();
   const [withdrawing, setWithdrawing] = useState(false);
   const [coins, setCoins] = useState(false);
   const recent = view.seller.ledger.slice(0, 8);
 
   return (
-    <SellerScreen testID="seller-earnings">
+    <SellerScreen testID="seller-payouts">
       <SellerHeader />
-      <Text accessibilityRole="header" style={styles.title}>
-        Earnings
-      </Text>
+      <PageTitle subtitle="Earnings and fees" title="Payouts" />
 
       <Animated.View entering={FadeInDown.duration(380)}>
         <SellerCard style={styles.balance} testID="balance-card">
           <Text style={styles.small}>Available balance</Text>
           <CountUpRand cents={view.available} style={styles.money} />
-          <SellerButton label="Withdraw" onPress={() => setWithdrawing(true)} size="md" style={styles.withdraw} testID="open-withdraw" variant="dark" />
+          <SellerButton label="Request payout" onPress={() => setWithdrawing(true)} size="md" style={styles.withdraw} testID="open-withdraw" variant="dark" />
         </SellerCard>
       </Animated.View>
+
+      <View style={styles.tiles}>
+        <StatTile label="Pending" testID="payout-pending" value={formatRand(pendingCents(view.seller.orders))} />
+        <StatTile label="Fees paid" testID="payout-fees" value={formatRand(feesPaidCents(view.seller.ledger))} />
+      </View>
 
       <SellerHeading>This week</SellerHeading>
       <Animated.View entering={FadeInDown.delay(100).duration(380)}>
@@ -43,7 +48,7 @@ export function SellerEarningsScreen() {
         </SellerCard>
       </Animated.View>
 
-      <SellerHeading>Recent activity</SellerHeading>
+      <SellerHeading>Recent transactions</SellerHeading>
       <View style={styles.list}>
         {recent.map((entry, index) => (
           <Animated.View entering={FadeInDown.delay(180 + index * 50).duration(340)} key={entry.id}>
@@ -52,7 +57,7 @@ export function SellerEarningsScreen() {
                 <Text numberOfLines={1} style={styles.rowTitle}>
                   {entry.label}
                 </Text>
-                <Text style={styles.small}>{whenLabel(entry.createdAt)}</Text>
+                <Text style={styles.small}>{entry.note ? `${entry.note} · ` : ""}{whenLabel(entry.createdAt)}</Text>
               </View>
               <Text style={[styles.amount, entry.amountCents < 0 ? styles.out : styles.in]}>{formatRand(entry.amountCents, { fixed: true, signed: true })}</Text>
             </SellerCard>
@@ -78,6 +83,6 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, gap: 1 },
   rowTitle: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },
   small: { color: SELLER.inkSoft, fontSize: 13 },
-  title: { color: "#FFFFFF", fontSize: 28, fontWeight: "800", marginBottom: 12, marginTop: 18 },
+  tiles: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 12 },
   withdraw: { alignSelf: "flex-start", marginTop: 8 },
 });

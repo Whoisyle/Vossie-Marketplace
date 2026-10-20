@@ -7,6 +7,8 @@ import { useDemoStore } from "@/state/DemoStore";
 
 /** How long after entering seller mode each demo order arrives. */
 export const DEMO_ARRIVAL_MS = [40_000, 110_000, 200_000];
+/** How long after an order is ready a demo courier takes the job. */
+export const DEMO_COURIER_MS = 5_000;
 /** How often the demo review accepts the next document. */
 export const DEMO_REVIEW_MS = 4_500;
 
@@ -32,6 +34,14 @@ export function SellerDemoEffects({ enabled = true }: { enabled?: boolean }) {
     const timers = DEMO_ARRIVAL_MS.map((ms, n) => setTimeout(() => dispatch({ order: demoIncomingOrder(Date.now(), n), type: "sellerReceiveOrder" }), ms));
     return () => timers.forEach(clearTimeout);
   }, [dispatch, selling]);
+
+  // a courier takes a delivery job a few seconds after the seller marks it ready
+  const needsCourier = seller.orders.filter((item) => item.fulfilment === "delivery" && item.status === "ready" && !item.courier).map((item) => item.id).join(",");
+  useEffect(() => {
+    if (!selling || !needsCourier) return;
+    const timers = needsCourier.split(",").map((id) => setTimeout(() => dispatch({ id, type: "sellerAssignCourier" }), DEMO_COURIER_MS));
+    return () => timers.forEach(clearTimeout);
+  }, [dispatch, needsCourier, selling]);
 
   const waiting = seller.orders.filter((item) => item.status === "new").length;
   const before = useRef(waiting);

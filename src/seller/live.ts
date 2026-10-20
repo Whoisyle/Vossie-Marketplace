@@ -3,7 +3,7 @@ import * as money from "@/services/money";
 import * as sellerService from "@/services/seller";
 import type { SellerOrderRow, SellerOrderStatus as DbOrderStatus } from "@/services/types";
 
-import { docKindsFor } from "./state";
+import { courierCodeFor, docKindsFor, platformFeeCents } from "./state";
 import type { DayKey, DocKind, DocStatus, LedgerEntry, SellerDocument, SellerListing, SellerListingStatus, SellerOrder, SellerOrderStatus, SellerState, SellerStatus } from "./types";
 
 /**
@@ -66,6 +66,9 @@ export function mapSellerOrder(row: SellerOrderRow, buyerNames: Record<string, s
   return {
     buyerName: buyerNames[row.buyer_id] ?? "A student",
     buyerVerified: true,
+    courierCode: courierCodeFor(row.id),
+    deliveryFeeCents: row.delivery_fee_cents,
+    feeCents: platformFeeCents(row.subtotal_cents),
     fulfilment: delivery ? "delivery" : "collection",
     fulfilmentLabel: delivery ? "Delivery" : "Campus collection",
     // the code is read out by the buyer and checked on the server; the seller never sees it
@@ -110,11 +113,14 @@ export function mapListing(row: DbListing): SellerListing {
     id: row.id,
     onHand: option?.on_hand ?? 0,
     optionId: option?.id,
+    photos: [],
     priceCents: option?.price_cents ?? 0,
+    sku: `VM-${row.id.replace(/\W/g, "").slice(0, 4).toUpperCase()}`,
     status: mapListingStatus(row.status),
     title: row.title,
     unlimited: option?.unlimited ?? false,
     updatedAt: row.updated_at,
+    variants: row.listing_options.slice(1).map((item) => item.label),
   };
 }
 

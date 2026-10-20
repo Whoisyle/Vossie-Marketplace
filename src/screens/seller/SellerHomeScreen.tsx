@@ -61,15 +61,16 @@ export function SellerHomeScreen() {
           <CountUpRand cents={week.thisWeekCents} style={styles.money} />
           <View style={styles.earningsRow}>
             <Text style={[styles.small, styles.change]}>{week.changePercent === null ? "Your first week" : week.changePercent >= 0 ? `${week.changePercent}% more than last week` : `${Math.abs(week.changePercent)}% less than last week`}</Text>
-            <SellerButton label="Withdraw" onPress={() => go("/seller/earnings")} size="sm" testID="home-withdraw" variant="solid" />
+            <SellerButton label="Withdraw" onPress={() => go("/seller/payouts")} size="sm" testID="home-withdraw" variant="solid" />
           </View>
         </SellerCard>
       </Animated.View>
 
       <View style={styles.tiles}>
         <Tile delay={160} label="New orders" onPress={() => go("/seller/orders")} testID="tile-orders" value={view.counts.new} />
-        <Tile delay={220} label="Active listings" onPress={() => go("/seller/listings")} testID="tile-listings" value={view.listingsActive} />
-        <Tile delay={280} label="Messages" onPress={() => go("/seller/home/messages")} testID="tile-messages" value={view.unreadMessages} />
+        <Tile delay={200} label="To ship" onPress={() => go("/seller/orders")} testID="tile-ship" value={view.counts.preparing + view.counts.ready} />
+        <Tile delay={240} label="Low stock" onPress={() => go("/seller/products/inventory")} testID="tile-low" value={view.lowStock} />
+        <Tile delay={280} label="Rating" onPress={() => go("/seller/account/reviews")} testID="tile-rating" value={view.rating.toFixed(1)} />
       </View>
 
       <SellerHeading>Needs your attention</SellerHeading>
@@ -82,7 +83,7 @@ export function SellerHomeScreen() {
         <View style={styles.list}>
           {view.attention.slice(0, 6).map((item, index) => (
             <Animated.View entering={FadeInDown.delay(320 + index * 60).duration(380)} exiting={FadeOutRight.duration(260)} key={item.id} layout={LinearTransition.springify().damping(20)}>
-              <AttentionCard canAct={item.kind !== "order" || view.canTrade} item={item} onAct={() => act(item)} onOpen={() => (item.kind === "order" ? go(`/seller/orders/${item.orderId}`) : item.kind === "stock" ? go(`/seller/listings/${item.listingId}`) : go(`/seller/home/messages/${item.conversationId}`))} />
+              <AttentionCard canAct={item.kind !== "order" || view.canTrade} item={item} onAct={() => act(item)} onOpen={() => (item.kind === "order" ? go(`/seller/orders/${item.orderId}`) : item.kind === "stock" ? go(`/seller/products/${item.listingId}`) : go(`/seller/home/messages/${item.conversationId}`))} />
             </Animated.View>
           ))}
         </View>
@@ -93,8 +94,9 @@ export function SellerHomeScreen() {
   );
 }
 
-function Tile({ delay, label, onPress, testID, value }: { value: number; label: string; onPress: () => void; delay: number; testID: string }) {
-  const shown = useCountUp(value, 600);
+function Tile({ delay, label, onPress, testID, value }: { value: number | string; label: string; onPress: () => void; delay: number; testID: string }) {
+  const counted = useCountUp(typeof value === "number" ? value : 0, 600);
+  const shown = typeof value === "number" ? counted : value;
   return (
     <Animated.View entering={FadeInDown.delay(delay).duration(380)} style={styles.tileWrap}>
       <SellerCard onPress={onPress} style={styles.tile} testID={testID}>
@@ -164,6 +166,6 @@ const styles = StyleSheet.create({
   tile: { alignItems: "center", gap: 2, justifyContent: "center", minHeight: 96, padding: 10 },
   tileLabel: { color: SELLER.inkSoft, fontSize: 12, textAlign: "center" },
   tileValue: { color: SELLER.ink, fontSize: 30, fontWeight: "800" },
-  tileWrap: { flex: 1 },
-  tiles: { flexDirection: "row", gap: 10, marginTop: 14 },
+  tileWrap: { flexBasis: "47%", flexGrow: 1 },
+  tiles: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 14 },
 });

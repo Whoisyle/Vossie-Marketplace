@@ -30,8 +30,12 @@ Last updated: 2026-10-20.
 - [ ] **Demo orders arrive on a timer** while a seller is in seller mode (`SellerDemoEffects`, 40, 110 and 200 seconds). Remove once real students order.
 - [ ] **Listing photos:** seller listings use our drawings; real photo upload is not built, and the database will not publish a listing without a photo. Deleting a listing is local only (no archive function).
 - [ ] **Seller payouts and bank details:** the saved bank keeps the last four digits only and nothing is verified with the bank.
-- [ ] **Platform fee on sales** is not shown or taken in the seller's earnings; the fee policy is an open decision.
+- [ ] **Platform fee on sales** is a demo 5% (`PLATFORM_FEE_PERCENT` in `src/seller/state.ts`), shown on the order and taken from earnings on the phone only. The real fee policy is an open decision and must be taken by the database when an order completes.
 - [ ] **The seller screens' live path** (Supabase) is written and tested against mocks and the database tests, but has never run against the hosted project, because the migrations are not applied. First run needs a real sign-in (email one-time code), a staff account to approve documents, and a listing photo.
+- [ ] **Courier handover (seller side)** is a demo: a courier "Tebogo K." takes a ready delivery 5 seconds later (`SellerDemoEffects`), the four digit handover code is made on the phone, and confirming pays the seller straight away. Real: a courier job, a code checked on the server, and payment only after delivery. The buyer is told it is on its way, but there is no courier app yet.
+- [ ] **Seller Promotions, Reviews, Returns and disputes, Team members and notification setting** live on the phone only (no tables yet). Real needs promotions with redeemable codes at checkout, buyer reviews and replies, refunds that move money, team invites by email with a packer role, and saved settings. Analytics conversion (4.2%) is a fixed demo figure.
+- [ ] **Stock steppers and Archive** call the same listing save as Restock in live mode; the database has no archived state, so Archive pauses the listing there. Product photos (up to 6) and variants stay on the phone until upload and options are built.
+- [ ] **Store preview Share** only shows a message; there is no public store page or link.
 
 ## Courier, delivery and maps
 

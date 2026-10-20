@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 
 import type { Conversation } from "@/data/types";
-import { activeListings, attentionItems, orderCounts, weekBars, weekTotals } from "@/seller/selectors";
-import { sellerBalanceCents } from "@/seller/state";
+import { activeListings, attentionItems, isLowStock, orderCounts, weekBars, weekTotals } from "@/seller/selectors";
+import { averageRating, sellerBalanceCents } from "@/seller/state";
 import { useDemoStore } from "@/state/DemoStore";
 
 import { useSellerDispatch } from "./actions";
@@ -53,6 +53,8 @@ export function useSeller() {
       dispatch,
       firstName: state.profile?.fullName.split(" ")[0] ?? "there",
       listingsActive: activeListings(seller.listings).length,
+      lowStock: seller.listings.filter(isLowStock).length,
+      rating: averageRating(seller.reviewCounts),
       messages,
       seller,
       storeName: seller.profile.storeName || "Your store",

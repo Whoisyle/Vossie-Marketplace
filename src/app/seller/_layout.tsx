@@ -7,12 +7,12 @@ import { TabChromeProvider } from "@/components/nav/TabChrome";
 import { orderCounts } from "@/seller/selectors";
 import { useDemoStore } from "@/state/DemoStore";
 
-/** The seller's bottom bar: Home, Orders, Listings, Earnings and Account. */
+/** The seller's bottom bar: Home, Products, Orders, Payouts and Account. */
 const SELLER_TABS: { name: string; label: string; icon: IconName }[] = [
   { icon: "home", label: "Home", name: "home" },
+  { icon: "package", label: "Products", name: "products" },
   { icon: "clipboard", label: "Orders", name: "orders" },
-  { icon: "package", label: "Listings", name: "listings" },
-  { icon: "trending-up", label: "Earnings", name: "earnings" },
+  { icon: "credit-card", label: "Payouts", name: "payouts" },
   { icon: "user", label: "Account", name: "account" },
 ];
 
@@ -28,9 +28,9 @@ export default function SellerLayout() {
     <TabChromeProvider>
       <Tabs backBehavior="history" screenOptions={{ headerShown: false }} tabBar={(props) => <TabBar {...props} badges={badges} tabs={SELLER_TABS} />}>
         <Tabs.Screen name="home" options={{ title: "Home" }} />
+        <Tabs.Screen name="products" options={{ title: "Products" }} />
         <Tabs.Screen name="orders" options={{ title: "Orders" }} />
-        <Tabs.Screen name="listings" options={{ title: "Listings" }} />
-        <Tabs.Screen name="earnings" options={{ title: "Earnings" }} />
+        <Tabs.Screen name="payouts" options={{ title: "Payouts" }} />
         <Tabs.Screen name="account" options={{ title: "Account" }} />
       </Tabs>
       <OfflineBanner />

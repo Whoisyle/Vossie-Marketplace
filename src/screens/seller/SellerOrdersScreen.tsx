@@ -149,7 +149,10 @@ function OrderCard({ canAct, fresh, onDecline, order }: { order: SellerOrder; ca
             </View>
           </View>
         ) : null}
-        {order.status === "accepted" || order.status === "preparing" ? (
+        {(order.status === "accepted" || order.status === "preparing") && order.fulfilment === "delivery" ? (
+          <SellerButton label="Prepare order" onPress={() => router.push(`/seller/orders/prepare/${order.id}` as Href)} testID={`prepare-${order.id}`} variant="solid" />
+        ) : null}
+        {(order.status === "accepted" || order.status === "preparing") && order.fulfilment !== "delivery" ? (
           <SellerButton
             label={order.status === "accepted" ? "Start preparing" : "Mark ready"}
             onPress={() => dispatch({ id: order.id, to: order.status === "accepted" ? "preparing" : "ready", type: "sellerAdvanceOrder" })}
@@ -157,7 +160,7 @@ function OrderCard({ canAct, fresh, onDecline, order }: { order: SellerOrder; ca
             variant="solid"
           />
         ) : null}
-        {order.status === "ready" ? <SellerButton label="Hand over" onPress={open} testID={`handover-${order.id}`} variant="solid" /> : null}
+        {order.status === "ready" ? <SellerButton label={order.fulfilment === "delivery" ? "Hand to courier" : "Hand over"} onPress={order.fulfilment === "delivery" ? () => router.push(`/seller/orders/handover/${order.id}` as Href) : open} testID={`handover-${order.id}`} variant="solid" /> : null}
       </SellerCard>
     </Animated.View>
   );

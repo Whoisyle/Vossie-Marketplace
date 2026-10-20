@@ -7,6 +7,7 @@ import { Icon, type IconName } from "@/components";
 import { initials } from "@/data/format";
 
 import { useSeller } from "./hooks";
+import { SettingRow } from "./parts";
 import { Pill, SELLER, SellerButton, SellerCard, SellerHeader, SellerHeading, SellerScreen } from "./ui";
 
 /** Seller Account: the store as buyers see it, the documents and the bank account behind it, and the way back to buying. */
@@ -39,8 +40,19 @@ export function SellerAccountScreen() {
       <View style={styles.list}>
         <Row delay={80} hint={`${profile.days.length} days a week · ${profile.opens} to ${profile.closes}`} icon="shopping-bag" label="Store profile" onPress={() => go("/seller/account/store")} testID="row-store" />
         <Row delay={140} hint={view.canTrade ? "All documents verified" : "Waiting for review"} icon="shield" label="Documents and verification" onPress={() => go("/seller/account/documents")} testID="row-documents" />
-        <Row delay={200} hint={profile.bank ? `${profile.bank.bankName} · ending ${profile.bank.last4}` : "Added when you first withdraw"} icon="credit-card" label="Bank account" onPress={() => go("/seller/earnings")} testID="row-bank" />
+        <Row delay={200} hint={profile.bank ? `${profile.bank.bankName} · ending ${profile.bank.last4}` : "Added when you first withdraw"} icon="credit-card" label="Bank account" onPress={() => go("/seller/payouts")} testID="row-bank" />
         <Row delay={260} hint={view.unreadMessages ? `${view.unreadMessages} unread` : "All read"} icon="message-circle" label="Messages" onPress={() => go("/seller/home/messages")} testID="row-messages" />
+      </View>
+
+      <SellerHeading>Grow and look after your shop</SellerHeading>
+      <View style={styles.list}>
+        <Row delay={300} hint="How buyers see you" icon="eye" label="Store preview" onPress={() => go("/seller/account/store-preview")} testID="row-preview" />
+        <Row delay={320} hint={`${view.seller.reviewCounts.reduce((a, b) => a + b, 0)} buyer reviews`} icon="star" label="Reviews" onPress={() => go("/seller/account/reviews")} testID="row-reviews" />
+        <Row delay={340} hint={`${view.seller.promotions.filter((item) => item.active).length} active`} icon="tag" label="Promotions" onPress={() => go("/seller/account/promotions")} testID="row-promotions" />
+        <Row delay={360} hint={`${view.seller.cases.filter((item) => item.status === "open").length} open cases`} icon="alert-circle" label="Returns and disputes" onPress={() => go("/seller/account/cases")} testID="row-cases" />
+        <Row delay={380} hint="Sales trends and performance" icon="bar-chart-2" label="Analytics" onPress={() => go("/seller/account/analytics")} testID="row-analytics" />
+        <Row delay={400} hint={`${view.seller.team.length} people`} icon="users" label="Team members" onPress={() => go("/seller/account/team")} testID="row-team" />
+        <SettingRow hint="Push and email" icon="bell" label="Order notifications" onToggle={(value) => view.dispatch({ key: "orderNotifications", type: "sellerSetSetting", value })} testID="row-notifications" toggle={view.seller.settings.orderNotifications} />
       </View>
 
       <Animated.View entering={FadeInDown.delay(320).duration(380)} style={styles.switch}>

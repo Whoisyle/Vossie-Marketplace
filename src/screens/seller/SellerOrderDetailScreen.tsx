@@ -60,6 +60,10 @@ export function SellerOrderDetailScreen() {
               />
             </Animated.View>
           </View>
+        ) : (order.status === "accepted" || order.status === "preparing") && order.fulfilment === "delivery" ? (
+          <SellerButton label="Prepare order" onPress={() => router.push(`/seller/orders/prepare/${order.id}` as Href)} size="lg" testID="prepare-order" variant="glass" />
+        ) : order.status === "ready" && order.fulfilment === "delivery" ? (
+          <SellerButton label="Hand to courier" onPress={() => router.push(`/seller/orders/handover/${order.id}` as Href)} size="lg" testID="to-handover" variant="glass" />
         ) : order.status === "accepted" || order.status === "preparing" ? (
           <SellerButton
             label={order.status === "accepted" ? "Start preparing" : "Mark ready"}
@@ -129,17 +133,19 @@ export function SellerOrderDetailScreen() {
       <Animated.View entering={FadeInDown.delay(240).duration(340)}>
         <SellerCard style={styles.totals} testID="order-totals">
           <TotalRow label="Subtotal" value={formatRand(order.subtotalCents, { fixed: true })} />
+          {order.fulfilment === "delivery" ? <TotalRow label="Delivery fee (paid by buyer)" value={formatRand(order.deliveryFeeCents, { fixed: true })} /> : null}
+          <TotalRow label="Vossie platform fee" value={formatRand(-order.feeCents, { fixed: true })} />
           <TotalRow label="Payment" value={order.paymentLabel} />
-          <TotalRow bold label="Total" value={formatRand(order.totalCents, { fixed: true })} />
+          <TotalRow bold label="You earn" value={formatRand(order.subtotalCents - order.feeCents, { fixed: true })} />
         </SellerCard>
       </Animated.View>
 
-      {order.status === "ready" ? <HandOver onDone={() => setCelebrate(true)} order={order} /> : null}
+      {order.status === "ready" && order.fulfilment !== "delivery" ? <HandOver onDone={() => setCelebrate(true)} order={order} /> : null}
       {order.status === "done" ? (
         <Animated.View entering={ZoomIn.duration(300)}>
           <SellerCard style={styles.done} testID="order-done">
             <Icon color="#2F8A57" name="check-circle" size={24} />
-            <Text style={styles.itemTitle}>Handed over. {formatRand(order.subtotalCents, { fixed: true })} was added to your earnings.</Text>
+            <Text style={styles.itemTitle}>Handed over. {formatRand(order.subtotalCents - order.feeCents, { fixed: true })} was added to your earnings.</Text>
           </SellerCard>
         </Animated.View>
       ) : null}

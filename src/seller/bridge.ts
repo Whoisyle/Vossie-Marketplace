@@ -2,7 +2,7 @@ import { getListing } from "@/data/repository";
 import type { Order, NotificationItem } from "@/data/types";
 import type { DemoAction, DemoState } from "@/state/demoReducer";
 
-import { DEMO_STORE_ID, handoffCodeFor, sellerId, sellerReduce } from "./state";
+import { courierCodeFor, DEMO_STORE_ID, handoffCodeFor, platformFeeCents, sellerId, sellerReduce } from "./state";
 import type { SellerAction, SellerOrder } from "./types";
 
 /** Runs the reducer for everything that is not a seller action. Passed in by `demoReducer` so the two files do not import each other. */
@@ -49,13 +49,14 @@ export function applySellerAction(state: DemoState, action: SellerAction, reduce
       if (pair) next = reduce(next, { orderId: pair.buyer.id, status: action.to, type: "advanceOrder" });
       break;
     }
+    case "sellerHandToCourier":
     case "sellerCompleteOrder": {
       const pair = linked(action.id);
       if (!pair || pair.buyer.status === "delivered") break;
       const at = new Date().toISOString();
       next = {
         ...next,
-        notifications: [note("Order collected", `Order ${pair.buyer.number} was handed over. Enjoy!`, pair.buyer.id), ...next.notifications],
+        notifications: [action.type === "sellerHandToCourier" ? note("Your order is on its way", `A courier has collected ${pair.buyer.number} from the seller.`, pair.buyer.id) : note("Order collected", `Order ${pair.buyer.number} was handed over. Enjoy!`, pair.buyer.id), ...next.notifications],
         orders: next.orders.map((item) => (item.id === pair.buyer.id ? { ...item, deliveredAt: at, status: "delivered" } : item)),
       };
       break;
@@ -81,6 +82,9 @@ export function routeNewOrdersToSeller(before: DemoState, after: DemoState): Dem
       buyerName: after.profile?.fullName.split(" ").map((part, i) => (i === 0 ? part : `${part[0]}.`)).join(" ") ?? "A student",
       buyerOrderId: order.id,
       buyerVerified: after.profile?.isVerifiedStudent ?? false,
+      courierCode: courierCodeFor(order.id),
+      deliveryFeeCents: 0,
+      feeCents: platformFeeCents(subtotal),
       fulfilment: order.fulfilment,
       fulfilmentLabel: order.fulfilment === "delivery" ? "Delivery" : "Campus collection",
       handoffCode: handoffCodeFor(order.id),

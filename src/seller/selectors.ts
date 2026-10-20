@@ -97,3 +97,42 @@ export function attentionItems(
 export function availableCents(state: Pick<SellerState, "ledger">): number {
   return sellerBalanceCents(state);
 }
+
+/** What the seller will earn from orders they have accepted but not yet handed over (net of Vossie's fee). */
+export function pendingCents(orders: SellerOrder[]): number {
+  return orders.filter((item) => item.status === "accepted" || item.status === "preparing" || item.status === "ready").reduce((sum, item) => sum + item.subtotalCents - item.feeCents, 0);
+}
+
+/** Vossie's fee on every sale so far. */
+export function feesPaidCents(ledger: LedgerEntry[]): number {
+  return ledger.filter((entry) => entry.kind === "sale").reduce((sum, entry) => sum + (entry.feeCents ?? 0), 0);
+}
+
+export type Analytics = {
+  revenueCents: number;
+  /** Percent against the same number of days before, or null with nothing to compare. */
+  changePercent: number | null;
+  orders: number;
+  /** Orders in the range against the week before, as a plain difference. */
+  bars: { label: string; cents: number }[];
+  top: { title: string; sold: number; cents: number }[];
+};
+
+/** Revenue, orders and the best sellers over the last `days` days, with a bar for each slice of the range. */
+export function analytics(state: Pick<SellerState, "ledger" | "orders">, days: 7 | 30 | 90, now: number = Date.now()): Analytics {
+  const today = startOfDay(now);
+  const from = today - (days - 1) * DAY;
+  const revenueCents = salesBetween(state.ledger, from, today + DAY);
+  const before = salesBetween(state.ledger, from - days * DAY, from);
+  const slices = 7;
+  const span = (days * DAY) / slices;
+  const bars = Array.from({ length: slices }, (_, i) => {
+    const start = from + i * span;
+    return { cents: salesBetween(state.ledger, start, start + span), label: days === 7 ? WEEKDAY[new Date(start).getDay()]!.slice(0, 1) : `${i + 1}` };
+  });
+  const inRange = state.orders.filter((item) => item.status !== "declined" && item.status !== "cancelled" && new Date(item.placedAt).getTime() >= from);
+  const sold = new Map<string, { sold: number; cents: number }>();
+  for (const order of inRange) for (const line of order.lines) sold.set(line.title, { cents: (sold.get(line.title)?.cents ?? 0) + line.unitPriceCents * line.quantity, sold: (sold.get(line.title)?.sold ?? 0) + line.quantity });
+  const top = [...sold.entries()].map(([title, value]) => ({ title, ...value })).sort((a, b) => b.cents - a.cents).slice(0, 3);
+  return { bars, changePercent: before > 0 ? Math.round(((revenueCents - before) / before) * 100) : null, orders: inRange.length, revenueCents, top };
+}

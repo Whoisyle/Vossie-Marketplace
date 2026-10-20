@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
 
 import { ArtTile, hasArt } from "@/components/art/ProductArt";
@@ -13,7 +13,7 @@ import { useSeller } from "./hooks";
 import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerHeader, SellerScreen } from "./ui";
 import { RestockSheet } from "./RestockSheet";
 
-type Filter = "all" | "active" | "low" | "paused" | "draft";
+type Filter = "all" | "active" | "low" | "paused" | "draft" | "archived";
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: "all", label: "All" },
@@ -21,9 +21,11 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "low", label: "Low stock" },
   { key: "paused", label: "Paused" },
   { key: "draft", label: "Drafts" },
+  { key: "archived", label: "Archived" },
 ];
 
 const STATUS: Record<SellerListingStatus, { label: string; tone: PillTone }> = {
+  archived: { label: "Archived", tone: "neutral" },
   draft: { label: "Draft", tone: "neutral" },
   paused: { label: "Paused", tone: "warn" },
   published: { label: "Live", tone: "success" },
@@ -35,25 +37,38 @@ export function matchesFilter(listing: SellerListing, filter: Filter): boolean {
   if (filter === "active") return listing.status === "published";
   if (filter === "low") return isLowStock(listing);
   if (filter === "paused") return listing.status === "paused";
+  if (filter === "archived") return listing.status === "archived";
   return listing.status === "draft" || listing.status === "under-review";
 }
 
 /** Seller Listings: everything the seller is selling, with stock and a quick way to pause, restock or edit. */
-export function SellerListingsScreen() {
+export function SellerProductsScreen() {
   const router = useRouter();
   const view = useSeller();
   const [filter, setFilter] = useState<Filter>("all");
   const [restock, setRestock] = useState<string | null>(null);
-  const shown = view.seller.listings.filter((item) => matchesFilter(item, filter));
+  const [query, setQuery] = useState("");
+  const needle = query.trim().toLowerCase();
+  const shown = view.seller.listings.filter((item) => matchesFilter(item, filter) && (!needle || item.title.toLowerCase().includes(needle) || item.sku.toLowerCase().includes(needle)));
+  const lowCount = view.seller.listings.filter(isLowStock).length;
 
   return (
     <SellerScreen testID="seller-listings">
       <SellerHeader />
       <View style={styles.titleRow}>
-        <Text accessibilityRole="header" style={styles.title}>
-          Listings
-        </Text>
-        <SellerButton icon="plus" label="Add listing" onPress={() => router.push("/seller/listings/new" as Href)} size="sm" testID="add-listing" variant="light" />
+        <View>
+          <Text accessibilityRole="header" style={styles.title}>
+            Products
+          </Text>
+          <Text style={styles.sub}>
+            {view.seller.listings.length} listed · {lowCount} low stock
+          </Text>
+        </View>
+        <SellerButton icon="plus" label="Add product" onPress={() => router.push("/seller/products/new" as Href)} size="sm" testID="add-listing" variant="light" />
+      </View>
+      <View style={styles.search}>
+        <Icon color={SELLER.inkSoft} name="search" size={18} />
+        <TextInput accessibilityLabel="Search products" onChangeText={setQuery} placeholder="Search products" placeholderTextColor="#8A99A1" style={styles.searchInput} testID="product-search" value={query} />
       </View>
       <ScrollView contentContainerStyle={styles.chips} horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
         {FILTERS.map((chip) => (
@@ -63,10 +78,12 @@ export function SellerListingsScreen() {
         ))}
       </ScrollView>
 
+      <SellerButton icon="bar-chart-2" label="Inventory" onPress={() => router.push("/seller/products/inventory" as Href)} size="sm" style={styles.inventory} testID="open-inventory" variant="glass" />
+
       {shown.length === 0 ? (
         <SellerCard style={styles.empty} testID="listings-empty">
           <Icon color={SELLER.solid} name="package" size={28} />
-          <Text style={styles.cardTitle}>No listings here</Text>
+          <Text style={styles.cardTitle}>No products here</Text>
           <Text style={styles.hint}>Add something to sell and it shows up for students on your campus.</Text>
         </SellerCard>
       ) : (
@@ -76,7 +93,7 @@ export function SellerListingsScreen() {
             const low = isLowStock(listing);
             return (
               <Animated.View entering={FadeInDown.delay(Math.min(index, 6) * 50).duration(340)} key={listing.id} layout={LinearTransition.springify().damping(20)}>
-                <SellerCard onPress={() => router.push(`/seller/listings/${listing.id}` as Href)} style={styles.card} testID={`listing-${listing.id}`}>
+                <SellerCard onPress={() => router.push(`/seller/products/${listing.id}` as Href)} style={styles.card} testID={`listing-${listing.id}`}>
                   <View style={styles.thumb}>{listing.artId && hasArt(listing.artId) ? <ArtTile id={listing.artId} inset={0.06} /> : <Icon color="#FFFFFF" name="package" size={24} />}</View>
                   <View style={styles.cardText}>
                     <Text numberOfLines={1} style={styles.cardTitle}>
@@ -123,6 +140,10 @@ const styles = StyleSheet.create({
   list: { gap: 12, marginTop: 14 },
   pills: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   thumb: { alignItems: "center", backgroundColor: "#7FA3B2", borderRadius: 14, height: 64, justifyContent: "center", overflow: "hidden", width: 64 },
+  inventory: { alignSelf: "flex-start", marginTop: 8 },
+  search: { alignItems: "center", backgroundColor: "rgba(232,240,243,0.96)", borderRadius: 16, flexDirection: "row", gap: 8, minHeight: 48, paddingHorizontal: 14 },
+  searchInput: { color: SELLER.ink, flex: 1, fontSize: 15, paddingVertical: 8 },
+  sub: { color: "rgba(255,255,255,0.85)", fontSize: 14 },
   title: { color: "#FFFFFF", fontSize: 28, fontWeight: "800" },
   titleRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 12, marginTop: 18 },
 });
