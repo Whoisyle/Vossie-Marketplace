@@ -585,6 +585,35 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
         orders: patchOrder(action.id, { courier: { arrivesInMin: 4, name: "Tebogo K.", rating: 4.9, vehicle: "Bicycle" } }),
       };
     }
+    case "sellerCourierTaken": {
+      const current = state.orders.find((item) => item.id === action.id);
+      if (!current || current.fulfilment !== "delivery" || current.status !== "ready") return state;
+      return {
+        ...state,
+        alerts: addAlert({ body: `${action.courier.name} is coming for ${current.number}. Read out the handover code when they arrive.`, href: `/seller/orders/${current.id}`, kind: "order", title: "A courier is on the way" }),
+        orders: patchOrder(action.id, { courier: action.courier }),
+      };
+    }
+    case "sellerCourierReturning": {
+      const current = state.orders.find((item) => item.id === action.id);
+      if (!current) return state;
+      return {
+        ...state,
+        alerts: addAlert({ body: `The courier could not deliver ${current.number}. Type the code on their phone when they hand the parcel back.`, href: `/seller/orders/${current.id}`, kind: "order", title: "A parcel is coming back" }),
+        orders: patchOrder(action.id, { courierReturn: { code: action.code, state: "coming" } }),
+      };
+    }
+    case "sellerConfirmReturn": {
+      const current = state.orders.find((item) => item.id === action.id);
+      if (!current?.courierReturn || current.courierReturn.state !== "coming" || current.courierReturn.code !== action.code.trim()) return state;
+      const owed = current.subtotalCents - current.feeCents;
+      return {
+        ...state,
+        alerts: addAlert({ body: `${current.number} is back with you. The buyer was refunded and the items are back in stock.`, href: "/seller/payouts", kind: "money", title: "Parcel returned" }),
+        ledger: current.status === "done" ? [{ amountCents: -owed, createdAt: stamp, id: sellerId("led"), kind: "refund", label: `Order ${current.number}`, note: "Parcel returned, buyer refunded", sellerOrderId: current.id }, ...state.ledger] : state.ledger,
+        orders: patchOrder(action.id, { courierReturn: { code: current.courierReturn.code, state: "returned" } }),
+      };
+    }
     case "sellerHandToCourier": {
       const current = state.orders.find((item) => item.id === action.id);
       if (!current || current.status !== "ready" || !current.courier) return state;

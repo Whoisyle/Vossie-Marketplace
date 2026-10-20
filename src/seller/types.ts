@@ -90,6 +90,8 @@ export type SellerOrder = {
   queued?: boolean;
   /** Set once a courier has taken the delivery job. */
   courier?: { name: string; vehicle: string; rating: number; arrivesInMin: number };
+  /** Both delivery attempts failed and the courier is bringing the parcel back. The seller types the courier's code to take it. */
+  courierReturn?: { code: string; state: "coming" | "returned" };
 };
 
 export type SellerListingStatus = "published" | "paused" | "draft" | "under-review" | "archived";
@@ -355,6 +357,9 @@ export type SellerAction =
   | { type: "sellerArchiveListing"; id: string; archived: boolean }
   | { type: "sellerSetParcel"; id: string; size?: ParcelSize; note?: string }
   | { type: "sellerAssignCourier"; id: string }
+  | { type: "sellerCourierTaken"; id: string; courier: { name: string; vehicle: string; rating: number; arrivesInMin: number } }
+  | { type: "sellerCourierReturning"; id: string; code: string }
+  | { type: "sellerConfirmReturn"; id: string; code: string }
   | { type: "sellerHandToCourier"; id: string }
   | { type: "sellerCreatePromotion"; promotion: SellerPromotion }
   | { type: "sellerUpdatePromotion"; promotion: SellerPromotion }

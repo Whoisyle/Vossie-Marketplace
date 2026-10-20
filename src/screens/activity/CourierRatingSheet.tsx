@@ -15,6 +15,7 @@ export function CourierRatingSheet({ onClose, order, visible }: { order: Order; 
   const [rating, setRating] = useState<1 | 2 | 3 | 4 | 5 | null>(null);
   const [preset, setPreset] = useState<number | null>(null);
   const [custom, setCustom] = useState("");
+  const [comment, setComment] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const courier = order.courier?.name ?? "your courier";
@@ -30,7 +31,7 @@ export function CourierRatingSheet({ onClose, order, visible }: { order: Order; 
       setError("Enter a tip like 15 or 15.50.");
       return;
     }
-    dispatch({ orderId: order.id, rating, tipCents, type: "rateCourier" });
+    dispatch({ comment: comment.trim() || undefined, orderId: order.id, rating, tipCents, type: "rateCourier" });
     onClose();
     toast.show(tipCents > 0 ? `Thanks! ${formatRand(tipCents)} tip sent to ${courier}` : "Thanks for rating your courier");
   };
@@ -40,6 +41,7 @@ export function CourierRatingSheet({ onClose, order, visible }: { order: Order; 
       <View style={styles.stars} testID="courier-stars">
         <StarRating onChange={(value) => { setRating(value); setError(null); }} size={36} value={rating ?? 0} />
       </View>
+      <TextField label="Say a few words (optional)" maxLength={200} onChangeText={setComment} placeholder="Fast, polite and kept me updated" value={comment} />
       <Text style={text.cardTitle}>Add a tip (optional)</Text>
       <View style={styles.chips}>
         <Chip

@@ -67,11 +67,11 @@ function Tick() {
  * small loading circle and a sliding way to reach support. The moment the shop is approved the same screen turns into "You are
  * verified" with a tick that draws itself, and a slide that carries the seller on to the dashboard.
  */
-export function SellerReviewGate({ onContinue, phase, storeName }: { phase: "review" | "verified"; storeName: string; onContinue: () => void }) {
+export function SellerReviewGate({ kind = "seller", onContinue, phase, storeName, supportHref = "/seller/account/support/new" }: { phase: "review" | "verified"; storeName: string; onContinue: () => void; kind?: "seller" | "courier"; supportHref?: string }) {
   const router = useRouter();
   const verified = phase === "verified";
   return (
-    <Animated.View entering={FadeIn.duration(260)} exiting={FadeOut.duration(420)} style={styles.page} testID={verified ? "seller-verified-gate" : "seller-review-gate"}>
+    <Animated.View entering={FadeIn.duration(260)} exiting={FadeOut.duration(420)} style={styles.page} testID={verified ? (kind === "courier" ? "courier-verified-gate" : "seller-verified-gate") : kind === "courier" ? "courier-review-gate" : "seller-review-gate"}>
       <LinearGradient colors={[SELLER.bgTop, SELLER.bgMid, SELLER.bgBottom]} locations={[0, 0.45, 1]} style={StyleSheet.absoluteFill} />
       <SafeAreaView style={styles.safe}>
         <View style={styles.markRow}>{verified ? <Wordmark tone="white" width={150} /> : null}</View>
@@ -83,7 +83,7 @@ export function SellerReviewGate({ onContinue, phase, storeName }: { phase: "rev
                 <Text accessibilityRole="header" style={styles.title}>
                   You&apos;re verified!
                 </Text>
-                <Text style={styles.sub}>{storeName} is approved and ready to sell on Vossie</Text>
+                <Text style={styles.sub}>{kind === "courier" ? `${storeName}, you are approved and ready to deliver on Vossie` : `${storeName} is approved and ready to sell on Vossie`}</Text>
               </Animated.View>
             </Animated.View>
           ) : (
@@ -98,7 +98,7 @@ export function SellerReviewGate({ onContinue, phase, storeName }: { phase: "rev
                 <Text accessibilityRole="header" style={styles.title}>
                   We&apos;re verifying your documents
                 </Text>
-                <Text style={styles.sub}>This usually takes up to 24 hours. We&apos;ll notify you as soon as your shop is approved.</Text>
+                <Text style={styles.sub}>{kind === "courier" ? "This usually takes up to 24 hours. We'll notify you as soon as you are approved to deliver." : "This usually takes up to 24 hours. We'll notify you as soon as your shop is approved."}</Text>
               </Animated.View>
               <Animated.View entering={FadeIn.delay(480).duration(400)} style={styles.spin}>
                 <Spinner />
@@ -110,7 +110,7 @@ export function SellerReviewGate({ onContinue, phase, storeName }: { phase: "rev
           {verified ? (
             <SlidePill label="Go to dashboard" onComplete={() => setTimeout(onContinue, 420)} testID="gate-dashboard" />
           ) : (
-            <SlidePill label="Contact support" onComplete={() => router.push("/seller/account/support/new" as Href)} resetAfter testID="gate-support" />
+            <SlidePill label="Contact support" onComplete={() => router.push(supportHref as Href)} resetAfter testID="gate-support" />
           )}
         </Animated.View>
       </SafeAreaView>

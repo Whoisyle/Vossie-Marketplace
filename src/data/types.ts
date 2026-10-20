@@ -24,7 +24,7 @@ export type CategoryId = "food" | "books" | "electronics" | "fashion" | "service
 
 export type Category = { id: CategoryId; name: string; icon: string };
 
-export type Role = "buyer" | "seller" | "service_provider";
+export type Role = "buyer" | "seller" | "courier" | "service_provider";
 
 export type Profile = {
   id: string;
@@ -131,6 +131,8 @@ export type Order = {
   deliveryMode?: import("./delivery").DeliveryMode;
   /** phone is the number the Call button dials; empty until couriers are set up with real numbers. */
   courier?: { name: string; vehicle: string; rating: number; phone?: string };
+  /** The student allows the courier to leave the parcel at the door, which lets the courier use a photo as proof. */
+  leaveAtDoor?: boolean;
 };
 
 export type BookingStatus = "upcoming" | "completed" | "cancelled";

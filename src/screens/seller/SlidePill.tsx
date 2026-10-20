@@ -18,7 +18,7 @@ const PAD = 4;
  * knob returns afterwards (for a button that opens something and then waits). A hint chevron nudges the knob while it rests,
  * and a screen reader can activate it without dragging.
  */
-export function SlidePill({ label, onComplete, resetAfter = false, testID }: { label: string; onComplete: () => void; resetAfter?: boolean; testID?: string }) {
+export function SlidePill({ dark = false, disabled = false, label, onComplete, resetAfter = false, testID }: { label: string; onComplete: () => void; resetAfter?: boolean; testID?: string; /** A dark track with a white knob, for the courier app. */ dark?: boolean; /** Locked: the knob does not move and the pill is dimmed. */ disabled?: boolean }) {
   const reduced = useReducedMotion();
   const [width, setWidth] = useState(0);
   const x = useSharedValue(0);
@@ -41,6 +41,7 @@ export function SlidePill({ label, onComplete, resetAfter = false, testID }: { l
   };
 
   const pan = Gesture.Pan()
+    .enabled(!disabled)
     .onUpdate((event) => {
       x.set(Math.min(max, Math.max(0, event.translationX)));
     })
@@ -66,24 +67,25 @@ export function SlidePill({ label, onComplete, resetAfter = false, testID }: { l
       accessibilityActions={[{ label, name: "activate" }]}
       accessibilityLabel={label}
       accessibilityRole="adjustable"
+      accessibilityState={{ disabled }}
       onAccessibilityAction={(event) => {
-        if (event.nativeEvent.actionName === "activate") finish();
+        if (event.nativeEvent.actionName === "activate" && !disabled) finish();
       }}
       onLayout={onLayout}
-      style={styles.track}
+      style={[styles.track, dark && styles.trackDark, disabled && styles.trackLocked]}
       testID={testID}
     >
       <Animated.View style={[styles.fill, fill]} />
       <Animated.View pointerEvents="none" style={[styles.labelWrap, text]}>
-        <Text style={styles.label}>{label}</Text>
+        <Text style={[styles.label, dark && styles.labelDark]}>{label}</Text>
       </Animated.View>
       <GestureDetector gesture={pan}>
-        <Animated.View style={[styles.knob, knob]}>
+        <Animated.View style={[styles.knob, dark && styles.knobDark, knob]}>
           <Animated.View style={[styles.knobIcon, arrow]}>
-            <Icon color="#FFFFFF" name="chevrons-right" size={24} />
+            <Icon color={dark ? "#3B6370" : "#FFFFFF"} name="chevrons-right" size={24} />
           </Animated.View>
           <Animated.View style={[styles.knobIcon, tick]}>
-            <Icon color="#FFFFFF" name="check" size={24} />
+            <Icon color={dark ? "#3B6370" : "#FFFFFF"} name="check" size={24} />
           </Animated.View>
         </Animated.View>
       </GestureDetector>
@@ -95,7 +97,11 @@ const styles = StyleSheet.create({
   fill: { backgroundColor: "rgba(56,96,111,0.16)", borderRadius: 34, bottom: 0, left: 0, position: "absolute", top: 0 },
   knob: { alignItems: "center", backgroundColor: SELLER.solid, borderRadius: KNOB / 2, boxShadow: "0 4px 10px rgba(20,35,44,0.35)", height: KNOB, justifyContent: "center", left: PAD, position: "absolute", top: PAD, width: KNOB },
   knobIcon: { alignItems: "center", height: KNOB, justifyContent: "center", position: "absolute", width: KNOB },
+  knobDark: { backgroundColor: "#FFFFFF" },
   label: { color: "#6C8A95", fontSize: 18, fontWeight: "700" },
+  labelDark: { color: "#FFFFFF" },
   labelWrap: { alignItems: "center", bottom: 0, justifyContent: "center", left: KNOB + PAD, position: "absolute", right: PAD * 2, top: 0 },
+  trackDark: { backgroundColor: "#3B6370" },
+  trackLocked: { opacity: 0.55 },
   track: { backgroundColor: "#FFFFFF", borderRadius: 34, boxShadow: "0 8px 20px rgba(10,26,34,0.3)", height: KNOB + PAD * 2, justifyContent: "center", overflow: "hidden" },
 });

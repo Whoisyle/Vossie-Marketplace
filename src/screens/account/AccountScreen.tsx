@@ -28,6 +28,7 @@ import { color, space, text } from "@/theme/tokens";
 export const roleLabels: Record<Role, string> = {
   buyer: "Buyer",
   seller: "Seller",
+  courier: "Courier",
   service_provider: "Service provider",
 };
 
@@ -183,10 +184,15 @@ export function AccountScreen() {
                 router.replace((state.seller.setupDone ? "/seller/home" : "/seller-setup/welcome") as Href);
                 return;
               }
+              if (role === "courier") {
+                // a first-time courier does the setup; one who is already set up goes straight to the app
+                router.replace((state.courier.status === "none" || state.courier.status === "setup" || state.courier.status === "rejected" ? "/courier-setup/details" : "/courier/home") as Href);
+                return;
+              }
               toast.show(`Switched to ${roleLabels[role]}`);
             }}
             selected={profile.role === role}
-            subtitle={role === "buyer" ? "Browse and buy on campus" : role === "seller" ? "Sell to students on your campus" : "Bookings and time slots arrive in a later release"}
+            subtitle={role === "buyer" ? "Browse and buy on campus" : role === "seller" ? "Sell to students on your campus" : role === "courier" ? "Deliver orders on your campus and get paid" : "Bookings and time slots arrive in a later release"}
             title={roleLabels[role]}
           />
         ))}

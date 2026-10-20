@@ -40,7 +40,9 @@ export function SellerDemoEffects({ enabled = true }: { enabled?: boolean }) {
   }, [dispatch, selling]);
 
   // a courier takes a delivery job a few seconds after the seller marks it ready
-  const needsCourier = seller.orders.filter((item) => item.fulfilment === "delivery" && item.status === "ready" && !item.courier).map((item) => item.id).join(",");
+  // (not when a courier is approved on this phone: then the order is a real job for them)
+  const realCourier = state.courier.status === "approved";
+  const needsCourier = realCourier ? "" : seller.orders.filter((item) => item.fulfilment === "delivery" && item.status === "ready" && !item.courier).map((item) => item.id).join(",");
   useEffect(() => {
     if (!selling || !needsCourier) return;
     const timers = needsCourier.split(",").map((id) => setTimeout(() => dispatch({ id, type: "sellerAssignCourier" }), DEMO_COURIER_MS));

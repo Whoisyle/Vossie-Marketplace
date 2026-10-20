@@ -10,6 +10,7 @@ export default function TabsLayout() {
   if (!state.profile) return <Redirect href="/sign-in" />;
   if (state.isNewUser) return <Redirect href="/profile-setup" />;
   // a student in seller mode uses the seller side of the app
+  if (state.profile.role === "courier") return <Redirect href={(state.courier.status === "none" || state.courier.status === "setup" || state.courier.status === "rejected" ? "/courier-setup/details" : "/courier/home") as Href} />;
   if (state.profile.role === "seller") return <Redirect href={(state.seller.setupDone ? "/seller/home" : "/seller-setup/welcome") as Href} />;
 
   return (

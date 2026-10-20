@@ -3,6 +3,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { ToastProvider } from "@/components";
 import { liveBackend } from "@/backend/mode";
+import { CourierEffects } from "@/screens/courier/CourierEffects";
 import { SellerDemoEffects } from "@/screens/seller/SellerDemoEffects";
 import { SellerLiveSync } from "@/screens/seller/SellerLiveSync";
 import { DemoStoreProvider } from "@/state/DemoStore";
@@ -14,6 +15,7 @@ export default function RootLayout() {
     <DemoStoreProvider>
       <ToastProvider>
         <SellerDemoEffects enabled={!liveBackend} />
+        <CourierEffects enabled={!liveBackend} />
         <SellerLiveSync />
         <Stack
           screenOptions={{
@@ -29,6 +31,8 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ animation: "fade", gestureEnabled: false }} />
           <Stack.Screen name="seller-setup" options={{ animation: "slide_from_right" }} />
           <Stack.Screen name="seller" options={{ animation: "fade", gestureEnabled: false }} />
+          <Stack.Screen name="courier-setup" options={{ animation: "slide_from_right" }} />
+          <Stack.Screen name="courier" options={{ animation: "fade", gestureEnabled: false }} />
         </Stack>
       </ToastProvider>
     </DemoStoreProvider>

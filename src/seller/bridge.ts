@@ -2,6 +2,8 @@ import { getListing } from "@/data/repository";
 import type { Order, NotificationItem } from "@/data/types";
 import type { DemoAction, DemoState } from "@/state/demoReducer";
 
+import { courierReduce } from "@/courier/state";
+
 import { sellerPlanOf } from "./plan";
 import { storeIsLive } from "./catalogue";
 import { courierCodeFor, DEMO_STORE_ID, handoffCodeFor, orderNumberFrom, platformFeeCents, sellerId, sellerReduce, shortName } from "./state";
@@ -79,11 +81,42 @@ export function applySellerAction(state: DemoState, action: SellerAction, reduce
       if (pair) next = reduce(next, { orderId: pair.buyer.id, status: action.to, type: "advanceOrder" });
       break;
     }
+    case "sellerConfirmReturn": {
+      // the courier brought the parcel back: the buyer gets the items refunded (the delivery fee is kept), and the stock goes back on the shelf
+      const pair = linked(action.id);
+      const job = next.courier.jobs.find((item) => item.sellerOrderId === action.id);
+      if (!pair || !job) break;
+      const refund = pair.buyer.subtotalCents - pair.buyer.discountCents;
+      const at = new Date().toISOString();
+      let seller = next.seller;
+      for (const line of pair.buyer.lines) {
+        const own = seller.listings.find((item) => item.id === line.listingId);
+        if (own) seller = sellerReduce(seller, { delta: line.quantity, id: own.id, type: "sellerAdjustStock" }, { plan: sellerPlanOf(next.subscriptions), verifiedStudent: next.profile?.isVerifiedStudent ?? false });
+      }
+      next = {
+        ...next,
+        courier: courierReduce(next.courier, { code: job.returnCode, id: job.id, type: "courierConfirmReturn" }),
+        notifications: [note("Refund on its way", `Your items from ${pair.buyer.number} are refunded to your wallet. The delivery fee is not refunded.`, pair.buyer.id), ...next.notifications],
+        orders: next.orders.map((item) => (item.id === pair.buyer.id ? { ...item, status: "cancelled" } : item)),
+        seller,
+        wallet: { balanceCents: next.wallet.balanceCents + refund, transactions: [{ amountCents: refund, createdAt: at, id: sellerId("tx"), kind: "refund", label: `Refund for ${pair.buyer.number}`, orderId: pair.buyer.id }, ...next.wallet.transactions] },
+      };
+      break;
+    }
     case "sellerHandToCourier":
     case "sellerCompleteOrder": {
       const pair = linked(action.id);
       if (!pair || pair.buyer.status === "delivered") break;
       const at = new Date().toISOString();
+      // a real courier carries it on to the buyer; only the demo's own courier completes it at the handover
+      if (action.type === "sellerHandToCourier" && next.courier.jobs.some((item) => item.sellerOrderId === action.id)) {
+        next = {
+          ...next,
+          notifications: [note("Your order is on its way", `${pair.buyer.courier?.name ?? "Your courier"} collected ${pair.buyer.number} and is bringing it to you.`, pair.buyer.id), ...next.notifications],
+          orders: next.orders.map((item) => (item.id === pair.buyer.id ? { ...item, status: "on-the-way" } : item)),
+        };
+        break;
+      }
       next = {
         ...next,
         notifications: [action.type === "sellerHandToCourier" ? note("Your order is on its way", `A courier has collected ${pair.buyer.number} from the seller.`, pair.buyer.id) : note("Order collected", `Order ${pair.buyer.number} was handed over. Enjoy!`, pair.buyer.id), ...next.notifications],

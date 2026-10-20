@@ -27,6 +27,9 @@ import type { CampusContact, EmergencyContact, ReportCategory, SafetyReport } fr
 import { groupCode, MAX_GROUP_MEMBERS, memberShares, type GroupOrder } from "@/data/group";
 import { lostFoundSeed, splitShares, swapsSeed, type LostFoundKind, type LostFoundPost, type SavedSearch, type Split, type SwapPost, type WishCollection } from "@/data/campus";
 import { lookupStudentRecord } from "@/data/studentRecord";
+import { applyCourierAction, routeRatingToCourier, routeReadyToCourier } from "@/courier/bridge";
+import { emptyCourierState } from "@/courier/state";
+import type { CourierAction, CourierState } from "@/courier/types";
 import { applySellerAction, routeBuyerActionToSeller, routeNewOrdersToSeller } from "@/seller/bridge";
 import { storeIsLive, syncCatalogue, syncOwnReels } from "@/seller/catalogue";
 import { isSellerCode, NO_OFFER, sellerOffer, type OfferLine } from "@/seller/checkout";
@@ -143,6 +146,8 @@ export type DemoState = {
   lastReceipt: Receipt | null;
   /** Seller mode: the setup, orders, listings and earnings of the seller this student has become. */
   seller: SellerState;
+  /** Courier mode: the setup, jobs and earnings of the courier this student has become. */
+  courier: CourierState;
 };
 
 export function createInitialState(): DemoState {
@@ -209,11 +214,14 @@ export function createInitialState(): DemoState {
     lastReceipt: null,
     // the live backend starts from nothing; the demo starts with the sample shop from the designs
     seller: liveBackend ? emptySellerState() : createSellerState(),
+    courier: emptyCourierState(),
   };
 }
 
 export type DemoAction =
   | SellerAction
+  | CourierAction
+  | { type: "setLeaveAtDoor"; orderId: string; on: boolean }
   | { type: "signIn"; email: string }
   | { type: "completeProfile"; profile: Omit<Profile, "id" | "isVerifiedStudent" | "role"> }
   | { type: "updateProfile"; patch: Partial<Pick<Profile, "fullName" | "phone" | "campusId" | "avatarUri">> }
@@ -262,7 +270,7 @@ export type DemoAction =
   | { type: "blockUser"; userId: string; name: string }
   | { type: "signOutOtherSessions" }
   | { type: "deliverOrder"; orderId: string }
-  | { type: "rateCourier"; orderId: string; rating: 1 | 2 | 3 | 4 | 5; tipCents: number }
+  | { type: "rateCourier"; orderId: string; rating: 1 | 2 | 3 | 4 | 5; tipCents: number; comment?: string }
   | { type: "redeemPoints"; points: number }
   | { type: "applyReferral"; code: string }
   | { type: "setScheduledFor"; iso: string | null }
@@ -850,6 +858,8 @@ function baseDemoReducer(state: DemoState, action: DemoAction): DemoState {
         ],
       };
     }
+    case "setLeaveAtDoor":
+      return { ...state, orders: state.orders.map((item) => (item.id === action.orderId && item.status !== "delivered" ? { ...item, leaveAtDoor: action.on } : item)) };
     case "rateCourier": {
       const order = state.orders.find((item) => item.id === action.orderId);
       if (!order || order.status !== "delivered" || order.courierRating) return state;
@@ -1209,7 +1219,9 @@ function baseDemoReducer(state: DemoState, action: DemoAction): DemoState {
 
 /** The demo store's reducer. Seller actions go to the seller side; a placed order is also offered to the seller who runs that store. */
 export function demoReducer(state: DemoState, action: DemoAction): DemoState {
-  const base = action.type.startsWith("seller") ? applySellerAction(state, action as SellerAction, baseDemoReducer) : action.type === "placeOrder" ? routeNewOrdersToSeller(state, baseDemoReducer(state, action)) : baseDemoReducer(state, action);
+  const base0 = action.type.startsWith("courier") ? applyCourierAction(state, action as CourierAction, baseDemoReducer) : action.type.startsWith("seller") ? applySellerAction(state, action as SellerAction, baseDemoReducer) : action.type === "placeOrder" ? routeNewOrdersToSeller(state, baseDemoReducer(state, action)) : baseDemoReducer(state, action);
+  // a ready delivery order becomes a job for a courier approved on this phone, and a buyer's rating counts towards the courier's score
+  const base = routeRatingToCourier(state, routeReadyToCourier(state, base0), action);
   // what a buyer does to the store the student runs also reaches the seller side (review, return, follow, message)
   const routed = !action.type.startsWith("seller") && ["addReview", "openReturn", "toggleFollow", "sendMessage", "toggleReelLike"].includes(action.type) ? routeBuyerActionToSeller(state, base, action) : base;
   // an offer that was used on an order is counted, for its total and for the per-student limit
