@@ -1,7 +1,10 @@
 import { createInitialState, demoReducer, type DemoAction, type DemoState } from "@/state/demoReducer";
 
 import { activeListings, analytics, attentionItems, feesPaidCents, isLowStock, pendingCents, orderCounts, ordersInGroup, weekBars, weekTotals } from "./selectors";
-import { averageRating, createSellerState, docKindsFor, earnCents, scanMatchesCourierCode, sellerBalanceCents, sellerReduce } from "./state";
+import { filterLedger, receiptText, referenceFor, statements, statementText } from "./receipts";
+import { applyPreset, applyTimetable, pickupSlots, storeStatus, summaryRange } from "./schedule";
+import { DAY_KEYS } from "./types";
+import { averageRating, createSellerState, demoIncomingOrder, docKindsFor, earnCents, scanMatchesCourierCode, sellerBalanceCents, sellerReduce } from "./state";
 
 const NOW = new Date(2026, 9, 20, 12, 0, 0).getTime();
 
@@ -231,5 +234,82 @@ describe("courier QR codes", () => {
     expect(scanMatchesCourierCode(" vossie-courier:4829 ", "4829")).toBe(true);
     expect(scanMatchesCourierCode("4828", "4829")).toBe(false);
     expect(scanMatchesCourierCode("4829", "")).toBe(false);
+  });
+});
+
+describe("operating times", () => {
+  const monday10 = new Date(2026, 9, 19, 10, 0);
+
+  it("is open inside the hours and says when it opens next outside them", () => {
+    const schedule = createSellerState(NOW).schedule;
+    expect(storeStatus(schedule, monday10)).toMatchObject({ label: "Open now · until 17:00", open: true });
+    expect(storeStatus(schedule, new Date(2026, 9, 19, 18, 0)).label).toBe("Closed · opens tomorrow 08:00");
+    expect(storeStatus(schedule, new Date(2026, 9, 24, 12, 0)).label).toBe("Closed · opens Mon 08:00");
+  });
+
+  it("follows a closure and the manual switch", () => {
+    let schedule = createSellerState(NOW).schedule;
+    schedule = { ...schedule, closures: [{ from: "2026-10-19", id: "c", label: "Exam week", to: "2026-10-21" }] };
+    expect(storeStatus(schedule, monday10)).toMatchObject({ label: "Closed · back on 22 Oct", open: false, reason: "closure" });
+    expect(storeStatus({ ...schedule, closures: [], closedNow: true }, monday10).reason).toBe("manual");
+  });
+
+  it("applies presets and keeps the single range the database holds in step", () => {
+    const base = createSellerState(NOW).schedule;
+    const all = applyPreset(base, "every-day");
+    expect(DAY_KEYS.every((day) => all.hours[day].open)).toBe(true);
+    expect(summaryRange(all).days).toHaveLength(7);
+    expect(summaryRange(applyPreset(all, "weekdays")).days).toEqual(["mon", "tue", "wed", "thu", "fri"]);
+  });
+
+  it("opens the store in the longest gap between lectures, and stays shut when there is none", () => {
+    const base = createSellerState(NOW).schedule;
+    const lecture = (id: string, from: string, to: string, day: "mon" | "tue" = "mon") => ({ day, from, id, label: "Lecture", to });
+    const week = applyTimetable(base, [lecture("a", "08:00", "10:00"), lecture("b", "13:00", "15:00"), lecture("c", "08:00", "17:00", "tue")]);
+    expect(week.hours.mon).toEqual({ from: "10:00", open: true, to: "13:00" });
+    expect(week.hours.tue.open).toBe(false);
+    expect(week.hours.wed).toMatchObject({ from: "08:00", open: true, to: "17:00" });
+    expect(week.preset).toBe("timetable");
+  });
+
+  it("offers pickup slots after the cut-off, in steps, and none when closed", () => {
+    const schedule = createSellerState(NOW).schedule;
+    expect(pickupSlots(schedule, monday10).slice(0, 3)).toEqual(["10:30", "11:00", "11:30"]);
+    expect(pickupSlots({ ...schedule, slotMinutes: 60 }, monday10).slice(0, 2)).toEqual(["11:00", "12:00"]);
+    expect(pickupSlots(schedule, new Date(2026, 9, 17, 10, 0))).toEqual([]);
+    expect(pickupSlots({ ...schedule, closedNow: true }, monday10)).toEqual([]);
+  });
+
+  it("queues an order that arrives while the store is closed, and syncs the profile from the schedule", () => {
+    let seller = createSellerState(NOW);
+    seller = sellerReduce(seller, { schedule: { ...seller.schedule, closedNow: true }, type: "sellerSetSchedule" });
+    seller = sellerReduce(seller, { order: demoIncomingOrder(NOW, 0), type: "sellerReceiveOrder" }, { now: NOW, verifiedStudent: true });
+    expect(seller.orders[0]?.queued).toBe(true);
+    expect(seller.alerts[0]?.body).toMatch(/while you were closed/);
+    const base = createSellerState(NOW);
+    expect(sellerReduce(base, { schedule: applyPreset(base.schedule, "every-day"), type: "sellerSetSchedule" }).profile.days).toHaveLength(7);
+  });
+});
+
+describe("receipts and statements", () => {
+  it("builds references, filters and searches the ledger", () => {
+    const ledger = createSellerState(NOW).ledger;
+    const sale = ledger.find((item) => item.kind === "sale")!;
+    expect(referenceFor(sale)).toMatch(/^VM-S-\d{4}$/);
+    expect(filterLedger(ledger, "payout", "all", "", NOW).every((item) => item.kind === "payout")).toBe(true);
+    expect(filterLedger(ledger, "all", "7", "", NOW).length).toBeLessThan(filterLedger(ledger, "all", "all", "", NOW).length);
+    expect(filterLedger(ledger, "all", "all", sale.label, NOW).length).toBeGreaterThan(0);
+    expect(filterLedger(ledger, "all", "all", "no such thing", NOW)).toEqual([]);
+  });
+
+  it("writes the receipt text with the fee, and a statement per month that adds up", () => {
+    const seller = createSellerState(NOW);
+    const order = seller.orders[0]!;
+    const text = receiptText({ amountCents: 32300, createdAt: order.placedAt, id: "x", kind: "sale", label: "Order #VM-2041", sellerOrderId: order.id }, order, "CampusBites");
+    expect(text).toContain("Vossie platform fee: - R 17.00");
+    expect(text).toContain("You earned: R 323.00");
+    const months = statements(seller.ledger);
+    expect(months.reduce((sum, item) => sum + item.netCents, 0)).toBe(sellerBalanceCents(seller));
+    expect(statementText(months[0]!, "CampusBites")).toContain("Statement for");
   });
 });

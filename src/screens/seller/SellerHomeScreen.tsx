@@ -37,6 +37,10 @@ export function SellerHomeScreen() {
 
       <Animated.View entering={FadeInDown.duration(380)} style={styles.hello}>
         <Text style={styles.store}>{view.storeName}</Text>
+        <Pressable accessibilityLabel={`${view.status.label}. Change operating times`} accessibilityRole="button" onPress={() => go("/seller/account/hours")} style={styles.status} testID="store-status">
+          <View style={[styles.statusDot, { backgroundColor: view.status.open ? "#5BD08B" : "#F2B25C" }]} />
+          <Text style={styles.statusText}>{view.status.label}</Text>
+        </Pressable>
         <Text accessibilityRole="header" style={styles.greeting}>
           {greeting()}, {view.firstName}
         </Text>
@@ -167,5 +171,8 @@ const styles = StyleSheet.create({
   tileLabel: { color: SELLER.inkSoft, fontSize: 12, textAlign: "center" },
   tileValue: { color: SELLER.ink, fontSize: 30, fontWeight: "800" },
   tileWrap: { flexBasis: "47%", flexGrow: 1 },
+  status: { alignItems: "center", alignSelf: "flex-start", flexDirection: "row", gap: 6, marginBottom: 4 },
+  statusDot: { borderRadius: 4, height: 8, width: 8 },
+  statusText: { color: "#FFFFFF", fontSize: 13, fontWeight: "700" },
   tiles: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 14 },
 });

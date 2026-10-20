@@ -1,5 +1,6 @@
+import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { formatRand } from "@/data/format";
@@ -8,13 +9,14 @@ import { feesPaidCents, pendingCents } from "@/seller/selectors";
 import { PageTitle, StatTile } from "./parts";
 import { useSeller } from "./hooks";
 import { BarChart, Confetti, CountUpRand } from "./motion";
-import { whenLabel } from "./OrderParts";
 import { SELLER, SellerButton, SellerCard, SellerHeader, SellerHeading, SellerScreen, Text } from "./ui";
+import { TxRow } from "./SellerMoneyScreens";
 import { WithdrawSheet } from "./WithdrawSheet";
 
 /** Seller Earnings: the balance that can be withdrawn, the last seven days as bars, and every sale and payout. */
 export function SellerPayoutsScreen() {
   const view = useSeller();
+  const router = useRouter();
   const [withdrawing, setWithdrawing] = useState(false);
   const [coins, setCoins] = useState(false);
   const recent = view.seller.ledger.slice(0, 8);
@@ -48,22 +50,20 @@ export function SellerPayoutsScreen() {
         </SellerCard>
       </Animated.View>
 
-      <SellerHeading>Recent transactions</SellerHeading>
+      <View style={styles.headRow}>
+        <SellerHeading style={styles.headFlat}>Recent transactions</SellerHeading>
+        <Pressable accessibilityRole="button" onPress={() => router.push("/seller/payouts/transactions" as Href)} testID="see-all-transactions">
+          <Text style={styles.seeAll}>See all</Text>
+        </Pressable>
+      </View>
       <View style={styles.list}>
         {recent.map((entry, index) => (
           <Animated.View entering={FadeInDown.delay(180 + index * 50).duration(340)} key={entry.id}>
-            <SellerCard style={styles.row} testID={`ledger-${entry.id}`}>
-              <View style={styles.rowText}>
-                <Text numberOfLines={1} style={styles.rowTitle}>
-                  {entry.label}
-                </Text>
-                <Text style={styles.small}>{entry.note ? `${entry.note} · ` : ""}{whenLabel(entry.createdAt)}</Text>
-              </View>
-              <Text style={[styles.amount, entry.amountCents < 0 ? styles.out : styles.in]}>{formatRand(entry.amountCents, { fixed: true, signed: true })}</Text>
-            </SellerCard>
+            <TxRow entry={entry} onPress={() => router.push(`/seller/payouts/receipt/${entry.id}` as Href)} />
           </Animated.View>
         ))}
       </View>
+      <SellerButton icon="file-text" label="Monthly statements" onPress={() => router.push("/seller/payouts/statements" as Href)} size="sm" style={styles.withdraw} testID="payouts-statements" variant="light" />
 
       <WithdrawSheet availableCents={view.available} onClose={() => setWithdrawing(false)} onPaid={() => setCoins(true)} visible={withdrawing} />
       <Confetti coins count={26} play={coins} />
@@ -83,6 +83,9 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, gap: 1 },
   rowTitle: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },
   small: { color: SELLER.inkSoft, fontSize: 13 },
+  headFlat: { marginBottom: 0, marginTop: 0 },
+  headRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 10, marginTop: 20 },
+  seeAll: { color: "#FFFFFF", fontSize: 14, fontWeight: "800" },
   tiles: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 12 },
   withdraw: { alignSelf: "flex-start", marginTop: 8 },
 });

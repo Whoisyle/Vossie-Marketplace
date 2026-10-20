@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 import type { Conversation } from "@/data/types";
 import { activeListings, attentionItems, isLowStock, orderCounts, weekBars, weekTotals } from "@/seller/selectors";
+import { storeStatus } from "@/seller/schedule";
 import { averageRating, sellerBalanceCents } from "@/seller/state";
 import { useDemoStore } from "@/state/DemoStore";
 
@@ -57,6 +58,7 @@ export function useSeller() {
       rating: averageRating(seller.reviewCounts),
       messages,
       seller,
+      status: storeStatus(seller.schedule, new Date(now)),
       storeName: seller.profile.storeName || "Your store",
       unreadAlerts: seller.alerts.filter((item) => !item.read).length,
       unreadMessages: messages.filter((item) => item.unread).length,

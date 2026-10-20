@@ -3,6 +3,8 @@ import { Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 
 import { Icon, type IconName } from "@/components";
 
+import { shiftTime } from "@/seller/schedule";
+
 import { SELLER, Text, useTone } from "./ui";
 
 /** A row of filter chips on the gradient. The chosen one turns white. */
@@ -57,6 +59,28 @@ export function StatTile({ label, onPress, testID, tone = "ink", value }: { labe
   ) : (
     <View style={styles.stat} testID={testID}>
       {body}
+    </View>
+  );
+}
+
+/** A time with a minus and a plus: each press moves it by half an hour. */
+export function TimeStepper({ label, onChange, step = 30, testID, value }: { label: string; value: string; onChange: (value: string) => void; step?: number; testID?: string }) {
+  const look = useTone();
+  const press = (delta: number) => onChange(shiftTime(value, delta));
+  return (
+    <View style={styles.time} testID={testID}>
+      <Text style={styles.timeLabel}>{label}</Text>
+      <View style={styles.timeRow}>
+        <Pressable accessibilityLabel={`${label} earlier`} accessibilityRole="button" onPress={() => press(-step)} style={[styles.timeBtn, { backgroundColor: look.card, boxShadow: look.raised }]} testID={testID ? `${testID}-minus` : undefined}>
+          <Icon color={SELLER.solid} name="minus" size={14} />
+        </Pressable>
+        <Text style={styles.timeValue} testID={testID ? `${testID}-value` : undefined}>
+          {value}
+        </Text>
+        <Pressable accessibilityLabel={`${label} later`} accessibilityRole="button" onPress={() => press(step)} style={[styles.timeBtn, { backgroundColor: look.card, boxShadow: look.raised }]} testID={testID ? `${testID}-plus` : undefined}>
+          <Icon color={SELLER.solid} name="plus" size={14} />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -125,6 +149,11 @@ const styles = StyleSheet.create({
   stat: { backgroundColor: SELLER.card, borderCurve: "continuous", borderRadius: 20, flexBasis: "47%", flexGrow: 1, gap: 4, padding: 14 },
   statLabel: { color: SELLER.inkSoft, fontSize: 13, fontWeight: "600" },
   statValue: { fontSize: 26, fontWeight: "800" },
+  time: { gap: 4 },
+  timeBtn: { alignItems: "center", borderRadius: 15, height: 30, justifyContent: "center", width: 30 },
+  timeLabel: { color: SELLER.inkSoft, fontSize: 12, fontWeight: "700" },
+  timeRow: { alignItems: "center", flexDirection: "row", gap: 8 },
+  timeValue: { color: SELLER.ink, fontSize: 16, fontWeight: "800", minWidth: 50, textAlign: "center" },
   subtitle: { color: "rgba(255,255,255,0.85)", fontSize: 14 },
   title: { color: "#FFFFFF", fontSize: 28, fontWeight: "800" },
   titleRow: { alignItems: "center", flexDirection: "row", gap: 12, justifyContent: "space-between", marginBottom: 12, marginTop: 18 },

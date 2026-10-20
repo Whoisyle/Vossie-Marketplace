@@ -39,6 +39,8 @@ export type SellerProfile = {
   opens: string;
   closes: string;
   bank?: BankAccount;
+  /** Tax or VAT number, for a registered business. */
+  taxNumber?: string;
 };
 
 export type SellerOrderStatus = "new" | "accepted" | "preparing" | "ready" | "done" | "declined" | "cancelled";
@@ -78,6 +80,8 @@ export type SellerOrder = {
   courierCode: string;
   parcelSize?: ParcelSize;
   courierNote?: string;
+  /** Arrived while the store was closed and waited in the queue. */
+  queued?: boolean;
   /** Set once a courier has taken the delivery job. */
   courier?: { name: string; vehicle: string; rating: number; arrivesInMin: number };
 };
@@ -146,9 +150,43 @@ export type SellerCase = {
 
 export type TeamMember = { id: string; name: string; email: string; role: "owner" | "packer" };
 
+export type DayHours = { open: boolean; from: string; to: string };
+
+/** A lecture the seller sits in, so the store can open around it. */
+export type Lecture = { id: string; day: DayKey; from: string; to: string; label: string };
+
+/** Days the store is shut (exam week, a holiday). Both dates are included, as YYYY-MM-DD. */
+export type Closure = { id: string; from: string; to: string; label: string };
+
+/** When the store is open. The system works the hours out from a preset or the lectures, and the seller can change any day. */
+export type SellerSchedule = {
+  hours: Record<DayKey, DayHours>;
+  lectures: Lecture[];
+  closures: Closure[];
+  /** Queue new orders instead of taking them while the store is closed. */
+  autoPause: boolean;
+  /** How long a pickup slot is. */
+  slotMinutes: 30 | 60;
+  /** How long before closing, or before now, an order is still taken for pickup. */
+  cutoffMinutes: number;
+  /** The seller shut the store by hand. */
+  closedNow: boolean;
+  preset: "weekdays" | "every-day" | "timetable" | "custom";
+};
+
+export type NotifyKind = "orders" | "messages" | "stock" | "money" | "reviews" | "promotions";
+
+export const NOTIFY_KINDS: readonly NotifyKind[] = ["orders", "messages", "stock", "money", "reviews", "promotions"];
+
+export type NotifyPrefs = {
+  channels: Record<NotifyKind, { push: boolean; email: boolean }>;
+  quiet: { on: boolean; from: string; to: string };
+  sound: boolean;
+};
+
 export type SellerSettings = { orderNotifications: boolean };
 
-export type SellerAlert = { id: string; title: string; body: string; createdAt: string; read: boolean; href?: string; kind: "order" | "stock" | "message" | "account" | "money" };
+export type SellerAlert = { id: string; title: string; body: string; createdAt: string; read: boolean; href?: string; kind: "order" | "stock" | "message" | "account" | "money" | "review" | "promo" };
 
 export type SellerState = {
   status: SellerStatus;
@@ -171,6 +209,8 @@ export type SellerState = {
   cases: SellerCase[];
   team: TeamMember[];
   settings: SellerSettings;
+  schedule: SellerSchedule;
+  notify: NotifyPrefs;
 };
 
 export type SellerAction =
@@ -181,7 +221,7 @@ export type SellerAction =
   | { type: "sellerUploadDocument"; kind: DocKind; fileName: string; /** The picked file, which the live backend uploads. */ uri?: string }
   | { type: "sellerSubmitVerification" }
   | { type: "sellerReviewTick" }
-  | { type: "sellerSaveStore"; patch: Partial<Pick<SellerProfile, "logoUri" | "storeName" | "description" | "location" | "days" | "opens" | "closes">> }
+  | { type: "sellerSaveStore"; patch: Partial<Pick<SellerProfile, "logoUri" | "storeName" | "description" | "location" | "days" | "opens" | "closes" | "taxNumber">> }
   | { type: "sellerFinishSetup" }
   | { type: "sellerReceiveOrder"; order: SellerOrder }
   | { type: "sellerRespondOrder"; id: string; accept: boolean; reason?: string }
@@ -200,6 +240,9 @@ export type SellerAction =
   | { type: "sellerInviteTeam"; name: string; email: string }
   | { type: "sellerRemoveTeam"; id: string }
   | { type: "sellerSetSetting"; key: keyof SellerSettings; value: boolean }
+  | { type: "sellerSetSchedule"; schedule: SellerSchedule }
+  | { type: "sellerSetNotify"; notify: NotifyPrefs }
+  | { type: "sellerMarkAlertRead"; id: string }
   | { type: "sellerPauseListing"; id: string; paused: boolean }
   | { type: "sellerRestock"; id: string; quantity: number }
   | { type: "sellerDeleteListing"; id: string }

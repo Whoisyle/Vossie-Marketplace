@@ -1,19 +1,22 @@
 import { MIN_WITHDRAW_CENTS } from "@/data/wallet";
 
-import type {
-  DocKind,
-  LedgerEntry,
-  SellerAction,
-  SellerAlert,
-  SellerCase,
-  SellerDocument,
-  SellerKind,
-  SellerListing,
-  SellerOrder,
-  SellerPromotion,
-  SellerReview,
-  SellerState,
-  TeamMember,
+import { scheduleFromProfile, storeStatus, summaryRange } from "./schedule";
+import {
+  NOTIFY_KINDS,
+  type DocKind,
+  type LedgerEntry,
+  type NotifyPrefs,
+  type SellerAction,
+  type SellerAlert,
+  type SellerCase,
+  type SellerDocument,
+  type SellerKind,
+  type SellerListing,
+  type SellerOrder,
+  type SellerPromotion,
+  type SellerReview,
+  type SellerState,
+  type TeamMember,
 } from "./types";
 
 /** The catalogue store the demo seller runs. A new seller in the demo takes over CampusBites, the catalogue store buyers can order from. */
@@ -217,6 +220,12 @@ function teamSeed(): TeamMember[] {
   ];
 }
 
+/** Every kind of alert on for push, email only for money, and quiet hours off. */
+export function defaultNotify(): NotifyPrefs {
+  const channels = Object.fromEntries(NOTIFY_KINDS.map((kind) => [kind, { email: kind === "money" || kind === "orders", push: true }])) as NotifyPrefs["channels"];
+  return { channels, quiet: { from: "22:00", on: false, to: "06:30" }, sound: true };
+}
+
 /** A seller with nothing in it: what the live backend starts from, and the state of someone who has not started. */
 export function emptySellerState(): SellerState {
   return {
@@ -228,8 +237,10 @@ export function emptySellerState(): SellerState {
     orders: [],
     profile: { closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], description: "", kind: null, location: "", opens: "08:00", phone: "", storeId: "", storeName: "" },
     promotions: [],
+    notify: defaultNotify(),
     reviewCounts: [0, 0, 0, 0, 0],
     reviews: [],
+    schedule: scheduleFromProfile({ closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], opens: "08:00" }),
     settings: { orderNotifications: true },
     setupDone: false,
     status: "none",
@@ -248,8 +259,10 @@ export function createSellerState(now: number = Date.now()): SellerState {
     orders: ordersSeed(now),
     profile: { closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], description: "", kind: null, location: "", opens: "08:00", phone: "", storeId: DEMO_STORE_ID, storeName: "" },
     promotions: promotionsSeed(),
+    notify: defaultNotify(),
     reviewCounts: [108, 12, 3, 1, 2],
     reviews: reviewsSeed(now),
+    schedule: scheduleFromProfile({ closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], opens: "08:00" }),
     settings: { orderNotifications: true },
     setupDone: false,
     status: "none",
@@ -340,16 +353,31 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
         status: allVerified ? "approved" : state.status,
       };
     }
-    case "sellerSaveStore":
-      return { ...state, profile: { ...state.profile, ...action.patch } };
+    case "sellerSaveStore": {
+      const profile = { ...state.profile, ...action.patch };
+      // the setup hours become the schedule until the seller refines it
+      const schedule = state.schedule.preset === "custom" && !state.setupDone ? scheduleFromProfile(profile) : state.schedule;
+      return { ...state, profile, schedule };
+    }
+    case "sellerSetSchedule": {
+      const range = summaryRange(action.schedule);
+      return { ...state, profile: { ...state.profile, ...range }, schedule: action.schedule };
+    }
+    case "sellerSetNotify":
+      return { ...state, notify: action.notify };
+    case "sellerMarkAlertRead":
+      return { ...state, alerts: state.alerts.map((item) => (item.id === action.id ? { ...item, read: true } : item)) };
     case "sellerFinishSetup":
       return { ...state, setupDone: true };
     case "sellerReceiveOrder": {
       if (state.orders.some((item) => item.id === action.order.id)) return state;
+      // an order that arrives while the store is shut waits in the queue, and the seller is told when it was
+      const closed = state.schedule.autoPause && !storeStatus(state.schedule, new Date(now)).open;
+      const order = closed ? { ...action.order, queued: true } : action.order;
       return {
         ...state,
-        alerts: addAlert({ body: `${action.order.buyerName} ordered ${itemsLabel(action.order)}.`, href: `/seller/orders/${action.order.id}`, kind: "order", title: `New order ${action.order.number}` }),
-        orders: [action.order, ...state.orders],
+        alerts: addAlert({ body: closed ? `${order.buyerName} ordered ${itemsLabel(order)} while you were closed. It is waiting for you.` : `${order.buyerName} ordered ${itemsLabel(order)}.`, href: `/seller/orders/${order.id}`, kind: "order", title: `New order ${order.number}` }),
+        orders: [order, ...state.orders],
       };
     }
     case "sellerRespondOrder": {
