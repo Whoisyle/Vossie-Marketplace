@@ -26,6 +26,9 @@ import type { CampusContact, EmergencyContact, ReportCategory, SafetyReport } fr
 import { groupCode, MAX_GROUP_MEMBERS, memberShares, type GroupOrder } from "@/data/group";
 import { lostFoundSeed, splitShares, swapsSeed, type LostFoundKind, type LostFoundPost, type SavedSearch, type Split, type SwapPost, type WishCollection } from "@/data/campus";
 import { lookupStudentRecord } from "@/data/studentRecord";
+import { applySellerAction, routeNewOrdersToSeller } from "@/seller/bridge";
+import { createSellerState } from "@/seller/state";
+import type { SellerAction, SellerState } from "@/seller/types";
 import type {
   ActivityItem,
   AppSettings,
@@ -129,6 +132,8 @@ export type DemoState = {
   reels: Reel[];
   likedReels: string[];
   lastReceipt: Receipt | null;
+  /** Seller mode: the setup, orders, listings and earnings of the seller this student has become. */
+  seller: SellerState;
 };
 
 export function createInitialState(): DemoState {
@@ -191,10 +196,12 @@ export function createInitialState(): DemoState {
     reels: reelsSeed,
     likedReels: [],
     lastReceipt: null,
+    seller: createSellerState(),
   };
 }
 
 export type DemoAction =
+  | SellerAction
   | { type: "signIn"; email: string }
   | { type: "completeProfile"; profile: Omit<Profile, "id" | "isVerifiedStudent" | "role"> }
   | { type: "updateProfile"; patch: Partial<Pick<Profile, "fullName" | "phone" | "campusId" | "avatarUri">> }
@@ -374,7 +381,7 @@ function orderNumber() {
   return `#${2605000 + Math.floor(Math.random() * 999)}`;
 }
 
-export function demoReducer(state: DemoState, action: DemoAction): DemoState {
+function baseDemoReducer(state: DemoState, action: DemoAction): DemoState {
   switch (action.type) {
     case "signIn": {
       const email = action.email.trim().toLowerCase();
@@ -1131,6 +1138,13 @@ export function demoReducer(state: DemoState, action: DemoAction): DemoState {
     default:
       return state;
   }
+}
+
+/** The demo store's reducer. Seller actions go to the seller side; a placed order is also offered to the seller who runs that store. */
+export function demoReducer(state: DemoState, action: DemoAction): DemoState {
+  if (action.type.startsWith("seller")) return applySellerAction(state, action as SellerAction, baseDemoReducer);
+  const next = baseDemoReducer(state, action);
+  return action.type === "placeOrder" ? routeNewOrdersToSeller(state, next) : next;
 }
 
 export function isCampusId(value: string): value is CampusId {
