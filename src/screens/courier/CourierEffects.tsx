@@ -6,7 +6,7 @@ import { useDemoStore } from "@/state/DemoStore";
 export const COURIER_REVIEW_MS = 4_500;
 /** How often the courier moves along the road in the demo, and how much of the road each step covers. */
 export const COURIER_STEP_MS = 1_500;
-export const COURIER_STEP = 1 / 50;
+export const COURIER_STEP = 1 / 30;
 
 /**
  * Demo only, kept apart from the screens so it is easy to remove. It stands in for people and systems that do not exist yet:

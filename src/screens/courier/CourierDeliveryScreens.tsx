@@ -409,7 +409,7 @@ function ReturningView({ job }: { job: CourierJob }) {
 function DetailView({ job }: { job: CourierJob }) {
   const pill = statusPill(job);
   return (
-    <CourierPage back right={<Pill label={pill.label} tone={pill.tone} />} subtitle={`${job.storeName} to ${job.dropoff.name}`} testID="courier-detail" title={`Delivery ${job.number}`}>
+    <CourierPage back right={<Pill label={pill.label} tone={pill.tone} />} subtitle={`${job.number} · ${job.storeName} to ${job.dropoff.name}`} testID="courier-detail" title="Delivery">
       <CourierMap job={job} phase="preview" />
       <Text style={styles.section}>Items ({job.items.length})</Text>
       {job.items.map((item) => (

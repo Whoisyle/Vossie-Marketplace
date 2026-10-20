@@ -432,7 +432,7 @@ export function CheckoutScreen() {
       <Text style={styles.heading}>Order Summary</Text>
       <Card variant="soft">
         <SummaryRow label="Subtotal" value={formatRand(totals.subtotalCents)} />
-        <SummaryRow label="Delivery fee" value={totals.deliveryFeeCents ? formatRand(totals.deliveryFeeCents) : "Free"} />
+        <SummaryRow label={totals.courierKm !== null ? `Delivery fee (${totals.courierKm.toFixed(1)} km)` : "Delivery fee"} value={totals.deliveryFeeCents ? formatRand(totals.deliveryFeeCents) : "Free"} />
         {totals.discountCents > 0 ? (
           <SummaryRow label="Discounts" value={`- ${formatRand(totals.discountCents)}`} />
         ) : null}

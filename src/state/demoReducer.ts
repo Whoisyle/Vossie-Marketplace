@@ -17,6 +17,8 @@ import {
 import { reelsSeed, reviewsSeed } from "@/data/mock/content";
 import { dealFor, effectivePrice } from "@/data/deals";
 import { deliveryEtaMinutes, deliveryFee, fulfilmentFor, type DeliveryMode, type ThirdPartyTier } from "@/data/delivery";
+import { courierFeeCents } from "@/courier/pay";
+import { distanceKm, storeLocation } from "@/data/geo";
 import { getListing, getSeller } from "@/data/repository";
 import { invitedSeed, REFERRAL_REWARD_POINTS, referralCodeFor, isSoldOut, voucherProblem, type InvitedFriend, type PriceAlert, type UserVoucher } from "@/data/phase4";
 import { getPlan, hasPlan, nextMonth, PLUS_FREE_COURIER_OVER_CENTS, PLUS_ORDER_DISCOUNT_CENTS, PLUS_POINTS_MULTIPLIER, STUDY_PASS_PERCENT_OFF_SERVICES, type PlanId, type Subscription } from "@/data/subscriptions";
@@ -350,9 +352,26 @@ export function deliveryGroup(state: Pick<DemoState, "profile">, sellerId: strin
 }
 
 /** The mode and fee for a delivery group, from the student's choices. */
-export function groupDelivery(state: Pick<DemoState, "checkout">, group: "local" | "remote") {
+export function groupDelivery(state: Pick<DemoState, "checkout">, group: "local" | "remote", courierKm?: number) {
   const mode = group === "remote" ? state.checkout.remoteMode : state.checkout.deliveryMode;
+  // a Vossie courier is paid by the distance once the student has pinned where to deliver; until then the flat campus fee applies
+  if (mode === "campus-courier" && group === "local" && courierKm !== undefined) return { feeCents: courierFeeCents(courierKm), mode };
   return { feeCents: deliveryFee(mode, state.checkout.thirdPartyTier), mode };
+}
+
+/** How far the Vossie courier has to ride: from the farthest store in the cart to the pinned address. Undefined until an address is pinned. */
+export function courierDistanceKm(state: Pick<DemoState, "cart" | "checkout" | "profile"> & Partial<Pick<DemoState, "seller">>): number | undefined {
+  const point = state.checkout.addressPoint;
+  if (!point) return undefined;
+  let farthest = 0;
+  for (const line of state.cart) {
+    const seller = getSeller(getListing(line.listingId)?.sellerId ?? "");
+    if (!seller || deliveryGroup(state, seller.id) !== "local") continue;
+    const place = state.seller && state.seller.profile.storeId === seller.id ? state.seller.profile.place : undefined;
+    const from = place ? { latitude: place.latitude, longitude: place.longitude } : storeLocation(seller.id, seller.campusId);
+    farthest = Math.max(farthest, distanceKm(from, point));
+  }
+  return farthest > 0 ? Math.max(0.4, Math.round(farthest * 10) / 10) : undefined;
 }
 
 export function cartTotals(state: Pick<DemoState, "cart" | "checkout" | "profile" | "subscriptions"> & Partial<Pick<DemoState, "seller" | "orders" | "promoUses">>) {
@@ -373,11 +392,12 @@ export function cartTotals(state: Pick<DemoState, "cart" | "checkout" | "profile
   );
   const itemCount = state.cart.reduce((sum, line) => sum + line.quantity, 0);
   const groups = new Set(state.cart.map((line) => deliveryGroup(state, getListing(line.listingId)?.sellerId ?? "")));
+  const courierKm = courierDistanceKm(state);
   const plus = hasPlan(state.subscriptions, "plus");
   const studyPass = hasPlan(state.subscriptions, "study-pass");
   // Vossie Plus: the Vossie courier is free on orders over R100
   const delivery = [...groups].reduce((sum, group) => {
-    const { feeCents, mode } = groupDelivery(state, group);
+    const { feeCents, mode } = groupDelivery(state, group, courierKm);
     return sum + (plus && mode === "campus-courier" && subtotalCents >= PLUS_FREE_COURIER_OVER_CENTS ? 0 : feeCents);
   }, 0);
   const serviceSubtotal = state.cart.reduce(
@@ -397,6 +417,7 @@ export function cartTotals(state: Pick<DemoState, "cart" | "checkout" | "profile
   return {
     itemCount,
     subtotalCents,
+    courierKm: courierKm ?? null,
     deliveryFeeCents: offer.freeDelivery && allOwn ? 0 : delivery,
     sellerOfferProblem: offer.problem,
     sellerOfferTitle: offer.promotion?.title ?? null,
@@ -619,6 +640,7 @@ function baseDemoReducer(state: DemoState, action: DemoAction): DemoState {
       const plusMember = hasPlan(state.subscriptions, "plus");
       const groupId = nextId("grp");
       // each delivery group (own campus / other campuses) pays its fee once, split across that group's sellers
+      const courierKm = courierDistanceKm(state);
       const groupSellers = { local: 0, remote: 0 };
       for (const sellerId of bySeller.keys()) groupSellers[deliveryGroup(state, sellerId)] += 1;
       const groupSeen = { local: 0, remote: 0 };
@@ -626,7 +648,7 @@ function baseDemoReducer(state: DemoState, action: DemoAction): DemoState {
         const subtotal = lines.reduce((sum, line) => sum + unitPrice(line) * line.quantity, 0);
         const share = (value: number) => (index === 0 ? value - Math.floor(value / sellerCount) * (sellerCount - 1) : Math.floor(value / sellerCount));
         const group = deliveryGroup(state, sellerId);
-        const { feeCents: rawFee, mode } = groupDelivery(state, group);
+        const { feeCents: rawFee, mode } = groupDelivery(state, group, courierKm);
         // Vossie Plus: the Vossie courier is free on orders over R100
         const groupFee = plusMember && mode === "campus-courier" && totals.subtotalCents >= PLUS_FREE_COURIER_OVER_CENTS ? 0 : rawFee;
         const position = groupSeen[group];

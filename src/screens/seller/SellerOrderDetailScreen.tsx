@@ -6,6 +6,7 @@ import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 import { Icon } from "@/components";
 import { formatRand, initials } from "@/data/format";
 import { haptic } from "@/lib/haptics";
+import { CodeBoxes } from "@/screens/courier/Proof";
 import { LIMITS } from "@/seller/plan";
 import { earlierOrders } from "@/seller/selectors";
 import type { SellerOrder } from "@/seller/types";
@@ -81,6 +82,8 @@ export function SellerOrderDetailScreen() {
       testID="seller-order-detail"
     >
       <SellerTopBar title={`Order ${order.number}`} />
+
+      {order.courierReturn ? <ReturnCard order={order} /> : null}
 
       <Animated.View entering={FadeInDown.duration(340)}>
         <SellerCard style={styles.status} testID="order-status">
@@ -293,4 +296,32 @@ const styles = StyleSheet.create({
   timeline: { gap: 12, marginTop: 14 },
   verified: { alignItems: "center", flexDirection: "row", gap: 4 },
   where: { gap: 2 },
+});
+
+/** Both delivery tries failed and the courier is bringing the parcel back: type the code on their phone to take it. */
+function ReturnCard({ order }: { order: SellerOrder }) {
+  const view = useSeller();
+  const [code, setCode] = useState("");
+  const returned = order.courierReturn?.state === "returned";
+  const wrong = code.length === 4 && code !== order.courierReturn?.code;
+  return (
+    <SellerCard style={returnStyles.card} testID="return-card">
+      <Text style={returnStyles.title}>{returned ? "Parcel returned" : "A parcel is coming back"}</Text>
+      <Text style={returnStyles.sub}>{returned ? "The buyer was refunded the items, the delivery fee was kept and the items are back in your stock." : `${order.courier?.name ?? "The courier"} could not deliver ${order.number}. When they arrive, type the code on their phone.`}</Text>
+      {returned ? null : (
+        <>
+          <CodeBoxes onChange={setCode} state={wrong ? "bad" : "idle"} testID="return-code-input" value={code} />
+          {wrong ? <Text style={returnStyles.error}>That is not the courier&apos;s code.</Text> : null}
+          <SellerButton disabled={code.length !== 4 || wrong} label="Take the parcel back" onPress={() => view.dispatch({ code, id: order.id, type: "sellerConfirmReturn" })} size="lg" testID="confirm-return" variant="glass" />
+        </>
+      )}
+    </SellerCard>
+  );
+}
+
+const returnStyles = StyleSheet.create({
+  card: { gap: 10, marginBottom: 12 },
+  error: { color: "#B4544A", fontSize: 12 },
+  sub: { color: SELLER.inkSoft, fontSize: 13 },
+  title: { color: SELLER.ink, fontSize: 16, fontWeight: "800" },
 });

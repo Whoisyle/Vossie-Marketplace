@@ -42,20 +42,22 @@ export function TrackOrderScreen() {
   const seller = order ? getSeller(order.sellerId) : undefined;
   const [elapsed, setElapsed] = useState(0);
   const [rateOpen, setRateOpen] = useState(false);
-  const riding = order?.status === "on-the-way";
+  // a real courier on this phone has a job for the order: its status and position replace the demo ride
+  const job = state.courier.jobs.find((item) => item.buyerOrderId === id);
+  const riding = job ? job.status === "on-the-way" || job.status === "arrived" : order?.status === "on-the-way";
 
   useEffect(() => {
-    if (!riding) return;
+    if (!riding || job) return;
     const timer = setInterval(() => setElapsed((value) => value + TICK_MS), TICK_MS);
     return () => clearInterval(timer);
-  }, [riding]);
+  }, [job, riding]);
 
   const geometry = useMemo(() => {
     if (!order || !seller) return null;
-    const from = storeLocation(seller.id, seller.campusId);
-    const to = order.destination ?? campusPlaces(seller.campusId)[1]!.coordinate;
+    const from = job ? { latitude: job.pickup.latitude, longitude: job.pickup.longitude } : storeLocation(seller.id, seller.campusId);
+    const to = job ? { latitude: job.dropoff.latitude, longitude: job.dropoff.longitude } : (order.destination ?? campusPlaces(seller.campusId)[1]!.coordinate);
     return { from, route: routeBetween(from, to), to };
-  }, [order, seller]);
+  }, [job, order, seller]);
 
   if (!order || !seller || !geometry) {
     return (
@@ -73,15 +75,17 @@ export function TrackOrderScreen() {
 
   const info = statusInfo(order.status);
   const delivered = order.status === "delivered";
-  const fraction = riding ? rideFraction(elapsed) : delivered ? 1 : 0;
+  const fraction = job ? (job.status === "on-the-way" ? job.progress : job.status === "arrived" || delivered ? 1 : 0) : riding ? rideFraction(elapsed) : delivered ? 1 : 0;
   const courier = pointAlong(geometry.route, fraction);
   const remainingKm = distanceKm(courier, geometry.to);
   const minutes = delivered ? 0 : riding ? Math.min(order.etaMinutes ?? 99, etaMinutes(remainingKm) + Math.round((1 - fraction) * 4)) : (order.etaMinutes ?? 0);
-  const arrived = riding && fraction >= 1;
+  const arrived = job ? job.status === "arrived" : riding && fraction >= 1;
   const headline = delivered
     ? "Delivered"
     : arrived
-      ? "Your courier has arrived"
+      ? job
+        ? "Your courier is at the door"
+        : "Your courier has arrived"
       : riding
         ? `${minutes} min away`
         : order.status === "ready"
@@ -181,11 +185,27 @@ export function TrackOrderScreen() {
         ) : (
           <Text style={text.bodySmall}>A courier is assigned once the seller has your order ready.</Text>
         )}
+        {job && !delivered && order.status !== "cancelled" && (job.status === "on-the-way" || job.status === "arrived") ? (
+          <View style={styles.codeCard} testID="delivery-code-card">
+            <Text style={text.caption}>Your delivery code</Text>
+            <Text accessibilityLabel={`Your delivery code is ${job.deliveryCode.split("").join(" ")}`} style={styles.code} testID="delivery-code">
+              {job.deliveryCode.split("").join(" ")}
+            </Text>
+            <Text style={text.caption}>Read it out to your courier at the door. Only share it with them.</Text>
+          </View>
+        ) : null}
+        {job && !delivered && order.status !== "cancelled" ? (
+          <Pressable accessibilityRole="switch" accessibilityState={{ checked: order.leaveAtDoor === true }} onPress={() => dispatch({ on: !order.leaveAtDoor, orderId: order.id, type: "setLeaveAtDoor" })} style={styles.leave} testID="leave-at-door">
+            <Icon name="package" size={16} />
+            <Text style={[text.bodySmall, styles.flex]}>{order.leaveAtDoor ? "Leave at my door is on. The courier may photograph the parcel instead of asking for your code." : "Allow the courier to leave it at my door"}</Text>
+            <Icon color={order.leaveAtDoor ? color.success : color.textMuted} name={order.leaveAtDoor ? "check-circle" : "circle"} size={20} />
+          </Pressable>
+        ) : null}
         <View style={styles.actions}>
           <View style={styles.flex}>
             <Button icon="share-2" label="Share tracking" onPress={() => void shareTracking()} size="sm" testID="share-tracking" variant="outline" />
           </View>
-          {arrived && !delivered ? (
+          {arrived && !delivered && !job ? (
             <View style={styles.flex}>
               <Button label="Mark delivered (demo)" onPress={markDelivered} size="sm" testID="mark-delivered" />
             </View>
@@ -196,7 +216,7 @@ export function TrackOrderScreen() {
             </View>
           ) : null}
         </View>
-        <Text style={styles.demo}>Demo tracking: the courier position is simulated.</Text>
+        <Text style={styles.demo}>{job ? "Demo: the courier's position is simulated until phones share it." : "Demo tracking: the courier position is simulated."}</Text>
       </View>
 
       <BottomEdgeReveal dark />
@@ -230,7 +250,10 @@ const styles = StyleSheet.create({
     right: space.md,
   },
   actions: { flexDirection: "row", gap: space.xs },
+  code: { color: color.text, fontSize: 30, fontWeight: "800", letterSpacing: 4 },
+  codeCard: { alignItems: "center", backgroundColor: color.surfaceSoft, borderRadius: corner.md, gap: 2, padding: space.sm },
   courier: { alignItems: "center", flexDirection: "row", gap: space.xs },
+  leave: { alignItems: "center", backgroundColor: color.surfaceRow, borderRadius: corner.md, flexDirection: "row", gap: space.xs, padding: space.sm },
   courierIcon: { alignItems: "center", backgroundColor: color.primary, borderRadius: 20, height: 40, justifyContent: "center", width: 40 },
   demo: { color: color.textMuted, fontSize: 11, textAlign: "center" },
   flex: { flex: 1 },

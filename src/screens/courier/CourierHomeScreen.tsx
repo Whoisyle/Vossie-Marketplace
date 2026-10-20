@@ -38,6 +38,7 @@ export function CourierHomeScreen() {
           <Toggle
             label={online ? "Go offline" : "Go online"}
             on={online}
+            onDark={online}
             onChange={(on) => {
               dispatch({ online: on, type: "courierSetOnline" });
               toast.show(on ? "You are online. Offers will appear here." : "You are offline");

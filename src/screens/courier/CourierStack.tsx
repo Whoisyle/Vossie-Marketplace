@@ -1,3 +1,5 @@
+import { Lora_600SemiBold } from "@expo-google-fonts/lora";
+import { useFonts } from "expo-font";
 import { Redirect } from "expo-router";
 import { Stack } from "expo-router/stack";
 
@@ -10,6 +12,7 @@ export function CourierStack() {
 
 /** The stack for the setup pages. Needs a signed-in student. */
 export function CourierSetupStack() {
+  useFonts({ Lora_600SemiBold });
   const { state } = useDemoStore();
   if (!state.profile) return <Redirect href="/sign-in" />;
   return <Stack screenOptions={{ animation: "slide_from_right", contentStyle: { backgroundColor: "#FFFFFF" }, gestureEnabled: true, headerShown: false }} />;

@@ -304,15 +304,15 @@ export function Fact({ label, value }: { label: string; value: string }) {
 }
 
 /** A switch that slides. */
-export function Toggle({ label, on, onChange, testID }: { on: boolean; onChange: (on: boolean) => void; label: string; testID?: string }) {
+export function Toggle({ label, on, onChange, onDark = false, testID }: { on: boolean; onChange: (on: boolean) => void; label: string; testID?: string; /** On a dark card: a light track with a dark knob. */ onDark?: boolean }) {
   const x = useSharedValue(on ? 1 : 0);
   useEffect(() => {
     x.set(withSpring(on ? 1 : 0, spring.snappy));
   }, [on, x]);
   const knob = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() * 22 }] }));
   return (
-    <Pressable accessibilityLabel={label} accessibilityRole="switch" accessibilityState={{ checked: on }} hitSlop={8} onPress={() => { haptic.tap(); onChange(!on); }} style={[styles.toggle, on && styles.toggleOn]} testID={testID}>
-      <Animated.View style={[styles.knob, knob]} />
+    <Pressable accessibilityLabel={label} accessibilityRole="switch" accessibilityState={{ checked: on }} hitSlop={8} onPress={() => { haptic.tap(); onChange(!on); }} style={[styles.toggle, on && styles.toggleOn, onDark && styles.toggleDark]} testID={testID}>
+      <Animated.View style={[styles.knob, onDark && styles.knobDark, knob]} />
     </Pressable>
   );
 }
@@ -426,10 +426,11 @@ const styles = StyleSheet.create({
   fact: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 5 },
   factValue: { color: COURIER.ink, flexShrink: 1, fontSize: 13, fontWeight: "700", textAlign: "right" },
   flex: { flex: 1 },
-  footer: { bottom: 0, left: 0, paddingBottom: 16, paddingHorizontal: 18, paddingTop: 8, position: "absolute", right: 0 },
+  footer: { backgroundColor: "rgba(255,255,255,0.96)", bottom: 0, left: 0, paddingBottom: 16, paddingHorizontal: 18, paddingTop: 8, position: "absolute", right: 0 },
   frame: { backgroundColor: COURIER.frame, flex: 1, paddingHorizontal: 12, paddingTop: 12 },
   head: { alignItems: "center", flexDirection: "row", gap: 10, marginBottom: 14 },
   knob: { backgroundColor: "#FFFFFF", borderRadius: 13, boxShadow: "0 1px 3px rgba(0,0,0,0.3)", height: 26, left: 3, position: "absolute", top: 3, width: 26 },
+  knobDark: { backgroundColor: COURIER.solid },
   menuIcon: { alignItems: "center", backgroundColor: "#E3EDF0", borderRadius: 14, height: 44, justifyContent: "center", width: 44 },
   menuRow: { alignItems: "center", flexDirection: "row", gap: 12, marginBottom: 10 },
   pad: { paddingHorizontal: 18, paddingTop: 18 },
@@ -456,5 +457,6 @@ const styles = StyleSheet.create({
   tabLabelOn: { color: COURIER.ink, fontWeight: "800" },
   tabRow: { flexDirection: "row" },
   toggle: { backgroundColor: "#C9D3D8", borderRadius: 16, height: 32, width: 54 },
+  toggleDark: { backgroundColor: "rgba(255,255,255,0.9)" },
   toggleOn: { backgroundColor: COURIER.solid },
 });
