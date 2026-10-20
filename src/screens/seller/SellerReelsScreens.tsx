@@ -66,7 +66,7 @@ export function ReelsPanel() {
     <View testID="reels-panel">
       <View style={styles.head}>
         <Text style={styles.hint}>
-          {live} live{Number.isFinite(limit) ? ` of ${limit}` : ""} · {reels.length} total
+          {live} live{Number.isFinite(limit) && limit > 0 ? ` of ${limit}` : ""} · {reels.length} total{limit === 0 ? " · new reels need Plus" : ""}
         </Text>
         <SellerButton icon="plus" label="Add reel" onPress={() => (canAdd ? router.push("/seller/products/reel/new" as Href) : setUpgrade(true))} size="sm" testID="add-reel" variant="light" />
       </View>
