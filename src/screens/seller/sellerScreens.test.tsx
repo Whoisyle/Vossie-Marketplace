@@ -8,10 +8,14 @@ import { AccountScreen } from "@/screens/account/AccountScreen";
 import { SellerAccountScreen } from "./SellerAccountScreen";
 import { SellerInventoryScreen } from "./SellerInventoryScreen";
 import { SellerAnalyticsScreen, SellerReviewsScreen, SellerStorePreviewScreen } from "./SellerInsightScreens";
-import { SellerCasesScreen, SellerPromotionsScreen, SellerTeamScreen } from "./SellerManageScreens";
+import { SellerCasesScreen, SellerTeamScreen } from "./SellerManageScreens";
+import { SellerPromotionFormScreen, SellerPromotionsScreen } from "./SellerPromotionScreens";
 import { SellerHandoverScreen, SellerPrepareScreen } from "./SellerPrepareScreens";
 import { SellerReceiptScreen, SellerStatementsScreen, SellerTransactionsScreen } from "./SellerMoneyScreens";
+import { SellerPlaceScreen } from "./SellerPlaceScreen";
 import { SellerPlansScreen } from "./SellerPlansScreen";
+import { SellerSupportFormScreen, SellerSupportScreen, SellerTicketScreen } from "./SellerSupportScreens";
+import { ShareStoreSheet, storeLink, storeSlug } from "./ShareStore";
 import { SellerReelFormScreen } from "./SellerReelsScreens";
 import { SellerScheduleScreen } from "./SellerScheduleScreen";
 import { SellerSecurityScreen, SellerSettingsScreen } from "./SellerSettingsScreens";
@@ -133,12 +137,19 @@ describe("seller setup", () => {
   });
 
   it("checks the store details before saving and finishing setup", () => {
-    renderWithProviders(<SellerStoreScreen />, run(signedIn(), { type: "sellerStart" }, { kind: "student", type: "sellerSetKind" }));
+    const started = run(signedIn(), { type: "sellerStart" }, { kind: "student", type: "sellerSetKind" });
+    const first = renderWithProviders(<SellerStoreScreen />, started);
     fireEvent.press(screen.getByTestId("seller-store-save"));
     expect(screen.getByText("Give your store a name.")).toBeTruthy();
-    expect(screen.getByText("Say where buyers collect from.")).toBeTruthy();
+    expect(screen.getByText("Choose the place where buyers collect from.")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("choose-place"));
+    expect(mockPush).toHaveBeenCalledWith("/seller-setup/place");
+    first.unmount();
+
+    const placed = run(started, { patch: { place: { address: "12 Esselen Street, Die Bult", latitude: -26.694, longitude: 27.094, name: "Eduvos Potchefstroom campus", source: "hub" } }, type: "sellerSaveStore" });
+    renderWithProviders(<SellerStoreScreen />, placed);
+    expect(screen.getByText("Eduvos Potchefstroom campus")).toBeTruthy();
     fireEvent.changeText(screen.getByTestId("store-name"), "CampusBites");
-    fireEvent.changeText(screen.getByTestId("store-location"), "Res Block B");
     fireEvent.press(screen.getByTestId("day-mon"));
     fireEvent.changeText(screen.getByTestId("store-opens"), "25:00");
     fireEvent.press(screen.getByTestId("seller-store-save"));
@@ -146,6 +157,14 @@ describe("seller setup", () => {
     fireEvent.changeText(screen.getByTestId("store-opens"), "08:00");
     fireEvent.press(screen.getByTestId("seller-store-save"));
     expect(mockReplace).toHaveBeenCalledWith("/seller/home");
+  });
+
+  it("offers a store banner from the library or the camera", () => {
+    renderWithProviders(<SellerStoreScreen mode="manage" />, seller());
+    fireEvent.press(screen.getByTestId("banner-button"));
+    expect(screen.getByTestId("attach-library")).toBeTruthy();
+    expect(screen.getByTestId("attach-camera")).toBeTruthy();
+    expect(screen.queryByTestId("attach-scan")).toBeNull();
   });
 });
 
@@ -422,13 +441,18 @@ describe("store, reviews, analytics, promotions, cases and team", () => {
     expect(screen.getByTestId("analytics-orders")).toBeTruthy();
   });
 
-  it("switches a promotion and creates one", () => {
+  it("lists promotions by where they are up to, and opens one to edit", () => {
     renderWithProviders(<SellerPromotionsScreen />, seller());
     expect(screen.getByTestId("promo-pr-first")).toBeTruthy();
     expect(screen.queryByTestId("promo-pr-exam")).toBeNull();
+    fireEvent.press(screen.getByTestId("chip-scheduled"));
+    expect(screen.getByTestId("promo-pr-exam")).toBeTruthy();
+    fireEvent(screen.getByTestId("toggle-pr-exam"), "valueChange", true);
+    fireEvent.press(screen.getByTestId("chip-active"));
+    fireEvent.press(screen.getByTestId("promo-pr-first"));
+    expect(mockPush).toHaveBeenCalledWith("/seller/account/promotion/pr-first");
     fireEvent.press(screen.getByTestId("create-promotion"));
-    fireEvent.press(screen.getByTestId("template-free-delivery"));
-    expect(screen.getAllByText("Free delivery over R100").length).toBeGreaterThan(0);
+    expect(mockPush).toHaveBeenCalledWith("/seller/account/promotion/new");
   });
 
   it("approves a refund and answers a dispute", () => {
@@ -653,5 +677,143 @@ describe("reels, analytics tabs, plans and the growth hub", () => {
     renderWithProviders(<SellerProductsScreen />, state);
     fireEvent.press(screen.getByTestId("add-listing"));
     expect(screen.getByText(/The Free plan holds 10 products/)).toBeTruthy();
+  });
+});
+
+describe("creating and editing a promotion", () => {
+  it("checks the fields, previews the offer and creates it with all its options", () => {
+    mockParams = { id: "new" };
+    const view = renderWithProviders(<SellerPromotionFormScreen />, seller());
+    fireEvent.press(screen.getByTestId("promo-save"));
+    expect(screen.getByText(/name of at least 3 letters/)).toBeTruthy();
+    fireEvent.changeText(screen.getByTestId("promo-title"), "Lamp week");
+    fireEvent.press(screen.getByTestId("kind-rand-off"));
+    fireEvent.press(screen.getByTestId("promo-rand-plus"));
+    fireEvent.press(screen.getByTestId("applies-products"));
+    fireEvent.press(screen.getByTestId("promo-save"));
+    expect(screen.getByText(/Pick at least one product/)).toBeTruthy();
+    fireEvent.press(screen.getByTestId("promo-product-sl-lamp"));
+    fireEvent.changeText(screen.getByTestId("promo-code"), "lamp5!");
+    expect(screen.getByTestId("promo-preview")).toBeTruthy();
+    expect(screen.getByText(/R25 off · on 1 product · code LAMP5/)).toBeTruthy();
+    fireEvent.press(screen.getByTestId("promo-endless"));
+    fireEvent.press(screen.getByTestId("promo-save"));
+    expect(screen.queryByText(/Pick at least one product/)).toBeNull();
+    view.unmount();
+  });
+
+  it("opens an existing offer, and duplicates it as a paused copy", () => {
+    mockParams = { id: "pr-first" };
+    renderWithProviders(<SellerPromotionFormScreen />, seller());
+    expect(screen.getByTestId("promo-title").props.value).toBe("First order 10% off");
+    expect(screen.getByText(/10% off · first order · code VOSSIE10/)).toBeTruthy();
+    fireEvent.press(screen.getByTestId("promo-duplicate"));
+    fireEvent.press(screen.getByTestId("promo-delete"));
+    fireEvent.press(screen.getByTestId("promo-confirm-delete"));
+  });
+});
+
+describe("choosing a real place for the store", () => {
+  const hits = [{ display_name: "Potchefstroom Library, Steve Biko Avenue, Potchefstroom, North West", lat: "-26.6931", lon: "27.0951", name: "Potchefstroom Library", place_id: 7 }];
+
+  it("starts from the campus hubs, finds real places by search and saves the one chosen", async () => {
+    const original = global.fetch;
+    global.fetch = jest.fn().mockResolvedValue({ json: async () => hits, ok: true }) as never;
+    renderWithProviders(<SellerPlaceScreen />, seller());
+    expect(screen.getByTestId("place-card")).toBeTruthy();
+    expect(screen.getAllByText("Eduvos Potchefstroom campus").length).toBeGreaterThan(0);
+    fireEvent.press(screen.getByTestId("hub-hub-mooirivier"));
+    expect(screen.getAllByText("Mooirivier Mall").length).toBeGreaterThan(0);
+    fireEvent.changeText(screen.getByTestId("place-search"), "library");
+    fireEvent.press(await screen.findByTestId("place-osm-7", {}, { timeout: 3000 }));
+    expect(screen.getByText("Found on the map")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("place-confirm"));
+    global.fetch = original;
+  });
+
+  it("says so when a search finds nothing", async () => {
+    const original = global.fetch;
+    global.fetch = jest.fn().mockResolvedValue({ json: async () => [], ok: true }) as never;
+    renderWithProviders(<SellerPlaceScreen />, seller());
+    fireEvent.changeText(screen.getByTestId("place-search"), "nowhere at all");
+    expect(await screen.findByText(/No places found/, {}, { timeout: 3000 })).toBeTruthy();
+    global.fetch = original;
+  });
+});
+
+describe("help and support", () => {
+  it("lists the requests with their status and opens one", () => {
+    renderWithProviders(<SellerSupportScreen />, seller());
+    expect(screen.getByTestId("ticket-tk-1")).toBeTruthy();
+    expect(screen.getByText("Resolved")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("ticket-tk-1"));
+    expect(mockPush).toHaveBeenCalledWith("/seller/account/support/tk-1");
+    fireEvent.press(screen.getByTestId("new-ticket"));
+    expect(mockPush).toHaveBeenCalledWith("/seller/account/support/new");
+  });
+
+  it("checks the form, asks for a phone number only for a call, and sends the request", () => {
+    renderWithProviders(<SellerSupportFormScreen />, seller());
+    fireEvent.press(screen.getByTestId("send-ticket"));
+    expect(screen.getByText("Give the request a short subject.")).toBeTruthy();
+    fireEvent.changeText(screen.getByTestId("ticket-subject"), "Payout is late");
+    fireEvent.changeText(screen.getByTestId("ticket-details"), "I asked for a payout on Friday and it has not arrived.");
+    expect(screen.queryByTestId("ticket-phone")).toBeNull();
+    fireEvent.press(screen.getByTestId("contact-phone"));
+    expect(screen.getByTestId("ticket-phone")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("topic-payout"));
+    fireEvent.press(screen.getByTestId("ticket-urgent"));
+    fireEvent.press(screen.getByTestId("add-attachment"));
+    expect(screen.getByTestId("attach-library")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("send-ticket"));
+    expect(mockReplace).toHaveBeenCalledWith(expect.stringMatching(/^\/seller\/account\/support\/tk-/));
+  });
+
+  it("shows the thread and lets the seller reply or resolve", async () => {
+    mockParams = { id: "tk-1" };
+    renderWithProviders(<SellerTicketScreen />, seller());
+    expect(screen.getByTestId("ticket-thread")).toBeTruthy();
+    expect(screen.getByText(/This request is resolved/)).toBeTruthy();
+    const open = run(seller(), { ticket: { attachments: [], bestTime: "anytime", contact: "chat", createdAt: "", details: "Where is my money?", id: "tk-9", messages: [], ref: "", status: "open", subject: "Money", topic: "payout", urgency: "normal" }, type: "sellerCreateTicket" });
+    const id = open.seller.tickets[0]!.id;
+    mockParams = { id };
+    renderWithProviders(<SellerTicketScreen />, open);
+    fireEvent.changeText(screen.getByTestId("ticket-reply"), "Any news?");
+    fireEvent.press(screen.getByTestId("ticket-send-reply"));
+    expect(screen.getByText("Any news?")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("ticket-resolve"));
+    expect(await screen.findByText(/This request is resolved/)).toBeTruthy();
+  });
+});
+
+describe("sharing the store", () => {
+  it("makes a tidy link, and shows the link and a QR code to share", () => {
+    expect(storeSlug("Vumisa's Thrift")).toBe("vumisas-thrift");
+    expect(storeLink("Campus Bites!")).toBe("https://vossie.app/s/campus-bites");
+    renderWithProviders(<ShareStoreSheet onClose={() => undefined} place="Eduvos" storeId="campusbites" storeName="CampusBites" visible />, seller());
+    expect(screen.getByTestId("store-qr")).toBeTruthy();
+    expect(screen.getByTestId("store-link")).toBeTruthy();
+    expect(screen.getByTestId("share-native")).toBeTruthy();
+    expect(screen.getByTestId("share-copy")).toBeTruthy();
+  });
+
+  it("opens from the store preview", () => {
+    renderWithProviders(<SellerStorePreviewScreen />, seller());
+    fireEvent.press(screen.getByTestId("share-store"));
+    expect(screen.getByTestId("store-qr")).toBeTruthy();
+  });
+});
+
+describe("documents from the library, camera, files or a scan", () => {
+  it("offers the ways to add a document, and previews, replaces and removes one", () => {
+    const state = run(signedIn(), { type: "sellerStart" }, { kind: "student", type: "sellerSetKind" });
+    renderWithProviders(<SellerVerifyScreen />, state);
+    fireEvent.press(screen.getByTestId("doc-id"));
+    for (const source of ["library", "camera", "scan"]) expect(screen.getByTestId(`attach-${source}`)).toBeTruthy();
+    const uploaded = run(state, { fileKind: "image", fileName: "id.jpg", kind: "id", type: "sellerUploadDocument", uri: "file:///id.jpg" });
+    renderWithProviders(<SellerVerifyScreen />, uploaded);
+    fireEvent.press(screen.getAllByTestId("doc-id")[screen.getAllByTestId("doc-id").length - 1]!);
+    expect(screen.getByTestId("doc-preview")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("doc-remove"));
   });
 });

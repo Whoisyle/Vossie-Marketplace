@@ -10,7 +10,8 @@ import { useDemoStore } from "@/state/DemoStore";
 
 import { useSellerDispatch } from "./actions";
 
-import { usePickImage } from "./fields";
+import { AttachSheet, type Picked } from "./attach";
+import { DocPreview } from "./DocPreview";
 import { Confetti, StepBar } from "./motion";
 import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerScreen, SellerTopBar, Text } from "./ui";
 
@@ -27,7 +28,8 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
   const router = useRouter();
   const { state } = useDemoStore();
   const dispatch = useSellerDispatch();
-  const pick = usePickImage();
+  const [choosing, setChoosing] = useState<SellerDocument | null>(null);
+  const [viewing, setViewing] = useState<SellerDocument | null>(null);
   const seller = state.seller;
   const received = seller.documents.filter((doc) => doc.status !== "required" && doc.status !== "rejected").length;
   const missing = seller.documents.length - received;
@@ -42,11 +44,16 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
     setCelebrate(true);
   }
 
-  const upload = async (doc: SellerDocument) => {
-    if (submitted || doc.status === "verified") return;
-    const picked = await pick(false);
-    if (picked) dispatch({ fileName: picked.name, kind: doc.kind, type: "sellerUploadDocument", uri: picked.uri });
+  const open = (doc: SellerDocument) => {
+    if (doc.status === "verified") return;
+    if (doc.status === "required" || doc.status === "rejected") {
+      if (!submitted) setChoosing(doc);
+      return;
+    }
+    // something is already uploaded: look at it, replace it or take it back
+    setViewing(doc);
   };
+  const keep = (doc: SellerDocument, file: Picked) => dispatch({ fileKind: file.kind, fileName: file.name, kind: doc.kind, type: "sellerUploadDocument", uri: file.uri });
 
   const headline = approved ? { label: "Approved", tone: "success" as const } : submitted ? { label: "Pending", tone: "warn" as const } : missing > 0 ? { label: "Incomplete", tone: "danger" as const } : { label: "Ready", tone: "info" as const };
 
@@ -95,7 +102,7 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
           const look = DOC_LABEL[doc.status];
           return (
             <Animated.View entering={FadeInDown.delay(80 * (index + 1)).duration(360)} key={doc.kind}>
-              <SellerCard onPress={doc.status === "required" || doc.status === "rejected" ? () => void upload(doc) : undefined} style={styles.row} testID={`doc-${doc.kind}`}>
+              <SellerCard onPress={doc.status === "verified" ? undefined : () => open(doc)} style={styles.row} testID={`doc-${doc.kind}`}>
                 <View style={styles.rowText}>
                   <Text style={styles.rowTitle}>{docTitles[doc.kind]}</Text>
                   <Text numberOfLines={1} style={styles.rowHint}>
@@ -120,6 +127,21 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
           <TimelineRow detail="You can start listing" done={approved} title="Seller approved" />
         </SellerCard>
       </Animated.View>
+      <AttachSheet onClose={() => setChoosing(null)} onPicked={(file) => choosing && keep(choosing, file)} title={choosing ? `Add ${docTitles[choosing.kind].toLowerCase()}` : "Add a file"} visible={Boolean(choosing)} />
+      <DocPreview
+        canChange={!submitted}
+        doc={viewing}
+        onClose={() => setViewing(null)}
+        onRemove={() => {
+          if (viewing) dispatch({ kind: viewing.kind, type: "sellerRemoveDocument" });
+          setViewing(null);
+        }}
+        onReplace={() => {
+          const doc = viewing;
+          setViewing(null);
+          if (doc) setTimeout(() => setChoosing(doc), 250);
+        }}
+      />
       <Confetti play={celebrate} />
     </SellerScreen>
   );

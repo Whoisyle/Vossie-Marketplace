@@ -1,11 +1,12 @@
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text as RNText, type TextProps, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import Svg, { Circle, Defs, Pattern, Rect } from "react-native-svg";
 
 import { Backdrop, Icon, Screen, Wordmark, type IconName } from "@/components";
+import { setBarTone } from "@/components/nav/barTone";
 import { haptic } from "@/lib/haptics";
 import { spring } from "@/theme/motion";
 
@@ -146,6 +147,12 @@ export function SellerScreen({
   /** Blue for the numbers pages, white for the pages where work is done. */
   tone?: Tone;
 }) {
+  // the tab bar takes the opposite colour to the page: dark on white pages, light on blue ones
+  useFocusEffect(
+    useCallback(() => {
+      setBarTone(tone === "white" ? "dark" : "light");
+    }, [tone]),
+  );
   return (
     <ToneContext.Provider value={tone}>
       <View style={[styles.page, { backgroundColor: TONES[tone].pageBg }]}>

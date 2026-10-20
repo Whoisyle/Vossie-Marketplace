@@ -1,6 +1,7 @@
 import { MIN_WITHDRAW_CENTS } from "@/data/wallet";
 
 import { FEE_PERCENT, LIMITS, type SellerPlan } from "./plan";
+import { promotionDetail } from "./promotions";
 import { scheduleFromProfile, storeStatus, summaryRange } from "./schedule";
 import {
   NOTIFY_KINDS,
@@ -17,6 +18,7 @@ import {
   type SellerPromotion,
   type SellerReel,
   type SellerReview,
+  type SupportTicket,
   type SellerState,
   type TeamMember,
 } from "./types";
@@ -201,12 +203,17 @@ function reelsSeed(now: number): SellerReel[] {
   ];
 }
 
-function promotionsSeed(): SellerPromotion[] {
-  return [
-    { active: true, code: "VOSSIE10", detail: "Code VOSSIE10 · ends 31 Oct", id: "pr-first", kind: "percent", redemptions: 18, title: "First order 10% off" },
-    { active: true, detail: "Applies to campus orders", id: "pr-free", kind: "free-delivery", redemptions: 6, title: "Free delivery over R150" },
-    { active: false, detail: "Starts 4 Nov · 2 products", id: "pr-exam", kind: "bundle", redemptions: 0, scheduled: true, title: "Exam week bundle" },
+function promotionsSeed(now: number): SellerPromotion[] {
+  const day = (offset: number) => {
+    const at = new Date(now + offset * DAY);
+    return `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, "0")}-${String(at.getDate()).padStart(2, "0")}`;
+  };
+  const offers: SellerPromotion[] = [
+    { active: true, appliesTo: "store", code: "VOSSIE10", detail: "", endsAt: day(11), firstOrderOnly: true, id: "pr-first", kind: "percent", perStudent: 1, redemptions: 18, startsAt: day(-20), title: "First order 10% off", value: 10 },
+    { active: true, appliesTo: "store", detail: "", id: "pr-free", kind: "free-delivery", minSpendCents: 15_000, perStudent: 5, redemptions: 6, startsAt: day(-10), title: "Free delivery over R150" },
+    { active: false, appliesTo: "products", detail: "", id: "pr-exam", kind: "bundle", listingIds: ["sl-calculus", "sl-econ"], perStudent: 1, redemptions: 0, scheduled: true, startsAt: day(15), title: "Exam week bundle", value: 52_000 },
   ];
+  return offers.map((item) => ({ ...item, detail: promotionDetail(item) }));
 }
 
 function reviewsSeed(now: number): SellerReview[] {
@@ -222,6 +229,30 @@ function casesSeed(now: number): SellerCase[] {
   return [
     { amountCents: 28000, createdAt: ago(1), id: "cs-2012", kind: "return", orderNumber: "#VM-2012", photos: 0, reason: "Item does not fit. Buyer requests a refund of R 280.", status: "open", title: "Hoodie Teal (M)" },
     { amountCents: 12000, createdAt: ago(2), id: "cs-1998", kind: "dispute", orderNumber: "#VM-1998", photos: 2, reason: "Buyer reports damaged goods on delivery and attached photos.", status: "open", title: "Desk Lamp" },
+  ];
+}
+
+function ticketsSeed(now: number): SupportTicket[] {
+  const ago = (days: number) => new Date(now - days * DAY).toISOString();
+  return [
+    {
+      attachments: [],
+      bestTime: "anytime",
+      contact: "chat",
+      createdAt: ago(5),
+      details: "My payout of R1 111.00 was requested on Friday and I want to know when it will arrive.",
+      id: "tk-1",
+      messages: [
+        { at: ago(5), body: "My payout of R1 111.00 was requested on Friday and I want to know when it will arrive.", from: "you", id: "tm-a" },
+        { at: ago(4.9), body: "Hi, payouts take one to three working days. Yours was paid on Monday. It should show in your bank today.", from: "support", id: "tm-b" },
+      ],
+      orderNumber: undefined,
+      ref: "VS-1031",
+      status: "resolved",
+      subject: "When will my payout arrive?",
+      topic: "payout",
+      urgency: "normal",
+    },
   ];
 }
 
@@ -251,6 +282,7 @@ export function emptySellerState(): SellerState {
     promotions: [],
     notify: defaultNotify(),
     reels: [],
+    tickets: [],
     reviewCounts: [0, 0, 0, 0, 0],
     reviews: [],
     schedule: scheduleFromProfile({ closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], opens: "08:00" }),
@@ -271,9 +303,10 @@ export function createSellerState(now: number = Date.now()): SellerState {
     listings: listingsSeed(now),
     orders: ordersSeed(now),
     profile: { closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], description: "", kind: null, location: "", opens: "08:00", phone: "", storeId: DEMO_STORE_ID, storeName: "" },
-    promotions: promotionsSeed(),
+    promotions: promotionsSeed(now),
     notify: defaultNotify(),
     reels: reelsSeed(now),
+    tickets: ticketsSeed(now),
     reviewCounts: [108, 12, 3, 1, 2],
     reviews: reviewsSeed(now),
     schedule: scheduleFromProfile({ closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], opens: "08:00" }),
@@ -343,8 +376,12 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
     case "sellerUploadDocument":
       return {
         ...state,
-        documents: state.documents.map((doc) => (doc.kind === action.kind && doc.status !== "verified" ? { ...doc, fileName: action.fileName, status: "uploaded", uploadedAt: stamp } : doc)),
+        documents: state.documents.map((doc) => (doc.kind === action.kind && doc.status !== "verified" ? { ...doc, fileKind: action.fileKind, fileName: action.fileName, status: "uploaded", uploadedAt: stamp, uri: action.uri } : doc)),
       };
+    case "sellerRemoveDocument":
+      // a file can be taken back until the documents are sent in
+      if (state.status === "pending" || state.status === "approved") return state;
+      return { ...state, documents: state.documents.map((doc) => (doc.kind === action.kind && doc.status === "uploaded" ? { kind: doc.kind, status: "required" as const } : doc)) };
     case "sellerSubmitVerification": {
       if (state.documents.length === 0 || state.documents.some((doc) => doc.status === "required" || doc.status === "rejected")) return state;
       return {
@@ -494,6 +531,38 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
     }
     case "sellerCreatePromotion":
       return { ...state, promotions: [action.promotion, ...state.promotions] };
+    case "sellerUpdatePromotion":
+      return { ...state, promotions: state.promotions.map((item) => (item.id === action.promotion.id ? { ...item, ...action.promotion } : item)) };
+    case "sellerDeletePromotion":
+      return { ...state, promotions: state.promotions.filter((item) => item.id !== action.id) };
+    case "sellerCreateTicket": {
+      const number = 1032 + state.tickets.length;
+      const ticket = { ...action.ticket, createdAt: stamp, ref: `VS-${number}`, status: "open" as const };
+      return {
+        ...state,
+        alerts: addAlert({ body: `We have your request about ${ticket.subject}. Reference ${ticket.ref}.`, href: `/seller/account/support/${ticket.id}`, kind: "account", title: "Support request sent" }),
+        tickets: [ticket, ...state.tickets],
+      };
+    }
+    case "sellerReplyTicket": {
+      const body = action.body.trim();
+      const open = state.tickets.find((item) => item.id === action.id && item.status !== "resolved");
+      if (!body || !open) return state;
+      return { ...state, tickets: state.tickets.map((item) => (item.id === action.id ? { ...item, messages: [...item.messages, { at: stamp, body, from: "you" as const, id: sellerId("tm") }] } : item)) };
+    }
+    case "sellerResolveTicket":
+      return { ...state, tickets: state.tickets.map((item) => (item.id === action.id ? { ...item, status: "resolved" as const } : item)) };
+    case "sellerSupportReply": {
+      const found = state.tickets.find((item) => item.id === action.id);
+      if (!found || found.status !== "open") return state;
+      const how = found.contact === "phone" ? `We will call you ${found.bestTime === "anytime" ? "today" : `this ${found.bestTime}`}.` : found.contact === "email" ? "We will also email you." : "We will keep talking here.";
+      const body = found.urgency === "urgent" ? `Thanks, this is marked urgent so a person is looking at it now. ${how}` : `Thanks, we have your request and a person is looking at it. ${how}`;
+      return {
+        ...state,
+        alerts: addAlert({ body: `Support replied about ${found.subject}.`, href: `/seller/account/support/${found.id}`, kind: "account", title: "Support replied" }),
+        tickets: state.tickets.map((item) => (item.id === found.id ? { ...item, messages: [...item.messages, { at: stamp, body, from: "support" as const, id: sellerId("tm") }], status: "in-progress" as const } : item)),
+      };
+    }
     case "sellerTogglePromotion":
       return { ...state, promotions: state.promotions.map((item) => (item.id === action.id ? { ...item, active: action.active, scheduled: action.active ? false : item.scheduled } : item)) };
     case "sellerReplyReview":

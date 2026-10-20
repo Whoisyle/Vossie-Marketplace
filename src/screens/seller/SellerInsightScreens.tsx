@@ -13,16 +13,17 @@ import { space, text } from "@/theme/tokens";
 
 import { useSeller } from "./hooks";
 import { Chips, Stars, StatTile } from "./parts";
+import { ShareStoreSheet } from "./ShareStore";
 import { UpgradeSheet } from "./SellerReelsScreens";
 import { Pill, SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, SellerTopBar, Text } from "./ui";
 
 /** Store preview: the shop as a buyer sees it, with a way to edit it or share it. */
 export function SellerStorePreviewScreen() {
   const router = useRouter();
-  const toast = useToast();
   const view = useSeller();
   const profile = view.seller.profile;
   const [category, setCategory] = useState("all");
+  const [sharing, setSharing] = useState(false);
   const live = activeListings(view.seller.listings);
   const categories = ["all", ...new Set(live.map((item) => item.category))];
   const shown = live.filter((item) => category === "all" || item.category === category);
@@ -34,7 +35,7 @@ export function SellerStorePreviewScreen() {
       footer={
         <View style={styles.footerRow}>
           <SellerButton icon="edit-2" label="Edit store" onPress={() => router.push("/seller/account/store" as Href)} style={styles.flex} testID="edit-store" variant="glass" />
-          <SellerButton icon="share-2" label="Share store" onPress={() => toast.show("Link copied. Sharing arrives with the real store pages.")} style={styles.flex} testID="share-store" variant="light" />
+          <SellerButton icon="share-2" label="Share store" onPress={() => setSharing(true)} style={styles.flex} testID="share-store" variant="light" />
         </View>
       }
       testID="seller-store-preview"
@@ -77,6 +78,7 @@ export function SellerStorePreviewScreen() {
           </View>
         ))}
       </View>
+      <ShareStoreSheet onClose={() => setSharing(false)} place={profile.location || undefined} storeId={profile.storeId || "campusbites"} storeName={view.storeName} visible={sharing} />
     </SellerScreen>
   );
 }

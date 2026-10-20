@@ -3,6 +3,8 @@
  * store and by the live Supabase services, so the screens do not care which one is behind them.
  */
 
+import type { StoreLocation } from "./places";
+
 /** What kind of seller: a student selling their own things, a campus business, or a registered company. */
 export type SellerKind = "student" | "campus-business" | "registered";
 
@@ -12,7 +14,7 @@ export type DocKind = "student-card" | "id" | "address" | "cipc";
 /** Where a document is: not given yet, handed in, being reviewed by Vossie Operations, accepted, or turned down. */
 export type DocStatus = "required" | "uploaded" | "in-review" | "verified" | "rejected";
 
-export type SellerDocument = { kind: DocKind; status: DocStatus; fileName?: string; uploadedAt?: string; note?: string };
+export type SellerDocument = { kind: DocKind; status: DocStatus; fileName?: string; uploadedAt?: string; note?: string; /** The chosen file, so it can be looked at, replaced or taken back. */ uri?: string; fileKind?: "image" | "pdf" | "file" };
 
 /**
  * Where the seller is in becoming a seller: not started, filling in the setup, waiting for review, or approved.
@@ -33,12 +35,16 @@ export type SellerProfile = {
   storeName: string;
   phone: string;
   logoUri?: string;
+  /** The wide picture at the top of the store page. */
+  bannerUri?: string;
   description: string;
   location: string;
   days: DayKey[];
   opens: string;
   closes: string;
   bank?: BankAccount;
+  /** The real place where orders are handed over, with its position on the map. */
+  place?: StoreLocation;
   /** Tax or VAT number, for a registered business. */
   taxNumber?: string;
 };
@@ -126,9 +132,39 @@ export type LedgerEntry = {
   sellerOrderId?: string;
 };
 
-export type PromotionKind = "percent" | "free-delivery" | "bundle";
+export type PromotionKind = "percent" | "rand-off" | "free-delivery" | "buy-x-get-y" | "bundle";
 
-export type SellerPromotion = { id: string; kind: PromotionKind; title: string; detail: string; code?: string; active: boolean; scheduled?: boolean; ended?: boolean; redemptions: number };
+/** An offer for buyers. Everything after `redemptions` is optional so a simple offer stays simple. */
+export type SellerPromotion = {
+  id: string;
+  kind: PromotionKind;
+  title: string;
+  /** The line buyers read, made from the other fields by `promotionDetail`. */
+  detail: string;
+  /** What buyers type at checkout. Left out when the offer applies by itself. */
+  code?: string;
+  active: boolean;
+  scheduled?: boolean;
+  ended?: boolean;
+  redemptions: number;
+  /** Percent for "percent", cents for "rand-off" and "bundle". */
+  value?: number;
+  /** Buy this many, get this many free (for "buy-x-get-y"). */
+  buyX?: number;
+  getY?: number;
+  /** What it covers: the whole store, chosen products, or a category. */
+  appliesTo?: "store" | "products" | "category";
+  listingIds?: string[];
+  category?: SellerListing["category"];
+  minSpendCents?: number;
+  firstOrderOnly?: boolean;
+  /** YYYY-MM-DD. No end date means it runs until it is switched off. */
+  startsAt?: string;
+  endsAt?: string;
+  /** Most uses in total, and per student. Left out for no limit. */
+  maxUses?: number;
+  perStudent?: number;
+};
 
 export type SellerReview = { id: string; author: string; rating: 1 | 2 | 3 | 4 | 5; text: string; createdAt: string; reply?: string };
 
@@ -146,6 +182,41 @@ export type SellerCase = {
   status: "open" | "resolved";
   resolution?: string;
   createdAt: string;
+};
+
+export type TicketTopic = "payout" | "order" | "account" | "store" | "technical" | "safety" | "other";
+
+export const TICKET_TOPICS: { key: TicketTopic; label: string }[] = [
+  { key: "payout", label: "Payout or money" },
+  { key: "order", label: "An order" },
+  { key: "account", label: "My account" },
+  { key: "store", label: "My store" },
+  { key: "technical", label: "App problem" },
+  { key: "safety", label: "Safety" },
+  { key: "other", label: "Something else" },
+];
+
+export type TicketAttachment = { name: string; uri?: string; kind: "image" | "pdf" | "file" };
+
+export type TicketMessage = { id: string; from: "you" | "support"; body: string; at: string };
+
+/** A request to Vossie support, with how the seller wants to be reached and what was said back. */
+export type SupportTicket = {
+  id: string;
+  ref: string;
+  topic: TicketTopic;
+  subject: string;
+  details: string;
+  /** The order number the problem is about, like #VM-2041. */
+  orderNumber?: string;
+  attachments: TicketAttachment[];
+  contact: "chat" | "email" | "phone";
+  phone?: string;
+  bestTime: "morning" | "afternoon" | "evening" | "anytime";
+  urgency: "normal" | "urgent";
+  status: "open" | "in-progress" | "resolved";
+  createdAt: string;
+  messages: TicketMessage[];
 };
 
 export type TeamMember = { id: string; name: string; email: string; role: "owner" | "packer" };
@@ -234,6 +305,7 @@ export type SellerState = {
   schedule: SellerSchedule;
   notify: NotifyPrefs;
   reels: SellerReel[];
+  tickets: SupportTicket[];
 };
 
 export type SellerAction =
@@ -241,10 +313,11 @@ export type SellerAction =
   | { type: "sellerSetKind"; kind: SellerKind }
   | { type: "sellerSetBasics"; storeName: string; phone: string }
   | { type: "sellerGoToStep"; step: 1 | 2 | 3 }
-  | { type: "sellerUploadDocument"; kind: DocKind; fileName: string; /** The picked file, which the live backend uploads. */ uri?: string }
+  | { type: "sellerUploadDocument"; kind: DocKind; fileName: string; /** The picked file, which the live backend uploads. */ uri?: string; fileKind?: "image" | "pdf" | "file" }
+  | { type: "sellerRemoveDocument"; kind: DocKind }
   | { type: "sellerSubmitVerification" }
   | { type: "sellerReviewTick" }
-  | { type: "sellerSaveStore"; patch: Partial<Pick<SellerProfile, "logoUri" | "storeName" | "description" | "location" | "days" | "opens" | "closes" | "taxNumber">> }
+  | { type: "sellerSaveStore"; patch: Partial<Pick<SellerProfile, "logoUri" | "bannerUri" | "place" | "storeName" | "description" | "location" | "days" | "opens" | "closes" | "taxNumber">> }
   | { type: "sellerFinishSetup" }
   | { type: "sellerReceiveOrder"; order: SellerOrder }
   | { type: "sellerRespondOrder"; id: string; accept: boolean; reason?: string }
@@ -257,6 +330,13 @@ export type SellerAction =
   | { type: "sellerAssignCourier"; id: string }
   | { type: "sellerHandToCourier"; id: string }
   | { type: "sellerCreatePromotion"; promotion: SellerPromotion }
+  | { type: "sellerUpdatePromotion"; promotion: SellerPromotion }
+  | { type: "sellerDeletePromotion"; id: string }
+  | { type: "sellerCreateTicket"; ticket: SupportTicket }
+  | { type: "sellerReplyTicket"; id: string; body: string }
+  | { type: "sellerResolveTicket"; id: string }
+  /** Demo only: Vossie support answers a ticket a few seconds after it is sent. */
+  | { type: "sellerSupportReply"; id: string }
   | { type: "sellerTogglePromotion"; id: string; active: boolean }
   | { type: "sellerReplyReview"; id: string; text: string }
   | { type: "sellerResolveCase"; id: string; decision: "approve" | "decline" | "respond"; text?: string }

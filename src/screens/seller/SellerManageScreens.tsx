@@ -1,92 +1,20 @@
+import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
-import { Button, Icon, Sheet, TextField, useToast, type IconName } from "@/components";
+import { Button, Icon, Sheet, TextField, useToast } from "@/components";
 import { formatRand, relativeTime } from "@/data/format";
-import { sellerId } from "@/seller/state";
-import type { PromotionKind, SellerPromotion } from "@/seller/types";
-import { space, text } from "@/theme/tokens";
+import { space } from "@/theme/tokens";
 
 import { useSeller } from "./hooks";
-import { Chips, SettingRow, StatTile } from "./parts";
+import { Chips } from "./parts";
 import { Pill, SELLER, SellerButton, SellerCard, SellerScreen, SellerTopBar, Text } from "./ui";
-
-const PROMO_ICON: Record<PromotionKind, IconName> = { bundle: "tag", "free-delivery": "truck", percent: "percent" };
-
-const TEMPLATES: Omit<SellerPromotion, "id" | "active" | "redemptions">[] = [
-  { code: "SAVE15", detail: "Code SAVE15 · this week", kind: "percent", title: "15% off this week" },
-  { detail: "Applies to campus orders", kind: "free-delivery", title: "Free delivery over R100" },
-  { detail: "Buy two, save R30 · 2 products", kind: "bundle", title: "Two for R30 off" },
-];
-
-/** Promotions: offers for buyers that can be switched on and off, and new ones made from a short list. */
-export function SellerPromotionsScreen() {
-  const view = useSeller();
-  const toast = useToast();
-  const [tab, setTab] = useState<"active" | "scheduled" | "ended">("active");
-  const [creating, setCreating] = useState(false);
-  const all = view.seller.promotions;
-  const shown = all.filter((item) => (tab === "active" ? item.active : tab === "scheduled" ? !item.active && item.scheduled : Boolean(item.ended) || (!item.active && !item.scheduled)));
-  const redemptions = all.reduce((sum, item) => sum + item.redemptions, 0);
-
-  return (
-    <SellerScreen tone="white"
-      footer={<SellerButton icon="plus" label="Create promotion" onPress={() => setCreating(true)} size="lg" testID="create-promotion" variant="glass" />}
-      testID="seller-promotions"
-    >
-      <SellerTopBar title="Promotions" />
-      <Text style={styles.sub}>Offers for your buyers</Text>
-      <Chips items={[{ key: "active", label: `Active ${all.filter((item) => item.active).length}` }, { key: "scheduled", label: "Scheduled" }, { key: "ended", label: "Ended" }]} onChange={setTab} value={tab} />
-      <View style={styles.tiles}>
-        <StatTile label="Redemptions" value={redemptions} />
-        <StatTile label="Sales lift" tone="success" value="+18%" />
-      </View>
-      <View style={styles.stack}>
-        {shown.length === 0 ? (
-          <SellerCard testID="promotions-empty">
-            <Text style={styles.hint}>Nothing here yet.</Text>
-          </SellerCard>
-        ) : (
-          shown.map((item, index) => (
-            <Animated.View entering={FadeInDown.delay(index * 60).duration(300)} key={item.id}>
-              <SettingRow hint={item.detail} icon={PROMO_ICON[item.kind]} label={item.title} onToggle={(value) => view.dispatch({ active: value, id: item.id, type: "sellerTogglePromotion" })} testID={`promo-${item.id}`} toggle={item.active} />
-            </Animated.View>
-          ))
-        )}
-      </View>
-      <SellerCard style={styles.tip}>
-        <Icon color={SELLER.solid} name="star" size={18} />
-        <Text style={styles.tipText}>Tip: free delivery lifts orders for sellers like you</Text>
-      </SellerCard>
-      <Sheet onClose={() => setCreating(false)} title="Create promotion" visible={creating}>
-        <Text style={text.body}>Pick an offer to start with. It goes live straight away.</Text>
-        <View style={styles.sheetList}>
-          {TEMPLATES.map((template) => (
-            <Button
-              fullWidth
-              key={template.title}
-              label={template.title}
-              onPress={() => {
-                view.dispatch({ promotion: { ...template, active: true, id: sellerId("pr"), redemptions: 0 }, type: "sellerCreatePromotion" });
-                toast.show(`${template.title} is live`);
-                setCreating(false);
-                setTab("active");
-              }}
-              testID={`template-${template.kind}`}
-              variant="soft"
-            />
-          ))}
-        </View>
-      </Sheet>
-    </SellerScreen>
-  );
-}
 
 /** Returns and disputes: refund requests to approve or decline, and disputes to answer. */
 export function SellerCasesScreen() {
+  const router = useRouter();
   const view = useSeller();
-  const toast = useToast();
   const [tab, setTab] = useState<"open" | "resolved" | "all">("open");
   const cases = view.seller.cases;
   const shown = cases.filter((item) => tab === "all" || item.status === tab);
@@ -135,7 +63,7 @@ export function SellerCasesScreen() {
                 {item.status === "open" && item.kind === "dispute" ? (
                   <View style={styles.actions}>
                     <SellerButton label="Respond" onPress={() => view.dispatch({ decision: "respond", id: item.id, text: "You replied. Waiting for Vossie support.", type: "sellerResolveCase" })} style={styles.flex} testID={`respond-${item.id}`} variant="outline" />
-                    <SellerButton label="Contact support" onPress={() => toast.show("Vossie support will reply within one working day.")} style={styles.flex} testID={`support-${item.id}`} variant="light" />
+                    <SellerButton label="Contact support" onPress={() => router.push("/seller/account/support/new" as Href)} style={styles.flex} testID={`support-${item.id}`} variant="light" />
                   </View>
                 ) : null}
               </SellerCard>

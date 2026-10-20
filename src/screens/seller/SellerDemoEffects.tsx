@@ -7,6 +7,8 @@ import { useDemoStore } from "@/state/DemoStore";
 
 /** How long after entering seller mode each demo order arrives. */
 export const DEMO_ARRIVAL_MS = [40_000, 110_000, 200_000];
+/** How long after a support request is sent the demo support answers. */
+export const DEMO_SUPPORT_MS = 7_000;
 /** How often the demo reels gain views. */
 export const DEMO_REEL_MS = 12_000;
 /** How long after an order is ready a demo courier takes the job. */
@@ -56,6 +58,14 @@ export function SellerDemoEffects({ enabled = true }: { enabled?: boolean }) {
     }, DEMO_REEL_MS);
     return () => clearInterval(timer);
   }, [dispatch, liveReels]);
+
+  // demo only: Vossie support answers a new request a few seconds after it is sent
+  const unanswered = seller.tickets.filter((item) => item.status === "open").map((item) => item.id).join(",");
+  useEffect(() => {
+    if (!enabled || !unanswered) return;
+    const timers = unanswered.split(",").map((id) => setTimeout(() => dispatch({ id, type: "sellerSupportReply" }), DEMO_SUPPORT_MS));
+    return () => timers.forEach(clearTimeout);
+  }, [dispatch, enabled, unanswered]);
 
   const waiting = seller.orders.filter((item) => item.status === "new").length;
   const before = useRef(waiting);

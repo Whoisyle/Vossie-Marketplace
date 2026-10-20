@@ -18,6 +18,7 @@ import { spring } from "@/theme/motion";
 import { color, corner, space } from "@/theme/tokens";
 
 import { Icon, type IconName } from "./Icon";
+import { useBarTone } from "./nav/barTone";
 import { ReelsGlyph } from "./nav/ReelsGlyph";
 import { TAB_BAR_HEIGHT, useTabChrome } from "./nav/TabChrome";
 
@@ -45,6 +46,7 @@ export type TabConfig = { name: string; label: string; icon: IconName };
  */
 export function TabBar({ badges, fixed = false, insets, navigation, neo = false, state, tabs }: BottomTabBarProps & { tabs?: readonly TabConfig[]; badges?: Record<string, number>; /** Never slides away while scrolling. */ fixed?: boolean; /** The soft raised look used in seller mode. */ neo?: boolean }) {
   const config = tabs ?? TABS;
+  const dark = useBarTone() === "dark" && neo;
   const { itemCount } = useCartTotals();
   const chrome = useTabChrome();
   const reduced = useReducedMotion();
@@ -82,10 +84,10 @@ export function TabBar({ badges, fixed = false, insets, navigation, neo = false,
       <View
         accessibilityRole="tablist"
         onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}
-        style={[styles.bar, neo && styles.neoShadow]}
+        style={[styles.bar, neo && styles.neoShadow, dark && styles.neoShadowDark]}
       >
         {neo ? (
-          <View style={[StyleSheet.absoluteFill, styles.neoBar]} />
+          <View style={[StyleSheet.absoluteFill, styles.neoBar, dark && styles.neoBarDark]} />
         ) : (
           <>
             {Platform.OS === "android" ? (
@@ -101,7 +103,7 @@ export function TabBar({ badges, fixed = false, insets, navigation, neo = false,
           </>
         )}
         {tabWidth > 0 ? (
-          <Animated.View pointerEvents="none" style={[styles.pill, { width: tabWidth - 4 }, neo && styles.neoPill, pillStyle]}>
+          <Animated.View pointerEvents="none" style={[styles.pill, { width: tabWidth - 4 }, neo && styles.neoPill, dark && styles.neoPillDark, pillStyle]}>
             {neo ? null : (
               <LinearGradient
                 colors={["rgba(255,255,255,0.95)", "rgba(215,225,231,0.75)"]}
@@ -127,6 +129,8 @@ export function TabBar({ badges, fixed = false, insets, navigation, neo = false,
           return (
             <TabItem
               badge={badge}
+              dark={dark}
+              fixed={fixed}
               focused={focused}
               icon={tab.icon}
               key={route.key}
@@ -143,6 +147,8 @@ export function TabBar({ badges, fixed = false, insets, navigation, neo = false,
 
 function TabItem({
   badge,
+  dark,
+  fixed,
   focused,
   icon,
   label,
@@ -150,6 +156,9 @@ function TabItem({
   onPress,
 }: {
   badge: number;
+  dark: boolean;
+  /** Nothing moves or grows: the icon, label and bar are the same size on every tab. */
+  fixed: boolean;
   focused: boolean;
   icon: IconName;
   label: string;
@@ -161,17 +170,17 @@ function TabItem({
   const pop = useSharedValue(0);
 
   useEffect(() => {
-    if (focused) hop.set(withSequence(withTiming(-5, { duration: 110 }), withSpring(0, spring.bouncy)));
-  }, [focused, hop]);
+    if (focused && !fixed) hop.set(withSequence(withTiming(-5, { duration: 110 }), withSpring(0, spring.bouncy)));
+  }, [fixed, focused, hop]);
   useEffect(() => {
     if (badge > 0) pop.set(withSequence(withTiming(1, { duration: 90 }), withSpring(0, spring.bouncy)));
   }, [badge, pop]);
 
   const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: hop.get() }, { scale: (1 - press.get() * 0.14) * (focused ? 1.06 : 1) }],
+    transform: fixed ? [] : [{ translateY: hop.get() }, { scale: (1 - press.get() * 0.14) * (focused ? 1.06 : 1) }],
   }));
   const badgeStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1 + pop.get() * 0.5 }] }));
-  const tint = focused ? color.ink : color.textMuted;
+  const tint = dark ? (focused ? "#FFFFFF" : "rgba(255,255,255,0.62)") : focused ? color.ink : color.textMuted;
 
   return (
     <Pressable
@@ -181,12 +190,12 @@ function TabItem({
       onPress={onPress}
       onPressIn={() => press.set(withTiming(1, { duration: 80 }))}
       onPressOut={() => press.set(withTiming(0, { duration: 160 }))}
-      style={styles.tab}
+      style={[styles.tab, fixed && styles.tabFixed]}
       testID={`tab-${name}`}
     >
       <Animated.View style={[styles.iconWrap, iconStyle]}>
         {name === "reels" ? (
-          <ReelsGlyph active={focused} color={focused ? color.ink : color.textMuted} size={22} />
+          <ReelsGlyph active={focused} color={tint} size={22} />
         ) : (
           <Icon color={tint} name={icon} size={21} />
         )}
@@ -196,7 +205,7 @@ function TabItem({
           </Animated.View>
         ) : null}
       </Animated.View>
-      <Text numberOfLines={1} style={[styles.label, focused && styles.labelActive]}>
+      <Text numberOfLines={1} style={[styles.label, focused && styles.labelActive, fixed && styles.labelFixed, { color: tint }]}>
         {label}
       </Text>
     </Pressable>
@@ -236,8 +245,12 @@ const styles = StyleSheet.create({
   iconWrap: { alignItems: "center", height: 30, justifyContent: "center", width: 40 },
   label: { color: color.textMuted, fontSize: 10 },
   labelActive: { color: color.ink, fontWeight: "700" },
+  labelFixed: { fontWeight: "700", height: 14, lineHeight: 14, textAlign: "center", width: "100%" },
   neoShadow: { borderColor: "transparent", boxShadow: "-6px -6px 14px rgba(255, 255, 255, 0.95), 7px 7px 16px rgba(150, 166, 180, 0.55)" },
   neoBar: { backgroundColor: "#E9EFF3" },
+  neoBarDark: { backgroundColor: "#38606F" },
+  neoPillDark: { backgroundColor: "#2C4E5B", boxShadow: "inset 3px 3px 6px rgba(10, 26, 34, 0.55), inset -3px -3px 6px rgba(255, 255, 255, 0.12)" },
+  neoShadowDark: { boxShadow: "-5px -5px 12px rgba(255, 255, 255, 0.55), 7px 7px 16px rgba(10, 26, 34, 0.45)" },
   neoPill: { backgroundColor: "#E9EFF3", borderWidth: 0, boxShadow: "inset 3px 3px 6px rgba(150, 166, 180, 0.6), inset -3px -3px 6px rgba(255, 255, 255, 0.95)" },
   pill: {
     borderColor: "rgba(255,255,255,0.9)",
@@ -251,6 +264,7 @@ const styles = StyleSheet.create({
     top: 5,
   },
   tab: { alignItems: "center", flex: 1, gap: 1, justifyContent: "center", minHeight: 52 },
+  tabFixed: { height: 52 },
   wrapper: {
     alignItems: "center",
     backgroundColor: "transparent",

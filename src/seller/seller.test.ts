@@ -4,6 +4,8 @@ import { activeListings, analytics, bestReel, engagementPercent, liveReelCount, 
 import { filterLedger, receiptText, referenceFor, statements, statementText } from "./receipts";
 import { applyPreset, applyTimetable, pickupSlots, storeStatus, summaryRange } from "./schedule";
 import { sellerPlanOf } from "./plan";
+import { CAMPUS_HUBS, locationFromPlace, locationLine, placeFromHit } from "./places";
+import { promotionDetail, promotionProblems, promotionState } from "./promotions";
 import { DAY_KEYS, type SellerReel } from "./types";
 import { averageRating, createSellerState, demoIncomingOrder, docKindsFor, earnCents, scanMatchesCourierCode, sellerBalanceCents, sellerReduce } from "./state";
 
@@ -369,5 +371,84 @@ describe("reels and plans", () => {
     expect(sellerPlanOf([sub("seller-plus"), sub("seller-pro")], now)).toBe("pro");
     expect(sellerPlanOf([{ ...sub("seller-pro"), renewsAt: new Date(NOW - 1000).toISOString() }], now)).toBe("free");
     expect(productCount(createSellerState(NOW).listings)).toBe(9);
+  });
+});
+
+describe("promotions and support tickets", () => {
+  const now = new Date(NOW);
+
+  it("writes the offer line from the options, and works out where an offer is up to", () => {
+    const seller = createSellerState(NOW);
+    expect(seller.promotions[0]?.detail).toMatch(/10% off · first order · code VOSSIE10 · ends/);
+    expect(promotionDetail({ ...seller.promotions[1]! })).toBe("Free delivery · over R150");
+    expect(promotionDetail({ active: true, buyX: 3, detail: "", getY: 1, id: "x", kind: "buy-x-get-y", redemptions: 0, title: "t" })).toBe("Buy 3, get 1 free");
+    expect(seller.promotions.map((item) => promotionState(item, now))).toEqual(["active", "active", "scheduled"]);
+    expect(promotionState({ ...seller.promotions[0]!, endsAt: "2020-01-01" }, now)).toBe("ended");
+    expect(promotionState({ ...seller.promotions[0]!, active: false }, now)).toBe("paused");
+  });
+
+  it("refuses an offer with no name, a bad code, a code in use, bad dates or a per-student limit above the total", () => {
+    const seller = createSellerState(NOW);
+    const base = { ...seller.promotions[0]!, id: "new" };
+    expect(promotionProblems({ ...base, title: "x" }, seller.promotions).title).toBeTruthy();
+    expect(promotionProblems({ ...base, code: "ab" }, seller.promotions).code).toMatch(/4 to 12/);
+    expect(promotionProblems({ ...base, code: "VOSSIE10" }, seller.promotions).code).toMatch(/already/);
+    expect(promotionProblems({ ...base, code: "FRESH10", endsAt: "2020-01-01", startsAt: "2026-01-01" }, seller.promotions).dates).toBeTruthy();
+    expect(promotionProblems({ ...base, code: "FRESH10", maxUses: 2, perStudent: 3 }, seller.promotions).limit).toBeTruthy();
+    expect(promotionProblems({ ...base, code: "FRESH10" }, seller.promotions)).toEqual({});
+  });
+
+  it("creates, changes and deletes a promotion", () => {
+    let seller = createSellerState(NOW);
+    const offer = { ...seller.promotions[0]!, id: "pr-new", title: "New one" };
+    seller = sellerReduce(seller, { promotion: offer, type: "sellerCreatePromotion" });
+    expect(seller.promotions[0]?.id).toBe("pr-new");
+    seller = sellerReduce(seller, { promotion: { ...offer, title: "Renamed" }, type: "sellerUpdatePromotion" });
+    expect(seller.promotions[0]?.title).toBe("Renamed");
+    seller = sellerReduce(seller, { id: "pr-new", type: "sellerDeletePromotion" });
+    expect(seller.promotions.some((item) => item.id === "pr-new")).toBe(false);
+  });
+
+  it("sends a ticket with a reference and an alert, and support answers it once", () => {
+    let seller = createSellerState(NOW);
+    const ticket = { attachments: [], bestTime: "evening" as const, contact: "phone" as const, createdAt: "", details: "My payout is late", id: "tk-new", messages: [], phone: "0825735164", ref: "", status: "open" as const, subject: "Late payout", topic: "payout" as const, urgency: "urgent" as const };
+    seller = sellerReduce(seller, { ticket, type: "sellerCreateTicket" }, { now: NOW, verifiedStudent: true });
+    expect(seller.tickets[0]).toMatchObject({ ref: "VS-1033", status: "open" });
+    expect(seller.alerts[0]?.title).toBe("Support request sent");
+    seller = sellerReduce(seller, { id: "tk-new", type: "sellerSupportReply" }, { now: NOW, verifiedStudent: true });
+    expect(seller.tickets[0]?.status).toBe("in-progress");
+    expect(seller.tickets[0]?.messages.at(-1)?.body).toMatch(/urgent.*call you this evening/);
+    expect(sellerReduce(seller, { id: "tk-new", type: "sellerSupportReply" }, { now: NOW, verifiedStudent: true })).toBe(seller);
+    seller = sellerReduce(seller, { body: "Thanks!", id: "tk-new", type: "sellerReplyTicket" }, { now: NOW, verifiedStudent: true });
+    expect(seller.tickets[0]?.messages.at(-1)).toMatchObject({ body: "Thanks!", from: "you" });
+    seller = sellerReduce(seller, { id: "tk-new", type: "sellerResolveTicket" });
+    expect(seller.tickets[0]?.status).toBe("resolved");
+    expect(sellerReduce(seller, { body: "More", id: "tk-new", type: "sellerReplyTicket" })).toBe(seller);
+  });
+});
+
+describe("documents and places", () => {
+  it("keeps the picked file, and takes it back until the documents are sent in", () => {
+    let seller = createSellerState(NOW);
+    seller = sellerReduce(seller, { kind: "campus-business", type: "sellerSetKind" }, { now: NOW, verifiedStudent: true });
+    seller = sellerReduce(seller, { fileKind: "pdf", fileName: "bill.pdf", kind: "address", type: "sellerUploadDocument", uri: "file:///bill.pdf" });
+    expect(seller.documents.find((doc) => doc.kind === "address")).toMatchObject({ fileKind: "pdf", status: "uploaded", uri: "file:///bill.pdf" });
+    const removed = sellerReduce(seller, { kind: "address", type: "sellerRemoveDocument" });
+    expect(removed.documents.find((doc) => doc.kind === "address")).toEqual({ kind: "address", status: "required" });
+    expect(sellerReduce({ ...seller, status: "pending" }, { kind: "address", type: "sellerRemoveDocument" }).documents.find((doc) => doc.kind === "address")?.status).toBe("uploaded");
+  });
+
+  it("works out names and addresses from OpenStreetMap results, and starts from real hubs", () => {
+    const place = placeFromHit({ display_name: "Mooirivier Mall, Nelson Mandela Drive, Grimbeekpark, Potchefstroom, North West, 2550", lat: "-26.7128591", lon: "27.1044191", name: "Mooirivier Mall", place_id: 1 });
+    expect(place).toMatchObject({ address: "Nelson Mandela Drive, Grimbeekpark, Potchefstroom, North West", id: "osm-1", name: "Mooirivier Mall" });
+    expect(CAMPUS_HUBS.map((hub) => hub.name)).toEqual(["Eduvos Potchefstroom campus", "Mooirivier Mall"]);
+    const location = locationFromPlace(CAMPUS_HUBS[1]!, "hub");
+    expect(locationLine(location)).toBe("Mooirivier Mall, Nelson Mandela Drive");
+  });
+
+  it("saves the place and the banner with the store", () => {
+    const seller = sellerReduce(createSellerState(NOW), { patch: { bannerUri: "file:///b.jpg", place: locationFromPlace(CAMPUS_HUBS[0]!, "hub") }, type: "sellerSaveStore" });
+    expect(seller.profile.bannerUri).toBe("file:///b.jpg");
+    expect(seller.profile.place?.name).toBe("Eduvos Potchefstroom campus");
   });
 });

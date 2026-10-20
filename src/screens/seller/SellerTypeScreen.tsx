@@ -20,7 +20,6 @@ import { SELLER, SellerButton, SellerCard, SellerScreen, Text } from "./ui";
 export const KINDS: { kind: SellerKind; title: string; hint: string; icon: IconName }[] = [
   { hint: "Items from your room or dorm", icon: "user", kind: "student", title: "Student seller" },
   { hint: "Food, services or a side hustle", icon: "shopping-bag", kind: "campus-business", title: "Campus business" },
-  { hint: "Company with CIPC registration", icon: "file-text", kind: "registered", title: "Registered business" },
 ];
 
 /** Step 1 of 3: what kind of seller you are, the name of your store and a number buyers can reach. */
