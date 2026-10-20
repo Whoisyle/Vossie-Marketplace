@@ -18,7 +18,7 @@ import { ProductArt } from "@/components/art/ProductArt";
 import { dealFor, effectivePrice } from "@/data/deals";
 import { formatRand } from "@/data/format";
 import { promoDefs, promoPercent } from "@/data/promos";
-import { promoPhotos } from "@/data/mock/promoPhotos";
+import { promoPhotoFlip, promoPhotoFocus, promoPhotos } from "@/data/mock/promoPhotos";
 import { getListing } from "@/data/repository";
 import { haptic } from "@/lib/haptics";
 import { ease, seeded, spring } from "@/theme/motion";
@@ -230,11 +230,13 @@ function Banner({ active, cardWidth, onPress, promo }: { active: boolean; cardWi
           <>
             <View pointerEvents="none" style={styles.photoLayer}>
               <Animated.View style={[StyleSheet.absoluteFill, photoStyle]}>
-                <Image accessibilityLabel={product?.name} contentFit="cover" source={photo} style={StyleSheet.absoluteFill} transition={200} />
+                <View style={[StyleSheet.absoluteFill, product && promoPhotoFlip[product.id] ? styles.flipped : null]}>
+                  <Image accessibilityLabel={product?.name} contentFit="cover" contentPosition={product ? promoPhotoFocus[product.id] : undefined} source={photo} style={StyleSheet.absoluteFill} transition={200} />
+                </View>
               </Animated.View>
-              <View style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(promo.colors[1], 0.16) }]} />
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(promo.colors[1], 0.07) }]} />
               <LinearGradient colors={[promo.colors[0], withAlpha(promo.colors[0], 0.85), withAlpha(promo.colors[0], 0)]} end={{ x: 0.62, y: 0.5 }} locations={[0, 0.3, 1]} start={{ x: 0, y: 0.5 }} style={StyleSheet.absoluteFill} />
-              <LinearGradient colors={[withAlpha(promo.colors[1], 0), withAlpha(promo.colors[1], 0.55)]} end={{ x: 0.5, y: 1 }} start={{ x: 0.5, y: 0.55 }} style={StyleSheet.absoluteFill} />
+              <LinearGradient colors={[withAlpha(promo.colors[1], 0), withAlpha(promo.colors[1], 0.38)]} end={{ x: 0.5, y: 1 }} start={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFill} />
             </View>
           </>
         ) : product ? (
@@ -303,7 +305,8 @@ const styles = StyleSheet.create({
   discountValue: { color: "#1F2F39", fontSize: 18, fontWeight: "900", letterSpacing: -0.5 },
   dots: { alignItems: "center", marginTop: space.xs },
   iconBadge: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 36, height: 72, justifyContent: "center", position: "absolute", right: space.lg, top: 60, width: 72 },
-  photoLayer: { bottom: 0, position: "absolute", right: 0, top: 0, width: "68%" },
+  flipped: { transform: [{ scaleX: -1 }] },
+  photoLayer: { bottom: 0, overflow: "hidden", position: "absolute", right: 0, top: 0, width: "68%" },
   price: { color: color.onPrimary, fontSize: 28, fontWeight: "900", letterSpacing: -0.5 },
   priceRow: { alignItems: "baseline", flexDirection: "row", gap: 8 },
   product: { gap: 0 },
