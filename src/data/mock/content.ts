@@ -1,3 +1,5 @@
+import { listings } from "./catalog";
+import { stockReviews } from "./stockReviews";
 import type { Faq, Reel, Review } from "../types";
 import { daysAgo } from "./time";
 
@@ -81,7 +83,7 @@ export const faqs: Faq[] = [
 ];
 
 /** Starter reviews so product and store pages are not empty. New ones come from students who completed an order. */
-export const reviewsSeed: Review[] = [
+const handWritten: Review[] = [
   { author: "Thabo N.", body: "Best burger on campus, still hot when it arrived.", createdAt: daysAgo(3), id: "rv-1", listingId: "burger-chips", rating: 5, sellerId: "campusbites" },
   { author: "Lerato M.", body: "Generous portion. Chips could be crispier.", createdAt: daysAgo(9), id: "rv-2", listingId: "burger-chips", rating: 4, sellerId: "campusbites" },
   { author: "Aiden P.", body: "Perfect latte before an 8am lecture.", createdAt: daysAgo(2), id: "rv-3", listingId: "iced-latte", rating: 5, sellerId: "plato-coffee" },
@@ -92,3 +94,5 @@ export const reviewsSeed: Review[] = [
   { author: "Avery T.", body: "Tutor explained stats better than the lecture did.", createdAt: daysAgo(7), id: "rv-8", listingId: "maths-tutoring", rating: 5, sellerId: "aiden-tutors" },
   { author: "Zinhle K.", body: "Meal was fine, a little late.", createdAt: daysAgo(5), id: "rv-9", listingId: "zinger-meal", rating: 3, sellerId: "kfc" },
 ];
+
+export const reviewsSeed: Review[] = [...handWritten, ...stockReviews(listings, handWritten)];

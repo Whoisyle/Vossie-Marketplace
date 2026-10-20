@@ -9,9 +9,22 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 
-import { Avatar, HeartButton, Icon, Media, PageDots, StarRating } from "@/components";
+import {
+  Avatar,
+  HeartButton,
+  Icon,
+  Media,
+  PageDots,
+  StarRating,
+} from "@/components";
 import { dealFor, effectivePrice } from "@/data/deals";
 import { formatRand } from "@/data/format";
 import { getCampusName } from "@/data/repository";
@@ -131,49 +144,98 @@ function FeaturedCard({
   useEffect(() => {
     lift.set(withSpring(active ? 1 : 0, spring.soft));
   }, [active, lift]);
-  const style = useAnimatedStyle(() => ({ opacity: 0.85 + lift.get() * 0.15, transform: [{ scale: 0.95 + lift.get() * 0.05 }] }));
+  const style = useAnimatedStyle(() => ({
+    opacity: 0.85 + lift.get() * 0.15,
+    transform: [{ scale: 0.95 + lift.get() * 0.05 }],
+  }));
   return (
-    <Pressable accessibilityLabel={`${listing.title}, ${formatRand(effectivePrice(listing))}, ${listing.rating} stars`} accessibilityRole="button" onPress={onOpen}>
-      <Animated.View style={[styles.featured, { width: cardWidth }, style]}>
-        <Media radius={0} source={listing.images[0]} style={StyleSheet.absoluteFill} />
-        <LinearGradient colors={["rgba(30,42,56,0)", "rgba(30,42,56,0.82)"]} pointerEvents="none" style={styles.featuredShade} />
-        <View style={styles.featuredHeart}>
-          <HeartButton active={favourite} onPress={onToggleFavourite} testID={`favourite-${listing.id}`} />
-        </View>
-        <View style={styles.featuredTag}>
-          <Icon color={color.ink} name="award" size={12} />
-          <Text style={styles.featuredTagText}>{dealFor(listing.id) > 0 ? `-${dealFor(listing.id)}% deal` : "Featured"}</Text>
-        </View>
-        <View style={styles.featuredInfo}>
-          <Text numberOfLines={1} style={styles.featuredTitle}>
-            {listing.title}
-          </Text>
-          <View style={styles.featuredMeta}>
-            <StarRating size={12} value={listing.rating} />
-            <Text style={styles.featuredMetaText}>{listing.rating.toFixed(1)}</Text>
-            {dealFor(listing.id) > 0 ? <Text style={styles.featuredWas}>{formatRand(listing.priceCents)}</Text> : null}
-            <Text style={styles.featuredPrice}>{formatRand(effectivePrice(listing))}</Text>
+    <View style={{ width: cardWidth }}>
+      <Pressable
+        accessibilityLabel={`${listing.title}, ${formatRand(effectivePrice(listing))}, ${listing.rating} stars`}
+        accessibilityRole="button"
+        onPress={onOpen}
+      >
+        <Animated.View style={[styles.featured, { width: cardWidth }, style]}>
+          <Media
+            radius={0}
+            source={listing.images[0]}
+            style={StyleSheet.absoluteFill}
+          />
+          <LinearGradient
+            colors={["rgba(30,42,56,0)", "rgba(30,42,56,0.82)"]}
+            pointerEvents="none"
+            style={styles.featuredShade}
+          />
+          <View style={styles.featuredTag}>
+            <Icon color={color.ink} name="award" size={12} />
+            <Text style={styles.featuredTagText}>
+              {dealFor(listing.id) > 0
+                ? `-${dealFor(listing.id)}% deal`
+                : "Featured"}
+            </Text>
           </View>
-        </View>
-      </Animated.View>
-    </Pressable>
+          <View style={styles.featuredInfo}>
+            <Text numberOfLines={1} style={styles.featuredTitle}>
+              {listing.title}
+            </Text>
+            <View style={styles.featuredMeta}>
+              <StarRating size={12} value={listing.rating} />
+              <Text style={styles.featuredMetaText}>
+                {listing.rating.toFixed(1)}
+              </Text>
+              {dealFor(listing.id) > 0 ? (
+                <Text style={styles.featuredWas}>
+                  {formatRand(listing.priceCents)}
+                </Text>
+              ) : null}
+              <Text style={styles.featuredPrice}>
+                {formatRand(effectivePrice(listing))}
+              </Text>
+            </View>
+          </View>
+        </Animated.View>
+      </Pressable>
+      {/* a sibling of the card, not a child, so a web page never has a button inside a button */}
+      <View style={styles.featuredHeart}>
+        <HeartButton
+          active={favourite}
+          onPress={onToggleFavourite}
+          testID={`favourite-${listing.id}`}
+        />
+      </View>
+    </View>
   );
 }
 
 /** A store card for "Top stores near you". */
-export function StoreCard({ following, onFollow, onOpen, seller }: { seller: Seller; following: boolean; onOpen: () => void; onFollow: () => void }) {
+export function StoreCard({
+  following,
+  onFollow,
+  onOpen,
+  seller,
+}: {
+  seller: Seller;
+  following: boolean;
+  onOpen: () => void;
+  onFollow: () => void;
+}) {
   const press = useSharedValue(0);
-  const style = useAnimatedStyle(() => ({ transform: [{ scale: 1 - press.get() * 0.04 }] }));
+  const style = useAnimatedStyle(() => ({
+    transform: [{ scale: 1 - press.get() * 0.04 }],
+  }));
   return (
-    <Pressable
-      accessibilityLabel={`${seller.name}, ${seller.rating} stars, ${getCampusName(seller.campusId)}`}
-      accessibilityRole="button"
-      onPress={onOpen}
-      onPressIn={() => press.set(withTiming(1, { duration: 80 }))}
-      onPressOut={() => press.set(withTiming(0, { duration: duration.base }))}
-    >
-      <Animated.View style={[styles.store, style]}>
-        <LinearGradient colors={gradient.soft} end={{ x: 1, y: 1 }} start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
+    <Animated.View style={[styles.store, style]}>
+      <LinearGradient colors={gradient.soft} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
+      {/* the card opens the store; Follow is a sibling button, not a child, so a web page never has a button inside a button */}
+      <Pressable
+        accessibilityLabel={`${seller.name}, ${seller.rating} stars, ${getCampusName(seller.campusId)}`}
+        accessibilityRole="button"
+        onPress={onOpen}
+        onPressIn={() => press.set(withTiming(1, { duration: 80 }))}
+        onPressOut={() => press.set(withTiming(0, { duration: duration.base }))}
+        style={StyleSheet.absoluteFill}
+      />
+      <View pointerEvents="none" style={styles.storeBody}>
         <Avatar name={seller.name} size={52} />
         <Text numberOfLines={1} style={styles.storeName}>
           {seller.name}
@@ -187,20 +249,20 @@ export function StoreCard({ following, onFollow, onOpen, seller }: { seller: Sel
         <Text numberOfLines={1} style={styles.storeLocation}>
           {seller.location}
         </Text>
-        <Pressable
-          accessibilityLabel={following ? `Unfollow ${seller.name}` : `Follow ${seller.name}`}
-          accessibilityRole="button"
-          hitSlop={6}
-          onPress={() => {
-            haptic.tap();
-            onFollow();
-          }}
-          style={[styles.follow, following && styles.following]}
-        >
-          <Text style={[styles.followText, following && styles.followingText]}>{following ? "Following" : "Follow"}</Text>
-        </Pressable>
-      </Animated.View>
-    </Pressable>
+      </View>
+      <Pressable
+        accessibilityLabel={following ? `Unfollow ${seller.name}` : `Follow ${seller.name}`}
+        accessibilityRole="button"
+        hitSlop={6}
+        onPress={() => {
+          haptic.tap();
+          onFollow();
+        }}
+        style={[styles.follow, following && styles.following]}
+      >
+        <Text style={[styles.followText, following && styles.followingText]}>{following ? "Following" : "Follow"}</Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -215,32 +277,84 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   featuredHeart: { position: "absolute", right: 6, top: 6 },
-  featuredInfo: { bottom: 0, gap: 4, left: 0, padding: space.sm, position: "absolute", right: 0 },
+  featuredInfo: {
+    bottom: 0,
+    gap: 4,
+    left: 0,
+    padding: space.sm,
+    position: "absolute",
+    right: 0,
+  },
   featuredMeta: { alignItems: "center", flexDirection: "row", gap: 6 },
-  featuredMetaText: { color: color.onPrimary, flex: 1, fontSize: 12, fontWeight: "600" },
+  featuredMetaText: {
+    color: color.onPrimary,
+    flex: 1,
+    fontSize: 12,
+    fontWeight: "600",
+  },
   featuredPrice: { color: color.onPrimary, fontSize: 15, fontWeight: "800" },
-  featuredWas: { color: "rgba(255,255,255,0.7)", fontSize: 12, textDecorationLine: "line-through" },
+  featuredWas: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 12,
+    textDecorationLine: "line-through",
+  },
   featuredRow: { gap: space.xs, paddingHorizontal: space.lg },
-  featuredShade: { bottom: 0, height: 110, left: 0, position: "absolute", right: 0 },
-  featuredTag: { alignItems: "center", backgroundColor: color.mist, borderRadius: 12, flexDirection: "row", gap: 4, left: 10, paddingHorizontal: 8, paddingVertical: 4, position: "absolute", top: 10 },
+  featuredShade: {
+    bottom: 0,
+    height: 110,
+    left: 0,
+    position: "absolute",
+    right: 0,
+  },
+  featuredTag: {
+    alignItems: "center",
+    backgroundColor: color.mist,
+    borderRadius: 12,
+    flexDirection: "row",
+    gap: 4,
+    left: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    position: "absolute",
+    top: 10,
+  },
   featuredTagText: { color: color.ink, fontSize: 11, fontWeight: "700" },
   featuredTitle: { color: color.onPrimary, fontSize: 17, fontWeight: "800" },
-  follow: { alignItems: "center", backgroundColor: color.primary, borderRadius: 14, justifyContent: "center", marginTop: 4, minHeight: 28, paddingHorizontal: 14 },
+  follow: {
+    alignItems: "center",
+    backgroundColor: color.primary,
+    borderRadius: 14,
+    justifyContent: "center",
+    marginTop: 4,
+    minHeight: 28,
+    paddingHorizontal: 14,
+  },
   followText: { color: color.onPrimary, fontSize: 12, fontWeight: "700" },
-  following: { backgroundColor: "transparent", borderColor: color.borderStrong, borderWidth: 1 },
+  following: {
+    backgroundColor: "transparent",
+    borderColor: color.borderStrong,
+    borderWidth: 1,
+  },
   followingText: { color: color.heading },
   store: {
     alignItems: "center",
     borderCurve: "continuous",
     borderRadius: corner.lg,
-    boxShadow: "5px 5px 12px rgba(30, 42, 56, 0.09), -4px -4px 10px rgba(255, 255, 255, 0.9)",
+    boxShadow:
+      "5px 5px 12px rgba(30, 42, 56, 0.09), -4px -4px 10px rgba(255, 255, 255, 0.9)",
     gap: 3,
     overflow: "hidden",
     padding: space.sm,
     width: 140,
   },
+  storeBody: { alignItems: "center", gap: 3 },
   storeLocation: { color: color.textMuted, fontSize: 11, maxWidth: 120 },
   storeMeta: { alignItems: "center", flexDirection: "row", gap: 3 },
   storeMetaText: { color: color.textSecondary, fontSize: 12 },
-  storeName: { color: color.heading, fontSize: 14, fontWeight: "700", maxWidth: 120 },
+  storeName: {
+    color: color.heading,
+    fontSize: 14,
+    fontWeight: "700",
+    maxWidth: 120,
+  },
 });

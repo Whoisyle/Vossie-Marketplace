@@ -1,19 +1,20 @@
 import type { Listing, Reel, Seller } from "@/data/types";
 
+import { galleryOf } from "@/components/art/photos";
 import { registerOwnStore } from "@/data/repository";
 import { averageRating } from "./state";
 import type { SellerState } from "./types";
 
 /** A seller listing dressed as the buyer's own listing type, so the buyer's cards, cart and checkout can use it. */
 export function asListing(item: SellerState["listings"][number], storeId: string, campusId: Listing["campusId"] = "potchefstroom"): Listing {
-  const category = item.category === "services" ? "services" : item.category === "food" ? "food" : item.category === "books" ? "study" : item.category === "fashion" ? "fashion" : "tech";
+  const category = item.category === "services" ? "services" : item.category === "food" ? "food" : item.category === "books" ? "books" : item.category === "fashion" ? "fashion" : "electronics";
   return {
     campusId,
     categoryId: category as Listing["categoryId"],
     createdDaysAgo: Math.max(0, Math.round((Date.now() - new Date(item.updatedAt).getTime()) / 86_400_000)),
     description: item.description,
     id: item.id,
-    images: item.photos.length > 0 ? item.photos : item.artId ? [`art:${item.artId}`] : [],
+    images: item.photos.length > 0 ? item.photos : item.artId ? galleryOf(item.artId) : [],
     location: "",
     openHours: "",
     options: item.variants.map((label, index) => ({ id: `${item.id}-v${index}`, label, priceCents: item.priceCents })),

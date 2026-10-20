@@ -28,20 +28,46 @@ export function ListingCard({
   const percent = dealFor(listing.id);
   const price = effectivePrice(listing);
   return (
-    <Pressable
-      accessibilityHint="Opens the listing"
-      accessibilityLabel={`${listing.title}, ${formatRand(price)}${percent ? `, ${percent} percent off` : ""}`}
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [styles.card, { height }, pressed && styles.pressed]}
-      testID={`listing-card-${listing.id}`}
-    >
-      <Media radius={corner.md} source={listing.images[0]} style={StyleSheet.absoluteFill} />
-      {percent > 0 ? (
-        <View style={styles.deal}>
-          <Text style={styles.dealText}>-{percent}%</Text>
+    <View style={[styles.card, { height }]}>
+      <Pressable
+        accessibilityHint="Opens the listing"
+        accessibilityLabel={`${listing.title}, ${formatRand(price)}${percent ? `, ${percent} percent off` : ""}`}
+        accessibilityRole="button"
+        onPress={onPress}
+        style={({ pressed }) => [
+          StyleSheet.absoluteFill,
+          styles.press,
+          pressed && styles.pressed,
+        ]}
+        testID={`listing-card-${listing.id}`}
+      >
+        <Media
+          radius={corner.md}
+          source={listing.images[0]}
+          style={StyleSheet.absoluteFill}
+        />
+        {percent > 0 ? (
+          <View style={styles.deal}>
+            <Text style={styles.dealText}>-{percent}%</Text>
+          </View>
+        ) : null}
+        <View style={styles.strip}>
+          <Text numberOfLines={1} style={styles.title}>
+            {listing.title}
+          </Text>
+          <View style={styles.metaRow}>
+            <Icon name="map-pin" size={10} color={color.onPrimary} />
+            <Text numberOfLines={1} style={styles.meta}>
+              {listing.location}
+            </Text>
+            {percent > 0 ? (
+              <Text style={styles.was}>{formatRand(listing.priceCents)}</Text>
+            ) : null}
+            <Text style={styles.price}>{formatRand(price)}</Text>
+          </View>
         </View>
-      ) : null}
+      </Pressable>
+      {/* a sibling of the card, not a child, so a web page never has a button inside a button */}
       <View style={styles.heart}>
         <HeartButton
           active={favourite}
@@ -49,33 +75,33 @@ export function ListingCard({
           testID={`favourite-${listing.id}`}
         />
       </View>
-      <View style={styles.strip}>
-        <Text numberOfLines={1} style={styles.title}>
-          {listing.title}
-        </Text>
-        <View style={styles.metaRow}>
-          <Icon name="map-pin" size={10} color={color.onPrimary} />
-          <Text numberOfLines={1} style={styles.meta}>
-            {listing.location}
-          </Text>
-          {percent > 0 ? <Text style={styles.was}>{formatRand(listing.priceCents)}</Text> : null}
-          <Text style={styles.price}>{formatRand(price)}</Text>
-        </View>
-      </View>
-    </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  press: { borderRadius: corner.md, overflow: "hidden" },
   card: {
     borderRadius: corner.md,
     flex: 1,
     overflow: "hidden",
   },
-  deal: { backgroundColor: color.mist, borderRadius: 10, left: 8, paddingHorizontal: 7, paddingVertical: 3, position: "absolute", top: 8 },
+  deal: {
+    backgroundColor: color.mist,
+    borderRadius: 10,
+    left: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    position: "absolute",
+    top: 8,
+  },
   dealText: { color: color.ink, fontSize: 11, fontWeight: "800" },
   heart: { position: "absolute", right: 4, top: 4 },
-  was: { color: "rgba(255,255,255,0.7)", fontSize: 10, textDecorationLine: "line-through" },
+  was: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 10,
+    textDecorationLine: "line-through",
+  },
   meta: { color: color.onPrimary, flex: 1, fontSize: 10 },
   metaRow: { alignItems: "center", flexDirection: "row", gap: 4 },
   pressed: { opacity: 0.85 },

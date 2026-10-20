@@ -224,6 +224,21 @@ describe("Alerts, stock, block and reorder", () => {
     expect(screen.getByText("We'll tell you when it's back")).toBeTruthy();
   });
 
+  it("shows a full listing: photos, description, highlights, details, reviews and more to look at", () => {
+    mockParams = { id: "burger-chips" };
+    renderWithProviders(<ListingDetailScreen />, signedIn());
+    expect(screen.getByTestId("listing-gallery")).toBeTruthy();
+    expect(screen.getByLabelText("Photo 3")).toBeTruthy();
+    expect(screen.getByText("Description")).toBeTruthy();
+    expect(screen.getByText(/flame-grilled beef patties/)).toBeTruthy();
+    expect(screen.getByText("Highlights")).toBeTruthy();
+    expect(screen.getByText("Details")).toBeTruthy();
+    expect(screen.getByText("Prep time")).toBeTruthy();
+    expect(screen.getByTestId("listing-reviews")).toBeTruthy();
+    expect(screen.getByText("Thabo N.")).toBeTruthy();
+    expect(screen.getByText("You may also like")).toBeTruthy();
+  });
+
   it("blocks a seller and hides their listings", () => {
     mockParams = { id: "burger-chips" };
     const view = renderWithProviders(<ListingDetailScreen />, signedIn());

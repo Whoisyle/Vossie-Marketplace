@@ -10,7 +10,6 @@ import {
   EmptyState,
   HeartButton,
   Icon,
-  Media,
   QuantityStepper,
   Screen,
   Sheet,
@@ -20,10 +19,13 @@ import {
 import { dealFor, effectivePrice } from "@/data/deals";
 import { isSoldOut, isVerifiedSeller } from "@/data/phase4";
 import { formatRand } from "@/data/format";
-import { getListing, getSeller } from "@/data/repository";
+import { getListing, getListings, getSeller } from "@/data/repository";
+import { detailFor } from "@/data/mock/productDetails";
 import { useDetail } from "@/lib/paths";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, corner, space, text } from "@/theme/tokens";
+
+import { ListingFacts, ListingGallery, ListingRow, ReviewPreview } from "./ListingSections";
 
 /** Listing detail: gallery, seller, options, quantity and add to cart. */
 export function ListingDetailScreen() {
@@ -34,7 +36,6 @@ export function ListingDetailScreen() {
   const { dispatch, state } = useDemoStore();
   const listing = getListing(id);
   const seller = listing ? getSeller(listing.sellerId) : undefined;
-  const [imageIndex, setImageIndex] = useState(0);
   const [optionId, setOptionId] = useState<string | undefined>(
     listing?.options[1]?.id ?? listing?.options[0]?.id,
   );
@@ -68,8 +69,10 @@ export function ListingDetailScreen() {
   const soldOut = isSoldOut(listing.id);
   const hasAlert = (kind: "price-drop" | "back-in-stock") => state.alerts.some((item) => item.listingId === listing.id && item.kind === kind);
   const following = seller ? state.following.includes(seller.id) : false;
-  const thumbs = listing.images.length > 1 ? listing.images : [];
-  const imageCount = Math.max(listing.images.length, 1);
+  const detail = detailFor(listing.id, listing.description, listing.categoryId);
+  const reviews = state.reviews.filter((review) => review.listingId === listing.id);
+  const fromStore = getListings({ sellerId: listing.sellerId }).filter((item) => item.id !== listing.id).slice(0, 6);
+  const alike = getListings({ categoryId: listing.categoryId }).filter((item) => item.id !== listing.id && item.sellerId !== listing.sellerId).slice(0, 6);
 
   const addToCart = () => {
     dispatch({ listingId: listing.id, optionId, quantity, type: "addToCart" });
@@ -120,36 +123,7 @@ export function ListingDetailScreen() {
           </Pressable>
         }
       />
-      <View style={styles.gallery}>
-        <View style={styles.hero}>
-          <Media
-            accessibilityLabel={listing.title}
-            radius={corner.md}
-            source={listing.images[imageIndex]}
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={styles.counter}>
-            <Text style={styles.counterText}>
-              {imageIndex + 1}/{imageCount}
-            </Text>
-          </View>
-        </View>
-        {thumbs.length > 0 ? (
-          <View style={styles.thumbs}>
-            {thumbs.slice(0, 3).map((source, index) => (
-              <Pressable
-                accessibilityLabel={`Photo ${index + 1}`}
-                accessibilityRole="button"
-                key={index}
-                onPress={() => setImageIndex(index)}
-                style={styles.thumb}
-              >
-                <Media radius={corner.sm} source={source} style={StyleSheet.absoluteFill} />
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
-      </View>
+      <ListingGallery images={listing.images} title={listing.title} />
 
       <View style={styles.titleRow}>
         <View style={styles.flex}>
@@ -256,11 +230,6 @@ export function ListingDetailScreen() {
         </Card>
       ) : null}
 
-      <Text style={styles.heading}>Description</Text>
-      <Card variant="soft">
-        <Text style={text.body}>{listing.description}</Text>
-      </Card>
-
       {listing.options.length > 0 ? (
         <>
           <Text style={styles.heading}>Options</Text>
@@ -286,6 +255,10 @@ export function ListingDetailScreen() {
           </View>
         </>
       ) : null}
+      <ListingFacts detail={detail} />
+      <ReviewPreview listing={listing} onAll={() => router.push(open("review", listing.id))} reviews={reviews} />
+      <ListingRow favourites={state.favourites} items={fromStore} onOpen={(next) => router.push(open("listing", next))} onToggle={(next) => dispatch({ listingId: next, type: "toggleFavourite" })} title="More from this store" />
+      <ListingRow favourites={state.favourites} items={alike} onOpen={(next) => router.push(open("listing", next))} onToggle={(next) => dispatch({ listingId: next, type: "toggleFavourite" })} title="You may also like" />
       <Sheet onClose={() => setMoreOpen(false)} title={listing.title} visible={moreOpen}>
         <Button
           fullWidth
@@ -339,21 +312,9 @@ const styles = StyleSheet.create({
   nameText: { flexShrink: 1 },
   soldOut: { alignItems: "center", backgroundColor: color.warningSoft, borderRadius: 12, flexDirection: "row", gap: 6, marginTop: space.sm, padding: space.sm },
   soldOutText: { color: color.warning, fontSize: 13, fontWeight: "700" },
-  counter: {
-    backgroundColor: "rgba(30, 43, 51, 0.55)",
-    borderRadius: corner.pill,
-    bottom: space.xs,
-    left: space.xs,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    position: "absolute",
-  },
-  counterText: { color: color.onPrimary, fontSize: 11, fontWeight: "600" },
   flex: { flex: 1 },
   footer: { alignItems: "center", flexDirection: "row", gap: space.sm },
-  gallery: { flexDirection: "row", gap: space.xs },
   heading: { ...text.sectionTitle, marginBottom: space.xs, marginTop: space.md },
-  hero: { aspectRatio: 1.25, borderRadius: corner.md, flex: 1, overflow: "hidden" },
   iconButton: {
     alignItems: "center",
     backgroundColor: color.surface,
@@ -397,8 +358,6 @@ const styles = StyleSheet.create({
   ratingRow: { alignItems: "center", flexDirection: "row", gap: 6, marginTop: 4, minHeight: 28 },
   reviewLink: { color: color.link, fontSize: 13, fontWeight: "600" },
   sellerCard: { alignItems: "center", flexDirection: "row", gap: space.sm, marginTop: space.md },
-  thumb: { borderRadius: corner.sm, flex: 1, overflow: "hidden", width: 56 },
-  thumbs: { gap: space.xs, width: 56 },
   title: { ...text.pageTitle, marginTop: space.sm },
   titleRow: { alignItems: "flex-start", flexDirection: "row" },
 });

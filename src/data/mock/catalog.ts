@@ -1,7 +1,8 @@
 import type { Campus, Category, Listing, Seller } from "../types";
 
 import { moreListings, moreSellers } from "./moreCatalog";
-import { hasArt, ART_PREFIX } from "@/components/art/ProductArt";
+import { galleryOf } from "@/components/art/photos";
+import { hasArt } from "@/components/art/ProductArt";
 
 
 
@@ -375,4 +376,4 @@ const baseListings: Listing[] = [
 ];
 
 export const sellers: Seller[] = [...baseSellers, ...moreSellers];
-export const listings: Listing[] = [...baseListings, ...moreListings].map((listing) => (hasArt(listing.id) ? { ...listing, images: [`${ART_PREFIX}${listing.id}`] } : listing));
+export const listings: Listing[] = [...baseListings, ...moreListings].map((listing) => (hasArt(listing.id) ? { ...listing, images: galleryOf(listing.id) } : listing));

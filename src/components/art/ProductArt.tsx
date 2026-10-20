@@ -51,13 +51,14 @@ const ART: Record<string, { draw: (f: Fill) => ReactNode; tint: readonly [string
 /** The prefix a listing image uses when it is one of our drawings: `art:burger-chips`. */
 export const ART_PREFIX = "art:";
 
+/** `burger-chips` or an extra angle such as `burger-chips#2`. */
 export function hasArt(id: string): boolean {
-  return id in ART;
+  return id.split("#")[0]! in ART;
 }
 
 /** The two colours a product is tinted in, for its tile and its banner. */
 export function artTint(id: string): readonly [string, string] {
-  return ART[id]?.tint ?? ["#E1E9EB", "#B7C4CC"];
+  return ART[id.split("#")[0]!]?.tint ?? ["#E1E9EB", "#B7C4CC"];
 }
 
 /** The ids of every drawing, used by the gallery and the tests. */
