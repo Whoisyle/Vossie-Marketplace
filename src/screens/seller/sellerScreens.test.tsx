@@ -11,6 +11,8 @@ import { SellerAnalyticsScreen, SellerReviewsScreen, SellerStorePreviewScreen } 
 import { SellerCasesScreen, SellerPromotionsScreen, SellerTeamScreen } from "./SellerManageScreens";
 import { SellerHandoverScreen, SellerPrepareScreen } from "./SellerPrepareScreens";
 import { SellerReceiptScreen, SellerStatementsScreen, SellerTransactionsScreen } from "./SellerMoneyScreens";
+import { SellerPlansScreen } from "./SellerPlansScreen";
+import { SellerReelFormScreen } from "./SellerReelsScreens";
 import { SellerScheduleScreen } from "./SellerScheduleScreen";
 import { SellerSecurityScreen, SellerSettingsScreen } from "./SellerSettingsScreens";
 import { SellerPayoutsScreen } from "./SellerPayoutsScreen";
@@ -562,5 +564,94 @@ describe("notification centre, notification settings, security and account setti
     expect(screen.getByText("Tax number 4012345678")).toBeTruthy();
     fireEvent(screen.getByLabelText("Pause the store"), "valueChange", true);
     expect(screen.getByText("Buyers see the store as closed")).toBeTruthy();
+  });
+});
+
+describe("reels, analytics tabs, plans and the growth hub", () => {
+  const withPlan = (planId: "seller-plus" | "seller-pro") => run(seller(), { planId, type: "subscribe" });
+
+  it("lists the reels with the best one marked, and asks a free seller to upgrade to add one", () => {
+    renderWithProviders(<SellerProductsScreen />, seller());
+    fireEvent.press(screen.getByTestId("view-reels"));
+    expect(screen.getByTestId("reels-panel")).toBeTruthy();
+    expect(screen.getByTestId("reel-rl-ti30")).toBeTruthy();
+    expect(screen.getAllByText("Best performing")).toHaveLength(1);
+    fireEvent.press(screen.getByTestId("add-reel"));
+    expect(screen.getByText(/Reels start with Seller Plus/)).toBeTruthy();
+    fireEvent.press(screen.getByTestId("see-plans"));
+    expect(mockPush).toHaveBeenCalledWith("/seller/account/plans");
+  });
+
+  it("lets a Plus seller open the new reel form, hides and deletes a reel", () => {
+    renderWithProviders(<SellerProductsScreen />, withPlan("seller-plus"));
+    fireEvent.press(screen.getByTestId("view-reels"));
+    fireEvent.press(screen.getByTestId("add-reel"));
+    expect(mockPush).toHaveBeenCalledWith("/seller/products/reel/new");
+    fireEvent.press(screen.getByTestId("hide-rl-lamp"));
+    expect(screen.getByTestId("publish-rl-lamp")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("delete-rl-lamp"));
+    fireEvent.press(screen.getByTestId("confirm-delete-reel"));
+    expect(screen.queryByTestId("reel-rl-lamp")).toBeNull();
+  });
+
+  it("saves a reel from the form, and refuses a caption that is too short", () => {
+    mockParams = { id: "new" };
+    renderWithProviders(<SellerReelFormScreen />, withPlan("seller-plus"));
+    fireEvent.changeText(screen.getByTestId("reel-caption"), "Hi");
+    fireEvent.press(screen.getByTestId("reel-publish"));
+    expect(screen.getByText(/at least 3 letters/)).toBeTruthy();
+    fireEvent.changeText(screen.getByTestId("reel-caption"), "Lamp on a desk");
+    fireEvent.press(screen.getByTestId("reel-draft"));
+    expect(screen.queryByText(/at least 3 letters/)).toBeNull();
+  });
+
+  it("asks a free seller to upgrade before publishing a reel", () => {
+    mockParams = { id: "new" };
+    renderWithProviders(<SellerReelFormScreen />, seller());
+    fireEvent.changeText(screen.getByTestId("reel-caption"), "Lamp on a desk");
+    fireEvent.press(screen.getByTestId("reel-publish"));
+    expect(screen.getByText(/Reels start with Seller Plus/)).toBeTruthy();
+  });
+
+  it("locks the product and reel analytics until the plan allows them", () => {
+    renderWithProviders(<SellerAnalyticsScreen />, seller());
+    fireEvent.press(screen.getByTestId("tab-products"));
+    expect(screen.getByText(/Analytics by product starts with Seller Plus/)).toBeTruthy();
+    expect(screen.queryByTestId("analytics-products")).toBeNull();
+  });
+
+  it("shows product and reel analytics on Pro, best performer first", () => {
+    renderWithProviders(<SellerAnalyticsScreen />, withPlan("seller-pro"));
+    fireEvent.press(screen.getByTestId("tab-products"));
+    expect(screen.getByTestId("analytics-products")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("tab-reels"));
+    expect(screen.getByTestId("reel-rank-rl-ti30")).toBeTruthy();
+    expect(screen.getAllByText("Best performing")).toHaveLength(1);
+  });
+
+  it("shows the plans, and joins Seller Plus from the wallet", async () => {
+    renderWithProviders(<SellerPlansScreen />, seller());
+    expect(screen.getAllByText("Free").length).toBeGreaterThan(0);
+    fireEvent.press(screen.getByTestId("choose-plus"));
+    fireEvent.press(screen.getByTestId("confirm-plan"));
+    expect(await screen.findByText("Seller Plus")).toBeTruthy();
+    expect(screen.getByTestId("billing")).toBeTruthy();
+  });
+
+  it("shows the growth hub on Home and opens the plans", () => {
+    renderWithProviders(<SellerHomeScreen />, seller());
+    expect(screen.getByTestId("growth-hub")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("growth-plan"));
+    expect(mockPush).toHaveBeenCalledWith("/seller/account/plans");
+    fireEvent.press(screen.getByTestId("growth-analytics"));
+    expect(mockPush).toHaveBeenCalledWith("/seller/account/analytics");
+  });
+
+  it("stops a free seller adding an eleventh product", () => {
+    let state = seller();
+    for (const n of [1, 2]) state = run(state, { listing: { category: "food", description: "", id: `sl-extra-${n}`, onHand: 5, photos: [], priceCents: 1000, sku: `VM-9${n}`, status: "published", title: `Extra ${n}`, unlimited: false, updatedAt: "", variants: [] }, type: "sellerSaveListing" });
+    renderWithProviders(<SellerProductsScreen />, state);
+    fireEvent.press(screen.getByTestId("add-listing"));
+    expect(screen.getByText(/The Free plan holds 10 products/)).toBeTruthy();
   });
 });

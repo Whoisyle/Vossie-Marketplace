@@ -2,7 +2,7 @@
  * Vossie subscriptions (owner decision, 2026-10-18: three plans). Prices and perks are demo values until the
  * owner confirms them. Billing is taken from the Vossie wallet in the demo; a real provider comes later.
  */
-export type PlanId = "plus" | "seller-pro" | "study-pass";
+export type PlanId = "plus" | "seller-plus" | "seller-pro" | "study-pass";
 
 export type Plan = {
   id: PlanId;
@@ -39,9 +39,19 @@ export const plans: Plan[] = [
   {
     audience: "Sellers",
     icon: "briefcase",
+    id: "seller-plus",
+    name: "Vossie Seller Plus",
+    perks: ["Unlimited products", "A lower fee on every sale (3%)", "Up to 5 live reels", "Sales analytics by product"],
+    priceCents: 4900,
+    tagline: "Room to grow your store",
+    tone: "teal",
+  },
+  {
+    audience: "Sellers",
+    icon: "briefcase",
     id: "seller-pro",
     name: "Vossie Seller Pro",
-    perks: ["Featured listings in Explore", "Promotion tools for your store", "Priority support", "Seller app tools arrive with the seller app"],
+    perks: ["The lowest fee on every sale (2%)", "Unlimited reels and reel analytics", "Featured listings in Explore", "Priority support"],
     priceCents: 9900,
     tagline: "Sell more on your campus",
     tone: "ink",

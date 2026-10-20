@@ -1,9 +1,10 @@
 import { createInitialState, demoReducer, type DemoAction, type DemoState } from "@/state/demoReducer";
 
-import { activeListings, analytics, attentionItems, feesPaidCents, isLowStock, pendingCents, orderCounts, ordersInGroup, weekBars, weekTotals } from "./selectors";
+import { activeListings, analytics, bestReel, engagementPercent, liveReelCount, productCount, rankReels, attentionItems, feesPaidCents, isLowStock, pendingCents, orderCounts, ordersInGroup, weekBars, weekTotals } from "./selectors";
 import { filterLedger, receiptText, referenceFor, statements, statementText } from "./receipts";
 import { applyPreset, applyTimetable, pickupSlots, storeStatus, summaryRange } from "./schedule";
-import { DAY_KEYS } from "./types";
+import { sellerPlanOf } from "./plan";
+import { DAY_KEYS, type SellerReel } from "./types";
 import { averageRating, createSellerState, demoIncomingOrder, docKindsFor, earnCents, scanMatchesCourierCode, sellerBalanceCents, sellerReduce } from "./state";
 
 const NOW = new Date(2026, 9, 20, 12, 0, 0).getTime();
@@ -311,5 +312,62 @@ describe("receipts and statements", () => {
     const months = statements(seller.ledger);
     expect(months.reduce((sum, item) => sum + item.netCents, 0)).toBe(sellerBalanceCents(seller));
     expect(statementText(months[0]!, "CampusBites")).toContain("Statement for");
+  });
+});
+
+describe("reels and plans", () => {
+  const reel = (id: string, status: SellerReel["status"] = "published"): SellerReel => ({ caption: "New reel", createdAt: "", id, likes: 0, listingId: "sl-ti30", orders: 0, salesCents: 0, saves: 0, status, taps: 0, views: 0 });
+
+  it("finds the best reel by sales and engagement", () => {
+    const seller = createSellerState(NOW);
+    expect(bestReel(seller.reels)?.id).toBe("rl-ti30");
+    expect(rankReels(seller.reels).map((item) => item.id)).toEqual(["rl-ti30", "rl-pack", "rl-lamp", "rl-hoodie"]);
+    expect(engagementPercent(seller.reels[0]!)).toBeCloseTo(15, 1);
+    expect(liveReelCount(seller.reels)).toBe(3);
+  });
+
+  it("holds only as many live reels as the plan allows, and keeps the ones already live", () => {
+    const seller = createSellerState(NOW);
+    const save = (plan: "free" | "plus" | "pro", id: string) => sellerReduce(seller, { reel: reel(id), type: "sellerSaveReel" }, { now: NOW, plan, verifiedStudent: true });
+    expect(save("free", "rl-new")).toBe(seller);
+    expect(liveReelCount(save("plus", "rl-new").reels)).toBe(4);
+    const four = save("plus", "rl-a");
+    const five = sellerReduce(four, { reel: reel("rl-b"), type: "sellerSaveReel" }, { now: NOW, plan: "plus", verifiedStudent: true });
+    expect(liveReelCount(five.reels)).toBe(5);
+    expect(sellerReduce(five, { reel: reel("rl-c"), type: "sellerSaveReel" }, { now: NOW, plan: "plus", verifiedStudent: true })).toBe(five);
+    expect(liveReelCount(sellerReduce(five, { reel: reel("rl-c"), type: "sellerSaveReel" }, { now: NOW, plan: "pro", verifiedStudent: true }).reels)).toBe(6);
+    // hiding one makes room, and republishing past the limit is refused
+    const hidden = sellerReduce(five, { id: "rl-ti30", status: "hidden", type: "sellerSetReelStatus" }, { now: NOW, plan: "plus", verifiedStudent: true });
+    expect(liveReelCount(hidden.reels)).toBe(4);
+    expect(sellerReduce(hidden, { id: "rl-ti30", status: "published", type: "sellerSetReelStatus" }, { now: NOW, plan: "plus", verifiedStudent: true }).reels.find((item) => item.id === "rl-ti30")?.status).toBe("published");
+    expect(sellerReduce(createSellerState(NOW), { id: "rl-hoodie", status: "published", type: "sellerSetReelStatus" }, { now: NOW, plan: "free", verifiedStudent: true }).reels.find((item) => item.id === "rl-hoodie")?.status).toBe("draft");
+  });
+
+  it("deletes a reel and only live reels gain views", () => {
+    let seller = createSellerState(NOW);
+    seller = sellerReduce(seller, { id: "rl-lamp", type: "sellerDeleteReel" });
+    expect(seller.reels.some((item) => item.id === "rl-lamp")).toBe(false);
+    const ticked = sellerReduce(seller, { n: 1, type: "sellerReelTick" });
+    expect(ticked.reels.find((item) => item.id === "rl-ti30")!.views).toBeGreaterThan(4820);
+    expect(ticked.reels.find((item) => item.id === "rl-hoodie")!.views).toBe(0);
+  });
+
+  it("charges the fee of the plan the seller is on when an order arrives", () => {
+    const seller = createSellerState(NOW);
+    const arrive = (plan: "free" | "plus" | "pro") => sellerReduce(seller, { order: demoIncomingOrder(NOW, 1), type: "sellerReceiveOrder" }, { now: NOW, plan, verifiedStudent: true }).orders[0]!;
+    const subtotal = arrive("free").subtotalCents;
+    expect(arrive("free").feeCents).toBe(Math.round(subtotal * 0.05));
+    expect(arrive("plus").feeCents).toBe(Math.round(subtotal * 0.03));
+    expect(arrive("pro").feeCents).toBe(Math.round(subtotal * 0.02));
+  });
+
+  it("works out the plan from the subscriptions, and counts products against the limit", () => {
+    const now = new Date(NOW);
+    const sub = (planId: "seller-plus" | "seller-pro", cancelling = false) => ({ cancelling, planId, renewsAt: new Date(NOW + 20 * 86_400_000).toISOString(), since: new Date(NOW).toISOString() });
+    expect(sellerPlanOf([], now)).toBe("free");
+    expect(sellerPlanOf([sub("seller-plus")], now)).toBe("plus");
+    expect(sellerPlanOf([sub("seller-plus"), sub("seller-pro")], now)).toBe("pro");
+    expect(sellerPlanOf([{ ...sub("seller-pro"), renewsAt: new Date(NOW - 1000).toISOString() }], now)).toBe("free");
+    expect(productCount(createSellerState(NOW).listings)).toBe(9);
   });
 });

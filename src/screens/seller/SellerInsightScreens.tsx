@@ -6,12 +6,14 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { Button, Icon, Sheet, useToast } from "@/components";
 import { ArtTile, hasArt } from "@/components/art/ProductArt";
 import { formatRand, initials, relativeTime } from "@/data/format";
-import { activeListings, analytics } from "@/seller/selectors";
+import { LIMITS } from "@/seller/plan";
+import { activeListings, analytics, bestReel, engagementPercent, rankReels } from "@/seller/selectors";
 import { averageRating } from "@/seller/state";
 import { space, text } from "@/theme/tokens";
 
 import { useSeller } from "./hooks";
 import { Chips, Stars, StatTile } from "./parts";
+import { UpgradeSheet } from "./SellerReelsScreens";
 import { Pill, SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, SellerTopBar, Text } from "./ui";
 
 /** Store preview: the shop as a buyer sees it, with a way to edit it or share it. */
@@ -169,58 +171,133 @@ const RANGES: { key: "7" | "30" | "90"; label: string }[] = [
   { key: "90", label: "90 days" },
 ];
 
-/** Analytics: revenue, orders and the best sellers over 7, 30 or 90 days. */
+type AnalyticsTab = "sales" | "products" | "reels";
+
+/** Analytics: sales, the best products and the best reels over 7, 30 or 90 days. Product and reel views come with the paid plans. */
 export function SellerAnalyticsScreen() {
   const view = useSeller();
   const [range, setRange] = useState<"7" | "30" | "90">("7");
+  const [tab, setTab] = useState<AnalyticsTab>("sales");
+  const [locked, setLocked] = useState(false);
   const [now] = useState(() => Date.now());
   const data = analytics(view.seller, Number(range) as 7 | 30 | 90, now);
   const peak = Math.max(1, ...data.bars.map((bar) => bar.cents));
   const highest = data.bars.reduce((best, bar, i, all) => (bar.cents > all[best]!.cents ? i : best), 0);
+  const allowed = LIMITS[view.plan].analytics;
+  const reels = rankReels(view.seller.reels).filter((item) => item.status === "published");
+  const best = bestReel(view.seller.reels);
+  const topRevenue = Math.max(1, ...data.top.map((item) => item.cents));
+
+  const choose = (next: AnalyticsTab) => {
+    if (!allowed.includes(next)) return setLocked(true);
+    setTab(next);
+  };
 
   return (
     <SellerScreen testID="seller-analytics">
       <SellerTopBar title="Analytics" />
       <Text style={styles.sub}>Sales trends and performance</Text>
-      <Chips items={RANGES} onChange={setRange} value={range} />
-      <SellerCard style={styles.revenue} testID="analytics-revenue">
-        <View style={styles.between}>
-          <Text style={styles.hint}>Revenue</Text>
-          {data.changePercent !== null ? <Pill label={`${data.changePercent >= 0 ? "+" : ""}${data.changePercent}%`} tone={data.changePercent >= 0 ? "success" : "danger"} /> : null}
-        </View>
-        <Text style={styles.money}>{formatRand(data.revenueCents)}</Text>
-        <View style={styles.chart}>
-          {data.bars.map((bar, i) => (
-            <View key={i} style={styles.col}>
-              <View style={[styles.bar, { height: Math.max(8, (bar.cents / peak) * 90) }, i === highest && bar.cents > 0 && styles.barTop]} />
-              <Text style={styles.hint}>{bar.label}</Text>
+      <Chips items={[{ key: "sales", label: "Sales" }, { key: "products", label: allowed.includes("products") ? "Products" : "Products · Plus" }, { key: "reels", label: allowed.includes("reels") ? "Reels" : "Reels · Pro" }]} onChange={choose} prefix="tab" value={tab} />
+      {tab !== "reels" ? <Chips items={RANGES} onChange={setRange} value={range} /> : null}
+
+      {tab === "sales" ? (
+        <>
+          <SellerCard style={styles.revenue} testID="analytics-revenue">
+            <View style={styles.between}>
+              <Text style={styles.hint}>Revenue</Text>
+              {data.changePercent !== null ? <Pill label={`${data.changePercent >= 0 ? "+" : ""}${data.changePercent}%`} tone={data.changePercent >= 0 ? "success" : "danger"} /> : null}
             </View>
-          ))}
-        </View>
-      </SellerCard>
-      <View style={styles.tiles}>
-        <StatTile label="Orders" testID="analytics-orders" value={data.orders} />
-        <StatTile label="Conversion" value="4.2%" />
-      </View>
-      <SellerHeading>Top products</SellerHeading>
-      <View style={styles.stack}>
-        {data.top.length === 0 ? (
-          <SellerCard>
-            <Text style={styles.hint}>No sales in this time yet.</Text>
+            <Text style={styles.money}>{formatRand(data.revenueCents)}</Text>
+            <View style={styles.chart}>
+              {data.bars.map((bar, i) => (
+                <View key={i} style={styles.col}>
+                  <View style={[styles.bar, { height: Math.max(8, (bar.cents / peak) * 90) }, i === highest && bar.cents > 0 && styles.barTop]} />
+                  <Text style={styles.hint}>{bar.label}</Text>
+                </View>
+              ))}
+            </View>
           </SellerCard>
-        ) : (
-          data.top.map((item) => (
-            <SellerCard key={item.title} style={styles.between} testID={`top-${item.title}`}>
-              <View style={styles.flex}>
-                <Text style={styles.name}>{item.title}</Text>
-                <Text style={styles.hint}>{item.sold} sold</Text>
-              </View>
-              <Text style={styles.name}>{formatRand(item.cents)}</Text>
+          <View style={styles.tiles}>
+            <StatTile label="Orders" testID="analytics-orders" value={data.orders} />
+            <StatTile label="Conversion" value="4.2%" />
+          </View>
+          <SellerHeading>Top products</SellerHeading>
+          <View style={styles.stack}>
+            {data.top.length === 0 ? (
+              <SellerCard>
+                <Text style={styles.hint}>No sales in this time yet.</Text>
+              </SellerCard>
+            ) : (
+              data.top.slice(0, 3).map((item) => (
+                <SellerCard key={item.title} style={styles.between} testID={`top-${item.title}`}>
+                  <View style={styles.flex}>
+                    <Text style={styles.name}>{item.title}</Text>
+                    <Text style={styles.hint}>{item.sold} sold</Text>
+                  </View>
+                  <Text style={styles.name}>{formatRand(item.cents)}</Text>
+                </SellerCard>
+              ))
+            )}
+          </View>
+          <Text style={styles.note}>Conversion is a demo figure until views on your products are measured.</Text>
+        </>
+      ) : null}
+
+      {tab === "products" ? (
+        <View style={styles.stack} testID="analytics-products">
+          {data.top.length === 0 ? (
+            <SellerCard>
+              <Text style={styles.hint}>No sales in this time yet.</Text>
             </SellerCard>
-          ))
-        )}
-      </View>
-      <Text style={styles.note}>Conversion is a demo figure until views on your products are measured.</Text>
+          ) : (
+            data.top.map((item, index) => (
+              <SellerCard key={item.title} style={styles.rankCard} testID={`rank-${item.title}`}>
+                <View style={styles.between}>
+                  <Text style={styles.rank}>{index + 1}</Text>
+                  <View style={styles.flex}>
+                    <Text style={styles.name}>{item.title}</Text>
+                    <Text style={styles.hint}>{item.sold} sold</Text>
+                  </View>
+                  {index === 0 ? <Pill label="Best performing" tone="info" /> : null}
+                </View>
+                <View style={styles.track}>
+                  <View style={[styles.fill, { width: `${Math.max(6, (item.cents / topRevenue) * 100)}%` }]} />
+                </View>
+                <Text style={styles.name}>{formatRand(item.cents)}</Text>
+              </SellerCard>
+            ))
+          )}
+        </View>
+      ) : null}
+
+      {tab === "reels" ? (
+        <View style={styles.stack} testID="analytics-reels">
+          {reels.length === 0 ? (
+            <SellerCard>
+              <Text style={styles.hint}>No live reels yet. Add one in Products.</Text>
+            </SellerCard>
+          ) : (
+            reels.map((reel, index) => (
+              <SellerCard key={reel.id} style={styles.rankCard} testID={`reel-rank-${reel.id}`}>
+                <View style={styles.between}>
+                  <Text style={styles.rank}>{index + 1}</Text>
+                  <View style={styles.flex}>
+                    <Text numberOfLines={1} style={styles.name}>
+                      {reel.caption}
+                    </Text>
+                    <Text style={styles.hint}>
+                      {reel.views.toLocaleString("en-ZA")} views · {engagementPercent(reel)}% engaged · {reel.orders} orders
+                    </Text>
+                  </View>
+                  {best?.id === reel.id ? <Pill label="Best performing" tone="info" /> : null}
+                </View>
+                <Text style={styles.name}>{formatRand(reel.salesCents)} in sales</Text>
+              </SellerCard>
+            ))
+          )}
+        </View>
+      ) : null}
+      <UpgradeSheet kind="analytics" onClose={() => setLocked(false)} visible={locked} />
     </SellerScreen>
   );
 }
@@ -264,6 +341,8 @@ const styles = StyleSheet.create({
   stack: { gap: 10 },
   sub: { color: "rgba(255,255,255,0.85)", fontSize: 14, textAlign: "center" },
   summary: { alignItems: "center", flexDirection: "row", gap: 14, marginTop: 14 },
+  rank: { color: SELLER.solid, fontSize: 18, fontWeight: "800", width: 22 },
+  rankCard: { gap: 8 },
   tiles: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 12 },
   track: { backgroundColor: "#DDE6E9", borderRadius: 4, flex: 1, height: 6 },
 });

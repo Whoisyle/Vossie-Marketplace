@@ -6,11 +6,14 @@ import { Pressable, StyleSheet, Switch, View } from "react-native";
 import { Icon, useToast } from "@/components";
 import { formatRand } from "@/data/format";
 import { parseRandToCents } from "@/screens/account/walletAmount";
+import { LIMITS } from "@/seller/plan";
+import { productCount } from "@/seller/selectors";
 import { sellerId } from "@/seller/state";
 import type { SellerListing } from "@/seller/types";
 
 import { SellerField, usePickImage } from "./fields";
 import { useSeller } from "./hooks";
+import { UpgradeSheet } from "./SellerReelsScreens";
 import { SELLER, SellerButton, SellerScreen, SellerTopBar, Text } from "./ui";
 
 const CATEGORIES: { key: SellerListing["category"]; label: string }[] = [
@@ -37,6 +40,7 @@ export function SellerListingFormScreen() {
   const [variants, setVariants] = useState((existing?.variants ?? []).join(", "));
   const [photos, setPhotos] = useState<string[]>(existing?.photos ?? []);
   const pick = usePickImage();
+  const [upgrade, setUpgrade] = useState(false);
   const [errors, setErrors] = useState<{ title?: string; price?: string; stock?: string }>({});
 
   const save = (publish: boolean) => {
@@ -48,6 +52,7 @@ export function SellerListingFormScreen() {
     if (!unlimited && (!Number.isInteger(stock) || stock < 0)) found.stock = "Enter how many you have, like 10.";
     setErrors(found);
     if (Object.keys(found).length > 0 || cents === null) return;
+    if (!existing && productCount(view.seller.listings) >= LIMITS[view.plan].products) return setUpgrade(true);
     const goLive = publish && view.canTrade;
     const listing: SellerListing = {
       artId: existing?.artId,
@@ -155,6 +160,7 @@ export function SellerListingFormScreen() {
           />
         ) : null}
       </View>
+      <UpgradeSheet kind="products" onClose={() => setUpgrade(false)} visible={upgrade} />
     </SellerScreen>
   );
 }

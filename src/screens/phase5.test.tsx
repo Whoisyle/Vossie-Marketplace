@@ -53,7 +53,7 @@ describe("subscriptions", () => {
     const state = signedIn();
     expect(hasPlan(state.subscriptions, "plus")).toBe(true);
     expect(hasPlan(state.subscriptions, "study-pass")).toBe(false);
-    expect(plans.map((plan) => plan.id)).toEqual(["plus", "seller-pro", "study-pass"]);
+    expect(plans.map((plan) => plan.id)).toEqual(["plus", "seller-plus", "seller-pro", "study-pass"]);
   });
 
   it("charges the wallet to join, refuses when it is too low, and keeps perks until the period ends after a cancel", () => {

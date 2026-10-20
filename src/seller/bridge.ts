@@ -2,6 +2,7 @@ import { getListing } from "@/data/repository";
 import type { Order, NotificationItem } from "@/data/types";
 import type { DemoAction, DemoState } from "@/state/demoReducer";
 
+import { sellerPlanOf } from "./plan";
 import { courierCodeFor, DEMO_STORE_ID, handoffCodeFor, platformFeeCents, sellerId, sellerReduce } from "./state";
 import type { SellerAction, SellerOrder } from "./types";
 
@@ -18,7 +19,7 @@ function note(title: string, body: string, orderId: string): NotificationItem {
  * the same way, with the same notifications the buyer would get from a real seller.
  */
 export function applySellerAction(state: DemoState, action: SellerAction, reduce: Reduce): DemoState {
-  const seller = sellerReduce(state.seller, action, { verifiedStudent: state.profile?.isVerifiedStudent ?? false });
+  const seller = sellerReduce(state.seller, action, { plan: sellerPlanOf(state.subscriptions), verifiedStudent: state.profile?.isVerifiedStudent ?? false });
   if (seller === state.seller) return state;
   let next: DemoState = { ...state, seller };
 
@@ -84,7 +85,7 @@ export function routeNewOrdersToSeller(before: DemoState, after: DemoState): Dem
       buyerVerified: after.profile?.isVerifiedStudent ?? false,
       courierCode: courierCodeFor(order.id),
       deliveryFeeCents: 0,
-      feeCents: platformFeeCents(subtotal),
+      feeCents: platformFeeCents(subtotal, sellerPlanOf(after.subscriptions)),
       fulfilment: order.fulfilment,
       fulfilmentLabel: order.fulfilment === "delivery" ? "Delivery" : "Campus collection",
       handoffCode: handoffCodeFor(order.id),

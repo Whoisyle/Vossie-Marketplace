@@ -7,6 +7,8 @@ import { useDemoStore } from "@/state/DemoStore";
 
 /** How long after entering seller mode each demo order arrives. */
 export const DEMO_ARRIVAL_MS = [40_000, 110_000, 200_000];
+/** How often the demo reels gain views. */
+export const DEMO_REEL_MS = 12_000;
 /** How long after an order is ready a demo courier takes the job. */
 export const DEMO_COURIER_MS = 5_000;
 /** How often the demo review accepts the next document. */
@@ -42,6 +44,18 @@ export function SellerDemoEffects({ enabled = true }: { enabled?: boolean }) {
     const timers = needsCourier.split(",").map((id) => setTimeout(() => dispatch({ id, type: "sellerAssignCourier" }), DEMO_COURIER_MS));
     return () => timers.forEach(clearTimeout);
   }, [dispatch, needsCourier, selling]);
+
+  // demo only: the live reels slowly collect views, likes and taps
+  const liveReels = enabled && state.profile?.role === "seller" && seller.reels.some((item) => item.status === "published");
+  const ticks = useRef(0);
+  useEffect(() => {
+    if (!liveReels) return;
+    const timer = setInterval(() => {
+      ticks.current += 1;
+      dispatch({ n: ticks.current, type: "sellerReelTick" });
+    }, DEMO_REEL_MS);
+    return () => clearInterval(timer);
+  }, [dispatch, liveReels]);
 
   const waiting = seller.orders.filter((item) => item.status === "new").length;
   const before = useRef(waiting);

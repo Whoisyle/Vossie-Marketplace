@@ -36,6 +36,14 @@ Last updated: 2026-10-20.
 - [ ] **Seller Promotions, Reviews, Returns and disputes, Team members and notification setting** live on the phone only (no tables yet). Real needs promotions with redeemable codes at checkout, buyer reviews and replies, refunds that move money, team invites by email with a packer role, and saved settings. Analytics conversion (4.2%) is a fixed demo figure.
 - [ ] **Stock steppers and Archive** call the same listing save as Restock in live mode; the database has no archived state, so Archive pauses the listing there. Product photos (up to 6) and variants stay on the phone until upload and options are built.
 - [ ] **Store preview Share** only shows a message; there is no public store page or link.
+- [ ] **Operating times** (presets, lecture timetable, closures, pickup slots, queue-when-closed) live on the phone. The database holds one open range for all days (`opens_at`, `closes_at`, `open_days`), so per-day hours, lectures and closures need new columns or a table. Buyers do not yet see Open or Closed, hours or "Back on", checkout does not offer the pickup slots, and orders that arrive while closed are queued only in the seller's own list.
+- [ ] **Transactions, receipts and statements** are built from the demo ledger. Share sends plain text (or copies it on the web); a signed PDF receipt, reference numbers from the server and real monthly statements need the money ledger.
+- [ ] **Notification preferences** (push and email per kind, quiet hours, sound) are saved on the phone and do not yet change what is sent. Real push needs Expo push tokens and a server trigger; email needs a sender.
+- [ ] **Security page** reuses the buyer's Face ID, two-factor and login-activity state. Sign-in email cannot be changed (Eduvos owns it). The list of signed-in devices is the demo list.
+- [ ] **Account settings:** tax number is kept on the phone only; Download my data and Close seller account do nothing on a server.
+- [ ] **Reels:** a seller's reels are kept on the phone. The picked video is not uploaded, the reels do not appear in the buyer's Reels tab, and views, likes, taps and sales driven are demo numbers that grow on a timer (`SellerDemoEffects`). Real reels need video storage, a feed, and event counts from buyers.
+- [ ] **Seller plans:** Free, Seller Plus (R49) and Seller Pro (R99) are demo prices and limits (10 products on Free; 0, 5 and unlimited live reels; analytics tabs; fees 5%, 3% and 2%). Plans are bought with the buyer wallet through the existing subscription flow. The database has the Seller Plus plan row (migration `20261021000100_seller_plus_plan.sql`, not applied to the hosted project) but does not enforce the limits or the fee by plan.
+- [ ] **Analytics conversion (4.2%)** is a fixed demo number, and product and reel analytics come from the demo orders and reels.
 
 ## Courier, delivery and maps
 

@@ -174,6 +174,28 @@ export type SellerSchedule = {
   preset: "weekdays" | "every-day" | "timetable" | "custom";
 };
 
+export type ReelStatus = "draft" | "published" | "hidden";
+
+/** A short video the seller posted about one of their products, with how it is doing. */
+export type SellerReel = {
+  id: string;
+  caption: string;
+  /** The product the reel sells. Taps on the reel open it. */
+  listingId?: string;
+  /** The picked video, kept on the phone until real upload exists. */
+  videoUri?: string;
+  status: ReelStatus;
+  createdAt: string;
+  views: number;
+  likes: number;
+  saves: number;
+  /** Taps through to the product. */
+  taps: number;
+  /** Orders that started from the reel, and what they came to. */
+  orders: number;
+  salesCents: number;
+};
+
 export type NotifyKind = "orders" | "messages" | "stock" | "money" | "reviews" | "promotions";
 
 export const NOTIFY_KINDS: readonly NotifyKind[] = ["orders", "messages", "stock", "money", "reviews", "promotions"];
@@ -211,6 +233,7 @@ export type SellerState = {
   settings: SellerSettings;
   schedule: SellerSchedule;
   notify: NotifyPrefs;
+  reels: SellerReel[];
 };
 
 export type SellerAction =
@@ -241,6 +264,11 @@ export type SellerAction =
   | { type: "sellerRemoveTeam"; id: string }
   | { type: "sellerSetSetting"; key: keyof SellerSettings; value: boolean }
   | { type: "sellerSetSchedule"; schedule: SellerSchedule }
+  | { type: "sellerSaveReel"; reel: SellerReel }
+  | { type: "sellerSetReelStatus"; id: string; status: ReelStatus }
+  | { type: "sellerDeleteReel"; id: string }
+  /** Demo only: a few more people watch the live reels. `n` is the count of ticks so far. */
+  | { type: "sellerReelTick"; n: number }
   | { type: "sellerSetNotify"; notify: NotifyPrefs }
   | { type: "sellerMarkAlertRead"; id: string }
   | { type: "sellerPauseListing"; id: string; paused: boolean }

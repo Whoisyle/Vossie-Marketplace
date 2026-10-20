@@ -13,6 +13,7 @@ const TONES = { ink: gradient.ink, primary: gradient.primary, teal: gradient.tea
 /** A warm accent for the plan that is not slate, so each plan reads as its own. */
 const PLAN_COLOURS: Record<string, readonly [string, string]> = {
   plus: ["#40677A", "#2F5A67"],
+  "seller-plus": ["#4E7B86", "#385F6B"],
   "seller-pro": ["#2C4150", "#1E2A38"],
   "study-pass": ["#D39A5C", "#B07338"],
 };

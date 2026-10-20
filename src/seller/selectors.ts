@@ -1,5 +1,5 @@
 import { sellerBalanceCents } from "./state";
-import type { LedgerEntry, SellerListing, SellerOrder, SellerOrderStatus, SellerState } from "./types";
+import type { LedgerEntry, SellerListing, SellerOrder, SellerOrderStatus, SellerReel, SellerState } from "./types";
 
 const DAY = 86_400_000;
 
@@ -132,6 +132,33 @@ export function analytics(state: Pick<SellerState, "ledger" | "orders">, days: 7
   const inRange = state.orders.filter((item) => item.status !== "declined" && item.status !== "cancelled" && new Date(item.placedAt).getTime() >= from);
   const sold = new Map<string, { sold: number; cents: number }>();
   for (const order of inRange) for (const line of order.lines) sold.set(line.title, { cents: (sold.get(line.title)?.cents ?? 0) + line.unitPriceCents * line.quantity, sold: (sold.get(line.title)?.sold ?? 0) + line.quantity });
-  const top = [...sold.entries()].map(([title, value]) => ({ title, ...value })).sort((a, b) => b.cents - a.cents).slice(0, 3);
+  const top = [...sold.entries()].map(([title, value]) => ({ title, ...value })).sort((a, b) => b.cents - a.cents).slice(0, 5);
   return { bars, changePercent: before > 0 ? Math.round(((revenueCents - before) / before) * 100) : null, orders: inRange.length, revenueCents, top };
+}
+
+/** How much people who watched a reel did something: liked it, saved it or tapped through, as a percent of views. */
+export function engagementPercent(reel: SellerReel): number {
+  return reel.views > 0 ? Math.round(((reel.likes + reel.saves + reel.taps) / reel.views) * 1000) / 10 : 0;
+}
+
+/** Live reels best first: the most sales, then the most views. Drafts and hidden reels follow, newest first. */
+export function rankReels(reels: SellerReel[]): SellerReel[] {
+  const live = reels.filter((item) => item.status === "published").sort((a, b) => b.salesCents - a.salesCents || b.views - a.views);
+  const rest = reels.filter((item) => item.status !== "published").sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return [...live, ...rest];
+}
+
+/** The best performing live reel, or undefined when none has had a view. */
+export function bestReel(reels: SellerReel[]): SellerReel | undefined {
+  const [first] = rankReels(reels);
+  return first && first.status === "published" && first.views > 0 ? first : undefined;
+}
+
+export function liveReelCount(reels: SellerReel[]): number {
+  return reels.filter((item) => item.status === "published").length;
+}
+
+/** Products that count against the plan's limit: everything that is not archived. */
+export function productCount(listings: SellerListing[]): number {
+  return listings.filter((item) => item.status !== "archived").length;
 }

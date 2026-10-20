@@ -67,7 +67,7 @@ export const reorderToCart = (sellerOrderId: string) => rpc<number>("reorder_to_
 // ---- subscriptions, safety and withdrawals ------------------------------------------------------------------
 
 /** Plans are paid monthly from the wallet. The perks are applied by the app for now (see backend.md). */
-export const subscribePlan = (planId: "plus" | "seller-pro" | "study-pass") => rpc<string>("subscribe_plan", { p_plan_id: planId });
+export const subscribePlan = (planId: "plus" | "seller-plus" | "seller-pro" | "study-pass") => rpc<string>("subscribe_plan", { p_plan_id: planId });
 export const cancelSubscription = (planId: string) => rpc("cancel_subscription", { p_plan_id: planId });
 export const resumeSubscription = (planId: string) => rpc("resume_subscription", { p_plan_id: planId });
 export async function listPlans() {

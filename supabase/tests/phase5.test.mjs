@@ -32,9 +32,9 @@ before(async () => {
 });
 
 describe("subscriptions", () => {
-  it("lists the three plans to everyone", async () => {
+  it("lists the four plans to everyone", async () => {
     const plans = await q("anon", "select id, price_cents from subscription_plans order by price_cents");
-    assert.deepEqual(plans.map((p) => p.id), ["study-pass", "plus", "seller-pro"]);
+    assert.deepEqual(plans.map((p) => p.id), ["study-pass", "plus", "seller-plus", "seller-pro"]);
   });
 
   it("charges the wallet, refuses a second subscription to the same plan, and keeps the books balanced", async () => {

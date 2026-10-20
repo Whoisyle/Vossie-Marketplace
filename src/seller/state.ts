@@ -1,5 +1,6 @@
 import { MIN_WITHDRAW_CENTS } from "@/data/wallet";
 
+import { FEE_PERCENT, LIMITS, type SellerPlan } from "./plan";
 import { scheduleFromProfile, storeStatus, summaryRange } from "./schedule";
 import {
   NOTIFY_KINDS,
@@ -14,6 +15,7 @@ import {
   type SellerListing,
   type SellerOrder,
   type SellerPromotion,
+  type SellerReel,
   type SellerReview,
   type SellerState,
   type TeamMember,
@@ -26,13 +28,13 @@ export const DEMO_STORE_ID = "campusbites";
 export const PLATFORM_FEE_PERCENT = 5;
 
 /** The fee on a subtotal, in cents, rounded to the nearest cent. */
-export function platformFeeCents(subtotalCents: number): number {
-  return Math.round((subtotalCents * PLATFORM_FEE_PERCENT) / 100);
+export function platformFeeCents(subtotalCents: number, plan: SellerPlan = "free"): number {
+  return Math.round((subtotalCents * FEE_PERCENT[plan]) / 100);
 }
 
 /** What the seller earns from an order's items once Vossie's fee is taken. */
-export function earnCents(subtotalCents: number): number {
-  return subtotalCents - platformFeeCents(subtotalCents);
+export function earnCents(subtotalCents: number, plan: SellerPlan = "free"): number {
+  return subtotalCents - platformFeeCents(subtotalCents, plan);
 }
 
 const MIN = 60_000;
@@ -189,6 +191,16 @@ function alertsSeed(now: number): SellerAlert[] {
   ];
 }
 
+function reelsSeed(now: number): SellerReel[] {
+  const ago = (days: number) => new Date(now - days * DAY).toISOString();
+  return [
+    { caption: "TI-30XS unboxing, student price", createdAt: ago(21), id: "rl-ti30", likes: 392, listingId: "sl-ti30", orders: 14, salesCents: 308_000, saves: 88, status: "published", taps: 241, views: 4820 },
+    { caption: "How I pack a textbook order", createdAt: ago(14), id: "rl-pack", likes: 161, listingId: "sl-calculus", orders: 5, salesCents: 170_000, saves: 40, status: "published", taps: 96, views: 2310 },
+    { caption: "Desk glow-up for res", createdAt: ago(6), id: "rl-lamp", likes: 97, listingId: "sl-lamp", orders: 3, salesCents: 36_000, saves: 22, status: "published", taps: 51, views: 1280 },
+    { caption: "Hoodie fit check", createdAt: ago(2), id: "rl-hoodie", likes: 0, listingId: "sl-hoodie", orders: 0, salesCents: 0, saves: 0, status: "draft", taps: 0, views: 0 },
+  ];
+}
+
 function promotionsSeed(): SellerPromotion[] {
   return [
     { active: true, code: "VOSSIE10", detail: "Code VOSSIE10 · ends 31 Oct", id: "pr-first", kind: "percent", redemptions: 18, title: "First order 10% off" },
@@ -238,6 +250,7 @@ export function emptySellerState(): SellerState {
     profile: { closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], description: "", kind: null, location: "", opens: "08:00", phone: "", storeId: "", storeName: "" },
     promotions: [],
     notify: defaultNotify(),
+    reels: [],
     reviewCounts: [0, 0, 0, 0, 0],
     reviews: [],
     schedule: scheduleFromProfile({ closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], opens: "08:00" }),
@@ -260,6 +273,7 @@ export function createSellerState(now: number = Date.now()): SellerState {
     profile: { closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], description: "", kind: null, location: "", opens: "08:00", phone: "", storeId: DEMO_STORE_ID, storeName: "" },
     promotions: promotionsSeed(),
     notify: defaultNotify(),
+    reels: reelsSeed(now),
     reviewCounts: [108, 12, 3, 1, 2],
     reviews: reviewsSeed(now),
     schedule: scheduleFromProfile({ closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], opens: "08:00" }),
@@ -298,13 +312,14 @@ function itemsLabel(order: Pick<SellerOrder, "lines">): string {
 }
 
 /** The seller side of every seller action. Changes to the buyer's own order, alerts and notifications are made by `bridge.ts`. */
-export function sellerReduce(state: SellerState, action: SellerAction, ctx: { verifiedStudent: boolean; now?: number } = { verifiedStudent: true }): SellerState {
+export function sellerReduce(state: SellerState, action: SellerAction, ctx: { verifiedStudent: boolean; now?: number; plan?: SellerPlan } = { verifiedStudent: true }): SellerState {
   const now = ctx.now ?? Date.now();
+  const plan = ctx.plan ?? "free";
   const stamp = new Date(now).toISOString();
   const patchOrder = (id: string, patch: Partial<SellerOrder>) => state.orders.map((item) => (item.id === id ? { ...item, ...patch } : item));
   const addAlert = (alert: Omit<SellerAlert, "createdAt" | "id" | "read">): SellerAlert[] => [{ ...alert, createdAt: stamp, id: sellerId("sa"), read: false }, ...state.alerts];
   const credit = (found: SellerOrder): LedgerEntry => ({
-    amountCents: earnCents(found.subtotalCents),
+    amountCents: found.subtotalCents - found.feeCents,
     createdAt: stamp,
     feeCents: found.feeCents,
     id: sellerId("led"),
@@ -365,6 +380,32 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
     }
     case "sellerSetNotify":
       return { ...state, notify: action.notify };
+    case "sellerSaveReel": {
+      const exists = state.reels.some((item) => item.id === action.reel.id);
+      const going = action.reel.status === "published" && !state.reels.some((item) => item.id === action.reel.id && item.status === "published");
+      const live = state.reels.filter((item) => item.status === "published").length;
+      // a plan holds only so many live reels; reels already live stay live
+      if (going && live >= LIMITS[plan].liveReels) return state;
+      return { ...state, reels: exists ? state.reels.map((item) => (item.id === action.reel.id ? { ...item, ...action.reel, createdAt: item.createdAt } : item)) : [{ ...action.reel, createdAt: stamp }, ...state.reels] };
+    }
+    case "sellerSetReelStatus": {
+      const found = state.reels.find((item) => item.id === action.id);
+      if (!found || found.status === action.status) return state;
+      const live = state.reels.filter((item) => item.status === "published").length;
+      if (action.status === "published" && live >= LIMITS[plan].liveReels) return state;
+      return { ...state, reels: state.reels.map((item) => (item.id === action.id ? { ...item, status: action.status } : item)) };
+    }
+    case "sellerDeleteReel":
+      return { ...state, reels: state.reels.filter((item) => item.id !== action.id) };
+    case "sellerReelTick":
+      return {
+        ...state,
+        reels: state.reels.map((item) => {
+          if (item.status !== "published") return item;
+          const seed = [...item.id].reduce((sum, char) => sum + char.charCodeAt(0), 0) + action.n;
+          return { ...item, likes: item.likes + (seed % 3 === 0 ? 1 : 0), saves: item.saves + (seed % 7 === 0 ? 1 : 0), taps: item.taps + (seed % 4 === 0 ? 1 : 0), views: item.views + 2 + (seed % 5) };
+        }),
+      };
     case "sellerMarkAlertRead":
       return { ...state, alerts: state.alerts.map((item) => (item.id === action.id ? { ...item, read: true } : item)) };
     case "sellerFinishSetup":
@@ -373,7 +414,9 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
       if (state.orders.some((item) => item.id === action.order.id)) return state;
       // an order that arrives while the store is shut waits in the queue, and the seller is told when it was
       const closed = state.schedule.autoPause && !storeStatus(state.schedule, new Date(now)).open;
-      const order = closed ? { ...action.order, queued: true } : action.order;
+      // the fee is the one for the plan the seller is on when the order arrives
+      const priced = { ...action.order, feeCents: platformFeeCents(action.order.subtotalCents, plan) };
+      const order = closed ? { ...priced, queued: true } : priced;
       return {
         ...state,
         alerts: addAlert({ body: closed ? `${order.buyerName} ordered ${itemsLabel(order)} while you were closed. It is waiting for you.` : `${order.buyerName} ordered ${itemsLabel(order)}.`, href: `/seller/orders/${order.id}`, kind: "order", title: `New order ${order.number}` }),
@@ -409,7 +452,7 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
       if (!current || current.status !== "ready" || !current.courier) return state;
       return {
         ...state,
-        alerts: addAlert({ body: `${current.number} is with ${current.courier.name}. ${(earnCents(current.subtotalCents) / 100).toFixed(2)} was added to your earnings.`, href: "/seller/payouts", kind: "money", title: "Handed to the courier" }),
+        alerts: addAlert({ body: `${current.number} is with ${current.courier.name}. ${((current.subtotalCents - current.feeCents) / 100).toFixed(2)} was added to your earnings.`, href: "/seller/payouts", kind: "money", title: "Handed to the courier" }),
         ledger: [credit(current), ...state.ledger],
         orders: patchOrder(action.id, { status: "done" }),
       };

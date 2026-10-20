@@ -6,6 +6,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Icon, type IconName } from "@/components";
 import { initials } from "@/data/format";
+import { FEE_PERCENT, PLAN_NAMES } from "@/seller/plan";
 import { storeStatus } from "@/seller/schedule";
 
 import { useSeller } from "./hooks";
@@ -54,6 +55,7 @@ export function SellerAccountScreen() {
         <Row delay={340} hint={`${view.seller.promotions.filter((item) => item.active).length} active`} icon="tag" label="Promotions" onPress={() => go("/seller/account/promotions")} testID="row-promotions" />
         <Row delay={360} hint={`${view.seller.cases.filter((item) => item.status === "open").length} open cases`} icon="alert-circle" label="Returns and disputes" onPress={() => go("/seller/account/cases")} testID="row-cases" />
         <Row delay={380} hint="Sales trends and performance" icon="bar-chart-2" label="Analytics" onPress={() => go("/seller/account/analytics")} testID="row-analytics" />
+        <Row delay={390} hint={`${PLAN_NAMES[view.plan]} · ${FEE_PERCENT[view.plan]}% fee`} icon="award" label="Plans" onPress={() => go("/seller/account/plans")} testID="row-plans" />
         <Row delay={400} hint={`${view.seller.team.length} people`} icon="users" label="Team members" onPress={() => go("/seller/account/team")} testID="row-team" />
       </View>
 

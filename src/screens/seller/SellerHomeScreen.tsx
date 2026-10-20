@@ -3,8 +3,10 @@ import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown, FadeOutRight, LinearTransition } from "react-native-reanimated";
 
-import { Icon } from "@/components";
-import type { Attention } from "@/seller/selectors";
+import { Icon, type IconName } from "@/components";
+import { formatRand } from "@/data/format";
+import { PLAN_NAMES } from "@/seller/plan";
+import { bestReel, liveReelCount, type Attention } from "@/seller/selectors";
 
 import { useSeller, greeting } from "./hooks";
 import { CountUpRand, useCountUp } from "./motion";
@@ -23,6 +25,7 @@ export function SellerHomeScreen() {
   const view = useSeller();
   const [restock, setRestock] = useState<string | null>(null);
   const { week } = view;
+  const best = bestReel(view.seller.reels);
 
   const go = (path: string) => router.push(path as Href);
   const act = (item: Attention) => {
@@ -93,8 +96,34 @@ export function SellerHomeScreen() {
         </View>
       )}
 
+      <SellerHeading>Grow your shop</SellerHeading>
+      <View style={styles.growth} testID="growth-hub">
+        <GrowthTile delay={380} hint={best ? `Best: ${best.caption}` : "Show a product in a short video"} icon="film" label="Reels" onPress={() => go("/seller/products")} testID="growth-reels" value={`${liveReelCount(view.seller.reels)} live`} />
+        <GrowthTile delay={420} hint={week.changePercent === null ? "Sales and best sellers" : `${week.changePercent >= 0 ? "+" : ""}${week.changePercent}% on last week`} icon="bar-chart-2" label="Analytics" onPress={() => go("/seller/account/analytics")} testID="growth-analytics" value={formatRand(week.thisWeekCents)} />
+        <GrowthTile delay={460} hint={view.plan === "free" ? "Upgrade for reels and a lower fee" : "Manage your plan"} icon="award" label="Plan" onPress={() => go("/seller/account/plans")} testID="growth-plan" value={PLAN_NAMES[view.plan]} />
+      </View>
+
       <RestockSheet listingId={restock} onClose={() => setRestock(null)} />
     </SellerScreen>
+  );
+}
+
+function GrowthTile({ delay, hint, icon, label, onPress, testID, value }: { icon: IconName; label: string; value: string; hint: string; onPress: () => void; delay: number; testID: string }) {
+  return (
+    <Animated.View entering={FadeInDown.delay(delay).duration(380)}>
+      <SellerCard onPress={onPress} style={styles.growthRow} testID={testID}>
+        <View style={styles.growthIcon}>
+          <Icon color={SELLER.solid} name={icon} size={20} />
+        </View>
+        <View style={styles.growthText}>
+          <Text style={styles.growthLabel}>{label}</Text>
+          <Text numberOfLines={1} style={styles.cardHint}>
+            {hint}
+          </Text>
+        </View>
+        <Text style={styles.growthValue}>{value}</Text>
+      </SellerCard>
+    </Animated.View>
   );
 }
 
@@ -174,5 +203,11 @@ const styles = StyleSheet.create({
   status: { alignItems: "center", alignSelf: "flex-start", flexDirection: "row", gap: 6, marginBottom: 4 },
   statusDot: { borderRadius: 4, height: 8, width: 8 },
   statusText: { color: "#FFFFFF", fontSize: 13, fontWeight: "700" },
+  growth: { gap: 10 },
+  growthIcon: { alignItems: "center", backgroundColor: "#DCE6EA", borderRadius: 14, height: 42, justifyContent: "center", width: 42 },
+  growthLabel: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },
+  growthRow: { alignItems: "center", flexDirection: "row", gap: 12 },
+  growthText: { flex: 1, gap: 1 },
+  growthValue: { color: SELLER.solid, fontSize: 15, fontWeight: "800" },
   tiles: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 14 },
 });

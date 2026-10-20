@@ -6,11 +6,13 @@ import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated"
 import { ArtTile, hasArt } from "@/components/art/ProductArt";
 import { Icon } from "@/components";
 import { formatRand } from "@/data/format";
-import { isLowStock } from "@/seller/selectors";
+import { LIMITS } from "@/seller/plan";
+import { isLowStock, productCount } from "@/seller/selectors";
 import type { SellerListing, SellerListingStatus } from "@/seller/types";
 
 import { useSeller } from "./hooks";
 import { Chips } from "./parts";
+import { ReelsPanel, UpgradeSheet } from "./SellerReelsScreens";
 import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerHeader, SellerScreen, Text } from "./ui";
 import { RestockSheet } from "./RestockSheet";
 
@@ -49,6 +51,8 @@ export function SellerProductsScreen() {
   const [filter, setFilter] = useState<Filter>("all");
   const [restock, setRestock] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [tab, setTab] = useState<"products" | "reels">("products");
+  const [upgrade, setUpgrade] = useState(false);
   const needle = query.trim().toLowerCase();
   const shown = view.seller.listings.filter((item) => matchesFilter(item, filter) && (!needle || item.title.toLowerCase().includes(needle) || item.sku.toLowerCase().includes(needle)));
   const lowCount = view.seller.listings.filter(isLowStock).length;
@@ -65,8 +69,13 @@ export function SellerProductsScreen() {
             {view.seller.listings.length} listed · {lowCount} low stock
           </Text>
         </View>
-        <SellerButton icon="plus" label="Add product" onPress={() => router.push("/seller/products/new" as Href)} size="sm" testID="add-listing" variant="light" />
+        <SellerButton icon="plus" label="Add product" onPress={() => (productCount(view.seller.listings) >= LIMITS[view.plan].products ? setUpgrade(true) : router.push("/seller/products/new" as Href))} size="sm" testID="add-listing" variant="light" />
       </View>
+      <Chips items={[{ key: "products", label: "Products" }, { key: "reels", label: `Reels ${view.seller.reels.length}` }]} onChange={setTab} prefix="view" value={tab} />
+      {tab === "reels" ? (
+        <ReelsPanel />
+      ) : (
+        <>
       <View style={styles.search}>
         <Icon color={SELLER.inkSoft} name="search" size={18} />
         <TextInput accessibilityLabel="Search products" onChangeText={setQuery} placeholder="Search products" placeholderTextColor="#8A99A1" style={styles.searchInput} testID="product-search" value={query} />
@@ -114,6 +123,9 @@ export function SellerProductsScreen() {
           })}
         </View>
       )}
+        </>
+      )}
+      <UpgradeSheet kind="products" onClose={() => setUpgrade(false)} visible={upgrade} />
       <RestockSheet listingId={restock} onClose={() => setRestock(null)} />
     </SellerScreen>
   );

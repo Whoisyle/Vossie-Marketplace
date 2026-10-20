@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 import type { Conversation } from "@/data/types";
 import { activeListings, attentionItems, isLowStock, orderCounts, weekBars, weekTotals } from "@/seller/selectors";
+import { sellerPlanOf } from "@/seller/plan";
 import { storeStatus } from "@/seller/schedule";
 import { averageRating, sellerBalanceCents } from "@/seller/state";
 import { useDemoStore } from "@/state/DemoStore";
@@ -58,11 +59,12 @@ export function useSeller() {
       rating: averageRating(seller.reviewCounts),
       messages,
       seller,
+      plan: sellerPlanOf(state.subscriptions, new Date(now)),
       status: storeStatus(seller.schedule, new Date(now)),
       storeName: seller.profile.storeName || "Your store",
       unreadAlerts: seller.alerts.filter((item) => !item.read).length,
       unreadMessages: messages.filter((item) => item.unread).length,
       week: weekTotals(seller, now),
     };
-  }, [canTrade, dispatch, messages, now, seller, state.profile?.fullName]);
+  }, [canTrade, dispatch, messages, now, seller, state.profile?.fullName, state.subscriptions]);
 }
