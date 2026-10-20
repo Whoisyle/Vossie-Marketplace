@@ -67,7 +67,7 @@ export function VouchersScreen() {
               <Pressable accessibilityRole="button" key={def.id} onPress={() => router.push(open("promo", def.id))} testID={`offer-${def.id}`}>
                 <Ticket
                   stub={
-                    typeof photo === "number" ? (
+                    photo ? (
                       <Image accessibilityLabel={getListing(def.productId)?.title} contentFit="cover" source={photo} style={styles.stubPhoto} />
                     ) : (
                       <Icon color={color.onPrimary} name="percent" size={26} />

@@ -252,10 +252,14 @@ export function WalletCarousel({
 function WalletCard({ active, item, onPress, width }: { item: WalletItem; active: boolean; onPress: () => void; width: number }) {
   const lift = useSharedValue(active ? 1 : 0);
   const [flipped, setFlipped] = useState(false);
+  // a card that is no longer in front turns back, so it is never found face down
+  const [wasActive, setWasActive] = useState(active);
+  if (wasActive !== active) {
+    setWasActive(active);
+    if (!active) setFlipped(false);
+  }
   useEffect(() => {
     lift.set(withSpring(active ? 1 : 0, spring.soft));
-    // a card that is no longer in front turns back so it is never found face down
-    if (!active) setFlipped(false);
   }, [active, lift]);
   const style = useAnimatedStyle(() => ({ opacity: 0.85 + lift.get() * 0.15, transform: [{ scale: 0.96 + lift.get() * 0.04 }] }));
   const label = labelFor(item);

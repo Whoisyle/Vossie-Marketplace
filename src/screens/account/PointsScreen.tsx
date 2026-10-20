@@ -1,8 +1,8 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Card, Chip, Icon, ProgressRing, Screen, useToast } from "@/components";
+import { AppHeader, BandPanel, Card, Icon, ProgressRing, Screen, useToast } from "@/components";
 import { dateAndTime, formatRand } from "@/data/format";
 import { canRedeem, nextTier, orderPoints, pointsBalance, pointsValueCents, REDEEM_OPTIONS, TIER_COLORS, TIERS, tierFor } from "@/data/points";
 import { confirmWithBiometrics } from "@/lib/biometric";
@@ -64,20 +64,21 @@ export function PointsScreen() {
       </View>
 
       <Text style={styles.heading}>Redeem for wallet credit</Text>
-      <Card variant="soft">
-        <View style={styles.chips}>
-          {REDEEM_OPTIONS.map((points) => (
-            <Chip
-              disabled={!canRedeem(balance, points)}
-              key={points}
-              label={`${points} pts · ${formatRand(pointsValueCents(points))}`}
-              onPress={() => void redeem(points)}
-              testID={`redeem-${points}`}
-            />
-          ))}
-        </View>
-        <Text style={text.caption}>10 points are worth R1. Credit lands in your wallet straight away.</Text>
-      </Card>
+      <View style={styles.redeemRow}>
+        {REDEEM_OPTIONS.map((amount, index) => {
+          const tone = TIER_COLORS[(["bronze", "silver", "gold"] as const)[index % 3]!];
+          const ok = canRedeem(balance, amount);
+          return (
+            <Pressable accessibilityLabel={`Redeem ${amount} points for ${formatRand(pointsValueCents(amount))}`} accessibilityRole="button" accessibilityState={{ disabled: !ok }} disabled={!ok} key={amount} onPress={() => void redeem(amount)} style={[styles.redeemTile, !ok && styles.redeemOff]} testID={`redeem-${amount}`}>
+              <BandPanel bands={["rgba(255,255,255,0.18)", "rgba(255,255,255,0.10)", "rgba(255,255,255,0.14)"]} colours={tone.gradient} ring={false} style={styles.redeemFill}>
+                <Text style={[styles.redeemValue, { color: tone.ink }]}>{formatRand(pointsValueCents(amount))}</Text>
+                <Text style={[styles.redeemPts, { color: tone.ink }]}>{amount} pts</Text>
+              </BandPanel>
+            </Pressable>
+          );
+        })}
+      </View>
+      <Text style={[text.caption, styles.redeemNote]}>10 points are worth R1. Credit lands in your wallet straight away.</Text>
 
       <Text style={styles.heading}>How you earn</Text>
       <Card>
@@ -131,6 +132,13 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   heading: { ...text.sectionTitle, marginBottom: space.xs, marginTop: space.lg },
   list: { gap: space.xs },
+  redeemFill: { alignItems: "center", gap: 2, justifyContent: "center", minHeight: 92, padding: space.sm },
+  redeemNote: { marginTop: space.xs },
+  redeemOff: { opacity: 0.4 },
+  redeemPts: { fontSize: 12, fontWeight: "700", letterSpacing: 0.4 },
+  redeemRow: { flexDirection: "row", gap: space.xs },
+  redeemTile: { borderCurve: "continuous", borderRadius: corner.xl, boxShadow: "0 6px 14px rgba(30, 42, 56, 0.14)", flex: 1, overflow: "hidden" },
+  redeemValue: { fontSize: 22, fontWeight: "900" },
   next: { color: color.heading, fontSize: 16, fontWeight: "700", marginTop: space.sm },
   points: { fontSize: 15, fontWeight: "800" },
   ringWrap: { alignItems: "center", gap: 2, marginTop: space.md },

@@ -44,7 +44,7 @@ export const PROMOS: Promo[] = promoDefs.map((def) => {
   const percent = promoPercent(def);
   const product = getListing(def.productId);
   return {
-    photo: typeof product?.images[0] === "number" ? (product.images[0] as number) : undefined,
+    photo: product?.images[0],
     productLabel: product ? `${product.title} · ${formatRand(effectivePrice(product))}` : undefined,
     badge: percent > 0 ? `Up to ${percent}% off` : undefined,
     colors: TONES[def.tone],

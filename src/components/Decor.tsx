@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { type ReactNode, useEffect, useState } from "react";
-import { type LayoutChangeEvent, StyleSheet, View, useWindowDimensions } from "react-native";
+import { type LayoutChangeEvent, type StyleProp, StyleSheet, View, type ViewStyle, useWindowDimensions } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import Svg, { Circle, Polygon } from "react-native-svg";
 
@@ -122,25 +122,44 @@ export function Ticket({ children, dim = false, stub, stubColours = ["#40677A", 
   );
 }
 
-/** The branded strip across the top of a receipt: slate with bands and a ring, so it reads as a Vossie receipt. */
-export function ReceiptBand({ children, height = 56 }: { children?: ReactNode; height?: number }) {
-  const [width, setWidth] = useState(360);
+/** A gradient panel with diagonal bands and a ring: the common surface for tier cards, plan headers and receipts. */
+export function BandPanel({
+  bands = ["rgba(255,255,255,0.09)", "rgba(255,255,255,0.06)", "rgba(233,196,150,0.14)"],
+  children,
+  colours = ["#40677A", "#2F5A67"],
+  ring = true,
+  style,
+}: {
+  children?: ReactNode;
+  colours?: readonly [string, string];
+  bands?: readonly string[];
+  ring?: boolean;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const [box, setBox] = useState({ height: 80, width: 360 });
   return (
-    <View onLayout={(event) => setWidth(event.nativeEvent.layout.width)} style={[styles.band, { height }]}>
-      <LinearGradient colors={["#40677A", "#2F5A67"]} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
-      <Bands colours={["rgba(255,255,255,0.09)", "rgba(255,255,255,0.06)", "rgba(233,196,150,0.14)"]} height={height} width={width} />
-      <View style={styles.bandRing} pointerEvents="none">
-        <Rings size={height * 1.5} />
-      </View>
+    <View onLayout={(event) => setBox({ height: event.nativeEvent.layout.height, width: event.nativeEvent.layout.width })} style={[styles.panel, style]}>
+      <LinearGradient colors={colours} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
+      <Bands colours={bands} height={box.height} width={box.width} />
+      {ring ? (
+        <View pointerEvents="none" style={styles.panelRing}>
+          <Rings size={Math.max(90, box.height * 1.4)} />
+        </View>
+      ) : null}
       {children}
     </View>
   );
 }
 
+/** The branded strip across the top of a receipt: slate with bands and a ring, so it reads as a Vossie receipt. */
+export function ReceiptBand({ children, height = 56 }: { children?: ReactNode; height?: number }) {
+  return <BandPanel style={{ alignItems: "center", flexDirection: "row", height, justifyContent: "space-between", paddingHorizontal: 16 }}>{children}</BandPanel>;
+}
+
 const styles = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFill, overflow: "hidden" },
-  band: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", overflow: "hidden", paddingHorizontal: 16 },
-  bandRing: { position: "absolute", right: -16, top: -10 },
+  panel: { overflow: "hidden" },
+  panelRing: { position: "absolute", right: -18, top: -14 },
   dashes: { borderColor: color.borderStrong, borderLeftWidth: 1.5, borderStyle: "dashed", flex: 1 },
   notch: { backgroundColor: color.background, borderRadius: 9, height: 18, left: -8, position: "absolute", width: 18, zIndex: 2 },
   perforation: { alignSelf: "stretch", width: 2 },

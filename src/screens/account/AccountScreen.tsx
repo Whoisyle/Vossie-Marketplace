@@ -1,8 +1,9 @@
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 import {
+  BandPanel,
   AppHeader,
   Button,
   Card,
@@ -18,7 +19,7 @@ import { StudentCardFlip } from "./CardBacks";
 import { walletCardWidth } from "./WalletCards";
 import { deliveryLabels, deliveryOption, type DeliveryMode } from "@/data/delivery";
 import { formatRand } from "@/data/format";
-import { nextTier, pointsBalance, pointsValueCents, tierFor } from "@/data/points";
+import { nextTier, pointsBalance, pointsValueCents, TIER_COLORS, tierFor } from "@/data/points";
 import { getCampusName } from "@/data/repository";
 import type { Role } from "@/data/types";
 import { useDemoStore } from "@/state/DemoStore";
@@ -46,6 +47,7 @@ export function AccountScreen() {
   const unread = state.conversations.filter((item) => item.unread).length;
   const points = pointsBalance(state.orders, state.pointsLedger);
   const tier = tierFor(points);
+  const tierTone = TIER_COLORS[tier.id];
   const upcoming = nextTier(points);
 
   return (
@@ -61,32 +63,34 @@ export function AccountScreen() {
         />
       </View>
 
-      <Card onPress={() => go("/account/points")} style={styles.points} testID="points-card" variant="soft">
-        <View style={styles.pointsTop}>
-          <View style={styles.flex}>
-            <Text style={text.caption}>Vossie Points · {tier.label}</Text>
-            <Text style={styles.pointsValue}>{points.toLocaleString("en-ZA")} pts</Text>
-            <Text style={text.caption}>Worth {formatRand(pointsValueCents(points))} in wallet credit</Text>
-          </View>
-          <View style={styles.tierBadge}>
-            <Icon color={color.ink} name="award" size={14} />
-            <Text style={styles.tierText}>{tier.label}</Text>
-          </View>
-        </View>
-        {upcoming ? (
-          <View style={styles.progressBlock}>
-            <View accessibilityLabel={`${Math.round(upcoming.progress * 100)} percent of the way to ${upcoming.tier.label}`} accessibilityRole="progressbar" style={styles.bar}>
-              <View style={[styles.barFill, { width: `${Math.max(4, Math.round(upcoming.progress * 100))}%` }]} />
+      <Pressable accessibilityRole="button" onPress={() => go("/account/points")} testID="points-card">
+        <BandPanel bands={["rgba(255,255,255,0.14)", "rgba(255,255,255,0.09)", "rgba(255,255,255,0.12)"]} colours={tierTone.gradient} style={styles.points}>
+          <View style={styles.pointsTop}>
+            <View style={styles.flex}>
+              <Text style={[styles.pointsLabel, { color: tierTone.ink }]}>Vossie Points · {tier.label}</Text>
+              <Text style={[styles.pointsValue, { color: tierTone.ink }]}>{points.toLocaleString("en-ZA")} pts</Text>
+              <Text style={[styles.pointsLabel, { color: tierTone.ink }]}>Worth {formatRand(pointsValueCents(points))} in wallet credit</Text>
             </View>
-            <Text style={text.caption}>
-              {upcoming.remaining} more points to {upcoming.tier.label}
-            </Text>
+            <View style={styles.tierBadge}>
+              <Icon color={tierTone.ink} name="award" size={14} />
+              <Text style={[styles.tierText, { color: tierTone.ink }]}>{tier.label}</Text>
+            </View>
           </View>
-        ) : (
-          <Text style={text.caption}>You are at the top tier.</Text>
-        )}
-        <Text style={text.caption}>Earn 1 point for every R10 you spend. Tap to redeem or see your history.</Text>
-      </Card>
+          {upcoming ? (
+            <View style={styles.progressBlock}>
+              <View accessibilityLabel={`${Math.round(upcoming.progress * 100)} percent of the way to ${upcoming.tier.label}`} accessibilityRole="progressbar" style={styles.bar}>
+                <View style={[styles.barFill, { width: `${Math.max(4, Math.round(upcoming.progress * 100))}%` }]} />
+              </View>
+              <Text style={[styles.pointsLabel, { color: tierTone.ink }]}>
+                {upcoming.remaining} more points to {upcoming.tier.label}
+              </Text>
+            </View>
+          ) : (
+            <Text style={[styles.pointsLabel, { color: tierTone.ink }]}>You are at the top tier.</Text>
+          )}
+          <Text style={[styles.pointsLabel, { color: tierTone.ink }]}>Earn 1 point for every R10 you spend. Tap to redeem or see your history.</Text>
+        </BandPanel>
+      </Pressable>
 
       <Card style={styles.facts}>
         <Fact label="Current campus" value={getCampusName(profile.campusId)} />
@@ -202,12 +206,13 @@ function Fact({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  bar: { backgroundColor: color.mist, borderRadius: 4, height: 8, overflow: "hidden" },
-  barFill: { backgroundColor: color.primary, borderRadius: 4, height: 8 },
+  bar: { backgroundColor: "rgba(255,255,255,0.35)", borderRadius: 4, height: 8, overflow: "hidden" },
+  barFill: { backgroundColor: "#FFFFFF", borderRadius: 4, height: 8 },
   cardGap: { alignItems: "center", marginTop: space.sm },
-  points: { gap: space.sm, marginTop: space.sm },
+  points: { borderCurve: "continuous", borderRadius: 24, gap: space.sm, marginTop: space.sm, padding: space.md },
+  pointsLabel: { fontSize: 12, fontWeight: "600", lineHeight: 16, opacity: 0.9 },
   pointsTop: { alignItems: "center", flexDirection: "row", gap: space.sm },
-  pointsValue: { color: color.heading, fontSize: 26, fontWeight: "800" },
+  pointsValue: { fontSize: 28, fontWeight: "800" },
   progressBlock: { gap: 4 },
   sheetIntro: { marginBottom: space.xs },
   tierBadge: { alignItems: "center", backgroundColor: color.mist, borderRadius: 14, flexDirection: "row", gap: 4, paddingHorizontal: 10, paddingVertical: 5 },

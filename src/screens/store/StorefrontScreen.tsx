@@ -87,7 +87,7 @@ export function StorefrontScreen() {
           icon: "percent",
           id: `store-${seller.id}`,
           subtitle: "Discounted items from this store",
-          photo: bestDeal && typeof bestDeal.images[0] === "number" ? (bestDeal.images[0] as number) : undefined,
+          photo: bestDeal?.images[0],
           productLabel: bestDeal ? `${bestDeal.title} · ${formatRand(effectivePrice(bestDeal))}` : undefined,
           title: `${seller.name} deals`,
         }

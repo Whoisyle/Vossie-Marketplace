@@ -1,8 +1,7 @@
-import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Button, Card, Icon, Screen, Sheet, StatusBadge, useToast } from "@/components";
+import { AppHeader, BandPanel, Button, Card, Icon, Screen, Sheet, StatusBadge, useToast } from "@/components";
 import { formatRand, longDate } from "@/data/format";
 import { getPlan, hasPlan, plans, type Plan } from "@/data/subscriptions";
 import { confirmWithBiometrics } from "@/lib/biometric";
@@ -10,6 +9,13 @@ import { useDemoStore } from "@/state/DemoStore";
 import { color, corner, gradient, space, text } from "@/theme/tokens";
 
 const TONES = { ink: gradient.ink, primary: gradient.primary, teal: gradient.teal } as const;
+
+/** A warm accent for the plan that is not slate, so each plan reads as its own. */
+const PLAN_COLOURS: Record<string, readonly [string, string]> = {
+  plus: ["#40677A", "#2F5A67"],
+  "seller-pro": ["#2C4150", "#1E2A38"],
+  "study-pass": ["#D39A5C", "#B07338"],
+};
 
 /** Subscriptions: the plans you are on (and when they renew or end), and the plans you can apply for. */
 export function SubscriptionsScreen() {
@@ -50,7 +56,7 @@ export function SubscriptionsScreen() {
           const plan = getPlan(item.planId);
           return (
             <View key={plan.id} style={styles.current} testID={`current-${plan.id}`}>
-              <LinearGradient colors={TONES[plan.tone]} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
+              <BandPanel colours={PLAN_COLOURS[plan.id] ?? TONES[plan.tone]} style={StyleSheet.absoluteFill} />
               <View style={styles.row}>
                 <View style={styles.badge}>
                   <Icon color={color.onPrimary} name={plan.icon} size={20} />
@@ -94,21 +100,23 @@ export function SubscriptionsScreen() {
       {available.length === 0 ? <Text style={text.bodySmall}>You&apos;re on every plan.</Text> : null}
       <View style={styles.list}>
         {available.map((plan) => (
-          <Card key={plan.id} style={styles.available} testID={`available-${plan.id}`} variant="soft">
-            <View style={styles.row}>
-              <View style={[styles.badge, styles.badgeLight]}>
-                <Icon color={color.heading} name={plan.icon} size={20} />
+          <Card key={plan.id} style={styles.available} testID={`available-${plan.id}`}>
+            <BandPanel colours={PLAN_COLOURS[plan.id] ?? TONES[plan.tone]} style={styles.planHead}>
+              <View style={styles.row}>
+                <View style={styles.badge}>
+                  <Icon color={color.onPrimary} name={plan.icon} size={20} />
+                </View>
+                <View style={styles.flex}>
+                  <Text style={styles.planName}>{plan.name}</Text>
+                  <Text style={styles.planMeta}>{plan.audience}</Text>
+                </View>
+                <Text style={styles.priceOnBand}>{formatRand(plan.priceCents)}/mo</Text>
               </View>
-              <View style={styles.flex}>
-                <Text style={text.cardTitle}>{plan.name}</Text>
-                <Text style={text.caption}>{plan.audience}</Text>
-              </View>
-              <Text style={styles.price}>{formatRand(plan.priceCents)}/mo</Text>
-            </View>
+            </BandPanel>
             <Text style={text.bodySmall}>{plan.tagline}</Text>
             {plan.perks.map((perk) => (
               <View key={perk} style={styles.perk}>
-                <Icon color={color.success} name="check" size={14} />
+                <Icon color={(PLAN_COLOURS[plan.id] ?? TONES[plan.tone])[0]} name="check" size={14} />
                 <Text style={[text.bodySmall, styles.flex]}>{perk}</Text>
               </View>
             ))}
@@ -136,7 +144,9 @@ export function SubscriptionsScreen() {
 
 const styles = StyleSheet.create({
   actions: { alignItems: "flex-start", marginTop: space.xs },
-  available: { gap: space.xs },
+  available: { gap: space.xs, overflow: "hidden" },
+  planHead: { borderRadius: corner.lg, marginBottom: space.xxs, padding: space.sm },
+  priceOnBand: { color: color.onPrimary, fontSize: 15, fontWeight: "800" },
   badge: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 22, height: 44, justifyContent: "center", width: 44 },
   badgeLight: { backgroundColor: color.surfaceIcon },
   current: {

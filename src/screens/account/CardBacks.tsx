@@ -52,7 +52,7 @@ export function BankBack({ card, issuer, width }: { card: SavedCard; issuer: Iss
       <LinearGradient colors={look.base} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
       <StripeAndPanel h={h} ink={look.ink} stripe={look.stripe} w={width} />
       <Text style={{ color: look.ink, fontSize: h * 0.05, left: width * 0.06, lineHeight: h * 0.07, opacity: 0.85, position: "absolute", right: width * 0.32, top: h * 0.66 }}>
-        Issued by {issuer.name}. Not valid unless signed. Lost or stolen? Call your bank's 24-hour line.
+        Issued by {issuer.name}. Not valid unless signed. Lost or stolen? Call your bank&apos;s 24-hour line.
       </Text>
       <Text style={{ bottom: h * 0.07, color: look.ink, fontSize: h * 0.05, left: width * 0.06, letterSpacing: 1, opacity: 0.85, position: "absolute" }}>
         •••• {card.last4}  ·  VALID THRU {card.expiry || "--/--"}
