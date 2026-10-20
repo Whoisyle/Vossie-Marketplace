@@ -5,6 +5,8 @@ import { activeListings, attentionItems, orderCounts, weekBars, weekTotals } fro
 import { sellerBalanceCents } from "@/seller/state";
 import { useDemoStore } from "@/state/DemoStore";
 
+import { useSellerDispatch } from "./actions";
+
 /** Good morning, afternoon or evening, from the phone's clock. */
 export function greeting(now: Date = new Date()): string {
   const hour = now.getHours();
@@ -34,7 +36,8 @@ export function useBuyerMessages() {
  * and the numbers the cards show. Recomputed when the underlying data changes, not on every render.
  */
 export function useSeller() {
-  const { dispatch, state } = useDemoStore();
+  const { state } = useDemoStore();
+  const dispatch = useSellerDispatch();
   const messages = useBuyerMessages();
   const seller = state.seller;
   const canTrade = seller.status === "approved";

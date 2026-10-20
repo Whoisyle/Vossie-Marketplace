@@ -84,6 +84,8 @@ export type SellerListing = {
   category: "food" | "books" | "electronics" | "fashion" | "services";
   /** Which of our product drawings to show, when there is one. */
   artId?: string;
+  /** The database option that holds this listing's price and stock (live mode). */
+  optionId?: string;
   updatedAt: string;
 };
 
@@ -114,7 +116,7 @@ export type SellerAction =
   | { type: "sellerSetKind"; kind: SellerKind }
   | { type: "sellerSetBasics"; storeName: string; phone: string }
   | { type: "sellerGoToStep"; step: 1 | 2 | 3 }
-  | { type: "sellerUploadDocument"; kind: DocKind; fileName: string }
+  | { type: "sellerUploadDocument"; kind: DocKind; fileName: string; /** The picked file, which the live backend uploads. */ uri?: string }
   | { type: "sellerSubmitVerification" }
   | { type: "sellerReviewTick" }
   | { type: "sellerSaveStore"; patch: Partial<Pick<SellerProfile, "logoUri" | "storeName" | "description" | "location" | "days" | "opens" | "closes">> }
@@ -129,4 +131,6 @@ export type SellerAction =
   | { type: "sellerDeleteListing"; id: string }
   | { type: "sellerSaveBank"; bank: BankAccount }
   | { type: "sellerWithdraw"; amountCents: number }
-  | { type: "sellerMarkAlertsRead" };
+  | { type: "sellerMarkAlertsRead" }
+  /** Live mode: replace what the screens show with what the database holds. */
+  | { type: "sellerHydrate"; patch: Partial<SellerState> };

@@ -6,6 +6,8 @@ import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSpring } fr
 import { Icon, type IconName } from "@/components";
 import { haptic } from "@/lib/haptics";
 import { useDemoStore } from "@/state/DemoStore";
+
+import { useSellerDispatch } from "./actions";
 import { spring } from "@/theme/motion";
 import { isValidSouthAfricanPhone } from "@/screens/profile/phone";
 
@@ -24,7 +26,8 @@ export const KINDS: { kind: SellerKind; title: string; hint: string; icon: IconN
 /** Step 1 of 3: what kind of seller you are, the name of your store and a number buyers can reach. */
 export function SellerTypeScreen() {
   const router = useRouter();
-  const { dispatch, state } = useDemoStore();
+  const { state } = useDemoStore();
+  const dispatch = useSellerDispatch();
   const [kind, setKind] = useState<SellerKind | null>(state.seller.profile.kind);
   const [storeName, setStoreName] = useState(state.seller.profile.storeName);
   const [phone, setPhone] = useState(state.seller.profile.phone || state.profile?.phone || "");

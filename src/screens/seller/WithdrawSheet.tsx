@@ -8,6 +8,8 @@ import { confirmWithBiometrics } from "@/lib/biometric";
 import { parseRandToCents } from "@/screens/account/walletAmount";
 import { eftBanks } from "@/screens/cart/payment";
 import { useDemoStore } from "@/state/DemoStore";
+
+import { useSellerDispatch } from "./actions";
 import { color, space, text } from "@/theme/tokens";
 
 /**
@@ -16,7 +18,8 @@ import { color, space, text } from "@/theme/tokens";
  */
 export function WithdrawSheet({ availableCents, onClose, onPaid, visible }: { visible: boolean; availableCents: number; onClose: () => void; onPaid: (amountCents: number) => void }) {
   const toast = useToast();
-  const { dispatch, state } = useDemoStore();
+  const { state } = useDemoStore();
+  const dispatch = useSellerDispatch();
   const bank = state.seller.profile.bank;
   const [amount, setAmount] = useState("");
   const [bankName, setBankName] = useState<string>(bank?.bankName ?? "");

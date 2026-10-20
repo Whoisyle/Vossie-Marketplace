@@ -27,7 +27,8 @@ import { groupCode, MAX_GROUP_MEMBERS, memberShares, type GroupOrder } from "@/d
 import { lostFoundSeed, splitShares, swapsSeed, type LostFoundKind, type LostFoundPost, type SavedSearch, type Split, type SwapPost, type WishCollection } from "@/data/campus";
 import { lookupStudentRecord } from "@/data/studentRecord";
 import { applySellerAction, routeNewOrdersToSeller } from "@/seller/bridge";
-import { createSellerState } from "@/seller/state";
+import { liveBackend } from "@/backend/mode";
+import { createSellerState, emptySellerState } from "@/seller/state";
 import type { SellerAction, SellerState } from "@/seller/types";
 import type {
   ActivityItem,
@@ -196,7 +197,8 @@ export function createInitialState(): DemoState {
     reels: reelsSeed,
     likedReels: [],
     lastReceipt: null,
-    seller: createSellerState(),
+    // the live backend starts from nothing; the demo starts with the sample shop from the designs
+    seller: liveBackend ? emptySellerState() : createSellerState(),
   };
 }
 

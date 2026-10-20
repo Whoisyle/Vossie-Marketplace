@@ -8,6 +8,7 @@ import { formatRand, initials } from "@/data/format";
 import { haptic } from "@/lib/haptics";
 import type { SellerOrder } from "@/seller/types";
 
+import { useHandoff } from "./actions";
 import { SellerField } from "./fields";
 import { useSeller } from "./hooks";
 import { Confetti, SlideToConfirm, useShake } from "./motion";
@@ -119,7 +120,7 @@ export function SellerOrderDetailScreen() {
         <SellerCard style={styles.where} testID="order-where">
           <Text style={styles.itemTitle}>{order.fulfilmentLabel}</Text>
           <Text style={styles.hint}>
-            {order.fulfilment === "delivery" ? "Deliver to" : "Pickup point"}: {order.place}
+            {order.place ? `${order.fulfilment === "delivery" ? "Deliver to" : "Pickup point"}: ${order.place}` : order.fulfilment === "delivery" ? "A Vossie courier collects it" : "Hand over on campus"}
             {order.by ? ` by ${order.by}` : ""}
           </Text>
         </SellerCard>
@@ -165,17 +166,20 @@ export function SellerOrderDetailScreen() {
 
 /** The last step: the buyer reads out their six digits and the seller types them in. */
 function HandOver({ onDone, order }: { order: SellerOrder; onDone: () => void }) {
-  const { dispatch } = useSeller();
+  const handOff = useHandoff();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | undefined>();
-  const check = () => {
-    if (code.trim() !== order.handoffCode) {
-      setError("That code does not match. Ask the buyer to read it out again.");
+  const [busy, setBusy] = useState(false);
+  const check = async () => {
+    setBusy(true);
+    const result = await handOff(order, code);
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.message);
       haptic.error();
       return;
     }
     setError(undefined);
-    dispatch({ id: order.id, type: "sellerCompleteOrder" });
     onDone();
   };
   return (
@@ -183,8 +187,8 @@ function HandOver({ onDone, order }: { order: SellerOrder; onDone: () => void })
       <Text style={styles.itemTitle}>Hand over the order</Text>
       <Text style={styles.hint}>Ask {order.buyerName} for the six digit code in their order.</Text>
       <SellerField error={error} keyboardType="number-pad" label="Collection code" onChangeText={setCode} placeholder="000000" testID="handover-code" value={code} />
-      <Text style={styles.demo}>Demo code: {order.handoffCode}</Text>
-      <SellerButton disabled={code.trim().length !== 6} label="Confirm hand over" onPress={check} testID="handover-confirm" variant="solid" />
+      {order.handoffCode ? <Text style={styles.demo}>Demo code: {order.handoffCode}</Text> : null}
+      <SellerButton disabled={code.trim().length !== 6} label="Confirm hand over" loading={busy} onPress={() => void check()} testID="handover-confirm" variant="solid" />
     </SellerCard>
   );
 }

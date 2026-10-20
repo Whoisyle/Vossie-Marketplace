@@ -141,6 +141,21 @@ function alertsSeed(now: number): SellerAlert[] {
   ];
 }
 
+/** A seller with nothing in it: what the live backend starts from, and the state of someone who has not started. */
+export function emptySellerState(): SellerState {
+  return {
+    alerts: [],
+    documents: [],
+    ledger: [],
+    listings: [],
+    orders: [],
+    profile: { closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], description: "", kind: null, location: "", opens: "08:00", phone: "", storeId: "", storeName: "" },
+    setupDone: false,
+    status: "none",
+    step: 1,
+  };
+}
+
 export function createSellerState(now: number = Date.now()): SellerState {
   return {
     alerts: alertsSeed(now),
@@ -284,6 +299,25 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
     }
     case "sellerMarkAlertsRead":
       return { ...state, alerts: state.alerts.map((item) => ({ ...item, read: true })) };
+    case "sellerHydrate": {
+      const patch = action.patch;
+      const orders = patch.orders ?? state.orders;
+      // a new order the seller has not been told about yet becomes an alert
+      const known = new Set(state.alerts.map((item) => item.id));
+      const fresh: SellerAlert[] = orders
+        .filter((item) => item.status === "new" && !known.has(`sa-${item.id}`))
+        .map((item) => ({ body: `${item.buyerName} ordered ${item.lines.map((line) => `${line.title}${line.quantity > 1 ? ` x${line.quantity}` : ""}`).join(", ")}.`, createdAt: item.placedAt, href: `/seller/orders/${item.id}`, id: `sa-${item.id}`, kind: "order" as const, read: false, title: `New order ${item.number}` }));
+      const status = patch.status ?? state.status;
+      return {
+        ...state,
+        ...patch,
+        alerts: [...fresh, ...state.alerts],
+        profile: patch.profile ? { ...state.profile, ...patch.profile, bank: state.profile.bank, logoUri: patch.profile.logoUri ?? state.profile.logoUri } : state.profile,
+        // someone who finished the store step before, or who is approved, does not set up again on a new phone
+        setupDone: state.setupDone || status === "approved" || Boolean(patch.profile?.location),
+        step: state.step,
+      };
+    }
     default:
       return state;
   }

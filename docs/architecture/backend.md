@@ -91,6 +91,14 @@ Differences between the demo app and the database to settle with the owner: the 
 
 Subscriptions (`subscription_plans`, `subscriptions`, `subscribe_plan`, `cancel_subscription`, `resume_subscription`, `renew_subscriptions` for a scheduled job), safety (`emergency_contacts`, `safety_settings`, `safety_reports` with staff read), card withdrawals (`withdrawal_requests`, `request_card_withdrawal`, trusted `settle_withdrawal`), and referrals now pay 200 points when the friend's first seller order completes (replaces the R30 wallet credit). Tests: `supabase/tests/phase5.test.mjs`. Also `campus_contacts` (security desk, clinic and hub numbers per campus, read by signed-in students, written by trusted code; the hosted `campuses` table only has an id and a name, so the numbers still need to be entered). The minimum withdrawal is R60. App-only for now: group orders, wishlist collections, saved searches, book swap, lost and found, bill splits, and applying subscription perks in `quote_cart`.
 
+## Seller onboarding (`20261020000100_seller_onboarding.sql`)
+
+Built from the owner's seller screens (2026-10-20). Adds `sellers.kind` (student, campus business, registered), `contact_phone`, `logo_path`, `open_days`, `opens_at` and `closes_at`, and the table `seller_documents` (student card, ID, proof of address, CIPC registration for companies; status required, uploaded, in review, verified, rejected). Documents live in the private `seller-documents` bucket, in the seller's own folder, readable by the seller and staff.
+
+Flow: `save_seller_onboarding` (creates the seller as a draft, keeps the status of an existing one) then `attach_seller_document` for each document, then `submit_seller_verification` (documents go in review, the seller goes to `pending_review`; the student card is accepted at once when the Eduvos record matched). Staff call `staff_review_seller_document` for each document. When the last required document is verified the seller is approved through the existing `review_seller`; a rejected document rejects the seller with the staff note, and the seller re-uploads and resubmits. 14 database tests in `supabase/tests/seller_onboarding.test.mjs`.
+
+Not built: the staff screen that calls `staff_review_seller_document` (use the Supabase dashboard or SQL until the staff app exists), listing photo upload (publishing a listing needs one), an archive function for deleting a listing, and real-time order alerts (the app reads again every 20 seconds). In the app the live path is `src/seller/live.ts` (reads), `src/seller/liveActions.ts` (writes) and `src/screens/seller/actions.ts`, switched on by `EXPO_PUBLIC_USE_BACKEND=true`; with it off the seller screens run on the demo store.
+
 ## What is deliberately not built (external gates and open decisions)
 
 | Item | Why |

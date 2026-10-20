@@ -9,6 +9,8 @@ import { haptic } from "@/lib/haptics";
 import { DAY_KEYS, DAY_LABELS, type DayKey } from "@/seller/types";
 import { useDemoStore } from "@/state/DemoStore";
 
+import { useSellerDispatch } from "./actions";
+
 import { SellerField, usePickImage } from "./fields";
 import { StepBar } from "./motion";
 import { SELLER, SellerButton, SellerScreen, SellerTopBar } from "./ui";
@@ -21,7 +23,8 @@ export function isTime(value: string): boolean {
 /** Step 3 of 3: how buyers will see the store: logo, name, what it sells, where to collect and which days it is open. */
 export function SellerStoreScreen({ mode = "setup" }: { mode?: "setup" | "manage" }) {
   const router = useRouter();
-  const { dispatch, state } = useDemoStore();
+  const { state } = useDemoStore();
+  const dispatch = useSellerDispatch();
   const pick = usePickImage();
   const saved = state.seller.profile;
   const [logo, setLogo] = useState(saved.logoUri);

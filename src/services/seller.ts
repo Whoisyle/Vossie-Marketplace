@@ -21,7 +21,7 @@ export const submitSellerProfile = (input: SellerProfileInput) =>
   });
 
 export async function getMySeller() {
-  return unwrap(await supabase.from("sellers").select("id, display_name, status, review_note, campus_id, sells_goods, provides_services").maybeSingle());
+  return unwrap(await supabase.from("sellers").select("id, display_name, bio, location_text, status, review_note, campus_id, sells_goods, provides_services, kind, contact_phone, logo_path, open_days, opens_at, closes_at").maybeSingle());
 }
 
 export type ListingInput = {
@@ -97,3 +97,70 @@ export const completeCampusHandoff = (sellerOrderId: string, code: string) =>
 export const markServiceComplete = (bookingId: string) => rpc("provider_mark_complete", { p_booking_id: bookingId });
 export const cancelAsSeller = (sellerOrderId: string, reason: string) =>
   rpc("seller_cancel_order", { p_seller_order_id: sellerOrderId, p_reason: reason });
+
+export type SellerKindDb = "student" | "campus_business" | "registered";
+export type SellerDocKindDb = "student_card" | "id" | "address" | "cipc";
+
+export type SaveSellerOnboardingInput = {
+  kind: SellerKindDb;
+  displayName: string;
+  phone: string;
+  bio: string;
+  locationText: string;
+  campusId: string;
+  openDays: string[];
+  /** "08:00" */
+  opensAt: string;
+  closesAt: string;
+  logoPath?: string | null;
+};
+
+/** Steps 1 and 3 of the seller setup: who the seller is and how buyers see the store. Creates the seller as a draft. */
+export const saveSellerOnboarding = (input: SaveSellerOnboardingInput) =>
+  rpc("save_seller_onboarding", {
+    p_kind: input.kind,
+    p_display_name: input.displayName,
+    p_phone: input.phone,
+    p_bio: input.bio,
+    p_location_text: input.locationText,
+    p_campus_id: input.campusId,
+    p_open_days: input.openDays,
+    p_opens_at: input.opensAt,
+    p_closes_at: input.closesAt,
+    p_logo_path: input.logoPath ?? null,
+  });
+
+/** Uploads a file to the private seller-documents bucket, in the seller's own folder, and returns its path. */
+export async function uploadSellerFile(kind: string, file: { uri: string; name: string }, bucket: "seller-documents" | "avatars" = "seller-documents"): Promise<string> {
+  const me = (await supabase.auth.getUser()).data.user?.id;
+  if (!me) throw new Error("not_signed_in");
+  const blob = await (await fetch(file.uri)).blob();
+  const extension = file.name.includes(".") ? file.name.split(".").pop()!.toLowerCase() : "jpg";
+  const path = `${me}/${kind}-${Date.now()}.${extension}`;
+  const { error } = await supabase.storage.from(bucket).upload(path, blob, { contentType: blob.type || "image/jpeg", upsert: false });
+  if (error) throw error;
+  return path;
+}
+
+/** Hands in one document: uploads the file, then records it against the seller. */
+export async function attachSellerDocument(kind: SellerDocKindDb, file: { uri: string; name: string }) {
+  const path = await uploadSellerFile(kind, file);
+  return rpc("attach_seller_document", { p_kind: kind, p_storage_path: path, p_file_name: file.name });
+}
+
+/** Sends the documents for review. The student card is accepted on its own when the Eduvos record matched. */
+export const submitSellerVerification = () => rpc("submit_seller_verification");
+
+export async function listMySellerDocuments() {
+  return unwrap(await supabase.from("seller_documents").select("id, kind, status, file_name, note, updated_at"));
+}
+
+/** My listings with their options, so stock and price can be shown and changed. */
+export async function listMyListingsWithStock() {
+  return unwrap(
+    await supabase
+      .from("listings")
+      .select("id, type, title, description, status, category_id, updated_at, listing_options(id, label, price_cents, on_hand, unlimited)")
+      .order("updated_at", { ascending: false }),
+  );
+}

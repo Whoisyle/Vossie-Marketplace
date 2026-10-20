@@ -8,6 +8,8 @@ import { docHints, docTitles } from "@/seller/state";
 import type { DocStatus, SellerDocument } from "@/seller/types";
 import { useDemoStore } from "@/state/DemoStore";
 
+import { useSellerDispatch } from "./actions";
+
 import { usePickImage } from "./fields";
 import { Confetti, StepBar } from "./motion";
 import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerScreen, SellerTopBar } from "./ui";
@@ -23,7 +25,8 @@ const DOC_LABEL: Record<DocStatus, { label: string; tone: PillTone }> = {
 /** Step 2 of 3: the documents buyers need to trust a seller, what Vossie Operations has done with them, and where review is up to. */
 export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manage" }) {
   const router = useRouter();
-  const { dispatch, state } = useDemoStore();
+  const { state } = useDemoStore();
+  const dispatch = useSellerDispatch();
   const pick = usePickImage();
   const seller = state.seller;
   const received = seller.documents.filter((doc) => doc.status !== "required" && doc.status !== "rejected").length;
@@ -42,7 +45,7 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
   const upload = async (doc: SellerDocument) => {
     if (submitted || doc.status === "verified") return;
     const picked = await pick(false);
-    if (picked) dispatch({ fileName: picked.name, kind: doc.kind, type: "sellerUploadDocument" });
+    if (picked) dispatch({ fileName: picked.name, kind: doc.kind, type: "sellerUploadDocument", uri: picked.uri });
   };
 
   const headline = approved ? { label: "Approved", tone: "success" as const } : submitted ? { label: "Pending", tone: "warn" as const } : missing > 0 ? { label: "Incomplete", tone: "danger" as const } : { label: "Ready", tone: "info" as const };

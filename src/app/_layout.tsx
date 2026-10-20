@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ToastProvider } from "@/components";
 import { liveBackend } from "@/backend/mode";
 import { SellerDemoEffects } from "@/screens/seller/SellerDemoEffects";
+import { SellerLiveSync } from "@/screens/seller/SellerLiveSync";
 import { DemoStoreProvider } from "@/state/DemoStore";
 import { color } from "@/theme/tokens";
 
@@ -13,6 +14,7 @@ export default function RootLayout() {
     <DemoStoreProvider>
       <ToastProvider>
         <SellerDemoEffects enabled={!liveBackend} />
+        <SellerLiveSync />
         <Stack
           screenOptions={{
             contentStyle: { backgroundColor: color.background },

@@ -26,7 +26,12 @@ Last updated: 2026-10-20.
 - [ ] **Order alerts are local.** Real alerts need push notifications (Expo push plus a server trigger).
 - [ ] **Seller Earnings and the weekly chart are computed from demo orders.** Real numbers come from the money ledger.
 - [ ] **Handoff code check** runs against a demo code. Real check is `seller_complete_handoff`.
-- [ ] **Seller messages** use the demo conversations; real ones use `messaging` services and realtime.
+- [ ] **Seller messages** use the demo conversations; real ones use `messaging` services and realtime. The thread page is the buyer's look.
+- [ ] **Demo orders arrive on a timer** while a seller is in seller mode (`SellerDemoEffects`, 40, 110 and 200 seconds). Remove once real students order.
+- [ ] **Listing photos:** seller listings use our drawings; real photo upload is not built, and the database will not publish a listing without a photo. Deleting a listing is local only (no archive function).
+- [ ] **Seller payouts and bank details:** the saved bank keeps the last four digits only and nothing is verified with the bank.
+- [ ] **Platform fee on sales** is not shown or taken in the seller's earnings; the fee policy is an open decision.
+- [ ] **The seller screens' live path** (Supabase) is written and tested against mocks and the database tests, but has never run against the hosted project, because the migrations are not applied. First run needs a real sign-in (email one-time code), a staff account to approve documents, and a listing photo.
 
 ## Courier, delivery and maps
 

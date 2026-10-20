@@ -213,17 +213,17 @@ describe("seller order detail", () => {
     expect(screen.getByTestId("slide-accept")).toBeTruthy();
   });
 
-  it("completes a ready order only with the right collection code", () => {
+  it("completes a ready order only with the right collection code", async () => {
     mockParams = { id: "so-2036" };
     renderWithProviders(<SellerOrderDetailScreen />, seller());
     fireEvent.changeText(screen.getByTestId("handover-code"), "000000");
     fireEvent.press(screen.getByTestId("handover-confirm"));
-    expect(screen.getByText(/That code does not match/)).toBeTruthy();
+    expect(await screen.findByText(/That code does not match/)).toBeTruthy();
     expect(screen.queryByTestId("order-done")).toBeNull();
     const code = screen.getByText(/Demo code: \d{6}/).props.children.join("").replace(/\D/g, "");
     fireEvent.changeText(screen.getByTestId("handover-code"), code);
     fireEvent.press(screen.getByTestId("handover-confirm"));
-    expect(screen.getByTestId("order-done")).toBeTruthy();
+    expect(await screen.findByTestId("order-done")).toBeTruthy();
   });
 
   it("says so when the order is not there", () => {

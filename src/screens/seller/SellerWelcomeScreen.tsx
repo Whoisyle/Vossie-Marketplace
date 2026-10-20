@@ -5,8 +5,7 @@ import Animated, { FadeInDown, FadeInLeft, useAnimatedStyle, useReducedMotion, u
 
 import { Icon, type IconName } from "@/components";
 import { ease } from "@/theme/motion";
-import { useDemoStore } from "@/state/DemoStore";
-
+import { useSellerDispatch } from "./actions";
 import { SellerButton, SellerHeader, SellerScreen } from "./ui";
 
 const BENEFITS: { icon: IconName; text: string }[] = [
@@ -18,7 +17,7 @@ const BENEFITS: { icon: IconName; text: string }[] = [
 /** The first seller page: "Welcome. Let's set up your shop." with what a seller gets, and the button that starts the setup. */
 export function SellerWelcomeScreen() {
   const router = useRouter();
-  const { dispatch } = useDemoStore();
+  const dispatch = useSellerDispatch();
   const reduced = useReducedMotion();
   const glow = useSharedValue(0);
   useEffect(() => {
