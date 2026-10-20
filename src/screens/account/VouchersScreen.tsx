@@ -3,9 +3,8 @@ import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { Image } from "expo-image";
-
 import { AppHeader, Button, Card, EmptyState, Icon, Screen, SegmentedTabs, StatusBadge, Ticket, useToast } from "@/components";
+import { ProductArt } from "@/components/art/ProductArt";
 import { vouchers as voucherRules } from "@/data/mock/account";
 import { getListing } from "@/data/repository";
 import { shortDate } from "@/data/format";
@@ -62,13 +61,13 @@ export function VouchersScreen() {
       {tab === "offers" ? (
         <View style={styles.list}>
           {promoDefs.map((def, index) => {
-            const photo = getListing(def.productId)?.images[0];
+            const productId = getListing(def.productId)?.id;
             return (
               <Pressable accessibilityRole="button" key={def.id} onPress={() => router.push(open("promo", def.id))} testID={`offer-${def.id}`}>
                 <Ticket
                   stub={
-                    photo ? (
-                      <Image accessibilityLabel={getListing(def.productId)?.title} contentFit="cover" source={photo} style={styles.stubPhoto} />
+                    productId ? (
+                      <ProductArt id={productId} size={78} />
                     ) : (
                       <Icon color={color.onPrimary} name="percent" size={26} />
                     )
@@ -208,7 +207,6 @@ const styles = StyleSheet.create({
   list: { gap: space.xs, marginTop: space.sm },
   soon: { color: color.warning, fontWeight: "700" },
   stubBig: { color: "#FFFFFF", fontSize: 28, fontWeight: "900", letterSpacing: -0.5 },
-  stubPhoto: { borderColor: "#FFFFFF", borderRadius: 32, borderWidth: 3, height: 64, width: 64 },
   stubSmall: { color: "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: "800", letterSpacing: 1.5 },
   ticketRow: { alignItems: "center", flexDirection: "row", gap: space.sm },
 });

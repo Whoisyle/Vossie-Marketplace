@@ -20,13 +20,13 @@ import {
 } from "@/components";
 import { VossieMap } from "@/components/map/VossieMap";
 import { shortDate, formatRand } from "@/data/format";
-import { dealFor, effectivePrice } from "@/data/deals";
+import { dealFor } from "@/data/deals";
 import { isVerifiedSeller } from "@/data/phase4";
 import { storeLocation } from "@/data/geo";
 import { getCampusName, getListings, getSeller } from "@/data/repository";
 import type { Listing } from "@/data/types";
 import { useDetail } from "@/lib/paths";
-import { PromoCarousel, type Promo } from "@/screens/home/PromoCarousel";
+import { PromoCarousel, promoProductFor, type Promo } from "@/screens/home/PromoCarousel";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, corner, gradient, size, space, text } from "@/theme/tokens";
 
@@ -87,8 +87,7 @@ export function StorefrontScreen() {
           icon: "percent",
           id: `store-${seller.id}`,
           subtitle: "Discounted items from this store",
-          photo: bestDeal?.images[0],
-          productLabel: bestDeal ? `${bestDeal.title} · ${formatRand(effectivePrice(bestDeal))}` : undefined,
+          product: bestDeal ? promoProductFor(bestDeal.id) : undefined,
           title: `${seller.name} deals`,
         }
       : null;

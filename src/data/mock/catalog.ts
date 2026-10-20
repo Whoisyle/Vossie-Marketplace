@@ -1,17 +1,9 @@
 import type { Campus, Category, Listing, Seller } from "../types";
 
 import { moreListings, moreSellers } from "./moreCatalog";
-import { listingPhotos } from "./photos";
+import { hasArt, ART_PREFIX } from "@/components/art/ProductArt";
 
-const img = {
-  calculator: require("../../../assets/demo/calculator.jpg"),
-  greenFolders: require("../../../assets/demo/green-folders.jpg"),
-  matchaAvo: require("../../../assets/demo/matcha-avo.jpg"),
-  mintLaptop: require("../../../assets/demo/mint-laptop.jpg"),
-  plannerNotebooks: require("../../../assets/demo/planner-notebooks.jpg"),
-  strawberries: require("../../../assets/demo/strawberries.jpg"),
-  studyDesk: require("../../../assets/demo/study-desk.jpg"),
-} as const;
+
 
 export const campuses: Campus[] = [
   { id: "midrand-head-office", name: "Midrand (Head Office)", region: "Gauteng" },
@@ -104,7 +96,7 @@ const baseListings: Listing[] = [
     rating: 4.6,
     ratingCount: 97,
     description: "Ceremonial-grade iced matcha with smashed avo on sourdough.",
-    images: [img.matchaAvo],
+    images: [],
     options: [],
     pickupTime: "10–15 min",
     openHours: "08:00 – 16:00",
@@ -122,7 +114,7 @@ const baseListings: Listing[] = [
     rating: 4.9,
     ratingCount: 64,
     description: "Fresh strawberries dipped in white and matcha chocolate. Order by 12:00 for same-day collection.",
-    images: [img.strawberries],
+    images: [],
     options: [],
     pickupTime: "Same day",
     openHours: "09:00 – 19:00",
@@ -158,7 +150,7 @@ const baseListings: Listing[] = [
     rating: 4.7,
     ratingCount: 41,
     description: "A5 weekly planner plus two spiral notebooks. Unused.",
-    images: [img.plannerNotebooks],
+    images: [],
     options: [],
     pickupTime: "Today",
     openHours: "Mon – Fri",
@@ -176,7 +168,7 @@ const baseListings: Listing[] = [
     rating: 4.5,
     ratingCount: 12,
     description: "Five durable A4 folders in sage green.",
-    images: [img.greenFolders],
+    images: [],
     options: [],
     pickupTime: "Today",
     openHours: "Mon – Fri",
@@ -212,7 +204,7 @@ const baseListings: Listing[] = [
     rating: 4.5,
     ratingCount: 58,
     description: "Intel i5, 8GB RAM, 256GB SSD. Battery 4h+. Includes charger and sleeve.",
-    images: [img.mintLaptop],
+    images: [],
     options: [],
     pickupTime: "Same day",
     openHours: "09:00 – 16:00",
@@ -230,7 +222,7 @@ const baseListings: Listing[] = [
     rating: 4.6,
     ratingCount: 21,
     description: "Exam-approved scientific calculator. Fresh battery.",
-    images: [img.calculator],
+    images: [],
     options: [],
     pickupTime: "Same day",
     openHours: "09:00 – 16:00",
@@ -248,7 +240,7 @@ const baseListings: Listing[] = [
     rating: 4.4,
     ratingCount: 14,
     description: "Great for note-taking and reading PDFs. 64GB, with case.",
-    images: [img.studyDesk],
+    images: [],
     options: [],
     pickupTime: "Same day",
     openHours: "09:00 – 16:00",
@@ -383,4 +375,4 @@ const baseListings: Listing[] = [
 ];
 
 export const sellers: Seller[] = [...baseSellers, ...moreSellers];
-export const listings: Listing[] = [...baseListings, ...moreListings].map((listing) => (listingPhotos[listing.id] ? { ...listing, images: [listingPhotos[listing.id]!] } : listing));
+export const listings: Listing[] = [...baseListings, ...moreListings].map((listing) => (hasArt(listing.id) ? { ...listing, images: [`${ART_PREFIX}${listing.id}`] } : listing));

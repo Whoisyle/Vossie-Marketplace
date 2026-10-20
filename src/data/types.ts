@@ -62,7 +62,8 @@ export type Listing = {
   rating: number;
   ratingCount: number;
   description: string;
-  images: number[];
+  /** Photos, or `art:<id>` for one of our own drawings (see components/art). */
+  images: (number | string)[];
   options: ListingOption[];
   pickupTime: string;
   openHours: string;

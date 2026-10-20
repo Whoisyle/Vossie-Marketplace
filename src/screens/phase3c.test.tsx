@@ -11,7 +11,11 @@ import { SecurityScreen, securityScore } from "./account/SecurityScreen";
 import { deliveryStatus, groupByDay, quickReplies, ThreadScreen } from "./account/ThreadScreen";
 import { initialIndex, walletItems } from "./account/WalletCards";
 import { WalletScreen } from "./account/WalletScreen";
-import { PromoCarousel } from "./home/PromoCarousel";
+import { ART_IDS, hasArt } from "@/components/art/ProductArt";
+import { listings } from "@/data/mock/catalog";
+
+import { HomeScreen } from "./home/HomeScreen";
+import { PromoCarousel, PROMOS } from "./home/PromoCarousel";
 import { PromoScreen } from "./promo/PromoScreen";
 
 const mockPush = jest.fn();
@@ -110,6 +114,16 @@ describe("Promotions", () => {
     expect(mockPush).toHaveBeenCalledWith("/home/promo/promo-campusbites");
   });
 
+  it("shows each banner's product with its name, price and discount", () => {
+    renderWithProviders(<PromoCarousel width={393} />);
+    expect(screen.getByLabelText(/Burger & Chips, R 48, 20 percent off/)).toBeTruthy();
+    expect(screen.getAllByText("-20%").length).toBeGreaterThan(0);
+    for (const promo of PROMOS) {
+      expect(promo.product).toBeTruthy();
+      expect(hasArt(promo.product!.id)).toBe(true);
+    }
+  });
+
   it("shows the discounted listings first, then the rest of the store", () => {
     renderWithProviders(<PromoScreen />, signedIn());
     expect(screen.getByText("Up to 20% off")).toBeTruthy();
@@ -203,5 +217,21 @@ describe("Messages screens", () => {
     renderWithProviders(<ThreadScreen />, state);
     expect(screen.getByTestId("thread-order")).toBeTruthy();
     expect(screen.getByText("I'm at the gate")).toBeTruthy();
+  });
+});
+
+describe("Product drawings and the notification bell", () => {
+  it("gives every listing its own drawing instead of a photo", () => {
+    expect(ART_IDS.length).toBeGreaterThanOrEqual(32);
+    for (const listing of listings) {
+      expect(hasArt(listing.id)).toBe(true);
+      expect(listing.images[0]).toBe(`art:${listing.id}`);
+    }
+  });
+
+  it("opens the notifications screen from the bell", () => {
+    renderWithProviders(<HomeScreen />, signedIn());
+    fireEvent.press(screen.getByLabelText(/^Notifications/));
+    expect(mockPush).toHaveBeenCalledWith("/home/notifications");
   });
 });

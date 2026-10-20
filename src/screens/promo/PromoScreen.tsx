@@ -11,10 +11,10 @@ import { getPromo, promoListings, promoPercent, promoTargetName } from "@/data/p
 import { getCategory } from "@/data/repository";
 import type { Listing } from "@/data/types";
 import { useDetail } from "@/lib/paths";
+import { PROMO_TONES } from "@/screens/home/PromoCarousel";
 import { useDemoStore } from "@/state/DemoStore";
-import { color, corner, gradient, space, text } from "@/theme/tokens";
+import { color, corner, space, text } from "@/theme/tokens";
 
-const TONES = { ink: gradient.ink, primary: gradient.primary, teal: gradient.teal } as const;
 
 /**
  * A promotion's page: the banner, then the discounted listings first (biggest discount at the top), then
@@ -72,7 +72,7 @@ export function PromoScreen() {
     <Screen testID="promo-screen">
       <AppHeader back />
       <View style={styles.hero}>
-        <LinearGradient colors={TONES[promo.tone]} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={PROMO_TONES[promo.tone]} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
         <View style={styles.bubble} />
         <View style={styles.heroText}>
           {percent > 0 ? (

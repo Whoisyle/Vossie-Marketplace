@@ -3,6 +3,7 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { color } from "@/theme/tokens";
 
+import { ART_PREFIX, ArtTile, hasArt } from "./art/ProductArt";
 import { Icon, type IconName } from "./Icon";
 
 /** Listing or avatar artwork. Falls back to the grey placeholder from the designs. */
@@ -25,7 +26,9 @@ export function Media({
       accessibilityRole={accessibilityLabel ? "image" : undefined}
       style={[styles.frame, { borderRadius: radius }, style]}
     >
-      {source ? (
+      {typeof source === "string" && source.startsWith(ART_PREFIX) && hasArt(source.slice(ART_PREFIX.length)) ? (
+        <ArtTile id={source.slice(ART_PREFIX.length)} />
+      ) : source ? (
         <Image
           contentFit="cover"
           source={typeof source === "string" ? { uri: source } : source}

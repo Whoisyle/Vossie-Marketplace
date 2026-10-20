@@ -2,7 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { type ReactNode, useEffect, useState } from "react";
 import { type LayoutChangeEvent, type StyleProp, StyleSheet, View, type ViewStyle, useWindowDimensions } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
-import Svg, { Circle, Polygon } from "react-native-svg";
+import Svg, { Circle, Path, Polygon } from "react-native-svg";
 
 import { ease, seeded } from "@/theme/motion";
 import { color, corner } from "@/theme/tokens";
@@ -15,18 +15,12 @@ import { color, corner } from "@/theme/tokens";
 
 export type BackdropTone = "mist" | "warm" | "ink";
 
-const BUBBLES: Record<BackdropTone, readonly string[]> = {
-  ink: ["rgba(31,47,57,0.09)", "rgba(183,196,204,0.30)", "rgba(55,99,113,0.10)"],
-  mist: ["rgba(55,99,113,0.11)", "rgba(183,196,204,0.34)", "rgba(223,234,241,0.95)"],
-  warm: ["rgba(233,196,150,0.30)", "rgba(250,243,234,1)", "rgba(183,196,204,0.28)"],
+/** Line colour and the wash behind it, per area of the app. */
+const LOOK: Record<BackdropTone, { line: string; wash: string }> = {
+  ink: { line: "rgba(31,47,57,0.13)", wash: "rgba(55,99,113,0.10)" },
+  mist: { line: "rgba(55,99,113,0.16)", wash: "rgba(183,196,204,0.28)" },
+  warm: { line: "rgba(190,128,62,0.20)", wash: "rgba(250,236,214,0.75)" },
 };
-
-/** Where each bubble sits and how big it is, as a share of the screen width. */
-const SHAPES = [
-  { size: 0.7, x: -0.22, y: -0.2 },
-  { size: 0.52, x: 0.62, y: -0.1 },
-  { size: 0.24, x: 0.36, y: 0.2 },
-] as const;
 
 /** Which backdrop a route gets, so each area of the app has its own feel. */
 export function toneForPath(path: string): BackdropTone {
@@ -35,32 +29,52 @@ export function toneForPath(path: string): BackdropTone {
   return "mist";
 }
 
-/** Soft circles that drift slowly behind a screen. They stay still with Reduce Motion. */
-export function Backdrop({ tone = "mist" }: { tone?: BackdropTone }) {
-  const { width } = useWindowDimensions();
-  return (
-    <View pointerEvents="none" style={styles.backdrop} testID="backdrop">
-      {SHAPES.map((shape, index) => (
-        <Bubble colour={BUBBLES[tone][index]!} index={index} key={index} shape={shape} width={width} />
-      ))}
-    </View>
-  );
+/** One closed, wobbly contour line around a centre, like a ring on a map, as an SVG path. */
+export function contourPath(cx: number, cy: number, radius: number, seed: number): string {
+  const steps = 72;
+  const a = seeded(seed) * 6.28;
+  const b = seeded(seed + 9) * 6.28;
+  const points = Array.from({ length: steps }, (_, i) => {
+    const t = (i / steps) * Math.PI * 2;
+    const r = radius * (1 + 0.09 * Math.sin(3 * t + a) + 0.05 * Math.sin(5 * t + b) + 0.03 * Math.sin(8 * t + a * b));
+    return `${i === 0 ? "M" : "L"}${(cx + Math.cos(t) * r).toFixed(1)} ${(cy + Math.sin(t) * r * 0.86).toFixed(1)}`;
+  });
+  return `${points.join(" ")} Z`;
 }
 
-function Bubble({ colour, index, shape, width }: { colour: string; index: number; shape: (typeof SHAPES)[number]; width: number }) {
+/**
+ * Flowing topographic contour lines behind a screen, in a different colour for each area, over a faint wash that fades
+ * out down the page. The two groups of lines drift slowly in opposite directions; they stay still with Reduce Motion.
+ */
+export function Backdrop({ tone = "mist" }: { tone?: BackdropTone }) {
+  const { width } = useWindowDimensions();
+  const look = LOOK[tone];
   const reduced = useReducedMotion();
   const drift = useSharedValue(0);
   useEffect(() => {
     if (reduced) return;
-    const ms = 7_000 + seeded(index + 3) * 5_000;
-    drift.set(withRepeat(withSequence(withTiming(1, { duration: ms, easing: ease.sine }), withTiming(0, { duration: ms, easing: ease.sine })), -1));
-  }, [drift, index, reduced]);
-  const reach = 14 + seeded(index + 11) * 16;
-  const style = useAnimatedStyle(() => ({
-    transform: [{ translateX: (drift.get() - 0.5) * reach * (index % 2 ? -1 : 1) }, { translateY: (drift.get() - 0.5) * reach * 0.8 }],
-  }));
-  const diameter = shape.size * width;
-  return <Animated.View style={[{ backgroundColor: colour, borderRadius: diameter / 2, height: diameter, left: shape.x * width, top: shape.y * width, width: diameter, position: "absolute" }, style]} />;
+    drift.set(withRepeat(withSequence(withTiming(1, { duration: 14_000, easing: ease.sine }), withTiming(0, { duration: 14_000, easing: ease.sine })), -1));
+  }, [drift, reduced]);
+  const one = useAnimatedStyle(() => ({ transform: [{ translateX: (drift.get() - 0.5) * 26 }, { translateY: (drift.get() - 0.5) * 14 }, { rotate: `${(drift.get() - 0.5) * 4}deg` }] }));
+  const two = useAnimatedStyle(() => ({ transform: [{ translateX: (drift.get() - 0.5) * -22 }, { translateY: (drift.get() - 0.5) * -10 }, { rotate: `${(drift.get() - 0.5) * -3}deg` }] }));
+  const height = 330;
+  const rings = (cx: number, cy: number, count: number, base: number, step: number, seed: number) =>
+    Array.from({ length: count }, (_, k) => <Path d={contourPath(cx, cy, base + k * step, seed + k)} fill="none" key={k} stroke={look.line} strokeWidth={1.3} />);
+  return (
+    <View pointerEvents="none" style={styles.backdrop} testID="backdrop">
+      <LinearGradient colors={[look.wash, "rgba(255,255,255,0)"]} style={{ height, left: 0, position: "absolute", right: 0, top: 0 }} />
+      <Animated.View style={[{ height, left: 0, position: "absolute", top: 0, width }, one]}>
+        <Svg height={height} width={width}>
+          {rings(width * 0.92, 20, 9, 34, 26, 1)}
+        </Svg>
+      </Animated.View>
+      <Animated.View style={[{ height, left: 0, position: "absolute", top: 0, width }, two]}>
+        <Svg height={height} width={width}>
+          {rings(width * 0.04, 150, 6, 30, 24, 40)}
+        </Svg>
+      </Animated.View>
+    </View>
+  );
 }
 
 /** Diagonal bands across a surface, in the given translucent colours. Used on banners, coupons and tier cards. */

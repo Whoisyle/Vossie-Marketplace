@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -16,7 +16,6 @@ import {
   SearchBar,
   SectionHeader,
   useFirstLoad,
-  useToast,
   type FilterOption,
 } from "@/components";
 import { withDeals } from "@/data/deals";
@@ -44,7 +43,6 @@ const HINTS = ["Search burgers and coffee", "Search tutors and study rooms", "Se
 export function HomeScreen() {
   const router = useRouter();
   const detail = useDetail();
-  const toast = useToast();
   const { width } = useWindowDimensions();
   const { dispatch, state } = useDemoStore();
   const [category, setCategory] = useState<CategoryFilter>("all");
@@ -135,7 +133,7 @@ export function HomeScreen() {
             badge={hasUnread}
             icon="bell"
             label={hasUnread ? "Notifications, unread" : "Notifications"}
-            onPress={() => toast.show("Notifications open in a later step")}
+            onPress={() => router.push("/home/notifications" as Href)}
           />
         }
       />
