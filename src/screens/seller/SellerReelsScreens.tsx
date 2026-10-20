@@ -17,7 +17,7 @@ import { useSeller } from "./hooks";
 import { Pill, SELLER, SellerButton, SellerCard, SellerScreen, SellerTopBar, SellerWell, Text } from "./ui";
 
 /** Tells a seller what the next plan adds, and sends them to the plans. Used wherever a plan limit is reached. */
-export function UpgradeSheet({ kind, onClose, visible }: { kind: "products" | "reels" | "analytics"; visible: boolean; onClose: () => void }) {
+export function UpgradeSheet({ kind, onClose, visible }: { kind: "products" | "reels" | "analytics" | "orderTools" | "returningBuyers"; visible: boolean; onClose: () => void }) {
   const router = useRouter();
   return (
     <Sheet onClose={onClose} title="Upgrade your plan" visible={visible}>

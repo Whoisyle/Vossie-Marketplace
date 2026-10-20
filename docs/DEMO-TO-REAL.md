@@ -55,6 +55,10 @@ Last updated: 2026-10-20.
 - [ ] **Analytics:** the charts are interactive (drag across the line and bars, tap the ring, the grid and the funnel). Their numbers come from the demo orders, ledger and reels. New and returning buyers are matched by name, which is not reliable; real analytics need buyer ids and event tracking for views and taps on products.
 - [ ] **Store preview** is built from the seller's own data and the buyer's own components, so it looks the same as the buyer's store page, but followers are always 0, ratings on cards are fixed demo values and the buyer's store page itself does not yet read the seller's place, banner or hours.
 - [ ] **Verified documents** can be viewed and replaced; the new file is re-checked by a demo timer. The Eduvos student card has no file to show, only the record.
+- [ ] **Order tools on paid plans:** order search, accept all and the auto-accept rule (Plus), and returning-buyer flags with a thank-you offer (Pro) run on the phone from the demo orders. Auto-accept only works while the app is open; the live version must run on the server so it works when the phone is off. Offers made to returning buyers create a promotion code but nothing is sent to the buyer yet.
+- [ ] **Weekly goal, close early today and the weekly summary** are kept on the phone. The summary is sent the first time the app is opened in a new week, not on Monday at 08:00, and weekly statements are built from the demo ledger.
+- [ ] **App icon number** counts unread alerts plus orders waiting. It needs `expo-notifications` to show on a phone (not installed; see the clock problem above).
+- [ ] **New order offer from the bottom** and the buyer's new notification cards work inside the app only. The 30 second ring only puts the card away; the order stays New.
 
 ## Courier, delivery and maps
 

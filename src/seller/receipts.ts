@@ -1,5 +1,6 @@
 import { formatRand } from "@/data/format";
 
+import { weekKey } from "./schedule";
 import type { LedgerEntry, SellerOrder, SellerState } from "./types";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -81,6 +82,28 @@ export function statements(ledger: LedgerEntry[]): Statement[] {
     byMonth.set(key, current);
   }
   return [...byMonth.values()].sort((a, b) => b.key.localeCompare(a.key));
+}
+
+/** One statement for each week that has activity (Monday to Sunday), newest first. */
+export function weeklyStatements(ledger: LedgerEntry[]): Statement[] {
+  const byWeek = new Map<string, Statement>();
+  for (const entry of ledger) {
+    const at = new Date(entry.createdAt);
+    const key = weekKey(at);
+    const monday = new Date(at.getFullYear(), at.getMonth(), at.getDate() - ((at.getDay() + 6) % 7));
+    const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+    const title = `Week of ${monday.getDate()} ${MONTHS[monday.getMonth()]!.slice(0, 3)} to ${sunday.getDate()} ${MONTHS[sunday.getMonth()]!.slice(0, 3)}`;
+    const current = byWeek.get(key) ?? { count: 0, feesCents: 0, key, netCents: 0, payoutsCents: 0, refundsCents: 0, salesCents: 0, title };
+    if (entry.kind === "sale") {
+      current.salesCents += entry.amountCents;
+      current.feesCents += entry.feeCents ?? 0;
+    } else if (entry.kind === "refund") current.refundsCents += -entry.amountCents;
+    else current.payoutsCents += -entry.amountCents;
+    current.netCents += entry.amountCents;
+    current.count += 1;
+    byWeek.set(key, current);
+  }
+  return [...byWeek.values()].sort((a, b) => b.key.localeCompare(a.key));
 }
 
 export function statementText(item: Statement, store: string): string {

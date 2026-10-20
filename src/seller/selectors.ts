@@ -249,3 +249,45 @@ export function insights(state: Pick<SellerState, "ledger" | "orders" | "listing
     topBuyers: [...buyers.entries()].map(([name, value]) => ({ name, ...value })).sort((a, b) => b.cents - a.cents).slice(0, 3),
   };
 }
+
+export { weekKey } from "./schedule";
+
+export type GoalProgress = { targetCents: number; earnedCents: number; percent: number; remainingCents: number; reached: boolean };
+
+/** How far this week's sales (the last seven days) are towards the weekly target, or null when no target is set. */
+export function goalProgress(state: Pick<SellerState, "ledger" | "goals">, now: number = Date.now()): GoalProgress | null {
+  const target = state.goals.weeklyRevenueCents;
+  if (!target || target <= 0) return null;
+  const earned = weekTotals(state, now).thisWeekCents;
+  return { earnedCents: earned, percent: Math.min(100, Math.round((earned / target) * 100)), reached: earned >= target, remainingCents: Math.max(0, target - earned), targetCents: target };
+}
+
+/** A target a little above last week: 10% more, rounded up to the next R100, and at least R500. */
+export function suggestedGoal(state: Pick<SellerState, "ledger">, now: number = Date.now()): number {
+  const last = weekTotals(state, now).thisWeekCents;
+  return Math.max(50_000, Math.ceil((last * 1.1) / 10_000) * 10_000);
+}
+
+/** Orders in the last seven days, what they came to, and how it compares, for the weekly summary. */
+export function weekSummary(state: Pick<SellerState, "ledger" | "orders">, now: number = Date.now()): { revenueCents: number; orders: number; changePercent: number | null } {
+  const totals = weekTotals(state, now);
+  const from = startOfDay(now) - 6 * DAY;
+  const orders = state.orders.filter((item) => item.status !== "declined" && item.status !== "cancelled" && new Date(item.placedAt).getTime() >= from).length;
+  return { changePercent: totals.changePercent, orders, revenueCents: totals.thisWeekCents };
+}
+
+/** How many earlier (finished or in progress) orders a buyer has with this seller, not counting the one asked about. */
+export function earlierOrders(orders: SellerOrder[], order: SellerOrder): number {
+  return orders.filter((item) => item.id !== order.id && item.buyerName === order.buyerName && item.status !== "declined" && item.status !== "cancelled" && item.placedAt <= order.placedAt).length;
+}
+
+/** The buyers who have ordered more than once, with how many orders and how much, best first. For a seller's own marketing. */
+export function returningBuyers(orders: SellerOrder[]): { name: string; orders: number; cents: number; lastAt: string }[] {
+  const byBuyer = new Map<string, { orders: number; cents: number; lastAt: string }>();
+  for (const item of orders) {
+    if (item.status === "declined" || item.status === "cancelled") continue;
+    const current = byBuyer.get(item.buyerName) ?? { cents: 0, lastAt: item.placedAt, orders: 0 };
+    byBuyer.set(item.buyerName, { cents: current.cents + item.subtotalCents, lastAt: item.placedAt > current.lastAt ? item.placedAt : current.lastAt, orders: current.orders + 1 });
+  }
+  return [...byBuyer.entries()].filter(([, value]) => value.orders > 1).map(([name, value]) => ({ name, ...value })).sort((a, b) => b.cents - a.cents);
+}

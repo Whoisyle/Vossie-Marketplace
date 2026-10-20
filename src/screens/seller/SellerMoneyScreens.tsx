@@ -6,7 +6,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Icon, useToast } from "@/components";
 import { formatRand } from "@/data/format";
-import { balanceAfter, filterLedger, orderFor, receiptText, referenceFor, statements, statementText, type TxFilter, type TxRange } from "@/seller/receipts";
+import { balanceAfter, filterLedger, orderFor, receiptText, referenceFor, statements, statementText, type TxFilter, type TxRange, weeklyStatements } from "@/seller/receipts";
 import type { LedgerEntry } from "@/seller/types";
 
 import { useSeller } from "./hooks";
@@ -177,10 +177,12 @@ function Line({ bold, label, value }: { label: string; value: string; bold?: boo
 export function SellerStatementsScreen() {
   const view = useSeller();
   const share = useShareText();
-  const list = statements(view.seller.ledger);
+  const [period, setPeriod] = useState<"week" | "month">("month");
+  const list = period === "week" ? weeklyStatements(view.seller.ledger) : statements(view.seller.ledger);
   return (
     <SellerScreen tone="white" testID="seller-statements">
       <SellerTopBar title="Statements" />
+      <Chips items={[{ key: "month", label: "Monthly" }, { key: "week", label: "Weekly" }]} onChange={setPeriod} prefix="period" value={period} />
       <View style={styles.list}>
         {list.length === 0 ? (
           <SellerCard style={styles.empty}>

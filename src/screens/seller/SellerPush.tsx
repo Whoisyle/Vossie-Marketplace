@@ -1,66 +1,30 @@
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { AppState, Pressable, StyleSheet, Text, View } from "react-native";
+import { AppState, StyleSheet } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Icon, type IconName } from "@/components";
+import { type IconName, PushCard as SharedPushCard } from "@/components";
 import { haptic } from "@/lib/haptics";
 import { playSound } from "@/lib/sounds";
 import { actionsFor, planPush, type PushAction } from "@/seller/push";
-import type { SellerAlert } from "@/seller/types";
+import type { SellerAlert, SellerOrder } from "@/seller/types";
 import { useDemoStore } from "@/state/DemoStore";
 import { spring } from "@/theme/motion";
 
 import { useSellerDispatch } from "./actions";
-import { SELLER } from "./ui";
+import { SellerOrderOffer } from "./SellerOrderOffer";
 
-const KIND_ICON: Record<SellerAlert["kind"], IconName> = { account: "shield", message: "message-circle", money: "dollar-sign", order: "package", promo: "tag", review: "star", stock: "alert-triangle" };
-const KIND_TINT: Record<SellerAlert["kind"], string> = { account: "#5E8696", message: "#4C7DB8", money: "#2F8A57", order: "#38606F", promo: "#B07A5B", review: "#E5A92B", stock: "#C2603E" };
+const KIND_ICON: Record<SellerAlert["kind"], IconName> = { account: "shield", message: "message-circle", money: "dollar-sign", order: "package", promo: "tag", review: "star", stock: "alert-triangle", summary: "bar-chart-2" };
+const KIND_TINT: Record<SellerAlert["kind"], string> = { account: "#5E8696", message: "#4C7DB8", money: "#2F8A57", order: "#38606F", promo: "#B07A5B", review: "#E5A92B", stock: "#C2603E", summary: "#6B5BA8" };
 
 /** How long a heads-up card stays on screen when nobody touches it. */
 export const PUSH_MS = 6500;
 
-/**
- * A push notification as it looks on the seller's phone: the Vossie Seller mark and name, when it came, the title and the
- * words, and the buttons that do the usual job without opening the app. The same card is used for the real heads-up that
- * slides down from the top and for the examples in Notification settings.
- */
+/** The seller's push notification: the shared push card in seller words and colours. */
 export function PushCard({ actions, alert, onAction, onOpen, quiet = false, time = "now" }: { alert: Pick<SellerAlert, "kind" | "title" | "body">; actions: PushAction[]; onAction?: (action: PushAction) => void; onOpen?: () => void; time?: string; quiet?: boolean }) {
-  return (
-    <View style={styles.card} testID="push-card">
-      <Pressable accessibilityLabel={`${alert.title}. ${alert.body}`} accessibilityRole="button" disabled={!onOpen} onPress={onOpen} style={styles.top}>
-        <View style={styles.appIcon}>
-          <Text style={styles.appMark}>V</Text>
-          <View style={[styles.kindDot, { backgroundColor: KIND_TINT[alert.kind] }]}>
-            <Icon color="#FFFFFF" name={KIND_ICON[alert.kind]} size={9} />
-          </View>
-        </View>
-        <View style={styles.flex}>
-          <View style={styles.meta}>
-            <Text style={styles.app}>VOSSIE SELLER</Text>
-            <Text style={styles.time}>{quiet ? "silent · " : ""}{time}</Text>
-          </View>
-          <Text numberOfLines={1} style={styles.title}>
-            {alert.title}
-          </Text>
-          <Text numberOfLines={2} style={styles.body}>
-            {alert.body}
-          </Text>
-        </View>
-      </Pressable>
-      {actions.length > 0 ? (
-        <View style={styles.actions}>
-          {actions.map((action, index) => (
-            <Pressable accessibilityLabel={action.label} accessibilityRole="button" key={action.key} onPress={() => onAction?.(action)} style={[styles.action, index === 0 && styles.actionMain]} testID={`push-${action.key}`}>
-              <Text style={[styles.actionText, index === 0 && styles.actionTextMain]}>{action.label}</Text>
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
-    </View>
-  );
+  return <SharedPushCard actions={actions} appName="VOSSIE SELLER" body={alert.body} icon={KIND_ICON[alert.kind]} onAction={(action) => onAction?.(action as PushAction)} onOpen={onOpen} quiet={quiet} time={time} tint={KIND_TINT[alert.kind]} title={alert.title} />;
 }
 
 /**
@@ -75,6 +39,7 @@ export function SellerPushBanner() {
   const dispatch = useSellerDispatch();
   const { state } = useDemoStore();
   const [shown, setShown] = useState<SellerAlert | null>(null);
+  const [offer, setOffer] = useState<{ order: SellerOrder; loud: boolean } | null>(null);
   const [quiet, setQuiet] = useState(false);
   const seen = useRef<Set<string> | null>(null);
   const hide = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -83,6 +48,7 @@ export function SellerPushBanner() {
   const alerts = state.seller.alerts;
   const prefs = state.seller.notify;
 
+  const closeOffer = () => setOffer(null);
   const close = () => {
     slide.set(withTiming(0, { duration: 220 }));
     setTimeout(() => setShown(null), 240);
@@ -100,6 +66,16 @@ export function SellerPushBanner() {
     if (!item || AppState.currentState !== "active") return;
     const plan = planPush(prefs, item, new Date());
     if (!plan.show) return;
+    // a new order that needs an answer is offered from the bottom of the screen, like a ride request
+    const waiting = item.kind === "order" ? state.seller.orders.find((candidate) => item.href?.endsWith(`/${candidate.id}`) && candidate.status === "new" && !candidate.queued) : undefined;
+    if (waiting) {
+      setOffer({ loud: plan.loud, order: waiting });
+      if (plan.loud) {
+        haptic.success();
+        playSound("success");
+      }
+      return;
+    }
     // a one-off state change in answer to something arriving, not a loop
     setShown(item);
     setQuiet(!plan.loud);
@@ -130,9 +106,9 @@ export function SellerPushBanner() {
       else drag.set(withSpring(0, spring.snappy));
     });
   const style = useAnimatedStyle(() => ({ opacity: slide.get(), transform: [{ translateY: (1 - slide.get()) * -160 + drag.get() }] }));
-  if (!shown) return null;
 
   const run = (action: PushAction) => {
+    if (!shown) return;
     const id = shown.href?.split("/").pop() ?? "";
     if (action.key === "accept") dispatch({ accept: true, id, type: "sellerRespondOrder" });
     else if (action.key === "decline") dispatch({ accept: false, id, reason: "Declined from a notification", type: "sellerRespondOrder" });
@@ -142,11 +118,37 @@ export function SellerPushBanner() {
     close();
   };
 
+  if (offer) {
+    const fresh = state.seller.orders.find((item) => item.id === offer.order.id) ?? offer.order;
+    return (
+      <SellerOrderOffer
+        earnCents={fresh.subtotalCents - fresh.feeCents}
+        loud={offer.loud}
+        onAccept={() => {
+          dispatch({ accept: true, id: fresh.id, type: "sellerRespondOrder" });
+          haptic.success();
+          closeOffer();
+        }}
+        onClose={closeOffer}
+        onDecline={(reason) => {
+          dispatch({ accept: false, id: fresh.id, reason, type: "sellerRespondOrder" });
+          closeOffer();
+        }}
+        onOpen={() => {
+          closeOffer();
+          router.push(`/seller/orders/${fresh.id}` as Href);
+        }}
+        order={fresh}
+      />
+    );
+  }
+  if (!shown) return null;
+
   return (
     <GestureDetector gesture={swipe}>
       <Animated.View pointerEvents="box-none" style={[styles.wrap, { top: insets.top + 6 }, style]} testID="seller-push">
         <PushCard
-          actions={actionsFor(shown)}
+          actions={shown.kind === "order" && !state.seller.orders.some((item) => shown.href?.endsWith(`/${item.id}`) && item.status === "new") ? [{ key: "view", label: "View" }] : actionsFor(shown)}
           alert={shown}
           onAction={run}
           onOpen={() => {
@@ -162,21 +164,5 @@ export function SellerPushBanner() {
 }
 
 const styles = StyleSheet.create({
-  action: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.14)", borderRadius: 14, flex: 1, justifyContent: "center", minHeight: 38 },
-  actionMain: { backgroundColor: "#FFFFFF" },
-  actionText: { color: "#FFFFFF", fontSize: 13, fontWeight: "800" },
-  actionTextMain: { color: SELLER.solid },
-  actions: { flexDirection: "row", gap: 8 },
-  app: { color: "rgba(255,255,255,0.7)", fontSize: 10, fontWeight: "800", letterSpacing: 1 },
-  appIcon: { alignItems: "center", backgroundColor: "#38606F", borderColor: "rgba(255,255,255,0.35)", borderRadius: 12, borderWidth: 1, height: 40, justifyContent: "center", width: 40 },
-  appMark: { color: "#FFFFFF", fontSize: 20, fontWeight: "900" },
-  body: { color: "rgba(255,255,255,0.88)", fontSize: 13, lineHeight: 18 },
-  card: { backgroundColor: "rgba(20,35,44,0.96)", borderCurve: "continuous", borderRadius: 22, boxShadow: "0 12px 28px rgba(5, 14, 20, 0.45)", gap: 10, padding: 12 },
-  flex: { flex: 1, gap: 1 },
-  kindDot: { alignItems: "center", borderColor: "#14232C", borderRadius: 8, borderWidth: 1.5, bottom: -4, height: 16, justifyContent: "center", position: "absolute", right: -4, width: 16 },
-  meta: { flexDirection: "row", justifyContent: "space-between" },
-  time: { color: "rgba(255,255,255,0.6)", fontSize: 11 },
-  title: { color: "#FFFFFF", fontSize: 15, fontWeight: "800" },
-  top: { flexDirection: "row", gap: 12 },
   wrap: { left: 12, position: "absolute", right: 12, zIndex: 100 },
 });

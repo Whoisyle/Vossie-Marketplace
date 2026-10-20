@@ -6,7 +6,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Icon, type IconName } from "@/components";
 import { uprightWidth } from "@/components/StudentCard";
-import { initials } from "@/data/format";
+import { formatRand, initials } from "@/data/format";
 import { getCampusName } from "@/data/repository";
 import { StudentCardFlip } from "@/screens/account/CardBacks";
 import { walletCardWidth } from "@/screens/account/WalletCards";
@@ -64,6 +64,8 @@ export function SellerAccountScreen() {
       <View style={styles.list}>
         <Row delay={80} hint={view.storeName} icon="shopping-bag" label="Store profile" onPress={() => go("/seller/account/store")} testID="row-store" />
         <Row delay={110} hint={storeStatus(view.seller.schedule, new Date(now)).label} icon="clock" label="Operating times" onPress={() => go("/seller/account/hours")} testID="row-hours" />
+        <Row delay={120} hint={view.seller.settings.autoAccept.on ? "Auto-accept is on" : "Auto-accept and more"} icon="sliders" label="Order rules" onPress={() => go("/seller/account/rules")} testID="row-rules" />
+        <Row delay={125} hint={view.seller.goals.weeklyRevenueCents ? `Target ${formatRand(view.seller.goals.weeklyRevenueCents)} a week` : "Set a weekly target"} icon="target" label="Weekly goal" onPress={() => go("/seller/account/goals")} testID="row-goals" />
         <Row delay={140} hint={view.canTrade ? "All documents verified" : "Waiting for review"} icon="shield" label="Documents and verification" onPress={() => go("/seller/account/documents")} testID="row-documents" />
         <Row delay={170} hint="Earnings, cards and payouts" icon="credit-card" label="Wallet" onPress={() => go("/seller/account/wallet")} testID="row-wallet" />
         <Row delay={200} hint={profile.bank ? `${profile.bank.bankName} · ending ${profile.bank.last4}` : "Added when you first request a payout"} icon="credit-card" label="Bank account" onPress={() => go("/seller/payouts")} testID="row-bank" />

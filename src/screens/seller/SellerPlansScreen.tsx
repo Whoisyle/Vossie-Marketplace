@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text as RawText, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { BandPanel, Button, Icon, Sheet, useToast, type IconName } from "@/components";
@@ -31,7 +31,8 @@ function perksFor(plan: SellerPlan): string[] {
     limits.liveReels === 0 ? "No new reels" : Number.isFinite(limits.liveReels) ? `Up to ${limits.liveReels} live reels` : "Unlimited reels",
     plan === "free" ? "Sales analytics" : plan === "plus" ? "Sales and product analytics" : "Sales, product and reel analytics",
   ];
-  if (plan === "pro") perks.push("Featured listings in Explore", "Priority support");
+  if (plan !== "free") perks.push("Order search, accept all and auto-accept");
+  if (plan === "pro") perks.push("Returning buyer flags for your marketing", "Featured listings in Explore", "Priority support");
   return perks;
 }
 
@@ -91,26 +92,26 @@ export function SellerPlansScreen() {
                     <Icon color={look.iconFg} name={look.icon} size={22} />
                   </View>
                   <View style={styles.flex}>
-                    <Text style={[styles.planName, { color: look.ink }]}>{PLAN_NAMES[plan]}</Text>
-                    <Text style={[styles.planTag, { color: look.soft }]}>{look.tagline}</Text>
+                    <RawText style={[styles.planName, { color: look.ink }]}>{PLAN_NAMES[plan]}</RawText>
+                    <RawText style={[styles.planTag, { color: look.soft }]}>{look.tagline}</RawText>
                   </View>
                   {plan === "plus" && !here ? (
                     <View style={styles.popular}>
-                      <Text style={styles.popularText}>Most popular</Text>
+                      <RawText style={styles.popularText}>Most popular</RawText>
                     </View>
                   ) : null}
                   {here ? (
                     <View style={styles.hereBadge}>
                       <Icon color="#1E7A4A" name="check-circle" size={13} />
-                      <Text style={styles.hereText}>Your plan</Text>
+                      <RawText style={styles.hereText}>Your plan</RawText>
                     </View>
                   ) : null}
                 </View>
                 <View style={styles.priceRow}>
-                  <Text style={[styles.priceBig, { color: look.ink }]}>{price === 0 ? "R 0" : formatRand(price)}</Text>
-                  <Text style={[styles.priceUnit, { color: look.soft }]}>{price === 0 ? "forever" : "a month"}</Text>
+                  <RawText style={[styles.priceBig, { color: look.ink }]}>{price === 0 ? "R 0" : formatRand(price)}</RawText>
+                  <RawText style={[styles.priceUnit, { color: look.soft }]}>{price === 0 ? "forever" : "a month"}</RawText>
                   <View style={[styles.feeChip, { backgroundColor: look.chip }]}>
-                    <Text style={[styles.feeText, { color: look.ink }]}>{FEE_PERCENT[plan]}% fee</Text>
+                    <RawText style={[styles.feeText, { color: look.ink }]}>{FEE_PERCENT[plan]}% fee</RawText>
                   </View>
                 </View>
                 <View style={[styles.rule, { backgroundColor: look.rule }]} />
@@ -119,7 +120,7 @@ export function SellerPlansScreen() {
                     <View style={[styles.tick, { backgroundColor: look.tick }]}>
                       <Icon color={look.tickFg} name="check" size={11} />
                     </View>
-                    <Text style={[styles.perkText, { color: look.ink }]}>{perk}</Text>
+                    <RawText style={[styles.perkText, { color: look.ink }]}>{perk}</RawText>
                   </Animated.View>
                 ))}
                 {here ? null : plan === "free" ? (

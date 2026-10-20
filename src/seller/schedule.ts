@@ -119,11 +119,25 @@ export function shortDay(key: string): string {
   return `${Number(day)} ${SHORT_MONTHS[Number(month) - 1] ?? ""}`.trim();
 }
 
-export type StoreStatus = { open: boolean; label: string; reason: "open" | "hours" | "closure" | "manual" };
+export type StoreStatus = { open: boolean; label: string; reason: "open" | "hours" | "closure" | "manual" | "early" };
+
+/** "tomorrow 08:00" or "Mon 08:00": the next day the store opens, looking from `from` days ahead. */
+function nextOpeningLabel(schedule: SellerSchedule, now: Date, from: number): string {
+  for (let offset = from; offset < from + 8; offset += 1) {
+    const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+    const hours = schedule.hours[dayKeyOf(day)];
+    if (hours.open && !closureOn(schedule, day)) return `${offset === 1 ? "tomorrow" : DAY_LABELS[dayKeyOf(day)]} ${hours.from}`;
+  }
+  return "soon";
+}
 
 /** Whether the store is taking orders at a moment, and a short line to say so: "Open now · until 17:00", "Closed · opens Tue 08:00", "Closed · back on 4 Nov". */
 export function storeStatus(schedule: SellerSchedule, now: Date): StoreStatus {
   if (schedule.closedNow) return { label: "Closed by you", open: false, reason: "manual" };
+  const early = schedule.closeEarly;
+  if (early && early.date === dateKey(now) && now.getHours() * 60 + now.getMinutes() >= toMin(early.at)) {
+    return { label: `Closed early · opens ${nextOpeningLabel(schedule, now, 1)}`, open: false, reason: "early" };
+  }
   const closure = closureOn(schedule, now);
   if (closure) {
     const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
@@ -151,12 +165,25 @@ export function storeStatus(schedule: SellerSchedule, now: Date): StoreStatus {
  */
 export function pickupSlots(schedule: SellerSchedule, now: Date): string[] {
   if (schedule.closedNow || closureOn(schedule, now)) return [];
+  const early = schedule.closeEarly;
   const today = schedule.hours[dayKeyOf(now)];
   if (!today.open) return [];
   const step = schedule.slotMinutes;
+  const closes = early && early.date === dateKey(now) && toMin(early.at) < toMin(today.to) ? toMin(early.at) : toMin(today.to);
   const earliest = Math.max(toMin(today.from), now.getHours() * 60 + now.getMinutes() + schedule.cutoffMinutes);
   const first = Math.ceil(earliest / step) * step;
   const slots: string[] = [];
-  for (let at = first; at + step <= toMin(today.to); at += step) slots.push(fromMin(at));
+  for (let at = first; at + step <= closes; at += step) slots.push(fromMin(at));
   return slots;
 }
+
+/** "2026-W43": the week a date falls in, with weeks starting on Monday, so a weekly job can tell if it has run. */
+export function weekKey(date: Date): string {
+  const day = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNumber = (day.getUTCDay() + 6) % 7;
+  day.setUTCDate(day.getUTCDate() - dayNumber + 3);
+  const firstThursday = new Date(Date.UTC(day.getUTCFullYear(), 0, 4));
+  const week = 1 + Math.round(((day.getTime() - firstThursday.getTime()) / 86_400_000 - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
+  return `${day.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+}
+

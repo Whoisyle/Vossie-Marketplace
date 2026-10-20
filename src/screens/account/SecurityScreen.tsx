@@ -2,7 +2,9 @@ import { useRouter, type Href } from "expo-router";
 import { type ReactNode, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { AnimatedSwitch, AppHeader, Button, Card, Icon, MenuRow, RadioRow, Screen, Sheet, TwoFactorSheet, useToast } from "@/components";
+import { AnimatedSwitch, AppHeader, Button, Card, Icon, MenuRow, PushCard, RadioRow, Screen, Sheet, TwoFactorSheet, useToast } from "@/components";
+import { buyerActions, KIND_TINT } from "@/components/NotificationBanner";
+import { kindIcon, type NotificationKind, SAMPLE_NOTIFICATIONS } from "@/data/notificationKinds";
 import { dateAndTime } from "@/data/format";
 import type { AppSettings, ProfileVisibility } from "@/data/types";
 import { useDemoStore } from "@/state/DemoStore";
@@ -10,7 +12,7 @@ import { color, corner, space, text } from "@/theme/tokens";
 
 import { useSecurityActions } from "./useSecurityActions";
 
-type Panel = "password" | "logins" | "delete" | "visibility" | "blocked" | "data" | null;
+type Panel = "password" | "logins" | "delete" | "visibility" | "blocked" | "data" | "push" | null;
 
 const VISIBILITY: { id: ProfileVisibility; title: string; detail: string }[] = [
   { detail: "Anyone on your campus can see your profile and listings", id: "campus", title: "Everyone on campus" },
@@ -124,6 +126,7 @@ export function SecurityScreen() {
         {toggle("notifyMessages", "Messages")}
         {toggle("notifyAlerts", "Price drops and back in stock")}
         {toggle("notifyPromos", "Promotions and deals")}
+        <MenuRow icon="bell" label="How notifications look" onPress={() => setPanel("push")} testID="push-preview-row" />
       </Group>
 
       <Group title="App">
@@ -152,6 +155,16 @@ export function SecurityScreen() {
           Your Vossie password is your Eduvos Microsoft account password. Change it with Eduvos, then sign in again.
         </Text>
         <Button fullWidth label="Got it" onPress={close} />
+      </Sheet>
+
+      <Sheet onClose={close} title="How notifications look" visible={panel === "push"}>
+        <Text style={text.bodySmall}>This is how a notification appears over the app, and on your lock screen. Tap the button to get one now.</Text>
+        {(Object.keys(SAMPLE_NOTIFICATIONS) as NotificationKind[]).map((kind) => (
+          <View key={kind} style={styles.sample} testID={`buyer-sample-${kind}`}>
+            <PushCard actions={buyerActions(kind)} appName="VOSSIE" body={SAMPLE_NOTIFICATIONS[kind].body} icon={kindIcon[kind]} tint={KIND_TINT[kind]} title={SAMPLE_NOTIFICATIONS[kind].title} />
+            <Button label="Send me this one" onPress={() => { dispatch({ kind, type: "testNotification" }); close(); }} size="md" testID={`buyer-ping-${kind}`} variant="soft" />
+          </View>
+        ))}
       </Sheet>
 
       <Sheet onClose={close} title="Login activity" visible={panel === "logins"}>
@@ -257,6 +270,7 @@ function Group({ children, title }: { title: string; children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
+  sample: { gap: space.xs, marginTop: space.sm },
   blockedRow: { alignItems: "center", flexDirection: "row", gap: space.sm },
   check: { gap: space.sm, marginTop: space.sm },
   checkTop: { alignItems: "center", flexDirection: "row", gap: space.sm },

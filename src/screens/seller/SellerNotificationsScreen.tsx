@@ -15,7 +15,7 @@ import { PushCard } from "./SellerPush";
 import { Chips, TimeStepper } from "./parts";
 import { SELLER, SellerButton, SellerCard, SellerIconButton, SellerScreen, SellerTopBar, Text } from "./ui";
 
-const ICONS: Record<SellerAlert["kind"], IconName> = { account: "shield", message: "message-circle", money: "dollar-sign", order: "package", promo: "tag", review: "star", stock: "alert-triangle" };
+const ICONS: Record<SellerAlert["kind"], IconName> = { account: "shield", message: "message-circle", money: "dollar-sign", order: "package", promo: "tag", review: "star", stock: "alert-triangle", summary: "bar-chart-2" };
 
 type Filter = "all" | "orders" | "money" | "account";
 
@@ -26,7 +26,7 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "account", label: "Account" },
 ];
 
-const GROUP: Record<SellerAlert["kind"], Filter> = { account: "account", message: "orders", money: "money", order: "orders", promo: "account", review: "account", stock: "orders" };
+const GROUP: Record<SellerAlert["kind"], Filter> = { account: "account", message: "orders", money: "money", order: "orders", promo: "account", review: "account", stock: "orders", summary: "money" };
 
 function startOfDay(at: number): number {
   const date = new Date(at);
@@ -112,6 +112,7 @@ const LABELS: Record<NotifyKind, { label: string; hint: string; icon: IconName }
   money: { hint: "Sales paid out, payouts and refunds", icon: "dollar-sign", label: "Payouts and refunds" },
   orders: { hint: "New orders and order changes", icon: "package", label: "Orders" },
   promotions: { hint: "Offers that start or end, and tips", icon: "tag", label: "Promotions" },
+  summary: { hint: "Your week in numbers, every Monday, with the statement", icon: "bar-chart-2", label: "Weekly summary" },
   reviews: { hint: "A new review from a buyer", icon: "star", label: "Reviews" },
   stock: { hint: "When a product is running low", icon: "alert-triangle", label: "Stock alerts" },
 };

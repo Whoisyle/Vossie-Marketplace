@@ -1,15 +1,15 @@
 import { createInitialState, demoReducer, type DemoAction, type DemoState } from "@/state/demoReducer";
 
-import { activeListings, analytics, bestReel, insights, revenueSeries, engagementPercent, liveReelCount, productCount, rankReels, attentionItems, feesPaidCents, isLowStock, pendingCents, orderCounts, ordersInGroup, weekBars, weekTotals } from "./selectors";
-import { filterLedger, receiptText, referenceFor, statements, statementText } from "./receipts";
-import { applyPreset, applyTimetable, pickupSlots, storeStatus, summaryRange } from "./schedule";
+import { earlierOrders, goalProgress, returningBuyers, suggestedGoal, activeListings, analytics, bestReel, insights, revenueSeries, engagementPercent, liveReelCount, productCount, rankReels, attentionItems, feesPaidCents, isLowStock, pendingCents, orderCounts, ordersInGroup, weekBars, weekTotals } from "./selectors";
+import { filterLedger, receiptText, referenceFor, statements, statementText, weeklyStatements } from "./receipts";
+import { applyPreset, applyTimetable, dateKey, pickupSlots, storeStatus, summaryRange, weekKey } from "./schedule";
 import { distanceKm } from "@/data/geo";
 import { minutesFor, offsetPoint } from "@/screens/seller/OrderMap";
-import { sellerPlanOf } from "./plan";
+import { LIMITS, sellerPlanOf } from "./plan";
 import { actionsFor, inQuietHours, notifyKindOf, planPush } from "./push";
 import { CAMPUS_HUBS, locationFromPlace, locationLine, placeFromHit } from "./places";
 import { promotionDetail, promotionProblems, promotionState } from "./promotions";
-import { DAY_KEYS, type SellerReel } from "./types";
+import { type AutoAccept, DAY_KEYS, type SellerReel } from "./types";
 import { averageRating, createSellerState, demoIncomingOrder, docKindsFor, earnCents, scanMatchesCourierCode, sellerBalanceCents, sellerReduce } from "./state";
 
 const NOW = new Date(2026, 9, 20, 12, 0, 0).getTime();
@@ -541,5 +541,109 @@ describe("push notifications", () => {
     let seller = createSellerState(NOW);
     for (const kind of ["orders", "messages", "stock", "money", "reviews", "promotions"] as const) seller = sellerReduce(seller, { kind, type: "sellerPing" });
     expect(seller.alerts.slice(0, 6).map((item) => item.kind).sort()).toEqual(["message", "money", "order", "promo", "review", "stock"]);
+  });
+});
+
+describe("paid tools: auto-accept, accept all and returning buyers", () => {
+  const rule: AutoAccept = { maxOrderCents: null, needStock: true, on: true, onlyWhenOpen: true };
+  const open = new Date(2026, 9, 19, 10, 0).getTime();
+  const ctx = (plan: "free" | "plus" | "pro", at = open) => ({ now: at, plan, verifiedStudent: true });
+  const arrive = (plan: "free" | "plus" | "pro", settings = rule, at = open, id = 0) => {
+    const base = createSellerState(open);
+    const seller = { ...base, settings: { ...base.settings, autoAccept: settings } };
+    return sellerReduce(seller, { order: demoIncomingOrder(open, id), type: "sellerReceiveOrder" }, ctx(plan, at)).orders[0]!;
+  };
+
+  it("accepts an order by itself on a paid plan while open, and not on Free", () => {
+    expect(arrive("free").status).toBe("new");
+    expect(arrive("plus").status).toBe("accepted");
+    expect(arrive("pro").status).toBe("accepted");
+    expect(arrive("plus", { ...rule, on: false }).status).toBe("new");
+  });
+
+  it("leaves an order alone when the store is closed, it is too big, or something is out of stock", () => {
+    const night = new Date(2026, 9, 19, 22, 0).getTime();
+    expect(arrive("plus", rule, night).status).toBe("new");
+    expect(arrive("plus", { ...rule, maxOrderCents: 1000 }).status).toBe("new");
+    const base = createSellerState(open);
+    const empty = { ...base, listings: base.listings.map((item) => (item.title === "Casio Scientific Calculator" ? { ...item, onHand: 0 } : item)), settings: { ...base.settings, autoAccept: rule } };
+    expect(sellerReduce(empty, { order: demoIncomingOrder(open, 0), type: "sellerReceiveOrder" }, ctx("plus")).orders[0]?.status).toBe("new");
+    expect(sellerReduce({ ...empty, settings: { ...empty.settings, autoAccept: { ...rule, needStock: false } } }, { order: demoIncomingOrder(open, 0), type: "sellerReceiveOrder" }, ctx("plus")).orders[0]?.status).toBe("accepted");
+  });
+
+  it("accepts every waiting order at once on a paid plan only", () => {
+    const seller = createSellerState(open);
+    expect(sellerReduce(seller, { type: "sellerBulkAccept" }, ctx("free"))).toBe(seller);
+    const done = sellerReduce(seller, { type: "sellerBulkAccept" }, ctx("plus"));
+    expect(done.orders.filter((item) => item.status === "new")).toHaveLength(0);
+    expect(done.orders.filter((item) => item.status === "accepted").length).toBe(seller.orders.filter((item) => item.status === "new").length + seller.orders.filter((item) => item.status === "accepted").length);
+    expect(sellerReduce(done, { type: "sellerBulkAccept" }, ctx("plus"))).toBe(done);
+    expect(LIMITS.free.tools.orderSearch).toBe(false);
+    expect(LIMITS.plus.tools.returningBuyers).toBe(false);
+    expect(LIMITS.pro.tools.returningBuyers).toBe(true);
+  });
+
+  it("finds returning buyers and counts earlier orders", () => {
+    const seller = createSellerState(open);
+    const sipho = seller.orders.find((item) => item.id === "so-2039")!;
+    expect(earlierOrders(seller.orders, sipho)).toBe(1);
+    const first = seller.orders.find((item) => item.id === "so-2036")!;
+    expect(earlierOrders(seller.orders, first)).toBe(0);
+    expect(returningBuyers(seller.orders).map((item) => item.name)).toEqual(["Sipho Ndlovu"]);
+  });
+});
+
+describe("close early, goals and the weekly summary", () => {
+  const monday = new Date(2026, 9, 19, 10, 0);
+
+  it("closes from a time today and opens as usual the next day, and can be undone", () => {
+    let seller = createSellerState(monday.getTime());
+    seller = sellerReduce(seller, { at: "14:00", date: dateKey(monday), type: "sellerCloseEarly" });
+    expect(storeStatus(seller.schedule, monday).open).toBe(true);
+    const after = new Date(2026, 9, 19, 14, 30);
+    expect(storeStatus(seller.schedule, after)).toMatchObject({ label: "Closed early · opens tomorrow 08:00", open: false, reason: "early" });
+    expect(storeStatus(seller.schedule, new Date(2026, 9, 20, 9, 0)).open).toBe(true);
+    expect(pickupSlots(seller.schedule, monday).at(-1)).toBe("13:30");
+    seller = sellerReduce(seller, { at: null, date: dateKey(monday), type: "sellerCloseEarly" });
+    expect(storeStatus(seller.schedule, after).reason).toBe("open");
+  });
+
+  it("tracks the weekly goal, suggests a target and says so once when it is reached", () => {
+    const now = new Date(2026, 9, 20, 12, 0).getTime();
+    let seller = createSellerState(now);
+    expect(goalProgress(seller, now)).toMatchObject({ earnedCents: 124_500, percent: 62, reached: false, targetCents: 200_000 });
+    expect(suggestedGoal(seller, now)).toBe(140_000);
+    seller = sellerReduce(seller, { type: "sellerSetGoal", weeklyRevenueCents: 130_000 });
+    const order = seller.orders.find((item) => item.id === "so-2036")!;
+    const ctx = { now, verifiedStudent: true };
+    seller = sellerReduce(seller, { id: order.id, type: "sellerCompleteOrder" }, ctx);
+    expect(goalProgress(seller, now)?.reached).toBe(true);
+    expect(seller.alerts.filter((item) => item.title === "Weekly goal reached")).toHaveLength(1);
+    const again = sellerReduce(seller, { id: "so-2035", type: "sellerCompleteOrder" }, ctx);
+    expect(again.alerts.filter((item) => item.title === "Weekly goal reached")).toHaveLength(1);
+    expect(goalProgress(sellerReduce(seller, { type: "sellerSetGoal", weeklyRevenueCents: null }), now)).toBeNull();
+  });
+
+  it("sends the weekly summary once for each week, and not when push for it is off", () => {
+    const now = new Date(2026, 9, 20, 12, 0).getTime();
+    const key = weekKey(new Date(now));
+    expect(key).toBe("2026-W43");
+    let seller = createSellerState(now);
+    seller = sellerReduce(seller, { now, type: "sellerWeeklySummary", weekKey: key }, { now, verifiedStudent: true });
+    expect(seller.alerts[0]).toMatchObject({ kind: "summary", title: "Your week" });
+    expect(seller.alerts[0]?.body).toMatch(/R1 245 from \d+ orders, 12% up on the week before/);
+    expect(sellerReduce(seller, { type: "sellerWeeklySummary", weekKey: key })).toBe(seller);
+    const off = createSellerState(now);
+    const muted = sellerReduce({ ...off, notify: { ...off.notify, channels: { ...off.notify.channels, summary: { email: false, push: false } } } }, { type: "sellerWeeklySummary", weekKey: key });
+    expect(muted.alerts).toHaveLength(off.alerts.length);
+    expect(muted.lastSummaryWeek).toBe(key);
+  });
+
+  it("makes a statement for each week that adds up to the balance", () => {
+    const seller = createSellerState(Date.now());
+    const weeks = weeklyStatements(seller.ledger);
+    expect(weeks.length).toBeGreaterThan(1);
+    expect(weeks.reduce((sum, item) => sum + item.netCents, 0)).toBe(sellerBalanceCents(seller));
+    expect(weeks[0]?.title).toMatch(/^Week of \d+ \w+ to \d+ \w+$/);
   });
 });

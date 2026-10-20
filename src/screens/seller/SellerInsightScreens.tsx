@@ -5,15 +5,17 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { Button, Icon, Sheet, useToast } from "@/components";
 import { formatRand, relativeTime } from "@/data/format";
 import { LIMITS } from "@/seller/plan";
-import { analytics, bestReel, engagementPercent, insights, rankReels, revenueSeries } from "@/seller/selectors";
-import { averageRating } from "@/seller/state";
+import { dateKey } from "@/seller/schedule";
+import { promotionDetail } from "@/seller/promotions";
+import { analytics, bestReel, engagementPercent, insights, rankReels, returningBuyers, revenueSeries } from "@/seller/selectors";
+import { averageRating, sellerId } from "@/seller/state";
 import { space, text } from "@/theme/tokens";
 
 import { Donut, Funnel, HeatGrid, ScrubBars, ScrubLine } from "./charts";
 import { useSeller } from "./hooks";
 import { Chips, Stars } from "./parts";
 import { UpgradeSheet } from "./SellerReelsScreens";
-import { Pill, SELLER, SellerCard, SellerHeading, SellerScreen, SellerTopBar, Text } from "./ui";
+import { Pill, SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, SellerTopBar, Text } from "./ui";
 
 /** Reviews: the average, how many of each star, and each review with a reply. */
 export function SellerReviewsScreen() {
@@ -127,7 +129,8 @@ export function SellerAnalyticsScreen() {
   const view = useSeller();
   const [range, setRange] = useState<"7" | "30" | "90">("7");
   const [tab, setTab] = useState<AnalyticsTab>("sales");
-  const [locked, setLocked] = useState(false);
+  const [locked, setLocked] = useState<"analytics" | "returningBuyers" | false>(false);
+  const toast = useToast();
   const [now] = useState(() => Date.now());
   const days = Number(range) as 7 | 30 | 90;
   const data = analytics(view.seller, days, now);
@@ -141,10 +144,11 @@ export function SellerAnalyticsScreen() {
     const count = more.heat[r]!.reduce((a, b) => a + b, 0);
     return { detail: count === 1 ? "1 sale" : `${count} sales`, label, title: `${label}`, value: count };
   });
+  const returning = returningBuyers(view.seller.orders);
   const totals = reels.reduce((sum, item) => ({ likes: sum.likes + item.likes + item.saves, orders: sum.orders + item.orders, taps: sum.taps + item.taps, views: sum.views + item.views }), { likes: 0, orders: 0, taps: 0, views: 0 });
 
   const choose = (next: AnalyticsTab) => {
-    if (!allowed.includes(next)) return setLocked(true);
+    if (!allowed.includes(next)) return setLocked("analytics");
     setTab(next);
   };
 
@@ -264,6 +268,49 @@ export function SellerAnalyticsScreen() {
             <Text style={styles.panelTitle}>New and returning</Text>
             <Donut slices={[{ color: "#38606F", key: "new", label: "New buyers", value: more.newBuyers }, { color: "#E5A92B", key: "returning", label: "Returning", value: more.returningBuyers }]} />
           </SellerCard>
+          <SellerHeading>Returning buyers</SellerHeading>
+          {LIMITS[view.plan].tools.returningBuyers ? (
+            returning.length === 0 ? (
+              <SellerCard>
+                <Text style={styles.hint}>No one has ordered twice yet.</Text>
+              </SellerCard>
+            ) : (
+              returning.map((buyer) => (
+                <SellerCard key={buyer.name} style={styles.rankCard} testID={`returning-${buyer.name}`}>
+                  <View style={styles.between}>
+                    <View style={styles.flex}>
+                      <Text style={styles.name}>{buyer.name}</Text>
+                      <Text style={styles.hint}>
+                        {buyer.orders} orders · {formatRand(buyer.cents)} · last {relativeTime(buyer.lastAt)}
+                      </Text>
+                    </View>
+                    <Pill label="Returning" tone="success" />
+                  </View>
+                  <SellerButton
+                    icon="gift"
+                    label="Offer 10% off"
+                    onPress={() => {
+                      const first = buyer.name.split(" ")[0] ?? "friend";
+                      const item = { active: true, appliesTo: "store" as const, code: `THANKS${first.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 6)}`, detail: "", firstOrderOnly: false, id: sellerId("pr"), kind: "percent" as const, perStudent: 1, redemptions: 0, startsAt: dateKey(new Date()), title: `Thank you, ${first}`, value: 10 };
+                      view.dispatch({ promotion: { ...item, detail: promotionDetail(item) }, type: "sellerCreatePromotion" });
+                      toast.show(`A 10% thank-you code is ready for ${first}`);
+                    }}
+                    size="sm"
+                    testID={`offer-${buyer.name}`}
+                    variant="light"
+                  />
+                </SellerCard>
+              ))
+            )
+          ) : (
+            <SellerCard onPress={() => setLocked("returningBuyers")} style={styles.between} testID="returning-locked">
+              <View style={styles.flex}>
+                <Text style={styles.name}>See who comes back</Text>
+                <Text style={styles.hint}>Flag returning buyers and thank them with an offer.</Text>
+              </View>
+              <Pill label="Pro" tone="info" />
+            </SellerCard>
+          )}
           <SellerHeading>Best buyers</SellerHeading>
           {more.topBuyers.length === 0 ? (
             <SellerCard>
@@ -320,7 +367,7 @@ export function SellerAnalyticsScreen() {
           )}
         </View>
       ) : null}
-      <UpgradeSheet kind="analytics" onClose={() => setLocked(false)} visible={locked} />
+      <UpgradeSheet kind={locked === "returningBuyers" ? "returningBuyers" : "analytics"} onClose={() => setLocked(false)} visible={locked !== false} />
     </SellerScreen>
   );
 }

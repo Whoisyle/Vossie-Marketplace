@@ -26,6 +26,14 @@ export const kindLabel: Record<NotificationKind, string> = {
   orders: "Orders",
 };
 
+/** An example of each kind, for the preview in settings and the "send me this one" test. */
+export const SAMPLE_NOTIFICATIONS: Record<NotificationKind, { title: string; body: string; href: string }> = {
+  account: { body: "Your student card was checked and your account is verified.", href: "/account", title: "You are verified" },
+  messages: { body: "Thabo M.: Is the calculator still available?", href: "/account/inbox", title: "New message" },
+  offers: { body: "Wireless Study Headphones dropped by R 60 at CampusBites.", href: "/explore", title: "Price drop" },
+  orders: { body: "Your Zinger Meal is with the courier. About 8 minutes away.", href: "/activity", title: "Your order is on its way" },
+};
+
 /** Whether the student's notification settings let this one through. Account notices are always shown. */
 export function allowedBySettings(kind: NotificationKind, title: string, settings: Pick<AppSettings, "notifyOrders" | "notifyMessages" | "notifyPromos" | "notifyAlerts">): boolean {
   if (kind === "orders") return settings.notifyOrders;

@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 
+import { setBadgeCount } from "@/lib/notifications";
+import { weekKey } from "@/seller/schedule";
 import { demoIncomingOrder } from "@/seller/state";
 import { useDemoStore } from "@/state/DemoStore";
 
@@ -56,6 +58,19 @@ export function SellerDemoEffects({ enabled = true }: { enabled?: boolean }) {
     }, DEMO_REEL_MS);
     return () => clearInterval(timer);
   }, [dispatch, liveReels]);
+
+  // the weekly summary goes out once for each week, the first time the seller opens the app in it
+  const thisWeek = weekKey(new Date());
+  const summaryDue = selling && seller.lastSummaryWeek !== thisWeek;
+  useEffect(() => {
+    if (summaryDue) dispatch({ type: "sellerWeeklySummary", weekKey: thisWeek });
+  }, [dispatch, summaryDue, thisWeek]);
+
+  // the number on the app icon: alerts not read plus orders waiting
+  const badge = seller.alerts.filter((item) => !item.read).length + seller.orders.filter((item) => item.status === "new").length;
+  useEffect(() => {
+    if (state.profile?.role === "seller") void setBadgeCount(badge);
+  }, [badge, state.profile?.role]);
 
   // demo only: Vossie support answers a new request a few seconds after it is sent
   const unanswered = seller.tickets.filter((item) => item.status === "open").map((item) => item.id).join(",");

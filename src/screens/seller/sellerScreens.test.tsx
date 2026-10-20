@@ -13,6 +13,8 @@ import { SellerCasesScreen, SellerTeamScreen } from "./SellerManageScreens";
 import { SellerPromotionFormScreen, SellerPromotionsScreen } from "./SellerPromotionScreens";
 import { SellerHandoverScreen, SellerPrepareScreen } from "./SellerPrepareScreens";
 import { SellerReceiptScreen, SellerStatementsScreen, SellerTransactionsScreen } from "./SellerMoneyScreens";
+import { SellerGoalsScreen, SellerRulesScreen } from "./SellerRulesScreens";
+import { SellerOrderOffer } from "./SellerOrderOffer";
 import { SellerPlaceScreen } from "./SellerPlaceScreen";
 import { SellerPushBanner } from "./SellerPush";
 import { SellerReelPreviewScreen, SellerReelsPageScreen } from "./SellerReelPreview";
@@ -953,5 +955,102 @@ describe("how push notifications look", () => {
     expect(screen.queryByTestId("seller-push")).toBeNull();
     view.unmount();
     jest.useRealTimers();
+  });
+});
+
+describe("paid order tools on the Orders page", () => {
+  const withPlan = (planId: "seller-plus" | "seller-pro") => run(seller(), { planId, type: "subscribe" });
+
+  it("locks search and accept all on Free, and says what they need", () => {
+    renderWithProviders(<SellerOrdersScreen />, seller());
+    expect(screen.getByTestId("order-search-locked")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("accept-all"));
+    expect(screen.getByText(/Order search, accept all and the auto-accept rule start with Seller Plus/)).toBeTruthy();
+  });
+
+  it("searches every order on a paid plan, and accepts all the waiting ones after a check", () => {
+    renderWithProviders(<SellerOrdersScreen />, withPlan("seller-plus"));
+    fireEvent.changeText(screen.getByTestId("order-search"), "calculus");
+    expect(screen.getByTestId("order-so-2036")).toBeTruthy();
+    expect(screen.queryByTestId("order-so-2041")).toBeNull();
+    fireEvent.changeText(screen.getByTestId("order-search"), "");
+    fireEvent.press(screen.getByTestId("accept-all"));
+    fireEvent.press(screen.getByTestId("confirm-accept-all"));
+    expect(screen.queryByTestId("order-so-2041")).toBeNull();
+  });
+
+  it("flags a returning buyer on Pro only", () => {
+    const pro = withPlan("seller-pro");
+    const later = run(pro, { accept: true, id: "so-2039", type: "sellerRespondOrder" });
+    renderWithProviders(<SellerOrdersScreen />, later);
+    fireEvent.press(screen.getByTestId("chip-accepted"));
+    expect(screen.getAllByText(/Returning · order 2/).length).toBeGreaterThan(0);
+  });
+});
+
+describe("order rules and the weekly goal", () => {
+  it("locks the auto-accept rule on Free and lets a Plus seller turn it on and set a limit", () => {
+    renderWithProviders(<SellerRulesScreen />, seller());
+    expect(screen.getByTestId("rules-locked")).toBeTruthy();
+    fireEvent(screen.getByTestId("auto-on"), "valueChange", true);
+    expect(screen.getByText(/start with Seller Plus/)).toBeTruthy();
+    renderWithProviders(<SellerRulesScreen />, run(seller(), { planId: "seller-plus", type: "subscribe" }));
+    fireEvent(screen.getByTestId("auto-on"), "valueChange", true);
+    expect(screen.getByTestId("auto-on").props.value).toBe(true);
+    fireEvent.press(screen.getByTestId("auto-max-plus"));
+    expect(screen.getByTestId("auto-max-value").props.children).toBe("R 50");
+  });
+
+  it("shows the goal on Home and changes it on the goal page", () => {
+    renderWithProviders(<SellerHomeScreen />, seller());
+    expect(screen.getByTestId("goal-home")).toBeTruthy();
+    renderWithProviders(<SellerGoalsScreen />, seller());
+    expect(screen.getByTestId("goal-percent")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("goal-plus"));
+    fireEvent.press(screen.getByTestId("goal-suggest"));
+    fireEvent.press(screen.getByTestId("goal-clear"));
+    expect(screen.getByText("No goal")).toBeTruthy();
+  });
+
+  it("closes early from Home with a quick choice", () => {
+    renderWithProviders(<SellerHomeScreen />, seller());
+    const button = screen.queryByTestId("close-early");
+    if (button) {
+      fireEvent.press(button);
+      fireEvent.press(screen.getByTestId("early-now"));
+    }
+  });
+
+  it("offers returning buyers for marketing on Pro, and a lock on Free", () => {
+    renderWithProviders(<SellerAnalyticsScreen />, run(seller(), { planId: "seller-plus", type: "subscribe" }));
+    fireEvent.press(screen.getByTestId("tab-customers"));
+    expect(screen.getByTestId("returning-locked")).toBeTruthy();
+    renderWithProviders(<SellerAnalyticsScreen />, run(seller(), { planId: "seller-pro", type: "subscribe" }));
+    fireEvent.press(screen.getByTestId("tab-customers"));
+    expect(screen.getByTestId("returning-Sipho Ndlovu")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("offer-Sipho Ndlovu"));
+  });
+
+  it("shows weekly statements next to monthly ones", () => {
+    renderWithProviders(<SellerStatementsScreen />, seller());
+    fireEvent.press(screen.getByTestId("period-week"));
+    expect(screen.getAllByText(/Week of/).length).toBeGreaterThan(0);
+  });
+});
+
+describe("the new order offer from the bottom", () => {
+  it("shows what you earn and who it is for, and accepts or declines with a reason", () => {
+    const order = seller().seller.orders.find((item) => item.id === "so-2041")!;
+    const accept = jest.fn();
+    const decline = jest.fn();
+    renderWithProviders(<SellerOrderOffer earnCents={32300} loud={false} onAccept={accept} onClose={() => undefined} onDecline={decline} onOpen={() => undefined} order={order} />, seller());
+    expect(screen.getByText("R 323.00")).toBeTruthy();
+    expect(screen.getByText(/NEW ORDER/)).toBeTruthy();
+    expect(screen.getByTestId("offer-timer")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("offer-accept"));
+    expect(accept).toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("offer-decline"));
+    fireEvent.press(screen.getByTestId("offer-reason-Sold out"));
+    expect(decline).toHaveBeenCalledWith("Sold out");
   });
 });

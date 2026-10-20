@@ -6,8 +6,9 @@ import Animated, { FadeInDown, FadeOutRight, LinearTransition } from "react-nati
 import { Icon, type IconName } from "@/components";
 import { formatRand } from "@/data/format";
 import { PLAN_NAMES } from "@/seller/plan";
-import { bestReel, liveReelCount, type Attention } from "@/seller/selectors";
+import { bestReel, goalProgress, liveReelCount, type Attention } from "@/seller/selectors";
 
+import { CloseEarlySheet } from "./CloseEarly";
 import { useSeller, greeting } from "./hooks";
 import { CountUpRand, useCountUp } from "./motion";
 import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerHeader, SellerHeading, SellerIconButton, SellerScreen, Text } from "./ui";
@@ -24,6 +25,9 @@ export function SellerHomeScreen() {
   const router = useRouter();
   const view = useSeller();
   const [restock, setRestock] = useState<string | null>(null);
+  const [closing, setClosing] = useState(false);
+  const [stamp] = useState(() => Date.now());
+  const goal = goalProgress(view.seller, stamp);
   const { week } = view;
   const best = bestReel(view.seller.reels);
 
@@ -47,7 +51,30 @@ export function SellerHomeScreen() {
         <Text accessibilityRole="header" style={styles.greeting}>
           {greeting()}, {view.firstName}
         </Text>
+        {view.status.open || view.status.reason === "early" ? (
+          <Pressable accessibilityRole="button" onPress={() => setClosing(true)} style={styles.early} testID="close-early">
+            <Icon color="#FFFFFF" name="moon" size={13} />
+            <Text style={styles.earlyText}>{view.status.reason === "early" ? "Open again" : "Close early today"}</Text>
+          </Pressable>
+        ) : null}
       </Animated.View>
+
+      {goal ? (
+        <Animated.View entering={FadeInDown.delay(40).duration(380)}>
+          <SellerCard onPress={() => go("/seller/account/goals")} style={styles.goal} testID="goal-home">
+            <View style={styles.goalRow}>
+              <Text style={styles.goalTitle}>{goal.reached ? "Weekly goal reached" : "Weekly goal"}</Text>
+              <Text style={styles.goalNumbers}>
+                {formatRand(goal.earnedCents)} of {formatRand(goal.targetCents)}
+              </Text>
+            </View>
+            <View style={styles.goalTrack}>
+              <View style={[styles.goalFill, { width: `${Math.max(3, goal.percent)}%` }, goal.reached && styles.goalDone]} />
+            </View>
+            <Text style={styles.goalHint}>{goal.reached ? "Nice work. You hit it before the week ended." : `${formatRand(goal.remainingCents)} to go`}</Text>
+          </SellerCard>
+        </Animated.View>
+      ) : null}
 
       {!view.canTrade ? (
         <Animated.View entering={FadeInDown.delay(60).duration(380)}>
@@ -104,6 +131,7 @@ export function SellerHomeScreen() {
       </View>
 
       <RestockSheet listingId={restock} onClose={() => setRestock(null)} />
+      <CloseEarlySheet onClose={() => setClosing(false)} visible={closing} />
     </SellerScreen>
   );
 }
@@ -203,6 +231,16 @@ const styles = StyleSheet.create({
   status: { alignItems: "center", alignSelf: "flex-start", flexDirection: "row", gap: 6, marginBottom: 4 },
   statusDot: { borderRadius: 4, height: 8, width: 8 },
   statusText: { color: "#FFFFFF", fontSize: 13, fontWeight: "700" },
+  early: { alignItems: "center", alignSelf: "flex-start", backgroundColor: "rgba(255,255,255,0.16)", borderRadius: 14, flexDirection: "row", gap: 6, marginTop: 8, paddingHorizontal: 12, paddingVertical: 6 },
+  earlyText: { color: "#FFFFFF", fontSize: 12, fontWeight: "700" },
+  goal: { gap: 8, marginTop: 12 },
+  goalDone: { backgroundColor: "#2F8A57" },
+  goalFill: { backgroundColor: SELLER.solid, borderRadius: 5, height: 10 },
+  goalHint: { color: SELLER.inkSoft, fontSize: 12 },
+  goalNumbers: { color: SELLER.inkSoft, fontSize: 13, fontWeight: "700" },
+  goalRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
+  goalTitle: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },
+  goalTrack: { backgroundColor: "#DCE6EA", borderRadius: 5, height: 10, overflow: "hidden" },
   growth: { gap: 10 },
   growthIcon: { alignItems: "center", backgroundColor: "#DCE6EA", borderRadius: 14, height: 42, justifyContent: "center", width: 42 },
   growthLabel: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },

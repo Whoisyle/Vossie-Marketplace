@@ -6,6 +6,8 @@ import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 import { Icon } from "@/components";
 import { formatRand, initials } from "@/data/format";
 import { haptic } from "@/lib/haptics";
+import { LIMITS } from "@/seller/plan";
+import { earlierOrders } from "@/seller/selectors";
 import type { SellerOrder } from "@/seller/types";
 
 import { useHandoff } from "./actions";
@@ -86,6 +88,8 @@ export function SellerOrderDetailScreen() {
             <Pill label={look.label} tone={look.tone} />
             <Pill label={order.paymentLabel} tone="success" />
             <Pill label={order.fulfilmentLabel} tone="info" />
+            {LIMITS[view.plan].tools.returningBuyers && earlierOrders(view.seller.orders, order) > 0 ? <Pill label={`Returning buyer · order ${earlierOrders(view.seller.orders, order) + 1}`} tone="success" /> : null}
+            {order.queued ? <Pill label="Queued while closed" tone="warn" /> : null}
           </View>
           <Text style={styles.placed}>Placed {whenLabel(order.placedAt).toLowerCase()}</Text>
         </SellerCard>

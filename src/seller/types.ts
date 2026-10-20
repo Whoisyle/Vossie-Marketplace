@@ -242,6 +242,8 @@ export type SellerSchedule = {
   cutoffMinutes: number;
   /** The seller shut the store by hand. */
   closedNow: boolean;
+  /** Stop taking orders at a time today, and open again as usual tomorrow. */
+  closeEarly?: { date: string; at: string };
   preset: "weekdays" | "every-day" | "timetable" | "custom";
 };
 
@@ -267,9 +269,9 @@ export type SellerReel = {
   salesCents: number;
 };
 
-export type NotifyKind = "orders" | "messages" | "stock" | "money" | "reviews" | "promotions";
+export type NotifyKind = "orders" | "messages" | "stock" | "money" | "reviews" | "promotions" | "summary";
 
-export const NOTIFY_KINDS: readonly NotifyKind[] = ["orders", "messages", "stock", "money", "reviews", "promotions"];
+export const NOTIFY_KINDS: readonly NotifyKind[] = ["orders", "messages", "stock", "money", "reviews", "promotions", "summary"];
 
 export type NotifyPrefs = {
   channels: Record<NotifyKind, { push: boolean; email: boolean }>;
@@ -277,9 +279,23 @@ export type NotifyPrefs = {
   sound: boolean;
 };
 
-export type SellerSettings = { orderNotifications: boolean };
+/** When the store takes an order by itself. It is a paid-plan tool. */
+export type AutoAccept = {
+  on: boolean;
+  /** Only while the store is open. */
+  onlyWhenOpen: boolean;
+  /** Orders above this are left for the seller to look at. Null for no limit. */
+  maxOrderCents: number | null;
+  /** Only when every item is in stock. */
+  needStock: boolean;
+};
 
-export type SellerAlert = { id: string; title: string; body: string; createdAt: string; read: boolean; href?: string; kind: "order" | "stock" | "message" | "account" | "money" | "review" | "promo" };
+export type SellerSettings = { orderNotifications: boolean; autoAccept: AutoAccept };
+
+/** What the seller is aiming for each week. */
+export type SellerGoals = { weeklyRevenueCents: number | null };
+
+export type SellerAlert = { id: string; title: string; body: string; createdAt: string; read: boolean; href?: string; kind: "order" | "stock" | "message" | "account" | "money" | "review" | "promo" | "summary" };
 
 export type SellerState = {
   status: SellerStatus;
@@ -306,6 +322,11 @@ export type SellerState = {
   notify: NotifyPrefs;
   reels: SellerReel[];
   tickets: SupportTicket[];
+  goals: SellerGoals;
+  /** The week (like 2026-W43) a weekly summary was last sent for. */
+  lastSummaryWeek?: string;
+  /** The week a goal was last reached in, so the celebration comes once. */
+  goalReachedWeek?: string;
 };
 
 export type SellerAction =
@@ -344,6 +365,14 @@ export type SellerAction =
   | { type: "sellerResolveCase"; id: string; decision: "approve" | "decline" | "respond"; text?: string }
   | { type: "sellerInviteTeam"; name: string; email: string }
   | { type: "sellerRemoveTeam"; id: string }
+  | { type: "sellerSetAutoAccept"; rule: AutoAccept }
+  /** Accepts every new order at once. A paid-plan tool. */
+  | { type: "sellerBulkAccept" }
+  /** Stops taking orders from a time today (HH:MM), or opens again when `at` is null. */
+  | { type: "sellerCloseEarly"; date: string; at: string | null }
+  | { type: "sellerSetGoal"; weeklyRevenueCents: number | null }
+  /** The weekly summary for a week, sent once. */
+  | { type: "sellerWeeklySummary"; weekKey: string; now?: number }
   | { type: "sellerSetSetting"; key: keyof SellerSettings; value: boolean }
   | { type: "sellerSetSchedule"; schedule: SellerSchedule }
   | { type: "sellerSaveReel"; reel: SellerReel }

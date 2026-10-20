@@ -1,3 +1,4 @@
+import { SAMPLE_NOTIFICATIONS, type NotificationKind } from "@/data/notificationKinds";
 import {
   loginEventsSeed,
   returningProfiles,
@@ -237,6 +238,8 @@ export type DemoAction =
   | { type: "markConversationRead"; conversationId: string }
   | { type: "markNotificationsRead" }
   | { type: "markNotificationRead"; notificationId: string }
+  /** Sends the student one made-up notification of a kind, to see how it looks. */
+  | { type: "testNotification"; kind: NotificationKind }
   | { type: "advanceOrder"; orderId: string; status: "accepted" | "preparing" | "on-the-way" | "ready" }
   | { type: "setTwoFactor"; enabled: boolean }
   | { type: "enableTwoFactor"; secret: string }
@@ -1071,6 +1074,10 @@ function baseDemoReducer(state: DemoState, action: DemoAction): DemoState {
       return { ...state, interests: action.interests };
     case "acceptTerms":
       return { ...state, termsAcceptedAt: new Date().toISOString() };
+    case "testNotification": {
+      const sample = SAMPLE_NOTIFICATIONS[action.kind];
+      return { ...state, notifications: [{ body: sample.body, createdAt: new Date().toISOString(), href: sample.href, id: nextId("n"), read: false, title: sample.title }, ...state.notifications] };
+    }
     case "markNotificationRead":
       return { ...state, notifications: state.notifications.map((item) => (item.id === action.notificationId ? { ...item, read: true } : item)) };
     case "advanceOrder": {

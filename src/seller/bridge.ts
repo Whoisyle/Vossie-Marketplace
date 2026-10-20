@@ -45,6 +45,16 @@ export function applySellerAction(state: DemoState, action: SellerAction, reduce
       }
       break;
     }
+    case "sellerBulkAccept": {
+      // every order that was waiting is now accepted, and so is the buyer's order behind each one
+      for (const item of seller.orders) {
+        const was = state.seller.orders.find((old) => old.id === item.id);
+        if (was?.status !== "new" || item.status !== "accepted") continue;
+        const pair = linked(item.id);
+        if (pair) next = reduce(next, { orderId: pair.buyer.id, status: "accepted", type: "advanceOrder" });
+      }
+      break;
+    }
     case "sellerAdvanceOrder": {
       const pair = linked(action.id);
       if (pair) next = reduce(next, { orderId: pair.buyer.id, status: action.to, type: "advanceOrder" });
@@ -77,6 +87,7 @@ export function routeNewOrdersToSeller(before: DemoState, after: DemoState): Dem
   const fresh = after.orders.filter((order) => order.sellerId === DEMO_STORE_ID && !before.orders.some((previous) => previous.id === order.id));
   if (fresh.length === 0) return after;
   let seller = after.seller;
+  let orders = after.orders;
   for (const order of fresh) {
     const subtotal = order.lines.reduce((sum, line) => sum + line.unitPriceCents * line.quantity, 0);
     const incoming: SellerOrder = {
@@ -99,7 +110,11 @@ export function routeNewOrdersToSeller(before: DemoState, after: DemoState): Dem
       subtotalCents: subtotal,
       totalCents: subtotal,
     };
-    seller = sellerReduce(seller, { order: incoming, type: "sellerReceiveOrder" });
+    seller = sellerReduce(seller, { order: incoming, type: "sellerReceiveOrder" }, { plan: sellerPlanOf(after.subscriptions), verifiedStudent: after.profile?.isVerifiedStudent ?? false });
+    // an order the auto-accept rule took is accepted for the buyer too
+    if (seller.orders.find((item) => item.id === incoming.id)?.status === "accepted") {
+      orders = orders.map((item) => (item.id === order.id ? { ...item, status: "accepted" as const } : item));
+    }
   }
-  return { ...after, seller };
+  return { ...after, orders, seller };
 }

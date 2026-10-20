@@ -16,6 +16,8 @@ export function notifyKindOf(alert: Pick<SellerAlert, "kind">): NotifyKind | nul
       return "reviews";
     case "promo":
       return "promotions";
+    case "summary":
+      return "summary";
     default:
       return null;
   }
@@ -67,6 +69,7 @@ export const SAMPLE_PUSH: Record<NotifyKind, { title: string; body: string; kind
   messages: { body: "Lerato M.: Is the calculator still available?", href: "/seller/home/messages", kind: "message", title: "New message" },
   money: { body: "R 1 111.00 is on its way to your bank.", href: "/seller/payouts", kind: "money", title: "Payout requested" },
   orders: { body: "Thabo Mokoena ordered TI-30XS Calculator and Calculator cover.", href: "/seller/orders", kind: "order", title: "New order #VM-2041" },
+  summary: { body: "R 1 245 from 9 orders, 12% up on the week before. Your statement is ready.", href: "/seller/payouts/statements", kind: "summary", title: "Your week at CampusBites" },
   promotions: { body: "First order 10% off ends in 3 days.", href: "/seller/account/promotions", kind: "promo", title: "Promotion ending soon" },
   reviews: { body: "Sipho N. left 4 stars: Good condition, courier was a bit late.", href: "/seller/account/reviews", kind: "review", title: "New review" },
   stock: { body: "TI-30XS Calculator is down to 2.", href: "/seller/products/inventory", kind: "stock", title: "Low stock" },

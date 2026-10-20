@@ -1,18 +1,20 @@
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import Animated, { FadeInDown, FadeOutRight, LinearTransition, SlideInUp } from "react-native-reanimated";
 
-import { Icon } from "@/components";
+import { Button, Icon, Sheet, useToast } from "@/components";
 import { formatRand } from "@/data/format";
-import { ordersInGroup, type OrderGroup } from "@/seller/selectors";
+import { LIMITS } from "@/seller/plan";
+import { earlierOrders, ordersInGroup, type OrderGroup } from "@/seller/selectors";
 import type { SellerOrder } from "@/seller/types";
 
 import { useSeller } from "./hooks";
 import { Chips } from "./parts";
 import { useShake } from "./motion";
 import { DeclineSheet, orderTitle, OrderThumb, STATUS_PILL, whenLabel } from "./OrderParts";
-import { Pill, SELLER, SellerButton, SellerCard, SellerHeader, SellerScreen, Text } from "./ui";
+import { UpgradeSheet } from "./SellerReelsScreens";
+import { Pill, SELLER, SellerButton, SellerCard, SellerHeader, SellerScreen, SellerWell, Text } from "./ui";
 
 const CHIPS: { key: OrderGroup; label: string }[] = [
   { key: "new", label: "New" },
@@ -31,7 +33,19 @@ export function SellerOrdersScreen() {
   const [declining, setDeclining] = useState<SellerOrder | null>(null);
   // orders already on the page when it opened are not "arrivals"; anything that shows up later slides in
   const [first] = useState(() => new Set(view.seller.orders.map((item) => item.id)));
-  const orders = ordersInGroup(view.seller.orders, group);
+  const tools = LIMITS[view.plan].tools;
+  const toast = useToast();
+  const [query, setQuery] = useState("");
+  const [locked, setLocked] = useState(false);
+  const [confirmAll, setConfirmAll] = useState(false);
+  const needle = query.trim().toLowerCase().replace(/^#/, "");
+  // searching looks through every order, not only the chip that is chosen
+  const orders = needle
+    ? view.seller.orders
+        .filter((item) => `${item.number} ${item.buyerName} ${item.lines.map((line) => line.title).join(" ")} ${item.place}`.toLowerCase().includes(needle))
+        .sort((a, b) => b.placedAt.localeCompare(a.placedAt))
+    : ordersInGroup(view.seller.orders, group);
+  const waiting = view.counts.new;
 
   return (
     <SellerScreen tone="white" testID="seller-orders">
@@ -44,6 +58,38 @@ export function SellerOrdersScreen() {
         onChange={setGroup}
         value={group}
       />
+
+      {tools.orderSearch ? (
+        <SellerWell style={styles.search}>
+          <Icon color={SELLER.inkSoft} name="search" size={18} />
+          <TextInput accessibilityLabel="Search orders" autoCorrect={false} onChangeText={setQuery} placeholder="Search by order, buyer or item" placeholderTextColor="#8A99A1" style={styles.searchInput} testID="order-search" value={query} />
+          {query ? (
+            <Pressable accessibilityLabel="Clear search" accessibilityRole="button" hitSlop={8} onPress={() => setQuery("")}>
+              <Icon color={SELLER.inkSoft} name="x" size={18} />
+            </Pressable>
+          ) : null}
+        </SellerWell>
+      ) : (
+        <SellerCard onPress={() => setLocked(true)} style={styles.lockedSearch} testID="order-search-locked">
+          <Icon color={SELLER.inkSoft} name="search" size={18} />
+          <Text style={styles.noteText}>Search your orders</Text>
+          <Pill label="Plus" tone="info" />
+        </SellerCard>
+      )}
+
+      {group === "new" && !needle && waiting > 1 ? (
+        <View style={styles.bulk}>
+          <SellerButton
+            icon={tools.bulkAccept ? "check-circle" : "lock"}
+            label={`Accept all ${waiting}`}
+            onPress={() => (tools.bulkAccept ? setConfirmAll(true) : setLocked(true))}
+            size="sm"
+            testID="accept-all"
+            variant={tools.bulkAccept ? "solid" : "light"}
+          />
+          {!tools.bulkAccept ? <Pill label="Plus" tone="info" /> : null}
+        </View>
+      ) : null}
 
       {!view.canTrade ? (
         <SellerCard onPress={() => router.push("/seller/account/documents" as Href)} style={styles.note} testID="orders-locked">
@@ -69,12 +115,26 @@ export function SellerOrdersScreen() {
               key={item.id}
               layout={LinearTransition.springify().damping(20)}
             >
-              <OrderCard canAct={view.canTrade} fresh={!first.has(item.id)} onDecline={() => setDeclining(item)} order={item} />
+              <OrderCard canAct={view.canTrade} fresh={!first.has(item.id)} onDecline={() => setDeclining(item)} order={item} repeat={tools.returningBuyers ? earlierOrders(view.seller.orders, item) : 0} />
             </Animated.View>
           ))}
         </View>
       )}
 
+      <UpgradeSheet kind="orderTools" onClose={() => setLocked(false)} visible={locked} />
+      <Sheet onClose={() => setConfirmAll(false)} title={`Accept all ${waiting} orders?`} visible={confirmAll}>
+        <Text style={styles.confirmText}>Every waiting order is accepted and the buyers are told. You still pack and hand them over one by one.</Text>
+        <Button
+          fullWidth
+          label={`Accept ${waiting} orders`}
+          onPress={() => {
+            view.dispatch({ type: "sellerBulkAccept" });
+            setConfirmAll(false);
+            toast.show(`${waiting} orders accepted`);
+          }}
+          testID="confirm-accept-all"
+        />
+      </Sheet>
       <DeclineSheet
         onClose={() => setDeclining(null)}
         onDecline={(reason) => declining && view.dispatch({ accept: false, id: declining.id, reason, type: "sellerRespondOrder" })}
@@ -84,7 +144,7 @@ export function SellerOrdersScreen() {
   );
 }
 
-function OrderCard({ canAct, fresh, onDecline, order }: { order: SellerOrder; canAct: boolean; fresh: boolean; onDecline: () => void }) {
+function OrderCard({ canAct, fresh, onDecline, order, repeat }: { order: SellerOrder; canAct: boolean; fresh: boolean; onDecline: () => void; repeat: number }) {
   const router = useRouter();
   const { dispatch, seller } = useSeller();
   const shake = useShake();
@@ -96,7 +156,11 @@ function OrderCard({ canAct, fresh, onDecline, order }: { order: SellerOrder; ca
     <Animated.View style={shake.style}>
       <SellerCard onPress={open} style={[styles.card, fresh && styles.cardFresh]} testID={`order-${order.id}`}>
         <View style={styles.cardTop}>
-          <Pill label={look.label} tone={look.tone} />
+          <View style={styles.pills}>
+            <Pill label={look.label} tone={look.tone} />
+            {order.queued ? <Pill label="Queued" tone="warn" /> : null}
+            {repeat > 0 ? <Pill label={`Returning · order ${repeat + 1}`} tone="success" /> : null}
+          </View>
           <Text style={styles.number}>{order.number}</Text>
         </View>
         <View style={styles.cardBody}>
@@ -160,7 +224,13 @@ function OrderCard({ canAct, fresh, onDecline, order }: { order: SellerOrder; ca
 }
 
 const styles = StyleSheet.create({
+  bulk: { alignItems: "center", flexDirection: "row", gap: 10, marginTop: 8 },
   button: { flex: 1 },
+  confirmText: { color: SELLER.inkSoft, fontSize: 14, lineHeight: 20 },
+  lockedSearch: { alignItems: "center", flexDirection: "row", gap: 10, marginTop: 8, paddingVertical: 12 },
+  pills: { flexDirection: "row", flexWrap: "wrap", flex: 1, gap: 6 },
+  search: { alignItems: "center", flexDirection: "row", gap: 8, marginTop: 8, minHeight: 48, paddingHorizontal: 14 },
+  searchInput: { color: SELLER.ink, flex: 1, fontSize: 15, paddingVertical: 8 },
   buttons: { flexDirection: "row", gap: 12, marginTop: 12 },
   card: { gap: 10 },
   cardBody: { alignItems: "center", flexDirection: "row", gap: 12 },

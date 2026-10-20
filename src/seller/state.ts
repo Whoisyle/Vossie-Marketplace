@@ -3,13 +3,14 @@ import { MIN_WITHDRAW_CENTS } from "@/data/wallet";
 import { FEE_PERCENT, LIMITS, type SellerPlan } from "./plan";
 import { promotionDetail } from "./promotions";
 import { SAMPLE_PUSH } from "./push";
-import { scheduleFromProfile, storeStatus, summaryRange } from "./schedule";
+import { scheduleFromProfile, storeStatus, summaryRange, weekKey } from "./schedule";
 import {
   NOTIFY_KINDS,
   type DocKind,
   type LedgerEntry,
   type NotifyPrefs,
   type SellerAction,
+  type AutoAccept,
   type SellerAlert,
   type SellerCase,
   type SellerDocument,
@@ -270,6 +271,11 @@ export function defaultNotify(): NotifyPrefs {
   return { channels, quiet: { from: "22:00", on: false, to: "06:30" }, sound: true };
 }
 
+/** Auto-accept off, and when it is switched on it only works while open and for orders that are in stock. */
+export function defaultAutoAccept(): AutoAccept {
+  return { maxOrderCents: null, needStock: true, on: false, onlyWhenOpen: true };
+}
+
 /** A seller with nothing in it: what the live backend starts from, and the state of someone who has not started. */
 export function emptySellerState(): SellerState {
   return {
@@ -287,7 +293,8 @@ export function emptySellerState(): SellerState {
     reviewCounts: [0, 0, 0, 0, 0],
     reviews: [],
     schedule: scheduleFromProfile({ closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], opens: "08:00" }),
-    settings: { orderNotifications: true },
+    settings: { autoAccept: defaultAutoAccept(), orderNotifications: true },
+    goals: { weeklyRevenueCents: null },
     setupDone: false,
     status: "none",
     step: 1,
@@ -311,7 +318,8 @@ export function createSellerState(now: number = Date.now()): SellerState {
     reviewCounts: [108, 12, 3, 1, 2],
     reviews: reviewsSeed(now),
     schedule: scheduleFromProfile({ closes: "17:00", days: ["mon", "tue", "wed", "thu", "fri"], opens: "08:00" }),
-    settings: { orderNotifications: true },
+    settings: { autoAccept: defaultAutoAccept(), orderNotifications: true },
+    goals: { weeklyRevenueCents: 200_000 },
     setupDone: false,
     status: "none",
     step: 1,
@@ -339,6 +347,13 @@ export function averageRating(counts: SellerState["reviewCounts"]): number {
   return counts.reduce((sum, count, i) => sum + count * (5 - i), 0) / total;
 }
 
+/** Sales in the last seven days, for the weekly goal. */
+function weekSalesCents(ledger: LedgerEntry[], now: number): number {
+  const today = new Date(now);
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() - 6 * 86_400_000;
+  return ledger.filter((entry) => entry.kind === "sale" && new Date(entry.createdAt).getTime() >= start).reduce((sum, entry) => sum + entry.amountCents, 0);
+}
+
 const rank: Record<SellerOrder["status"], number> = { accepted: 1, cancelled: -1, declined: -1, done: 4, new: 0, preparing: 2, ready: 3 };
 
 function itemsLabel(order: Pick<SellerOrder, "lines">): string {
@@ -362,6 +377,15 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
     note: `Sale · fee R${Math.round(found.feeCents / 100)}`,
     sellerOrderId: found.id,
   });
+
+  /** After money arrives: if it took the week past the target for the first time this week, say so once. */
+  const withGoal = (next: SellerState): SellerState => {
+    const target = next.goals.weeklyRevenueCents;
+    const week = weekKey(new Date(now));
+    if (!target || next.goalReachedWeek === week) return next;
+    if (weekSalesCents(state.ledger, now) >= target || weekSalesCents(next.ledger, now) < target) return next;
+    return { ...next, alerts: [{ body: `You have sold R${Math.round(target / 100)} this week, the target you set. Well done.`, createdAt: stamp, href: "/seller/account/goals", id: sellerId("sa"), kind: "money", read: false, title: "Weekly goal reached" }, ...next.alerts], goalReachedWeek: week };
+  };
 
   switch (action.type) {
     case "sellerStart":
@@ -468,11 +492,48 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
       const closed = state.schedule.autoPause && !storeStatus(state.schedule, new Date(now)).open;
       // the fee is the one for the plan the seller is on when the order arrives
       const priced = { ...action.order, feeCents: platformFeeCents(action.order.subtotalCents, plan) };
-      const order = closed ? { ...priced, queued: true } : priced;
+      const rule = state.settings.autoAccept;
+      const inStock = priced.lines.every((line) => {
+        const found = state.listings.find((listing) => listing.title === line.title);
+        return !found || found.unlimited || found.onHand >= line.quantity;
+      });
+      const auto = plan !== "free" && LIMITS[plan].tools.autoAccept && rule.on && !closed && (!rule.onlyWhenOpen || storeStatus(state.schedule, new Date(now)).open) && (rule.maxOrderCents === null || priced.subtotalCents <= rule.maxOrderCents) && (!rule.needStock || inStock);
+      const order = closed ? { ...priced, queued: true } : auto ? { ...priced, status: "accepted" as const } : priced;
       return {
         ...state,
-        alerts: addAlert({ body: closed ? `${order.buyerName} ordered ${itemsLabel(order)} while you were closed. It is waiting for you.` : `${order.buyerName} ordered ${itemsLabel(order)}.`, href: `/seller/orders/${order.id}`, kind: "order", title: `New order ${order.number}` }),
+        alerts: addAlert(
+          auto
+            ? { body: `${order.buyerName} ordered ${itemsLabel(order)}. It was accepted by your auto-accept rule.`, href: `/seller/orders/${order.id}`, kind: "order", title: `Order ${order.number} accepted` }
+            : { body: closed ? `${order.buyerName} ordered ${itemsLabel(order)} while you were closed. It is waiting for you.` : `${order.buyerName} ordered ${itemsLabel(order)}.`, href: `/seller/orders/${order.id}`, kind: "order", title: `New order ${order.number}` },
+        ),
         orders: [order, ...state.orders],
+      };
+    }
+    case "sellerSetAutoAccept":
+      return { ...state, settings: { ...state.settings, autoAccept: action.rule } };
+    case "sellerBulkAccept": {
+      // accept every order that is waiting; a paid-plan tool
+      if (plan === "free" || !LIMITS[plan].tools.bulkAccept) return state;
+      const waiting = state.orders.filter((item) => item.status === "new");
+      if (waiting.length === 0) return state;
+      return { ...state, orders: state.orders.map((item) => (item.status === "new" ? { ...item, status: "accepted" as const } : item)) };
+    }
+    case "sellerCloseEarly":
+      return { ...state, schedule: { ...state.schedule, closeEarly: action.at ? { at: action.at, date: action.date } : undefined } };
+    case "sellerSetGoal":
+      return { ...state, goalReachedWeek: undefined, goals: { weeklyRevenueCents: action.weeklyRevenueCents && action.weeklyRevenueCents > 0 ? action.weeklyRevenueCents : null } };
+    case "sellerWeeklySummary": {
+      if (state.lastSummaryWeek === action.weekKey || !state.notify.channels.summary.push) return state.lastSummaryWeek === action.weekKey ? state : { ...state, lastSummaryWeek: action.weekKey };
+      const from = new Date(now);
+      const start = new Date(from.getFullYear(), from.getMonth(), from.getDate()).getTime() - 6 * 86_400_000;
+      const revenue = weekSalesCents(state.ledger, now);
+      const before = state.ledger.filter((entry) => entry.kind === "sale" && new Date(entry.createdAt).getTime() >= start - 7 * 86_400_000 && new Date(entry.createdAt).getTime() < start).reduce((sum, entry) => sum + entry.amountCents, 0);
+      const orders = state.orders.filter((item) => item.status !== "declined" && item.status !== "cancelled" && new Date(item.placedAt).getTime() >= start).length;
+      const change = before > 0 ? Math.round(((revenue - before) / before) * 100) : null;
+      return {
+        ...state,
+        alerts: addAlert({ body: `R${String(Math.round(revenue / 100)).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} from ${orders} ${orders === 1 ? "order" : "orders"}${change === null ? "" : `, ${Math.abs(change)}% ${change >= 0 ? "up on" : "down on"} the week before`}. Your statement is ready.`, href: "/seller/payouts/statements", kind: "summary", title: "Your week" }),
+        lastSummaryWeek: action.weekKey,
       };
     }
     case "sellerRespondOrder": {
@@ -502,22 +563,22 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
     case "sellerHandToCourier": {
       const current = state.orders.find((item) => item.id === action.id);
       if (!current || current.status !== "ready" || !current.courier) return state;
-      return {
+      return withGoal({
         ...state,
         alerts: addAlert({ body: `${current.number} is with ${current.courier.name}. ${((current.subtotalCents - current.feeCents) / 100).toFixed(2)} was added to your earnings.`, href: "/seller/payouts", kind: "money", title: "Handed to the courier" }),
         ledger: [credit(current), ...state.ledger],
         orders: patchOrder(action.id, { status: "done" }),
-      };
+      });
     }
     case "sellerCompleteOrder": {
       const current = state.orders.find((item) => item.id === action.id);
       if (!current || current.status === "done" || current.status === "declined" || current.status === "cancelled") return state;
-      return {
+      return withGoal({
         ...state,
         alerts: addAlert({ body: `${current.number} was handed over. ${itemsLabel(current)} has been paid to you.`, href: "/seller/payouts", kind: "money", title: "Order complete" }),
         ledger: [credit(current), ...state.ledger],
         orders: patchOrder(action.id, { status: "done" }),
-      };
+      });
     }
     case "sellerSaveListing": {
       const exists = state.listings.some((item) => item.id === action.listing.id);
