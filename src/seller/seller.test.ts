@@ -647,3 +647,13 @@ describe("close early, goals and the weekly summary", () => {
     expect(weeks[0]?.title).toMatch(/^Week of \d+ \w+ to \d+ \w+$/);
   });
 });
+
+describe("the verified screen", () => {
+  it("is marked as seen once, and only then does the dashboard open", () => {
+    const seller = createSellerState(NOW);
+    expect(seller.approvalSeen).toBeUndefined();
+    const seen = sellerReduce(seller, { type: "sellerApprovalSeen" });
+    expect(seen.approvalSeen).toBe(true);
+    expect(sellerReduce(seen, { type: "sellerApprovalSeen" })).toBe(seen);
+  });
+});

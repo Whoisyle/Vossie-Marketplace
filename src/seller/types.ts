@@ -329,6 +329,8 @@ export type SellerState = {
   lastSummaryWeek?: string;
   /** The week a goal was last reached in, so the celebration comes once. */
   goalReachedWeek?: string;
+  /** The seller has seen the "You're verified" screen and gone on to the dashboard. */
+  approvalSeen?: boolean;
 };
 
 export type SellerAction =
@@ -373,6 +375,7 @@ export type SellerAction =
   /** Stops taking orders from a time today (HH:MM), or opens again when `at` is null. */
   | { type: "sellerCloseEarly"; date: string; at: string | null }
   | { type: "sellerSetGoal"; weeklyRevenueCents: number | null }
+  | { type: "sellerApprovalSeen" }
   /** A buyer liked or unliked one of the seller's reels. */
   | { type: "sellerReelEvent"; id: string; likes: number }
   /** A buyer wrote a review of the store. */

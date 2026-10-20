@@ -21,8 +21,11 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Avatar, Button, Icon, Sheet, useToast, type IconName } from "@/components";
+import { ArtTile, hasArt } from "@/components/art/ProductArt";
+import { ReelVideo } from "@/components/ReelVideo";
 import { useTabChrome } from "@/components/nav/TabChrome";
 import { getCampusName, getSeller } from "@/data/repository";
+import { reelVideoFor } from "@/data/reelVideos";
 import type { Reel } from "@/data/types";
 import { haptic } from "@/lib/haptics";
 import { useDetail } from "@/lib/paths";
@@ -50,12 +53,18 @@ export function ReelsScreen() {
   const [commentsFor, setCommentsFor] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [paused, setPaused] = useState<string[]>([]);
+  const [focused, setFocused] = useState(true);
+  const [current, setCurrent] = useState<string | null>(state.reels[0]?.id ?? null);
   const active = state.reels.find((reel) => reel.id === commentsFor);
 
   useFocusEffect(
     useCallback(() => {
       chrome?.lock(true);
-      return () => chrome?.lock(false);
+      setFocused(true);
+      return () => {
+        chrome?.lock(false);
+        setFocused(false);
+      };
     }, [chrome]),
   );
 
@@ -72,6 +81,13 @@ export function ReelsScreen() {
       }),
     [chrome],
   );
+
+  // the reel on screen is the one that plays
+  const onViewable = useCallback(({ viewableItems }: { viewableItems: { item: Reel }[] }) => {
+    const first = viewableItems[0]?.item;
+    if (first) setCurrent(first.id);
+  }, []);
+  const viewability = useMemo(() => ({ itemVisiblePercentThreshold: 60 }), []);
 
   const share = async (reel: Reel) => {
     try {
@@ -94,6 +110,7 @@ export function ReelsScreen() {
         decelerationRate="fast"
         extraData={height}
         keyExtractor={(reel) => reel.id}
+        onViewableItemsChanged={onViewable}
         pagingEnabled
         renderItem={({ item }) => (
           <ReelPage
@@ -109,11 +126,13 @@ export function ReelsScreen() {
               setPaused((current) => (current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current, item.id]))
             }
             paused={paused.includes(item.id)}
+            playing={focused && current === item.id && !paused.includes(item.id)}
             reel={item}
           />
         )}
         showsVerticalScrollIndicator={false}
         snapToAlignment="start"
+        viewabilityConfig={viewability}
       />
 
       <View {...edgeSwipe.panHandlers} style={[styles.edge, { height: 36 + insets.bottom }]}>
@@ -159,6 +178,7 @@ function ReelPage({
   onShare,
   onTogglePause,
   paused,
+  playing,
   reel,
 }: {
   reel: Reel;
@@ -166,6 +186,7 @@ function ReelPage({
   bottomInset: number;
   liked: boolean;
   paused: boolean;
+  playing: boolean;
   onLike: () => void;
   onComments: () => void;
   onShare: () => void;
@@ -223,6 +244,9 @@ function ReelPage({
   return (
     <View style={[styles.page, { backgroundColor: reel.tint, height }]}>
       <LinearGradient colors={[reel.tint, color.inkDeep]} pointerEvents="none" style={StyleSheet.absoluteFill} />
+      {reel.listingId && hasArt(reel.listingId) ? <ArtTile id={reel.listingId} inset={0} /> : null}
+      <ReelVideo playing={playing} source={reelVideoFor(reel)} />
+      <LinearGradient colors={["rgba(0,0,0,0.25)", "transparent", "rgba(0,0,0,0.65)"]} locations={[0, 0.4, 1]} pointerEvents="none" style={StyleSheet.absoluteFill} />
       <Pressable
         accessibilityHint="Double tap to like, tap to pause"
         accessibilityLabel={`${reel.seller} reel`}

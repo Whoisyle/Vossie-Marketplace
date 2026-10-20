@@ -1,6 +1,15 @@
 require("react-native-gesture-handler/jestSetup");
 // The native animation modules do not exist in the Jest environment, so give every test a small,
 // synchronous stand-in. A test can still replace this with its own jest.mock for finer control.
+jest.mock("expo-video", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return {
+    useVideoPlayer: () => ({ loop: false, muted: false, pause: jest.fn(), play: jest.fn() }),
+    VideoView: (props) => React.createElement(View, { testID: "video-view", style: props.style }),
+  };
+});
+
 jest.mock("react-native-worklets", () => ({
   scheduleOnRN: jest.fn(),
   scheduleOnUI: jest.fn(),

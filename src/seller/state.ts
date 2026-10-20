@@ -532,6 +532,8 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
     }
     case "sellerNote":
       return { ...state, alerts: addAlert({ body: action.body, href: action.href, kind: action.kind, title: action.title }) };
+    case "sellerApprovalSeen":
+      return state.approvalSeen ? state : { ...state, approvalSeen: true };
     case "sellerSetAutoAccept":
       return { ...state, settings: { ...state.settings, autoAccept: action.rule } };
     case "sellerBulkAccept": {

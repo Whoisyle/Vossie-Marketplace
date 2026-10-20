@@ -1,47 +1,20 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
-import { useEffect, useState, type ReactElement } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Icon } from "@/components";
 import { ArtTile, hasArt } from "@/components/art/ProductArt";
+import { ReelVideo } from "@/components/ReelVideo";
+import { reelVideoFor } from "@/data/reelVideos";
 import { formatRand } from "@/data/format";
 import { engagementPercent } from "@/seller/selectors";
 
 import { useSeller } from "./hooks";
 import { ReelsPanel } from "./SellerReelsScreens";
 import { SellerScreen, SellerTopBar, Text } from "./ui";
-
-type VideoModule = {
-  useVideoPlayer: (source: string, setup?: (player: { loop: boolean; play: () => void; pause: () => void }) => void) => { play: () => void; pause: () => void };
-  VideoView: (props: { player: unknown; style: object; contentFit: string; nativeControls: boolean }) => ReactElement;
-};
-
-/** The video player is a separate package. With it, a picked video plays here; without it, the reel shows as the poster. */
-let Video: VideoModule | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  Video = require("expo-video") as VideoModule;
-} catch {
-  Video = null;
-}
-
-export const videoAvailable = Video !== null;
-
-function Playing({ paused, uri }: { uri: string; paused: boolean }) {
-  const player = Video!.useVideoPlayer(uri, (instance) => {
-    instance.loop = true;
-    instance.play();
-  });
-  useEffect(() => {
-    if (paused) player.pause();
-    else player.play();
-  }, [paused, player]);
-  const VideoView = Video!.VideoView;
-  return <VideoView contentFit="cover" nativeControls={false} player={player} style={StyleSheet.absoluteFill} />;
-}
 
 const LOOP_MS = 14_000;
 
@@ -83,11 +56,8 @@ export function SellerReelPreviewScreen() {
   return (
     <View style={styles.page} testID="seller-reel-preview">
       <LinearGradient colors={["#2C4E5B", "#14232C"]} style={StyleSheet.absoluteFill} />
-      {reel.videoUri && Video ? (
-        <Playing paused={paused} uri={reel.videoUri} />
-      ) : (
-        <Animated.View style={[styles.posterWrap, poster]}>{listing?.artId && hasArt(listing.artId) ? <ArtTile id={listing.artId} inset={0.1} /> : <Icon color="rgba(255,255,255,0.4)" name="film" size={80} />}</Animated.View>
-      )}
+      <Animated.View style={[styles.posterWrap, poster]}>{listing?.artId && hasArt(listing.artId) ? <ArtTile id={listing.artId} inset={0} /> : <Icon color="rgba(255,255,255,0.4)" name="film" size={80} />}</Animated.View>
+      <ReelVideo playing={!paused} source={reelVideoFor({ caption: reel.caption, id: reel.id, listingId: reel.listingId, videoUri: reel.videoUri })} />
       <LinearGradient colors={["rgba(10,20,26,0)", "rgba(10,20,26,0.85)"]} locations={[0.4, 1]} pointerEvents="none" style={StyleSheet.absoluteFill} />
       <Pressable accessibilityLabel={paused ? "Play" : "Pause"} accessibilityRole="button" onPress={() => setPaused((value) => !value)} style={StyleSheet.absoluteFill} testID="reel-surface" />
 
@@ -134,7 +104,6 @@ export function SellerReelPreviewScreen() {
         <View style={styles.track}>
           <Animated.View style={[styles.fill, bar]} />
         </View>
-        {reel.videoUri && !videoAvailable ? <Text style={styles.stats}>Video playback comes with the next app update. The poster is shown for now.</Text> : null}
       </View>
     </View>
   );

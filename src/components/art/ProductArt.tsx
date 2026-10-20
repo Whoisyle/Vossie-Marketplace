@@ -1,8 +1,10 @@
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import type { ReactNode } from "react";
 import { type StyleProp, StyleSheet, View, type ViewStyle } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
+import { PRODUCT_PHOTOS } from "./photos";
 import { burgerChips, chickenWrap, croissant, flatWhite, icedLatte, kota, matchaAvo, pokeBowl, strawberries, vegBowl, zingerMeal } from "./food";
 import { type Fill, makeKit } from "./kit";
 import { calculator, deskPlanner, econBook, engMaths, greenFolders, highlighters, plannerNotebooks, progBook } from "./study";
@@ -65,6 +67,8 @@ export const ART_IDS = Object.keys(ART);
 export function ProductArt({ id, size = 160, style }: { id: string; size?: number; style?: StyleProp<ViewStyle> }) {
   const entry = ART[id];
   if (!entry) return null;
+  const photo = PRODUCT_PHOTOS[id];
+  if (photo) return <Image accessibilityElementsHidden contentFit="cover" source={photo} style={[{ borderRadius: size * 0.12, height: size, width: size }, style as object]} />;
   const { defs, fill } = makeKit();
   const body = entry.draw(fill);
   return (
@@ -79,6 +83,8 @@ export function ProductArt({ id, size = 160, style }: { id: string; size?: numbe
 
 /** A listing picture: the product drawing on a tinted tile with a soft ring behind it. Fills its parent. */
 export function ArtTile({ id, inset = 0.1 }: { id: string; inset?: number }) {
+  const photo = PRODUCT_PHOTOS[id];
+  if (photo) return <Image accessibilityElementsHidden contentFit="cover" source={photo} style={StyleSheet.absoluteFill} transition={150} />;
   const [from, to] = artTint(id);
   return (
     <View style={StyleSheet.absoluteFill}>

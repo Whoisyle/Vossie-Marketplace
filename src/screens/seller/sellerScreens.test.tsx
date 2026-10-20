@@ -17,6 +17,7 @@ import { StorefrontScreen } from "@/screens/store/StorefrontScreen";
 import { SellerGoalsScreen, SellerRulesScreen } from "./SellerRulesScreens";
 import { SellerOrderOffer } from "./SellerOrderOffer";
 import { SellerPlaceScreen } from "./SellerPlaceScreen";
+import { SellerReviewGate } from "./SellerReviewGate";
 import { SellerPushBanner } from "./SellerPush";
 import { SellerReelPreviewScreen, SellerReelsPageScreen } from "./SellerReelPreview";
 import { SellerWalletScreen } from "./SellerWalletScreen";
@@ -1066,5 +1067,34 @@ describe("the buyer's page for the store the seller runs", () => {
     expect(screen.getByText("CampusBites")).toBeTruthy();
     expect(screen.getAllByText(/Calculus Textbook/).length).toBeGreaterThan(0);
     expect(screen.queryByText("Burger & Chips")).toBeNull();
+  });
+});
+
+describe("the review and verified screens", () => {
+  it("says the documents are being checked, with a loading circle and a sliding way to contact support", () => {
+    renderWithProviders(<SellerReviewGate onContinue={() => undefined} phase="review" storeName="CampusBites" />, seller());
+    expect(screen.getByTestId("seller-review-gate")).toBeTruthy();
+    expect(screen.getByText("In review")).toBeTruthy();
+    expect(screen.getByText(/verifying your documents/)).toBeTruthy();
+    expect(screen.getByText(/up to 24 hours/)).toBeTruthy();
+    expect(screen.getByTestId("review-spinner")).toBeTruthy();
+    fireEvent(screen.getByTestId("gate-support"), "accessibilityAction", { nativeEvent: { actionName: "activate" } });
+    expect(mockPush).toHaveBeenCalledWith("/seller/account/support/new");
+  });
+
+  it("shows the tick and the store name once approved, and the slide goes on to the dashboard", () => {
+    jest.useFakeTimers();
+    const onContinue = jest.fn();
+    renderWithProviders(<SellerReviewGate onContinue={onContinue} phase="verified" storeName="CampusBites" />, seller());
+    expect(screen.getByTestId("seller-verified-gate")).toBeTruthy();
+    expect(screen.getByTestId("verified-tick")).toBeTruthy();
+    expect(screen.getByText("You're verified!")).toBeTruthy();
+    expect(screen.getByText("CampusBites is approved and ready to sell on Vossie")).toBeTruthy();
+    fireEvent(screen.getByTestId("gate-dashboard"), "accessibilityAction", { nativeEvent: { actionName: "activate" } });
+    act(() => {
+      jest.advanceTimersByTime(600);
+    });
+    expect(onContinue).toHaveBeenCalled();
+    jest.useRealTimers();
   });
 });

@@ -230,6 +230,8 @@ export type Reel = {
   likes: number;
   comments: { id: string; author: string; body: string }[];
   tint: string;
+  /** A video the seller picked, if any. */
+  videoUri?: string;
 };
 
 export type Faq = { id: string; question: string; answer: string };

@@ -84,6 +84,7 @@ export function syncOwnReels(feed: Reel[], seller: SellerState, liked: string[])
       seller: seller.profile.storeName || "Your store",
       sellerId: storeId,
       tint: "#2D5563",
+      videoUri: reel.videoUri,
     }));
   return [...own, ...rest];
 }
