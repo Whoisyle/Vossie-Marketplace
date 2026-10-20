@@ -1,4 +1,5 @@
-import { TAP_DONE_MS, TAP_HOLD_MS } from "./cart/TapToPay";
+import { EFT_AUTHORISE_MS, EFT_DONE_MS, EFT_REDIRECT_MS } from "./cart/EftPay";
+import { TAP_DONE_MS, TAP_HOLD_MS, TAP_VERIFY_MS } from "./cart/TapToPay";
 import { act, fireEvent, screen } from "@testing-library/react-native";
 
 import { createInitialState, demoReducer, type DemoState } from "@/state/demoReducer";
@@ -104,6 +105,8 @@ describe("shopping flow", () => {
     // Apple Pay is the default method: its sheet opens, the side button is double-clicked, the phone is held to the reader
     expect(screen.getByTestId("apple-pay-sheet")).toBeTruthy();
     fireEvent.press(screen.getByTestId("apple-confirm"));
+    expect(screen.getByTestId("apple-pay-faceid")).toBeTruthy();
+    act(() => { jest.advanceTimersByTime(TAP_VERIFY_MS + 50); });
     expect(screen.getByText("Hold Here to Pay")).toBeTruthy();
     act(() => { jest.advanceTimersByTime(TAP_HOLD_MS + 50); });
     expect(screen.getByText("Done")).toBeTruthy();
@@ -113,6 +116,41 @@ describe("shopping flow", () => {
     expect(screen.getByText("Payment successful")).toBeTruthy();
     act(() => { jest.advanceTimersByTime(1000); });
     expect(mockReplace).toHaveBeenCalledWith("/cart/confirmation");
+    jest.useRealTimers();
+  });
+
+  it("pays by instant EFT: the bank signs the student in, they approve, and the order goes through", () => {
+    const eft = demoReducer(demoReducer(withCart(), { payment: "eft", type: "setPayment" }), { bank: "Nedbank", payment: "eft", type: "setPayment" });
+    renderWithProviders(<CheckoutScreen />, eft);
+    jest.useFakeTimers();
+    fireEvent.press(screen.getByTestId("pay-now"));
+    expect(screen.getByTestId("eft-redirect")).toBeTruthy();
+    act(() => { jest.advanceTimersByTime(EFT_REDIRECT_MS + 50); });
+    expect(screen.getByTestId("eft-login")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("eft-signin"));
+    expect(screen.getByTestId("eft-approve")).toBeTruthy();
+    expect(screen.getByTestId("eft-reference").props.children).toMatch(/^VOS\d{8}$/);
+    fireEvent.press(screen.getByTestId("eft-approve-button"));
+    expect(screen.getByTestId("eft-authorising")).toBeTruthy();
+    act(() => { jest.advanceTimersByTime(EFT_AUTHORISE_MS + 50); });
+    expect(screen.getByTestId("eft-done")).toBeTruthy();
+    act(() => { jest.advanceTimersByTime(EFT_DONE_MS + 50); });
+    expect(screen.getByText("Processing payment…")).toBeTruthy();
+    act(() => { jest.advanceTimersByTime(1400); });
+    expect(screen.getByText("Payment successful")).toBeTruthy();
+    jest.useRealTimers();
+  });
+
+  it("stops an instant EFT the student declines at their bank", () => {
+    const eft = demoReducer(withCart(), { bank: "Capitec", payment: "eft", type: "setPayment" });
+    renderWithProviders(<CheckoutScreen />, eft);
+    jest.useFakeTimers();
+    fireEvent.press(screen.getByTestId("pay-now"));
+    act(() => { jest.advanceTimersByTime(EFT_REDIRECT_MS + 50); });
+    fireEvent.press(screen.getByTestId("eft-signin"));
+    fireEvent.press(screen.getByTestId("eft-decline"));
+    expect(screen.getByText(/declined the payment at Capitec/)).toBeTruthy();
+    expect(mockReplace).not.toHaveBeenCalled();
     jest.useRealTimers();
   });
 

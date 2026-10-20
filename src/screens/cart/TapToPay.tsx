@@ -22,11 +22,13 @@ import { GooglePayFace } from "../account/PayFaces";
 const APPLE_LOGO = require("../../../assets/banks/applepay-logo.png");
 
 export type TapMethod = "apple-pay" | "google-pay";
-type Stage = "confirm" | "hold" | "done";
+type Stage = "confirm" | "verify" | "hold" | "done";
 
 /** How long the phone waits at the reader before the demo counts the tap, and how long the tick shows. */
 export const TAP_HOLD_MS = 2600;
 export const TAP_DONE_MS = 1100;
+/** How long the Face ID or unlock check takes before the phone is ready for the reader. */
+export const TAP_VERIFY_MS = 1400;
 
 /**
  * Demo of paying with the phone's wallet, built from the owner's references. Apple Pay: the sheet with the card and
@@ -61,7 +63,17 @@ export function TapToPay({
 }
 
 function TapFlow({ amountCents, cardLabel, merchant, method, onCancel, onDone, visible }: Parameters<typeof TapToPay>[0]) {
-  const [stage, setStage] = useState<Stage>(method === "apple-pay" ? "confirm" : "hold");
+  const [stage, setStage] = useState<Stage>(method === "apple-pay" ? "confirm" : "verify");
+
+  // Face ID (Apple Pay) or the phone unlock (Google Pay) comes before the phone is held to the reader
+  useEffect(() => {
+    if (!visible || stage !== "verify") return;
+    const timer = setTimeout(() => {
+      haptic.success();
+      setStage("hold");
+    }, TAP_VERIFY_MS);
+    return () => clearTimeout(timer);
+  }, [stage, visible]);
 
   useEffect(() => {
     if (!visible || stage !== "hold") return;
@@ -79,7 +91,7 @@ function TapFlow({ amountCents, cardLabel, merchant, method, onCancel, onDone, v
   }, [onDone, stage, visible]);
 
   return method === "apple-pay" ? (
-    <ApplePaySheet amountCents={amountCents} cardLabel={cardLabel} merchant={merchant} onCancel={onCancel} onConfirm={() => setStage("hold")} onTap={() => setStage("done")} stage={stage} />
+    <ApplePaySheet amountCents={amountCents} cardLabel={cardLabel} merchant={merchant} onCancel={onCancel} onConfirm={() => setStage("verify")} onTap={() => setStage("done")} stage={stage} />
   ) : (
     <GooglePayScreen amountCents={amountCents} onCancel={onCancel} onTap={() => setStage("done")} stage={stage} />
   );
@@ -135,6 +147,17 @@ export function ApplePaySheet({
             <Text style={styles.demoNote}>Demo: tap here to double-click</Text>
           </Pressable>
         </View>
+      </View>
+    );
+  }
+  if (stage === "verify") {
+    return (
+      <View style={[styles.dark, styles.verifyCentre]} testID="apple-pay-faceid">
+        <View style={styles.glyphRing}>
+          <Icon color="#FFFFFF" name="user" size={34} />
+        </View>
+        <Text style={styles.holdText}>Face ID</Text>
+        <Text style={styles.demoOnDark}>Looking for your face…</Text>
       </View>
     );
   }
@@ -199,6 +222,17 @@ export function GooglePayScreen({ amountCents, onCancel, onTap, stage }: { stage
     pulse.set(withRepeat(withTiming(1, { duration: 1500 }), -1));
   }, [pulse, reduced]);
   const ring = useAnimatedStyle(() => ({ opacity: 0.35 * (1 - pulse.get()), transform: [{ scale: 1 + pulse.get() * 0.6 }] }));
+  if (stage === "verify") {
+    return (
+      <View style={[styles.light, styles.verifyCentre]} testID="google-pay-unlock">
+        <View style={styles.googleGlyph}>
+          <Icon color="#1A73E8" name="unlock" size={34} />
+        </View>
+        <Text style={styles.googleHold}>Unlock to pay</Text>
+        <Text style={styles.googleNote}>Touch the fingerprint sensor or use your screen lock.</Text>
+      </View>
+    );
+  }
   return (
     <View style={styles.light} testID="google-pay-screen">
       <View style={styles.googleBar}>
@@ -262,6 +296,7 @@ const styles = StyleSheet.create({
   rowTitle: { color: "#000000", fontSize: 16, fontWeight: "600" },
   sheet: { backgroundColor: "#F2F2F7", borderTopLeftRadius: 22, borderTopRightRadius: 22, gap: 8, paddingTop: 16 },
   sheetHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", paddingBottom: 6, paddingHorizontal: 18 },
+  verifyCentre: { alignItems: "center", gap: 14, justifyContent: "center" },
   sideBar: { backgroundColor: "#FFFFFF", borderRadius: 3, height: 70, width: 6 },
   sideHint: { alignItems: "center", flexDirection: "row", gap: 12, position: "absolute", right: 0, top: 120 },
   sideText: { color: "#FFFFFF", fontSize: 18, textAlign: "right" },

@@ -30,6 +30,7 @@ import { useOnline } from "@/lib/useOnline";
 import type { PaymentMethod } from "@/data/types";
 import { BrandMark } from "./BrandMark";
 import { DeliveryGroup } from "./DeliveryChoice";
+import { EftPay } from "./EftPay";
 import { TapToPay } from "./TapToPay";
 import { PayButton, PROCESSING_MS, SUCCESS_HOLD_MS, type PayState } from "./PayButton";
 import { checkPayment, eftBanks } from "./payment";
@@ -48,6 +49,7 @@ export function CheckoutScreen() {
   const [placing, setPlacing] = useState(false);
   const [payState, setPayState] = useState<PayState>("idle");
   const [tapOpen, setTapOpen] = useState(false);
+  const [eftOpen, setEftOpen] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   const [slotsOpen, setSlotsOpen] = useState(false);
   const [slotDay, setSlotDay] = useState<"Today" | "Tomorrow">("Today");
@@ -134,6 +136,17 @@ export function CheckoutScreen() {
     if (payment === "apple-pay" || payment === "google-pay") {
       setPayError(null);
       setTapOpen(true);
+      return;
+    }
+    // instant EFT: hand over to the bank to sign in and approve, then the order goes through
+    if (payment === "eft") {
+      if (!state.checkout.bank) {
+        setPayError("Choose your bank to pay by instant EFT.");
+        setPayState("failed");
+        return;
+      }
+      setPayError(null);
+      setEftOpen(true);
       return;
     }
     if (state.settings.biometric) {
@@ -418,6 +431,23 @@ export function CheckoutScreen() {
         {scheduleSlots().every((slot) => slot.day !== slotDay) ? <Text style={text.bodySmall}>No more slots today. Pick tomorrow.</Text> : null}
         <Text style={text.caption}>The seller is reminded before your time so it is ready when you are.</Text>
       </Sheet>
+      {payment === "eft" && state.checkout.bank ? (
+        <EftPay
+          amountCents={totals.totalCents}
+          bank={state.checkout.bank}
+          merchant="Vossie Marketplace"
+          onCancel={() => {
+            setEftOpen(false);
+            setPayError(`You declined the payment at ${state.checkout.bank}. No money was taken.`);
+            setPayState("failed");
+          }}
+          onDone={() => {
+            setEftOpen(false);
+            startPayment();
+          }}
+          visible={eftOpen}
+        />
+      ) : null}
       {payment === "apple-pay" || payment === "google-pay" ? (
         <TapToPay
           amountCents={totals.totalCents}
