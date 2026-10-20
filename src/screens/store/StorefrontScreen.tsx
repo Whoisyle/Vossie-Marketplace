@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useMemo, useState } from "react";
@@ -24,7 +25,10 @@ import { dealFor } from "@/data/deals";
 import { isVerifiedSeller } from "@/data/phase4";
 import { storeLocation } from "@/data/geo";
 import { getCampusName, getListings, getSeller } from "@/data/repository";
-import type { Listing } from "@/data/types";
+import type { Listing, Review } from "@/data/types";
+import { storeIsLive } from "@/seller/catalogue";
+import { promotionState } from "@/seller/promotions";
+import { storeStatus } from "@/seller/schedule";
 import { useDetail } from "@/lib/paths";
 import { PromoCarousel, promoProductFor, type Promo } from "@/screens/home/PromoCarousel";
 import { useDemoStore } from "@/state/DemoStore";
@@ -55,7 +59,19 @@ export function StorefrontScreen() {
         .sort((a, b) => dealFor(b.id) - dealFor(a.id)),
     [all],
   );
-  const reviews = useMemo(() => state.reviews.filter((review) => review.sellerId === id), [id, state.reviews]);
+  // when this is the store the signed-in student runs, buyers see its own banner, hours, offers and reviews
+  const own = Boolean(seller) && storeIsLive(state.seller) && state.seller.profile.storeId === id;
+  const mineProfile = state.seller.profile;
+  const status = own ? storeStatus(state.seller.schedule, new Date()) : null;
+  const reviews = useMemo<Review[]>(() => {
+    const fromBuyers = state.reviews.filter((review) => review.sellerId === id);
+    if (!own) return fromBuyers;
+    const known = new Set(fromBuyers.map((review) => review.id));
+    const fromSeller = state.seller.reviews.filter((review) => !known.has(review.id)).map((review): Review => ({ author: review.author, body: review.text, createdAt: review.createdAt, id: review.id, listingId: "", rating: review.rating, reply: review.reply, sellerId: id }));
+    // a reply the seller wrote to a buyer's review shows under it
+    const replies = new Map(state.seller.reviews.map((review) => [review.id, review.reply]));
+    return [...fromBuyers.map((review) => ({ ...review, reply: replies.get(review.id) ?? review.reply })), ...fromSeller];
+  }, [id, own, state.reviews, state.seller.reviews]);
   const isFood = goods.length > 0 && goods.every((listing) => listing.categoryId === "food");
 
   if (!seller) {
@@ -68,6 +84,7 @@ export function StorefrontScreen() {
   }
 
   const following = state.following.includes(seller.id);
+  const storePoint = own && mineProfile.place ? { latitude: mineProfile.place.latitude, longitude: mineProfile.place.longitude } : storeLocation(seller.id, seller.campusId);
   const tabs: { key: Tab; label: string; count?: number }[] = [
     ...(goods.length ? [{ count: goods.length, key: "menu" as const, label: isFood ? "Menu" : "Listings" }] : []),
     ...(specials.length ? [{ key: "specials" as const, label: "Specials" }] : []),
@@ -78,8 +95,10 @@ export function StorefrontScreen() {
   const dealPercent = Math.max(0, ...all.map((listing) => dealFor(listing.id)));
   const bestDeal = [...all].sort((a, b) => dealFor(b.id) - dealFor(a.id))[0];
   // a banner only when this store really has something on promotion; tapping it opens the Specials tab
-  const promo: Promo | null =
-    dealPercent > 0
+  const ownOffer = own ? state.seller.promotions.find((item) => promotionState(item, new Date()) === "active") : undefined;
+  const promo: Promo | null = ownOffer
+    ? { badge: ownOffer.title, colors: gradient.teal, cta: "See the deals", icon: "percent", id: `store-${seller.id}`, subtitle: ownOffer.detail, title: `${seller.name} deals` }
+    : dealPercent > 0
       ? {
           badge: `Up to ${dealPercent}% off`,
           colors: gradient.teal,
@@ -132,18 +151,27 @@ export function StorefrontScreen() {
       />
       <View style={styles.cover}>
         <LinearGradient colors={gradient.ink} end={{ x: 1, y: 1 }} start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
-        <View style={styles.coverBubbleA} />
-        <View style={styles.coverBubbleB} />
+        {own && mineProfile.bannerUri ? (
+          <>
+            <Image contentFit="cover" source={{ uri: mineProfile.bannerUri }} style={StyleSheet.absoluteFill} testID="store-banner" />
+            <LinearGradient colors={["rgba(20,31,41,0.1)", "rgba(20,31,41,0.85)"]} style={StyleSheet.absoluteFill} />
+          </>
+        ) : (
+          <>
+            <View style={styles.coverBubbleA} />
+            <View style={styles.coverBubbleB} />
+          </>
+        )}
         <View style={styles.coverRow}>
           <View style={styles.avatarRing}>
-            <Avatar name={seller.name} size={64} />
+            {own && mineProfile.logoUri ? <Image contentFit="cover" source={{ uri: mineProfile.logoUri }} style={styles.logo} /> : <Avatar name={seller.name} size={64} />}
           </View>
           <View style={styles.flex}>
             <View style={styles.nameRow}>
               <Text numberOfLines={1} style={[styles.name, styles.nameShrink]}>
                 {seller.name}
               </Text>
-              {isVerifiedSeller(seller) ? (
+              {isVerifiedSeller(seller) || own ? (
                 <View style={styles.verified} testID="verified-badge">
                   <Icon color={color.ink} name="check-circle" size={11} />
                   <Text style={styles.verifiedText}>Verified</Text>
@@ -166,14 +194,26 @@ export function StorefrontScreen() {
         </Pressable>
       </View>
 
+      {status ? (
+        <View style={[styles.hours, status.open ? styles.hoursOpen : styles.hoursClosed]} testID="store-hours">
+          <Icon color={status.open ? color.success : "#B0680F"} name={status.open ? "clock" : "moon"} size={14} />
+          <Text style={[styles.hoursText, { color: status.open ? color.success : "#8A5A0B" }]}>{status.label}</Text>
+        </View>
+      ) : null}
+      {status && !status.open ? (
+        <Text style={[text.caption, styles.closedNote]} testID="store-closed-note">
+          {state.seller.schedule.autoPause ? "You can still order. It waits in the queue and is handled when the store opens." : "The seller may take a while to answer."}
+        </Text>
+      ) : null}
+
       <Text style={[text.bodySmall, styles.bio]}>{seller.bio}</Text>
 
       <View accessibilityLabel={`Where to find ${seller.name}`} style={styles.findUs}>
         <VossieMap
           accessibilityLabel={`Map showing ${seller.name}`}
-          initialRegion={{ ...storeLocation(seller.id, seller.campusId), latitudeDelta: 0.004, longitudeDelta: 0.004 }}
+          initialRegion={{ ...storePoint, latitudeDelta: 0.004, longitudeDelta: 0.004 }}
           interactive={false}
-          markers={[{ coordinate: storeLocation(seller.id, seller.campusId), id: "store", kind: "store", title: seller.name }]}
+          markers={[{ coordinate: storePoint, id: "store", kind: "store", title: seller.name }]}
           style={styles.findUsMap}
           testID="store-map"
         />
@@ -234,6 +274,12 @@ export function StorefrontScreen() {
                   <StarRating size={12} value={review.rating} />
                 </View>
                 {review.body ? <Text style={text.bodySmall}>{review.body}</Text> : null}
+                {review.reply ? (
+                  <View style={styles.reply} testID={`review-reply-${review.id}`}>
+                    <Text style={text.caption}>Reply from {seller.name}</Text>
+                    <Text style={text.bodySmall}>{review.reply}</Text>
+                  </View>
+                ) : null}
                 <Text style={text.caption}>{shortDate(review.createdAt)}</Text>
               </Card>
             ))}
@@ -276,6 +322,13 @@ const styles = StyleSheet.create({
   verified: { alignItems: "center", backgroundColor: color.mist, borderRadius: 10, flexDirection: "row", gap: 3, paddingHorizontal: 7, paddingVertical: 2 },
   verifiedText: { color: color.ink, fontSize: 10, fontWeight: "800" },
   actions: { flexDirection: "row", gap: space.sm, marginTop: space.sm },
+  closedNote: { marginTop: 4 },
+  hours: { alignItems: "center", alignSelf: "flex-start", borderRadius: 14, flexDirection: "row", gap: 6, marginTop: space.sm, paddingHorizontal: 10, paddingVertical: 5 },
+  hoursClosed: { backgroundColor: "#FCE9D0" },
+  hoursOpen: { backgroundColor: "#DDF2E5" },
+  hoursText: { fontSize: 12, fontWeight: "700" },
+  logo: { borderRadius: 32, height: 64, width: 64 },
+  reply: { backgroundColor: color.surfaceSoft, borderRadius: corner.md, gap: 2, marginTop: space.xs, padding: space.sm },
   avatarRing: { borderColor: color.mist, borderRadius: 36, borderWidth: 2, padding: 2 },
   bio: { marginTop: space.sm },
   findUs: { borderRadius: corner.lg, marginTop: space.md, overflow: "hidden" },

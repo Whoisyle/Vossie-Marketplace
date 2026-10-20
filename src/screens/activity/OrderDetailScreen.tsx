@@ -23,6 +23,7 @@ import { color, space, text } from "@/theme/tokens";
 import { paymentLabels } from "../cart/payment";
 import { CourierRatingSheet } from "./CourierRatingSheet";
 import { ORDER_STEPS, progressStep, statusInfo } from "./orderStatus";
+import { ReturnSheet, ReturnStatus } from "./ReturnSheet";
 
 
 /** One order: status, progress, items, totals and a way to message the seller. */
@@ -32,6 +33,7 @@ export function OrderDetailScreen() {
   const toast = useToast();
   const { dispatch, state } = useDemoStore();
   const [rateOpen, setRateOpen] = useState(false);
+  const [returnOpen, setReturnOpen] = useState(false);
   const order = state.orders.find((item) => item.id === id);
 
   if (!order) {
@@ -166,8 +168,13 @@ export function OrderDetailScreen() {
           />
         ) : null}
         <Button fullWidth icon="message-circle" label="Message seller" onPress={messageSeller} variant="outline" />
+        {order.status === "delivered" && !state.returns.some((item) => item.orderId === order.id) ? (
+          <Button fullWidth icon="corner-up-left" label="Return or report a problem" onPress={() => setReturnOpen(true)} style={styles.trackGap} testID="open-return" variant="soft" />
+        ) : null}
+        <ReturnStatus order={order} />
       </View>
       <CourierRatingSheet onClose={() => setRateOpen(false)} order={order} visible={rateOpen} />
+      <ReturnSheet onClose={() => setReturnOpen(false)} order={order} visible={returnOpen} />
     </Screen>
   );
 }

@@ -164,6 +164,20 @@ export type Conversation = {
   messages: Message[];
 };
 
+/** A return or a problem the student reported on a delivered order, and what the seller said back. */
+export type ReturnRequest = {
+  id: string;
+  orderId: string;
+  title: string;
+  kind: "return" | "dispute";
+  reason: string;
+  status: "open" | "approved" | "declined" | "replied";
+  createdAt: string;
+  /** What the seller wrote back, or "Refund approved". */
+  response?: string;
+  refundCents?: number;
+};
+
 export type NotificationItem = {
   id: string;
   title: string;
@@ -239,6 +253,8 @@ export type Review = {
   createdAt: string;
   /** True for reviews written by the signed-in student on this device. */
   mine?: boolean;
+  /** What the store wrote back. */
+  reply?: string;
 };
 
 /** Who can see the student's profile and listings. */

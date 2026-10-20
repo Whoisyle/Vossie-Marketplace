@@ -15,6 +15,7 @@ import { averageRating } from "@/seller/state";
 import type { SellerListing } from "@/seller/types";
 import type { Listing } from "@/data/types";
 import { PromoCarousel, type Promo } from "@/screens/home/PromoCarousel";
+import { useDemoStore } from "@/state/DemoStore";
 import { color, corner, gradient, size, space, text } from "@/theme/tokens";
 
 import { useSeller } from "./hooks";
@@ -55,10 +56,12 @@ export function SellerStorefrontPreview() {
   const toast = useToast();
   const { width } = useWindowDimensions();
   const view = useSeller();
+  const { state } = useDemoStore();
   const [tab, setTab] = useState<Tab>("menu");
   const [sharing, setSharing] = useState(false);
   const [now] = useState(() => new Date());
   const profile = view.seller.profile;
+  const followers = state.following.includes(profile.storeId || "campusbites") ? 1 : 0;
   const storeId = profile.storeId || "campusbites";
   const live = activeListings(view.seller.listings);
   const goods = useMemo(() => live.filter((item) => item.category !== "services").map((item) => asListing(item, storeId)), [live, storeId]);
@@ -162,7 +165,7 @@ export function SellerStorefrontPreview() {
         <View style={styles.coverStats}>
           <StarRating size={14} value={rating} />
           <Text style={styles.statText}>
-            {rating.toFixed(1)} · {total} reviews · 0 followers
+            {rating.toFixed(1)} · {total} reviews · {followers} {followers === 1 ? "follower" : "followers"}
           </Text>
         </View>
       </View>

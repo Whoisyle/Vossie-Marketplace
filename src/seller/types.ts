@@ -179,6 +179,8 @@ export type SellerCase = {
   reason: string;
   amountCents: number;
   photos: number;
+  /** The buyer's own order and request behind this case, so the answer can go back to them. */
+  buyerOrderId?: string;
   status: "open" | "resolved";
   resolution?: string;
   createdAt: string;
@@ -371,6 +373,14 @@ export type SellerAction =
   /** Stops taking orders from a time today (HH:MM), or opens again when `at` is null. */
   | { type: "sellerCloseEarly"; date: string; at: string | null }
   | { type: "sellerSetGoal"; weeklyRevenueCents: number | null }
+  /** A buyer liked or unliked one of the seller's reels. */
+  | { type: "sellerReelEvent"; id: string; likes: number }
+  /** A buyer wrote a review of the store. */
+  | { type: "sellerReceiveReview"; review: SellerReview }
+  /** A buyer reported a problem or asked to return something. */
+  | { type: "sellerReceiveCase"; case: SellerCase }
+  /** A line for the seller's alerts, such as a new follower. */
+  | { type: "sellerNote"; kind: SellerAlert["kind"]; title: string; body: string; href?: string }
   /** The weekly summary for a week, sent once. */
   | { type: "sellerWeeklySummary"; weekKey: string; now?: number }
   | { type: "sellerSetSetting"; key: keyof SellerSettings; value: boolean }

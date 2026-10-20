@@ -509,6 +509,29 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
         orders: [order, ...state.orders],
       };
     }
+    case "sellerReelEvent":
+      return { ...state, reels: state.reels.map((item) => (item.id === action.id ? { ...item, likes: Math.max(0, item.likes + action.likes) } : item)) };
+    case "sellerReceiveReview": {
+      if (state.reviews.some((item) => item.id === action.review.id)) return state;
+      const counts = [...state.reviewCounts] as SellerState["reviewCounts"];
+      counts[5 - action.review.rating]! += 1;
+      return {
+        ...state,
+        alerts: addAlert({ body: `${action.review.author} left ${action.review.rating} ${action.review.rating === 1 ? "star" : "stars"}${action.review.text ? `: ${action.review.text}` : "."}`, href: "/seller/account/reviews", kind: "review", title: "New review" }),
+        reviewCounts: counts,
+        reviews: [action.review, ...state.reviews],
+      };
+    }
+    case "sellerReceiveCase": {
+      if (state.cases.some((item) => item.id === action.case.id)) return state;
+      return {
+        ...state,
+        alerts: addAlert({ body: `${action.case.orderNumber} · ${action.case.title}: ${action.case.reason}`, href: "/seller/account/cases", kind: "money", title: action.case.kind === "return" ? "Return requested" : "A buyer reported a problem" }),
+        cases: [action.case, ...state.cases],
+      };
+    }
+    case "sellerNote":
+      return { ...state, alerts: addAlert({ body: action.body, href: action.href, kind: action.kind, title: action.title }) };
     case "sellerSetAutoAccept":
       return { ...state, settings: { ...state.settings, autoAccept: action.rule } };
     case "sellerBulkAccept": {

@@ -34,6 +34,10 @@ import { EftPay } from "./EftPay";
 import { TapToPay } from "./TapToPay";
 import { PayButton, PROCESSING_MS, SUCCESS_HOLD_MS, type PayState } from "./PayButton";
 import { checkPayment, eftBanks } from "./payment";
+import { storeIsLive } from "@/seller/catalogue";
+import { closedNote, isSellerCode } from "@/seller/checkout";
+import { storeStatus } from "@/seller/schedule";
+import { cartTotals } from "@/state/demoReducer";
 import { useCartTotals, useDemoStore } from "@/state/DemoStore";
 import { color, corner, space, text } from "@/theme/tokens";
 
@@ -110,6 +114,18 @@ export function CheckoutScreen() {
 
   const applyCode = (raw: string) => {
     const code = raw.trim().toUpperCase();
+    if (isSellerCode(state.seller, code)) {
+      const check = cartTotals({ ...state, checkout: { ...state.checkout, voucherCode: code } });
+      if (check.sellerOfferProblem) {
+        setVoucherError(check.sellerOfferProblem);
+        return;
+      }
+      setVoucherError(null);
+      dispatch({ code, type: "applyVoucher" });
+      setVoucherInput("");
+      toast.show(`${check.sellerOfferTitle ?? "Offer"} applied`);
+      return;
+    }
     if (!vouchers[code]) {
       setVoucherError("That code isn't valid.");
       return;
@@ -125,6 +141,9 @@ export function CheckoutScreen() {
     toast.show(`${vouchers[code].label} applied`);
   };
   const applyVoucher = () => applyCode(voucherInput);
+  const storeId = storeIsLive(state.seller) ? state.seller.profile.storeId : null;
+  const ownStatus = storeId && state.cart.some((line) => getListing(line.listingId)?.sellerId === storeId) ? storeStatus(state.seller.schedule, new Date()) : null;
+  const ownClosed = ownStatus && !ownStatus.open ? ownStatus.label : null;
 
   const pay = () => {
     if (!online) {
@@ -345,12 +364,25 @@ export function CheckoutScreen() {
         </Pressable>
       </Card>
 
+      {totals.sellerOfferTitle && !voucherCode ? (
+        <Card style={styles.appliedRow} testID="store-offer-applied" variant="soft">
+          <Icon color={color.success} name="tag" size={18} />
+          <Text style={styles.addressText}>{totals.sellerOfferTitle} applied automatically</Text>
+        </Card>
+      ) : null}
+      {ownClosed ? (
+        <Card style={styles.appliedRow} testID="store-closed-checkout" variant="soft">
+          <Icon color="#B0680F" name="moon" size={18} />
+          <Text style={styles.addressText}>{closedNote(ownClosed, state.seller.schedule.autoPause)}</Text>
+        </Card>
+      ) : null}
+
       <Text style={styles.heading}>Voucher Code</Text>
       {voucherCode ? (
         <Card style={styles.appliedRow} variant="soft">
           <Icon color={color.success} name="check-circle" size={18} />
           <Text style={styles.addressText}>
-            {voucherCode} · {vouchers[voucherCode]?.label}
+            {voucherCode} · {vouchers[voucherCode]?.label ?? totals.sellerOfferTitle}
           </Text>
           <Pressable accessibilityRole="button" hitSlop={8} onPress={() => dispatch({ code: null, type: "applyVoucher" })}>
             <Text style={styles.edit}>Remove</Text>

@@ -27,7 +27,9 @@ import type { CampusContact, EmergencyContact, ReportCategory, SafetyReport } fr
 import { groupCode, MAX_GROUP_MEMBERS, memberShares, type GroupOrder } from "@/data/group";
 import { lostFoundSeed, splitShares, swapsSeed, type LostFoundKind, type LostFoundPost, type SavedSearch, type Split, type SwapPost, type WishCollection } from "@/data/campus";
 import { lookupStudentRecord } from "@/data/studentRecord";
-import { applySellerAction, routeNewOrdersToSeller } from "@/seller/bridge";
+import { applySellerAction, routeBuyerActionToSeller, routeNewOrdersToSeller } from "@/seller/bridge";
+import { storeIsLive, syncCatalogue, syncOwnReels } from "@/seller/catalogue";
+import { isSellerCode, NO_OFFER, sellerOffer, type OfferLine } from "@/seller/checkout";
 import { liveBackend } from "@/backend/mode";
 import { createSellerState, emptySellerState } from "@/seller/state";
 import type { SellerAction, SellerState } from "@/seller/types";
@@ -52,6 +54,7 @@ import type {
   Role,
   SavedCard,
   WalletTransaction,
+  ReturnRequest,
 } from "@/data/types";
 
 export type Receipt = {
@@ -78,6 +81,10 @@ export type DemoState = {
   /** Last searches, newest first. */
   recentSearches: string[];
   reviews: Review[];
+  /** How many times the student has used each of the seller offers, for the per-student limit. */
+  promoUses: Record<string, number>;
+  /** Returns and problems the student has reported on delivered orders. */
+  returns: ReturnRequest[];
   cart: CartLine[];
   checkout: {
     fulfilment: Fulfilment;
@@ -149,6 +156,8 @@ export function createInitialState(): DemoState {
     recentViews: [],
     recentSearches: [],
     reviews: reviewsSeed,
+    promoUses: {},
+    returns: [],
     cart: [],
     checkout: {
       fulfilment: "delivery",
@@ -216,6 +225,10 @@ export type DemoAction =
   | { type: "addSearch"; query: string }
   | { type: "clearSearches" }
   | { type: "addReview"; listingId: string; rating: 1 | 2 | 3 | 4 | 5; body: string }
+  /** Ask for a return, or report a problem, on a delivered order. */
+  | { type: "openReturn"; orderId: string; kind: "return" | "dispute"; reason: string; id?: string }
+  /** The seller answered a request. A refund goes back to the wallet. */
+  | { type: "returnAnswered"; id: string; status: "approved" | "declined" | "replied"; response: string; refundCents?: number }
   | { type: "toggleFollow"; sellerId: string }
   | { type: "addToCart"; listingId: string; optionId?: string; quantity: number }
   | { type: "setCartQuantity"; lineId: string; quantity: number }
@@ -334,7 +347,18 @@ export function groupDelivery(state: Pick<DemoState, "checkout">, group: "local"
   return { feeCents: deliveryFee(mode, state.checkout.thirdPartyTier), mode };
 }
 
-export function cartTotals(state: Pick<DemoState, "cart" | "checkout" | "profile" | "subscriptions">) {
+export function cartTotals(state: Pick<DemoState, "cart" | "checkout" | "profile" | "subscriptions"> & Partial<Pick<DemoState, "seller" | "orders" | "promoUses">>) {
+  // an offer from the store the student runs, applied to that store's items
+  const storeId = state.seller && storeIsLive(state.seller) ? state.seller.profile.storeId : null;
+  const ownLines: OfferLine[] = storeId
+    ? state.cart.flatMap((line) => {
+        const listing = getListing(line.listingId);
+        return listing && listing.sellerId === storeId ? [{ category: (state.seller!.listings.find((item) => item.id === listing.id)?.category ?? "other") as OfferLine["category"], listingId: listing.id, quantity: line.quantity, unitCents: unitPrice(line) }] : [];
+      })
+    : [];
+  const offer = state.seller && storeId
+    ? sellerOffer({ code: state.checkout.voucherCode, earlierOrders: (state.orders ?? []).filter((item) => item.sellerId === storeId && item.status !== "cancelled").length, lines: ownLines, promoUses: state.promoUses ?? {}, seller: state.seller })
+    : NO_OFFER;
   const subtotalCents = state.cart.reduce(
     (sum, line) => sum + unitPrice(line) * line.quantity,
     0,
@@ -356,19 +380,23 @@ export function cartTotals(state: Pick<DemoState, "cart" | "checkout" | "profile
     itemCount > 0
       ? (plus ? PLUS_ORDER_DISCOUNT_CENTS : 0) + (studyPass ? Math.round((serviceSubtotal * STUDY_PASS_PERCENT_OFF_SERVICES) / 100) : 0)
       : 0;
-  const voucher = state.checkout.voucherCode ? vouchers[state.checkout.voucherCode] : undefined;
-  const voucherDiscount = voucher
-    ? voucher.centsOff ?? Math.round((subtotalCents * (voucher.percentOff ?? 0)) / 100)
-    : 0;
+  // a code the store's own offer uses takes priority over a Vossie voucher with the same name
+  const voucher = state.checkout.voucherCode && !(offer.promotion?.code && offer.promotion.code === state.checkout.voucherCode) ? vouchers[state.checkout.voucherCode] : undefined;
+  const allOwn = ownLines.length > 0 && ownLines.length === state.cart.length;
+  const voucherDiscount =
+    (voucher ? voucher.centsOff ?? Math.round((subtotalCents * (voucher.percentOff ?? 0)) / 100) : 0) + offer.discountCents;
   const discountCents = Math.min(subtotalCents, memberDiscount + voucherDiscount);
   return {
     itemCount,
     subtotalCents,
-    deliveryFeeCents: delivery,
+    deliveryFeeCents: offer.freeDelivery && allOwn ? 0 : delivery,
+    sellerOfferProblem: offer.problem,
+    sellerOfferTitle: offer.promotion?.title ?? null,
+    sellerOfferId: offer.promotion?.id ?? null,
     memberDiscountCents: memberDiscount,
     voucherDiscountCents: voucherDiscount,
     discountCents,
-    totalCents: Math.max(0, subtotalCents + delivery - discountCents),
+    totalCents: Math.max(0, subtotalCents + (offer.freeDelivery && allOwn ? 0 : delivery) - discountCents),
   };
 }
 
@@ -475,6 +503,31 @@ function baseDemoReducer(state: DemoState, action: DemoAction): DemoState {
       };
       return { ...state, reviews: [review, ...state.reviews] };
     }
+    case "openReturn": {
+      const order = state.orders.find((item) => item.id === action.orderId);
+      if (!order || order.status !== "delivered" || state.returns.some((item) => item.orderId === order.id)) return state;
+      const at = new Date().toISOString();
+      const request: ReturnRequest = { createdAt: at, id: action.id ?? nextId("ret"), kind: action.kind, orderId: order.id, reason: action.reason.trim().slice(0, 280) || "No reason given", status: "open", title: order.lines[0]?.title ?? "Order" };
+      const seller = getSeller(order.sellerId)?.name ?? "The seller";
+      return {
+        ...state,
+        notifications: [{ body: `${seller} has your request about ${order.number} and will reply here.`, createdAt: at, href: `/activity/order/${order.id}`, id: nextId("n"), read: false, title: action.kind === "return" ? "Return requested" : "Problem reported" }, ...state.notifications],
+        returns: [request, ...state.returns],
+      };
+    }
+    case "returnAnswered": {
+      const request = state.returns.find((item) => item.id === action.id);
+      if (!request || request.status !== "open") return state;
+      const at = new Date().toISOString();
+      const refund = action.status === "approved" ? (action.refundCents ?? 0) : 0;
+      const order = state.orders.find((item) => item.id === request.orderId);
+      return {
+        ...state,
+        notifications: [{ body: action.response, createdAt: at, href: `/activity/order/${request.orderId}`, id: nextId("n"), read: false, title: action.status === "approved" ? "Refund approved" : action.status === "declined" ? "Return declined" : "The seller replied" }, ...state.notifications],
+        returns: state.returns.map((item) => (item.id === request.id ? { ...item, refundCents: refund || undefined, response: action.response, status: action.status } : item)),
+        wallet: refund > 0 ? { balanceCents: state.wallet.balanceCents + refund, transactions: [{ amountCents: refund, createdAt: at, detail: `Refund for ${order?.number ?? "your order"}`, id: nextId("tx"), kind: "refund", label: `Refund · ${request.title}`, orderId: request.orderId }, ...state.wallet.transactions] } : state.wallet,
+      };
+    }
     case "toggleFollow":
       return {
         ...state,
@@ -533,6 +586,11 @@ function baseDemoReducer(state: DemoState, action: DemoAction): DemoState {
       };
     case "applyVoucher": {
       if (action.code) {
+        if (isSellerCode(state.seller, action.code)) {
+          // a code from the store's own offers: it must apply to this cart
+          if (cartTotals({ ...state, checkout: { ...state.checkout, voucherCode: action.code } }).sellerOfferProblem) return state;
+          return { ...state, checkout: { ...state.checkout, voucherCode: action.code } };
+        }
         const owned = state.userVouchers.find((item) => item.code === action.code);
         if (voucherProblem(owned, cartTotals(state).subtotalCents)) return state;
       }
@@ -1151,9 +1209,18 @@ function baseDemoReducer(state: DemoState, action: DemoAction): DemoState {
 
 /** The demo store's reducer. Seller actions go to the seller side; a placed order is also offered to the seller who runs that store. */
 export function demoReducer(state: DemoState, action: DemoAction): DemoState {
-  if (action.type.startsWith("seller")) return applySellerAction(state, action as SellerAction, baseDemoReducer);
-  const next = baseDemoReducer(state, action);
-  return action.type === "placeOrder" ? routeNewOrdersToSeller(state, next) : next;
+  const base = action.type.startsWith("seller") ? applySellerAction(state, action as SellerAction, baseDemoReducer) : action.type === "placeOrder" ? routeNewOrdersToSeller(state, baseDemoReducer(state, action)) : baseDemoReducer(state, action);
+  // what a buyer does to the store the student runs also reaches the seller side (review, return, follow, message)
+  const routed = !action.type.startsWith("seller") && ["addReview", "openReturn", "toggleFollow", "sendMessage", "toggleReelLike"].includes(action.type) ? routeBuyerActionToSeller(state, base, action) : base;
+  // an offer that was used on an order is counted, for its total and for the per-student limit
+  const used = action.type === "placeOrder" && routed.orders.length > state.orders.length ? cartTotals(state).sellerOfferId : null;
+  const withReels = routed.seller.reels !== state.seller.reels || routed.seller.profile.storeName !== state.seller.profile.storeName || routed.seller.status !== state.seller.status || routed.seller.setupDone !== state.seller.setupDone ? { ...routed, reels: syncOwnReels(routed.reels, routed.seller, routed.likedReels) } : routed;
+  const next = used
+    ? { ...withReels, promoUses: { ...withReels.promoUses, [used]: (withReels.promoUses[used] ?? 0) + 1 }, seller: { ...withReels.seller, promotions: withReels.seller.promotions.map((item) => (item.id === used ? { ...item, redemptions: item.redemptions + 1 } : item)) } }
+    : withReels;
+  // buyers see the store the seller runs, so keep the catalogue in step with it (setting a value, so safe to repeat)
+  if (next.seller !== state.seller || next.following !== state.following || action.type === "signOut") syncCatalogue(next.seller, next.following.includes(next.seller.profile.storeId) ? 1 : 0);
+  return next;
 }
 
 export function isCampusId(value: string): value is CampusId {

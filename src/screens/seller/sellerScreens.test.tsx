@@ -13,6 +13,7 @@ import { SellerCasesScreen, SellerTeamScreen } from "./SellerManageScreens";
 import { SellerPromotionFormScreen, SellerPromotionsScreen } from "./SellerPromotionScreens";
 import { SellerHandoverScreen, SellerPrepareScreen } from "./SellerPrepareScreens";
 import { SellerReceiptScreen, SellerStatementsScreen, SellerTransactionsScreen } from "./SellerMoneyScreens";
+import { StorefrontScreen } from "@/screens/store/StorefrontScreen";
 import { SellerGoalsScreen, SellerRulesScreen } from "./SellerRulesScreens";
 import { SellerOrderOffer } from "./SellerOrderOffer";
 import { SellerPlaceScreen } from "./SellerPlaceScreen";
@@ -1052,5 +1053,18 @@ describe("the new order offer from the bottom", () => {
     fireEvent.press(screen.getByTestId("offer-decline"));
     fireEvent.press(screen.getByTestId("offer-reason-Sold out"));
     expect(decline).toHaveBeenCalledWith("Sold out");
+  });
+});
+
+describe("the buyer's page for the store the seller runs", () => {
+  it("shows the seller's own products, hours and offer, and the seller's reply under a review", () => {
+    mockParams = { id: "campusbites" };
+    const state = run(seller(), { role: "buyer", type: "switchRole" });
+    renderWithProviders(<StorefrontScreen />, state);
+    expect(screen.getByTestId("storefront")).toBeTruthy();
+    expect(screen.getByTestId("store-hours")).toBeTruthy();
+    expect(screen.getByText("CampusBites")).toBeTruthy();
+    expect(screen.getAllByText(/Calculus Textbook/).length).toBeGreaterThan(0);
+    expect(screen.queryByText("Burger & Chips")).toBeNull();
   });
 });
