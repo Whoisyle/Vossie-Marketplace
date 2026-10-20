@@ -22,6 +22,18 @@ import { SellerTypeScreen } from "./SellerTypeScreen";
 import { SellerVerifyScreen } from "./SellerVerifyScreen";
 import { SellerWelcomeScreen } from "./SellerWelcomeScreen";
 
+let mockScan: ((event: { data: string }) => void) | undefined;
+jest.mock("expo-camera", () => {
+  const { View } = jest.requireActual("react-native");
+  return {
+    CameraView: ({ onBarcodeScanned }: { onBarcodeScanned: (event: { data: string }) => void }) => {
+      mockScan = onBarcodeScanned;
+      return <View testID="camera" />;
+    },
+    useCameraPermissions: () => [{ granted: true }, jest.fn()],
+  };
+});
+
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
 let mockParams: { id?: string } = {};
@@ -349,6 +361,19 @@ describe("preparing a delivery and handing it to the courier", () => {
     expect(screen.getByText("Finding a courier")).toBeTruthy();
     expect(screen.getByTestId("confirm-handover").props.accessibilityState.disabled).toBe(true);
     jest.useRealTimers();
+  });
+
+  it("scans the courier's QR: a wrong code is refused, the right one is accepted", () => {
+    mockParams = { id: "so-2038" };
+    const ready = run(seller(), { id: "so-2038", to: "ready", type: "sellerAdvanceOrder" }, { id: "so-2038", type: "sellerAssignCourier" });
+    renderWithProviders(<SellerHandoverScreen />, ready);
+    fireEvent.press(screen.getByTestId("scan-code"));
+    expect(screen.getByTestId("camera")).toBeTruthy();
+    act(() => mockScan?.({ data: "vossie-courier:0000" }));
+    expect(screen.getByText(/not for this order/)).toBeTruthy();
+    const code = ready.seller.orders.find((item) => item.id === "so-2038")!.courierCode;
+    act(() => mockScan?.({ data: `vossie-courier:${code}` }));
+    expect(screen.getByText("Code matched")).toBeTruthy();
   });
 
   it("confirms the handover once a courier is there", () => {

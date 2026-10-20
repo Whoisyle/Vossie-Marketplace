@@ -1,7 +1,7 @@
 import { createInitialState, demoReducer, type DemoAction, type DemoState } from "@/state/demoReducer";
 
 import { activeListings, analytics, attentionItems, feesPaidCents, isLowStock, pendingCents, orderCounts, ordersInGroup, weekBars, weekTotals } from "./selectors";
-import { averageRating, createSellerState, docKindsFor, earnCents, sellerBalanceCents, sellerReduce } from "./state";
+import { averageRating, createSellerState, docKindsFor, earnCents, scanMatchesCourierCode, sellerBalanceCents, sellerReduce } from "./state";
 
 const NOW = new Date(2026, 9, 20, 12, 0, 0).getTime();
 
@@ -222,5 +222,14 @@ describe("the new seller screens' rules", () => {
     expect(week.revenueCents).toBe(124_500);
     expect(week.changePercent).toBe(12);
     expect(analytics(seller, 30, NOW).revenueCents).toBeGreaterThanOrEqual(week.revenueCents);
+  });
+});
+
+describe("courier QR codes", () => {
+  it("accepts the digits with or without the prefix and nothing else", () => {
+    expect(scanMatchesCourierCode("4829", "4829")).toBe(true);
+    expect(scanMatchesCourierCode(" vossie-courier:4829 ", "4829")).toBe(true);
+    expect(scanMatchesCourierCode("4828", "4829")).toBe(false);
+    expect(scanMatchesCourierCode("4829", "")).toBe(false);
   });
 });

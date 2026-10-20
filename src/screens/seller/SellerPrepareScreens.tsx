@@ -8,6 +8,7 @@ import { formatRand, initials } from "@/data/format";
 import type { ParcelSize } from "@/seller/types";
 
 import { SellerField } from "./fields";
+import { ScanSheet } from "./ScanSheet";
 import { useSeller } from "./hooks";
 import { Confetti } from "./motion";
 import { Check, Chips } from "./parts";
@@ -122,6 +123,8 @@ export function SellerHandoverScreen() {
   const [sealed, setSealed] = useState(false);
   const [matches, setMatches] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [scanned, setScanned] = useState(false);
   if (!order) return <Missing back="/seller/orders" />;
 
   const courier = order.courier;
@@ -135,7 +138,12 @@ export function SellerHandoverScreen() {
 
   return (
     <SellerScreen
-      footer={<SellerButton disabled={!courier || !sealed || !matches || done} icon="check" label={done ? "Handed over" : "Confirm handover"} onPress={confirm} size="lg" testID="confirm-handover" variant="glass" />}
+      footer={
+        <View style={styles.footerRow}>
+          <SellerButton disabled={!courier || done} icon="maximize" label="Scan code" onPress={() => setScanning(true)} style={styles.flex} testID="scan-code" variant="light" />
+          <SellerButton disabled={!courier || !sealed || !matches || done} icon="check" label={done ? "Handed over" : "Confirm handover"} onPress={confirm} style={styles.flex} testID="confirm-handover" variant="glass" />
+        </View>
+      }
       testID="seller-handover"
     >
       <SellerTopBar title="Handover" />
@@ -167,11 +175,14 @@ export function SellerHandoverScreen() {
       </Animated.View>
 
       <SellerCard style={styles.scan}>
-        <Icon color={SELLER.solid} name="maximize" size={22} />
+        <View style={styles.qrTile}>
+          <Icon color={SELLER.solid} name="maximize" size={26} />
+        </View>
         <View style={styles.flex}>
           <Text style={styles.name}>Or scan the courier code</Text>
-          <Text style={styles.hint}>Scanning arrives with the courier app. For now, check the code.</Text>
+          <Text style={styles.hint}>{scanned ? "Code matched" : "Point your camera at the courier's QR"}</Text>
         </View>
+        {scanned ? <Pill label="Matched" tone="success" /> : null}
       </SellerCard>
 
       <Animated.View entering={FadeInDown.duration(300)} style={styles.checks}>
@@ -179,6 +190,7 @@ export function SellerHandoverScreen() {
         <Check checked={matches} label={`Order ${order.number} matches label`} onChange={setMatches} testID="check-matches" />
       </Animated.View>
       <Text style={styles.earn}>You earn {formatRand(order.subtotalCents - order.feeCents, { fixed: true })} when the courier collects.</Text>
+      <ScanSheet code={order.courierCode} onClose={() => setScanning(false)} onMatch={() => setScanned(true)} visible={scanning} />
       <Confetti coins play={celebrate} />
     </SellerScreen>
   );
@@ -206,6 +218,8 @@ const styles = StyleSheet.create({
   missing: { alignItems: "flex-start", gap: 12, marginTop: 20 },
   name: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },
   pulse: { backgroundColor: "#FFFFFF", borderRadius: 4, height: 8, width: 8 },
+  footerRow: { flexDirection: "row", gap: 10 },
+  qrTile: { alignItems: "center", backgroundColor: "#E3ECEF", borderRadius: 16, height: 64, justifyContent: "center", width: 64 },
   requested: { alignItems: "center", flexDirection: "row", gap: 10, marginTop: 14 },
   scan: { alignItems: "center", flexDirection: "row", gap: 12, marginTop: 14 },
   step: { alignItems: "center", flexDirection: "row", gap: 12, minHeight: 40 },

@@ -498,3 +498,9 @@ export function demoIncomingOrder(now: number, n: number): SellerOrder {
     status: "new",
   });
 }
+
+/** Whether what a camera read from a courier's QR is this order's four digit code. The QR holds the digits, or "vossie-courier:" and the digits. */
+export function scanMatchesCourierCode(scanned: string, code: string): boolean {
+  const digits = scanned.trim().replace(/^vossie-courier:/i, "");
+  return code.length > 0 && digits === code;
+}

@@ -21,6 +21,13 @@
     "plugins": [
       "expo-router",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Vossie uses your camera to scan a courier's QR code when you hand over an order.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "Vossie uses your photos so you can choose a profile picture."
