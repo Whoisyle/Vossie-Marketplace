@@ -267,10 +267,10 @@ function Capitec({ card, eft, issuer, width }: Props) {
       <At h={h} w={w} x={0.06} y={0.1}>
         <Text style={{ color: "#B89A3E", fontSize: h * 0.09, fontWeight: "700", letterSpacing: -0.3 }}>GlobalOne</Text>
       </At>
-      <At h={h} w={w} x={0.34} y={0.08}>
+      <At h={h} w={w} x={0.47} y={0.08}>
         <Chip colour="#C9A94F" size={h / 120} />
       </At>
-      <At h={h} w={w} x={0.5} y={0.1}>
+      <At h={h} w={w} x={0.64} y={0.1}>
         <Contactless colour="#B89A3E" size={h * 0.11} />
       </At>
       <Image contentFit="contain" source={ART.capitec} style={{ height: (w * 0.66 * 106) / 536, left: w * 0.06, position: "absolute", top: h * 0.43, width: w * 0.66 }} />
@@ -282,7 +282,7 @@ function Capitec({ card, eft, issuer, width }: Props) {
       <At h={h} w={w} x={0.06} y={0.86}>
         <Text style={{ color: "#B89A3E", fontSize: h * 0.085, fontWeight: "500" }}>debit</Text>
       </At>
-      <At h={h} w={w} x={0.78} y={0.74}>
+      <At h={h} w={w} x={0.7} y={0.72}>
         <SchemeLogo brand={card.brand} size={h * 0.38} />
       </At>
     </Frame>
