@@ -14,6 +14,12 @@ import { WalletScreen } from "./account/WalletScreen";
 import { ART_IDS, hasArt } from "@/components/art/ProductArt";
 import { listings } from "@/data/mock/catalog";
 
+import { ActivityScreen } from "./activity/ActivityScreen";
+import { MyOrdersScreen } from "./activity/MyOrdersScreen";
+import { CampusExtrasScreen } from "./account/CampusExtrasScreen";
+import { HelpScreen } from "./account/HelpScreen";
+import { SafetyScreen } from "./account/SafetyScreen";
+import { WishlistScreen } from "./account/WishlistScreen";
 import { HomeScreen } from "./home/HomeScreen";
 import { PromoCarousel, PROMOS } from "./home/PromoCarousel";
 import { PromoScreen } from "./promo/PromoScreen";
@@ -233,5 +239,20 @@ describe("Product drawings and the notification bell", () => {
     renderWithProviders(<HomeScreen />, signedIn());
     fireEvent.press(screen.getByLabelText(/^Notifications/));
     expect(mockPush).toHaveBeenCalledWith("/home/notifications");
+  });
+});
+
+describe("Page heroes", () => {
+  it.each([
+    ["orders-hero", () => <MyOrdersScreen />],
+    ["wishlist-hero", () => <WishlistScreen />],
+    ["inbox-hero", () => <InboxScreen />],
+    ["help-hero", () => <HelpScreen />],
+    ["activity-hero", () => <ActivityScreen />],
+    ["safety-hero", () => <SafetyScreen />],
+    ["campus-hero", () => <CampusExtrasScreen />],
+  ])("shows %s", (testID, render) => {
+    renderWithProviders(render(), signedIn());
+    expect(screen.getByTestId(testID)).toBeTruthy();
   });
 });

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Button, Card, Chip, Icon, Screen, SegmentedTabs, Sheet, StatusBadge, TextField, useToast } from "@/components";
+import { AppHeader, Button, Card, Chip, Icon, Screen, SegmentedTabs, Sheet, StatusBadge, TextField, useToast, PageHero } from "@/components";
 import { tutorSlots, type LostFoundKind } from "@/data/campus";
 import { effectivePrice } from "@/data/deals";
 import { formatRand, relativeTime } from "@/data/format";
@@ -34,6 +34,14 @@ export function CampusExtrasScreen() {
   return (
     <Screen testID="campus-extras">
       <AppHeader back subtitle="Swap books, book a tutor, find lost things." title="Campus extras" />
+      <PageHero
+        chips={[{ icon: "repeat", label: "Swap books" }, { icon: "book-open", label: "Book a tutor" }, { icon: "search", label: "Find lost things" }]}
+        icon="compass"
+        subtitle="Things only students on your campus can do for each other."
+        testID="campus-hero"
+        title="Make campus work for you"
+        tone="mist"
+      />
       <SegmentedTabs
         onChange={setTab}
         options={[

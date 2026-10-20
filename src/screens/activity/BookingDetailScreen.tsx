@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Card, EmptyState, Icon, Screen, StatusBadge } from "@/components";
+import { AppHeader, Card, EmptyState, Icon, Screen, StatusBadge, PageHero } from "@/components";
 import { dateAndTime, formatRand } from "@/data/format";
 import { useDemoStore } from "@/state/DemoStore";
 import { space, text } from "@/theme/tokens";
@@ -32,6 +32,14 @@ export function BookingDetailScreen() {
   return (
     <Screen>
       <AppHeader back title={booking.title} />
+      <PageHero
+        chips={[{ icon: "clock", label: `${booking.durationMinutes} min` }, { icon: "map-pin", label: booking.location }]}
+        icon="calendar"
+        subtitle={booking.provider}
+        testID="booking-hero"
+        title={`Booked for ${dateAndTime(booking.startsAt)}`}
+        tone="mist"
+      />
       <Card style={styles.card} variant="soft">
         <StatusBadge label={booking.status[0]!.toUpperCase() + booking.status.slice(1)} tone={tones[booking.status]} />
         <Detail icon="calendar" label={dateAndTime(booking.startsAt)} />

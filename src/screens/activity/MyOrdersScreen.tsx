@@ -14,6 +14,7 @@ import {
   StatusBadge,
   useToast,
   type FilterOption,
+  PageHero,
 } from "@/components";
 import { dateAndTime, formatRand } from "@/data/format";
 import { getSeller } from "@/data/repository";
@@ -65,6 +66,17 @@ export function MyOrdersScreen() {
   return (
     <Screen>
       <AppHeader back subtitle="Track, manage and review your purchases." title="My Orders" />
+      <PageHero
+        chips={[
+          { icon: "check-circle", label: `${groups.complete.length} complete` },
+          { icon: "calendar", label: `${groups.upcoming.length} upcoming` },
+        ]}
+        icon="package"
+        subtitle={groups.active[0]?.etaMinutes ? `Next one arrives in about ${groups.active[0].etaMinutes} min` : "Everything you have bought, in one place."}
+        testID="orders-hero"
+        title={groups.active.length ? `${groups.active.length} open ${groups.active.length === 1 ? "order" : "orders"}` : "No open orders"}
+        tone="warm"
+      />
       <FilterChips onChange={setTab} options={options} value={tab} />
 
       {tab === "upcoming" ? (

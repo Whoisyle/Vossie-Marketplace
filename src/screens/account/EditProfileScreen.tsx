@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Avatar, Button, Icon, Screen, TextField, useToast } from "@/components";
+import { AppHeader, Avatar, Button, Icon, Screen, TextField, useToast, PageHero } from "@/components";
 import type { CampusId } from "@/data/types";
 import { CampusCard } from "@/screens/profile/CampusCard";
 import { CampusPicker } from "@/screens/profile/CampusPicker";
@@ -48,6 +48,14 @@ export function EditProfileScreen() {
   return (
     <Screen footer={<Button fullWidth label="Save changes" onPress={save} size="lg" testID="save-profile" />}>
       <AppHeader back subtitle="Update your personal information." title="Edit Profile" />
+      <PageHero
+        chips={profile.isVerifiedStudent ? [{ icon: "check-circle", label: "Verified student" }] : []}
+        icon="user"
+        subtitle="Your name and campus show on your student card."
+        testID="profile-hero"
+        title={profile.fullName || "Your profile"}
+        tone="slate"
+      />
       <View style={styles.photo}>
         <Pressable
           accessibilityLabel="Change photo"

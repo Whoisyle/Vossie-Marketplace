@@ -13,6 +13,7 @@ import {
   Screen,
   SectionHeader,
   type FilterOption,
+  PageHero,
 } from "@/components";
 import { dateAndTime, relativeTime } from "@/data/format";
 import { getSeller } from "@/data/repository";
@@ -59,6 +60,17 @@ export function ActivityScreen() {
   return (
     <Screen testID="activity-screen">
       <AppHeader title="Activity" />
+      <PageHero
+        chips={[
+          { icon: "package", label: `${activeOrders.length} open ${activeOrders.length === 1 ? "order" : "orders"}` },
+          { icon: "calendar", label: `${upcoming.length} upcoming` },
+        ]}
+        icon="activity"
+        subtitle="Orders, bookings and messages, newest first."
+        testID="activity-hero"
+        title="What is happening"
+        tone="slate"
+      />
       <FilterChips onChange={setSection} options={options} value={section} />
 
       <View style={styles.summary}>

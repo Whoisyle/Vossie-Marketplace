@@ -12,6 +12,7 @@ import {
   Screen,
   StatusBadge,
   useToast,
+  PageHero,
 } from "@/components";
 import { dateAndTime, formatRand } from "@/data/format";
 import { deliveryLabels, hasLiveMap } from "@/data/delivery";
@@ -59,6 +60,14 @@ export function OrderDetailScreen() {
   return (
     <Screen>
       <AppHeader back subtitle={`Placed ${dateAndTime(order.placedAt)}`} title={`Order ${order.number}`} />
+      <PageHero
+        chips={[{ icon: "shopping-bag", label: `${order.lines.length} ${order.lines.length === 1 ? "item" : "items"}` }, { icon: "tag", label: formatRand(order.totalCents) }]}
+        icon={order.status === "delivered" ? "check-circle" : order.status === "cancelled" ? "x-circle" : "truck"}
+        subtitle={seller?.name ?? "Seller"}
+        testID="order-hero"
+        title={`Status: ${info.label}`}
+        tone={order.status === "cancelled" ? "ink" : order.status === "delivered" ? "slate" : "warm"}
+      />
       <Card style={styles.card} variant="soft">
         <View style={styles.row}>
           <Text style={text.cardTitle}>{seller?.name ?? "Seller"}</Text>

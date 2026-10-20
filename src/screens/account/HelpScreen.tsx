@@ -2,7 +2,7 @@ import { useRouter, type Href } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Button, Card, EmptyState, Icon, Screen, SearchBar } from "@/components";
+import { AppHeader, Button, Card, EmptyState, Icon, Screen, SearchBar, PageHero } from "@/components";
 import { getFaqs } from "@/data/repository";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
@@ -27,6 +27,14 @@ export function HelpScreen() {
   return (
     <Screen>
       <AppHeader back subtitle="Find answers or get in touch with us." title="Help" />
+      <PageHero
+        chips={[{ icon: "book-open", label: `${faqs.length} ${faqs.length === 1 ? "answer" : "answers"}` }, { icon: "message-circle", label: "Chat with Support" }]}
+        icon="life-buoy"
+        subtitle="Search the answers below, or chat with Vossie Support."
+        testID="help-hero"
+        title="How can we help?"
+        tone="ink"
+      />
       <View style={styles.search}>
         <SearchBar compact onChangeText={setQuery} placeholder="Search for help articles" value={query} />
       </View>

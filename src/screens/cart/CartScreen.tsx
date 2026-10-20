@@ -1,7 +1,7 @@
 import { useRouter, type Href } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Button, Card, EmptyState, Media, QuantityStepper, Screen } from "@/components";
+import { AppHeader, Button, Card, EmptyState, Media, QuantityStepper, Screen, PageHero } from "@/components";
 import { formatRand } from "@/data/format";
 import { getListing, getSeller } from "@/data/repository";
 import { unitPrice, useCartTotals, useDemoStore } from "@/state/DemoStore";
@@ -51,6 +51,14 @@ export function CartScreen() {
       testID="cart-screen"
     >
       <AppHeader subtitle={`${totals.itemCount} ${totals.itemCount === 1 ? "item" : "items"}`} title="Your cart" />
+      <PageHero
+        chips={[{ icon: "tag", label: `Subtotal ${formatRand(totals.subtotalCents)}` }]}
+        icon="shopping-cart"
+        subtitle="Check your items, then head to checkout."
+        testID="cart-hero"
+        title={`${totals.itemCount} ${totals.itemCount === 1 ? "item" : "items"} ready`}
+        tone="warm"
+      />
       <View style={styles.list}>
         {state.cart.map((line) => {
           const listing = getListing(line.listingId);

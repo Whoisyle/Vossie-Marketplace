@@ -2,8 +2,9 @@ import { useRouter, type Href } from "expo-router";
 import { useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Button, Card, EmptyState, Icon, ListingCard, Screen, SegmentedTabs, Sheet, TextField, useToast } from "@/components";
+import { AppHeader, Button, Card, EmptyState, Icon, ListingCard, Screen, SegmentedTabs, Sheet, TextField, useToast, PageHero } from "@/components";
 import { shortDate } from "@/data/format";
+import { dealFor } from "@/data/deals";
 import { getListing, getListings, getSellers } from "@/data/repository";
 import { searchListings } from "@/data/search";
 import type { Listing } from "@/data/types";
@@ -46,6 +47,14 @@ export function WishlistScreen() {
   return (
     <Screen testID="wishlist-screen">
       <AppHeader back subtitle="Keep what you like and be told about new finds." title="Wishlist" />
+      <PageHero
+        chips={[{ icon: "tag", label: `${saved.filter((item) => dealFor(item.id) > 0).length} on sale` }]}
+        icon="heart"
+        subtitle="Tap the heart on anything you like to keep it here."
+        testID="wishlist-hero"
+        title={`${saved.length} saved ${saved.length === 1 ? "item" : "items"}`}
+        tone="mist"
+      />
       <SegmentedTabs
         onChange={setTab}
         options={[

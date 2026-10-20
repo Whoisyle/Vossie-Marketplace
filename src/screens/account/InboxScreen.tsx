@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
-import { AppHeader, Avatar, Chip, EmptyState, Icon, Screen, SearchBar, type IconName } from "@/components";
+import { AppHeader, Avatar, Chip, EmptyState, Icon, Screen, SearchBar, type IconName, PageHero } from "@/components";
 import { relativeTime } from "@/data/format";
 import type { Conversation } from "@/data/types";
 import { useDemoStore } from "@/state/DemoStore";
@@ -70,6 +70,14 @@ export function InboxScreen() {
   return (
     <Screen testID="inbox-screen">
       <AppHeader back subtitle={unread ? `${unread} unread` : "You're all caught up"} title="Messages" />
+      <PageHero
+        chips={[{ icon: "users", label: `${state.conversations.length} ${state.conversations.length === 1 ? "conversation" : "conversations"}` }]}
+        icon="message-circle"
+        subtitle="Sellers, couriers and Vossie Support."
+        testID="inbox-hero"
+        title={unread ? `${unread} new ${unread === 1 ? "message" : "messages"}` : "All caught up"}
+        tone="slate"
+      />
       <SearchBar onChangeText={setQuery} placeholder="Search messages" value={query} />
       <View style={styles.chips}>
         {FILTERS.filter((item) => item.key === "all" || item.key === "unread" || state.conversations.some((c) => c.kind === item.key)).map((item) => (

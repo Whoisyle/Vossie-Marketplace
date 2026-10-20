@@ -18,6 +18,7 @@ import {
   TextField,
   TwoFactorSheet,
   useToast,
+  PageHero,
 } from "@/components";
 import { campusPlaces } from "@/data/geo";
 import { dateAndTime } from "@/data/format";
@@ -140,6 +141,14 @@ export function SafetyScreen() {
   return (
     <Screen testID="safety-screen">
       <AppHeader back subtitle="Keep yourself and your orders safe." title="Safety" />
+      <PageHero
+        chips={[{ icon: "phone-call", label: "Police 10111" }, { icon: "shield", label: "Safety check-up" }]}
+        icon="shield"
+        subtitle="Emergency numbers, trusted contacts and a quick safety check."
+        testID="safety-hero"
+        title="Look out for each other"
+        tone="ink"
+      />
       <Card onPress={() => call("10111")} style={styles.sos} testID="sos" variant="soft">
         <Icon color={color.danger} name="phone-call" size={20} />
         <View style={styles.flex}>

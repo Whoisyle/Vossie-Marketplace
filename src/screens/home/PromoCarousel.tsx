@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -17,6 +18,7 @@ import { ProductArt } from "@/components/art/ProductArt";
 import { dealFor, effectivePrice } from "@/data/deals";
 import { formatRand } from "@/data/format";
 import { promoDefs, promoPercent } from "@/data/promos";
+import { promoPhotos } from "@/data/mock/promoPhotos";
 import { getListing } from "@/data/repository";
 import { haptic } from "@/lib/haptics";
 import { ease, seeded, spring } from "@/theme/motion";
@@ -147,6 +149,12 @@ export function PromoCarousel({
 
 const BANNER_HEIGHT = 196;
 
+/** A hex colour with an opacity, for fading a photo into the banner colour. */
+export function withAlpha(hex: string, alpha: number): string {
+  const n = parseInt(hex.replace("#", ""), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
 /**
  * The layered backdrop of a banner: a dotted texture, soft diagonal bands and a glow behind the product, all inside
  * the banner's own colour. Two large shapes drift slowly across it.
@@ -207,16 +215,29 @@ function Banner({ active, cardWidth, onPress, promo }: { active: boolean; cardWi
   }, [active, float, pop, reduced, shine]);
   const style = useAnimatedStyle(() => ({ opacity: 0.8 + lift.get() * 0.2, transform: [{ scale: 0.96 + lift.get() * 0.04 }] }));
   const artStyle = useAnimatedStyle(() => ({ transform: [{ translateY: (float.get() - 0.5) * 10 }, { rotate: `${-8 + (float.get() - 0.5) * 4}deg` }, { scale: 1 + lift.get() * 0.04 }] }));
+  const photoStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1.06 + float.get() * 0.06 }, { translateX: (0.5 - float.get()) * 6 }] }));
   const badgeStyle = useAnimatedStyle(() => ({ transform: [{ rotate: "-10deg" }, { scale: 1 + pop.get() * 0.12 }] }));
   const shineStyle = useAnimatedStyle(() => ({ opacity: shine.get() > 0 && shine.get() < 1 ? 1 : 0, transform: [{ translateX: -140 + shine.get() * (cardWidth + 280) }, { rotate: "16deg" }] }));
   const product = promo.product;
   const art = Math.min(230, cardWidth * 0.66);
+  const photo = product ? promoPhotos[product.id] : undefined;
   return (
     <Pressable accessibilityLabel={`${promo.title}. ${product ? `${product.name}, ${formatRand(product.priceCents)}${product.percent ? `, ${product.percent} percent off` : ""}. ` : ""}${promo.subtitle}`} accessibilityRole="button" onPress={onPress}>
       <Animated.View style={[styles.card, { width: cardWidth }, style]}>
         <LinearGradient colors={promo.colors} end={{ x: 1, y: 1 }} start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
         <BannerBackdrop active={active} width={cardWidth} />
-        {product ? (
+        {photo ? (
+          <>
+            <View pointerEvents="none" style={styles.photoLayer}>
+              <Animated.View style={[StyleSheet.absoluteFill, photoStyle]}>
+                <Image accessibilityLabel={product?.name} contentFit="cover" source={photo} style={StyleSheet.absoluteFill} transition={200} />
+              </Animated.View>
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(promo.colors[1], 0.16) }]} />
+              <LinearGradient colors={[promo.colors[0], withAlpha(promo.colors[0], 0.85), withAlpha(promo.colors[0], 0)]} end={{ x: 0.62, y: 0.5 }} locations={[0, 0.3, 1]} start={{ x: 0, y: 0.5 }} style={StyleSheet.absoluteFill} />
+              <LinearGradient colors={[withAlpha(promo.colors[1], 0), withAlpha(promo.colors[1], 0.55)]} end={{ x: 0.5, y: 1 }} start={{ x: 0.5, y: 0.55 }} style={StyleSheet.absoluteFill} />
+            </View>
+          </>
+        ) : product ? (
           <Animated.View pointerEvents="none" style={[styles.art, { height: art, right: -art * 0.1, top: BANNER_HEIGHT - art * 0.92, width: art }, artStyle]}>
             <ProductArt id={product.id} size={art} />
           </Animated.View>
@@ -282,6 +303,7 @@ const styles = StyleSheet.create({
   discountValue: { color: "#1F2F39", fontSize: 18, fontWeight: "900", letterSpacing: -0.5 },
   dots: { alignItems: "center", marginTop: space.xs },
   iconBadge: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 36, height: 72, justifyContent: "center", position: "absolute", right: space.lg, top: 60, width: 72 },
+  photoLayer: { bottom: 0, position: "absolute", right: 0, top: 0, width: "68%" },
   price: { color: color.onPrimary, fontSize: 28, fontWeight: "900", letterSpacing: -0.5 },
   priceRow: { alignItems: "baseline", flexDirection: "row", gap: 8 },
   product: { gap: 0 },

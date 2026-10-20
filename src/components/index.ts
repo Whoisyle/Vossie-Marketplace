@@ -24,6 +24,7 @@ export { SegmentedTabs } from "./SegmentedTabs";
 export { NotificationBanner } from "./NotificationBanner";
 export { OfflineBanner } from "./OfflineBanner";
 export { OrderSimulator } from "./OrderSimulator";
+export { PageHero, type HeroChip, type HeroTone } from "./PageHero";
 export { Screen } from "./Screen";
 export { SearchBar } from "./SearchBar";
 export { ListingsSkeleton, Skeleton, useFirstLoad } from "./Skeleton";

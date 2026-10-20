@@ -75,9 +75,12 @@ export function SectionHeader({
 }) {
   return (
     <View style={styles.sectionHeader}>
-      <Text accessibilityRole="header" style={text.sectionTitle}>
-        {title}
-      </Text>
+      <View style={styles.sectionTitleRow}>
+        <View style={styles.sectionAccent} />
+        <Text accessibilityRole="header" style={text.sectionTitle}>
+          {title}
+        </Text>
+      </View>
       {onAction ? (
         <Pressable
           accessibilityLabel={`${actionLabel}, ${title}`}
@@ -94,6 +97,8 @@ export function SectionHeader({
 }
 
 const styles = StyleSheet.create({
+  sectionAccent: { backgroundColor: color.accent, borderRadius: 2, height: 18, width: 4 },
+  sectionTitleRow: { alignItems: "center", flexDirection: "row", gap: 8 },
   action: { color: color.textSecondary, fontSize: 13 },
   card: {
     borderCurve: "continuous",
