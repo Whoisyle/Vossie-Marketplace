@@ -37,7 +37,14 @@ const BAR_PADDING = space.xxs;
  * the active icon hops, and the whole bar slowly slides away while you scroll down a page and returns when you
  * scroll up. Screens can lock it hidden (Reels).
  */
-export function TabBar({ insets, navigation, state }: BottomTabBarProps) {
+export type TabConfig = { name: string; label: string; icon: IconName };
+
+/**
+ * The bottom bar. By default it shows the buyer's six tabs; pass `tabs` for another set (seller mode) and `badges` for
+ * counts on them. Without `badges` the Cart tab shows how many items are in the cart.
+ */
+export function TabBar({ badges, insets, navigation, state, tabs }: BottomTabBarProps & { tabs?: readonly TabConfig[]; badges?: Record<string, number> }) {
+  const config = tabs ?? TABS;
   const { itemCount } = useCartTotals();
   const chrome = useTabChrome();
   const reduced = useReducedMotion();
@@ -98,10 +105,10 @@ export function TabBar({ insets, navigation, state }: BottomTabBarProps) {
           </Animated.View>
         ) : null}
         {state.routes.map((route, index) => {
-          const tab = TABS.find((item) => item.name === route.name);
+          const tab = config.find((item) => item.name === route.name);
           if (!tab) return null;
           const focused = state.index === index;
-          const badge = tab.name === "cart" && itemCount > 0 ? itemCount : 0;
+          const badge = badges ? (badges[tab.name] ?? 0) : tab.name === "cart" && itemCount > 0 ? itemCount : 0;
           const onPress = () => {
             const event = navigation.emit({ canPreventDefault: true, target: route.key, type: "tabPress" });
             if (!focused && !event.defaultPrevented) {
@@ -160,7 +167,7 @@ function TabItem({
 
   return (
     <Pressable
-      accessibilityLabel={badge ? `${label}, ${badge} items` : label}
+      accessibilityLabel={badge ? `${label}, ${badge} new` : label}
       accessibilityRole="tab"
       accessibilityState={{ selected: focused }}
       onPress={onPress}

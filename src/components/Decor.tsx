@@ -13,12 +13,13 @@ import { color, corner } from "@/theme/tokens";
  * on banners and coupons (`Bands`, `Ticket`), and a branded header on receipts (`ReceiptBand`).
  */
 
-export type BackdropTone = "mist" | "warm" | "ink";
+export type BackdropTone = "mist" | "warm" | "ink" | "teal";
 
 /** Line colour and the wash behind it, per area of the app. */
 const LOOK: Record<BackdropTone, { line: string; wash: string }> = {
   ink: { line: "rgba(31,47,57,0.13)", wash: "rgba(55,99,113,0.10)" },
   mist: { line: "rgba(55,99,113,0.16)", wash: "rgba(183,196,204,0.28)" },
+  teal: { line: "rgba(255,255,255,0.13)", wash: "rgba(255,255,255,0.10)" },
   warm: { line: "rgba(190,128,62,0.20)", wash: "rgba(250,236,214,0.75)" },
 };
 

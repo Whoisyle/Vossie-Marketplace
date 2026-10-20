@@ -178,10 +178,15 @@ export function AccountScreen() {
             onPress={() => {
               dispatch({ role, type: "switchRole" });
               setRoleOpen(false);
+              if (role === "seller") {
+                // a first-time seller sets up the shop; a seller who has done that goes straight to it
+                router.replace((state.seller.setupDone ? "/seller/home" : "/seller-setup/welcome") as Href);
+                return;
+              }
               toast.show(`Switched to ${roleLabels[role]}`);
             }}
             selected={profile.role === role}
-            subtitle={role === "buyer" ? "Browse and buy on campus" : "Selling tools arrive in a later release"}
+            subtitle={role === "buyer" ? "Browse and buy on campus" : role === "seller" ? "Sell to students on your campus" : "Bookings and time slots arrive in a later release"}
             title={roleLabels[role]}
           />
         ))}

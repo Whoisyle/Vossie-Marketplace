@@ -288,3 +288,33 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
       return state;
   }
 }
+
+const ARRIVALS: { buyer: string; line: SellerOrder["lines"][number]; delivery?: string; by?: string }[] = [
+  { buyer: "Zinhle M.", by: "12:30", line: { quantity: 1, title: "Zinger Student Meal", unitPriceCents: 5900 } },
+  { buyer: "Pieter V.", delivery: "Res Block C", line: { quantity: 1, title: "Kota Special", unitPriceCents: 4500 } },
+  { buyer: "Amanda K.", by: "13:00", line: { quantity: 2, title: "Iced Latte", unitPriceCents: 3500 } },
+];
+
+/** Demo only: the n-th order that arrives from a student while the seller is using the app, so the arrival can be seen. */
+export function demoIncomingOrder(now: number, n: number): SellerOrder {
+  const pick = ARRIVALS[n % ARRIVALS.length]!;
+  const id = `so-demo-${n}-${now.toString(36)}`;
+  const subtotal = pick.line.unitPriceCents * pick.line.quantity;
+  return {
+    buyerName: pick.buyer,
+    buyerVerified: true,
+    by: pick.by,
+    fulfilment: pick.delivery ? "delivery" : "collection",
+    fulfilmentLabel: pick.delivery ? "Delivery to res" : "Campus collection",
+    handoffCode: handoffCodeFor(id),
+    id,
+    lines: [pick.line],
+    number: `#${2042 + n}`,
+    paymentLabel: "Paid in app",
+    place: pick.delivery ?? "Student Center",
+    placedAt: new Date(now).toISOString(),
+    status: "new",
+    subtotalCents: subtotal,
+    totalCents: subtotal,
+  };
+}

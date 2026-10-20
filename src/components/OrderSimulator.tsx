@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { liveBackend } from "@/backend/mode";
+import { DEMO_STORE_ID } from "@/seller/state";
 import { useDemoStore } from "@/state/DemoStore";
 
 /**
@@ -26,6 +27,8 @@ export function OrderSimulator({ enabled = !liveBackend }: { enabled?: boolean }
     if (!enabled) return;
     for (const order of state.orders) {
       if (order.status !== "placed" || scheduled.current.has(order.id)) continue;
+      // an approved seller answers orders to their own store by hand
+      if (order.sellerId === DEMO_STORE_ID && state.seller.status === "approved") continue;
       const age = Date.now() - new Date(order.placedAt).getTime();
       if (age > SIMULATE_WINDOW_MS) continue;
       scheduled.current.add(order.id);
@@ -36,7 +39,7 @@ export function OrderSimulator({ enabled = !liveBackend }: { enabled?: boolean }
         timers.current.push(setTimeout(() => dispatch({ orderId: order.id, status, type: "advanceOrder" }), Math.max(0, step.after - age)));
       }
     }
-  }, [dispatch, enabled, state.orders]);
+  }, [dispatch, enabled, state.orders, state.seller.status]);
 
   useEffect(
     () => () => {

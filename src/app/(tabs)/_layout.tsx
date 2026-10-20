@@ -1,7 +1,7 @@
-import { Redirect } from "expo-router";
+import { type Href, Redirect } from "expo-router";
 import { Tabs } from "expo-router/tabs";
 
-import { OfflineBanner, TabBar } from "@/components";
+import { NotificationBanner, OfflineBanner, OrderSimulator, TabBar } from "@/components";
 import { TabChromeProvider } from "@/components/nav/TabChrome";
 import { useDemoStore } from "@/state/DemoStore";
 
@@ -9,6 +9,8 @@ export default function TabsLayout() {
   const { state } = useDemoStore();
   if (!state.profile) return <Redirect href="/sign-in" />;
   if (state.isNewUser) return <Redirect href="/profile-setup" />;
+  // a student in seller mode uses the seller side of the app
+  if (state.profile.role === "seller") return <Redirect href={(state.seller.setupDone ? "/seller/home" : "/seller-setup/welcome") as Href} />;
 
   return (
     <TabChromeProvider>
@@ -25,6 +27,8 @@ export default function TabsLayout() {
       <Tabs.Screen name="account" options={{ title: "Account" }} />
     </Tabs>
     <OfflineBanner />
+    <OrderSimulator />
+    <NotificationBanner />
     </TabChromeProvider>
   );
 }

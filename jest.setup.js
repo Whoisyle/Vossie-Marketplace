@@ -1,3 +1,4 @@
+require("react-native-gesture-handler/jestSetup");
 // The native animation modules do not exist in the Jest environment, so give every test a small,
 // synchronous stand-in. A test can still replace this with its own jest.mock for finer control.
 jest.mock("react-native-worklets", () => ({
@@ -37,6 +38,13 @@ jest.mock("react-native-reanimated", () => {
     FadeIn: layoutAnimation(),
     FadeInDown: layoutAnimation(),
     FadeInLeft: layoutAnimation(),
+    FadeInRight: layoutAnimation(),
+    FadeOutRight: layoutAnimation(),
+    FadeOutLeft: layoutAnimation(),
+    SlideInRight: layoutAnimation(),
+    SlideInUp: layoutAnimation(),
+    SlideOutRight: layoutAnimation(),
+    ZoomOut: layoutAnimation(),
     ZoomIn: layoutAnimation(),
     FadeInUp: layoutAnimation(),
     FadeOut: layoutAnimation(),
@@ -64,6 +72,7 @@ jest.mock("react-native-reanimated", () => {
     useAnimatedRef: () => React.useRef(null),
     withTiming: (to) => to,
     withSpring: (to) => to,
+    useEvent: () => () => undefined,
     withDelay: (_ms, animation) => animation,
     withRepeat: (animation) => animation,
     withSequence: (...animations) => animations[animations.length - 1],
