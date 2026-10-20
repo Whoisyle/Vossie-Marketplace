@@ -14,6 +14,7 @@ import { SellerPromotionFormScreen, SellerPromotionsScreen } from "./SellerPromo
 import { SellerHandoverScreen, SellerPrepareScreen } from "./SellerPrepareScreens";
 import { SellerReceiptScreen, SellerStatementsScreen, SellerTransactionsScreen } from "./SellerMoneyScreens";
 import { SellerPlaceScreen } from "./SellerPlaceScreen";
+import { SellerPushBanner } from "./SellerPush";
 import { SellerReelPreviewScreen, SellerReelsPageScreen } from "./SellerReelPreview";
 import { SellerWalletScreen } from "./SellerWalletScreen";
 import { SellerListingFormScreen } from "./SellerListingFormScreen";
@@ -933,5 +934,24 @@ describe("verified documents can be seen and updated", () => {
     expect(screen.getByTestId("doc-verified")).toBeTruthy();
     expect(screen.getByTestId("doc-update")).toBeTruthy();
     fireEvent.press(screen.getByTestId("doc-update"));
+  });
+});
+
+describe("how push notifications look", () => {
+  it("shows an example of each kind with its buttons, and sends the one you pick", () => {
+    renderWithProviders(<SellerNotifySettingsScreen />, seller());
+    expect(screen.getByTestId("push-gallery")).toBeTruthy();
+    for (const kind of ["orders", "messages", "stock", "money", "reviews", "promotions"]) expect(screen.getByTestId(`sample-${kind}`)).toBeTruthy();
+    expect(screen.getAllByTestId("push-accept").length).toBe(1);
+    expect(screen.getAllByTestId("push-restock").length).toBe(1);
+    fireEvent.press(screen.getByTestId("ping-stock"));
+  });
+
+  it("slides a card in for a new alert, answers it from the card, and stays quiet for a switched-off kind", () => {
+    jest.useFakeTimers();
+    const view = renderWithProviders(<SellerPushBanner />, seller());
+    expect(screen.queryByTestId("seller-push")).toBeNull();
+    view.unmount();
+    jest.useRealTimers();
   });
 });

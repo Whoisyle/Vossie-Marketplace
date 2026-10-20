@@ -1,7 +1,5 @@
 import { useEffect, useRef } from "react";
 
-import { haptic } from "@/lib/haptics";
-import { playSound } from "@/lib/sounds";
 import { demoIncomingOrder } from "@/seller/state";
 import { useDemoStore } from "@/state/DemoStore";
 
@@ -66,16 +64,6 @@ export function SellerDemoEffects({ enabled = true }: { enabled?: boolean }) {
     const timers = unanswered.split(",").map((id) => setTimeout(() => dispatch({ id, type: "sellerSupportReply" }), DEMO_SUPPORT_MS));
     return () => timers.forEach(clearTimeout);
   }, [dispatch, enabled, unanswered]);
-
-  const waiting = seller.orders.filter((item) => item.status === "new").length;
-  const before = useRef(waiting);
-  useEffect(() => {
-    if (selling && waiting > before.current) {
-      haptic.success();
-      playSound("success");
-    }
-    before.current = waiting;
-  }, [selling, waiting]);
 
   return null;
 }

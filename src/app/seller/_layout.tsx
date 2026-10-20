@@ -5,6 +5,7 @@ import { OfflineBanner, TabBar } from "@/components";
 import { TabChromeProvider } from "@/components/nav/TabChrome";
 import type { IconName } from "@/components";
 import { orderCounts } from "@/seller/selectors";
+import { SellerPushBanner } from "@/screens/seller/SellerPush";
 import { useDemoStore } from "@/state/DemoStore";
 
 /** The seller's bottom bar: Home, Products, Orders, Payouts and Account. */
@@ -33,6 +34,7 @@ export default function SellerLayout() {
         <Tabs.Screen name="payouts" options={{ title: "Payouts" }} />
         <Tabs.Screen name="account" options={{ title: "Account" }} />
       </Tabs>
+      <SellerPushBanner />
       <OfflineBanner />
     </TabChromeProvider>
   );

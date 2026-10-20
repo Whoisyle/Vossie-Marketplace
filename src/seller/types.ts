@@ -353,6 +353,8 @@ export type SellerAction =
   | { type: "sellerReelTick"; n: number }
   | { type: "sellerSetNotify"; notify: NotifyPrefs }
   | { type: "sellerMarkAlertRead"; id: string }
+  /** Sends the seller one made-up alert of a kind, to see how it looks and sounds. */
+  | { type: "sellerPing"; kind: NotifyKind }
   | { type: "sellerPauseListing"; id: string; paused: boolean }
   | { type: "sellerRestock"; id: string; quantity: number }
   | { type: "sellerDeleteListing"; id: string }

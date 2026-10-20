@@ -6,6 +6,7 @@ import { applyPreset, applyTimetable, pickupSlots, storeStatus, summaryRange } f
 import { distanceKm } from "@/data/geo";
 import { minutesFor, offsetPoint } from "@/screens/seller/OrderMap";
 import { sellerPlanOf } from "./plan";
+import { actionsFor, inQuietHours, notifyKindOf, planPush } from "./push";
 import { CAMPUS_HUBS, locationFromPlace, locationLine, placeFromHit } from "./places";
 import { promotionDetail, promotionProblems, promotionState } from "./promotions";
 import { DAY_KEYS, type SellerReel } from "./types";
@@ -504,5 +505,41 @@ describe("updating a verified document", () => {
     expect(seller.documents.find((doc) => doc.kind === "id")?.verifiedAt).toBeTruthy();
     expect(seller.alerts[0]?.title).toBe("Document verified");
     expect(seller.status).toBe("approved");
+  });
+});
+
+describe("push notifications", () => {
+  const prefs = () => createSellerState(NOW).notify;
+
+  it("knows which setting an alert belongs to and which buttons go with it", () => {
+    expect(notifyKindOf({ kind: "order" })).toBe("orders");
+    expect(notifyKindOf({ kind: "money" })).toBe("money");
+    expect(notifyKindOf({ kind: "account" })).toBeNull();
+    expect(actionsFor({ kind: "order" }).map((item) => item.key)).toEqual(["accept", "decline"]);
+    expect(actionsFor({ kind: "stock" })[0]?.label).toBe("Restock +10");
+    expect(actionsFor({ kind: "review" })[0]?.key).toBe("reply");
+    expect(actionsFor({ kind: "money" })[0]?.key).toBe("view");
+  });
+
+  it("is quiet in quiet hours, including past midnight, and when sound is off", () => {
+    const quiet = { from: "22:00", on: true, to: "06:30" };
+    expect(inQuietHours(quiet, new Date(2026, 9, 20, 23, 0))).toBe(true);
+    expect(inQuietHours(quiet, new Date(2026, 9, 20, 5, 59))).toBe(true);
+    expect(inQuietHours(quiet, new Date(2026, 9, 20, 12, 0))).toBe(false);
+    expect(inQuietHours({ ...quiet, on: false }, new Date(2026, 9, 20, 23, 0))).toBe(false);
+    expect(inQuietHours({ from: "09:00", on: true, to: "17:00" }, new Date(2026, 9, 20, 12, 0))).toBe(true);
+    const base = prefs();
+    expect(planPush(base, { kind: "order" }, new Date(2026, 9, 20, 12, 0))).toEqual({ loud: true, show: true });
+    expect(planPush({ ...base, quiet }, { kind: "order" }, new Date(2026, 9, 20, 23, 0))).toEqual({ loud: false, show: true });
+    expect(planPush({ ...base, sound: false }, { kind: "order" }, new Date(2026, 9, 20, 12, 0)).loud).toBe(false);
+    const off = { ...base, channels: { ...base.channels, stock: { email: false, push: false } } };
+    expect(planPush(off, { kind: "stock" }, new Date(2026, 9, 20, 12, 0))).toEqual({ loud: false, show: false });
+    expect(planPush(off, { kind: "account" }, new Date(2026, 9, 20, 12, 0)).show).toBe(true);
+  });
+
+  it("sends one made-up alert of each kind", () => {
+    let seller = createSellerState(NOW);
+    for (const kind of ["orders", "messages", "stock", "money", "reviews", "promotions"] as const) seller = sellerReduce(seller, { kind, type: "sellerPing" });
+    expect(seller.alerts.slice(0, 6).map((item) => item.kind).sort()).toEqual(["message", "money", "order", "promo", "review", "stock"]);
   });
 });

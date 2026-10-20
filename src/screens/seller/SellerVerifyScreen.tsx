@@ -3,8 +3,7 @@ import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
-import { timeOfDay } from "@/data/format";
-import { shortDate } from "@/data/format";
+import { shortDate, timeOfDay } from "@/data/format";
 import { docHints, docTitles } from "@/seller/state";
 import type { DocStatus, SellerDocument } from "@/seller/types";
 import { useDemoStore } from "@/state/DemoStore";

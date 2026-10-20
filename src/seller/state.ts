@@ -2,6 +2,7 @@ import { MIN_WITHDRAW_CENTS } from "@/data/wallet";
 
 import { FEE_PERCENT, LIMITS, type SellerPlan } from "./plan";
 import { promotionDetail } from "./promotions";
+import { SAMPLE_PUSH } from "./push";
 import { scheduleFromProfile, storeStatus, summaryRange } from "./schedule";
 import {
   NOTIFY_KINDS,
@@ -453,6 +454,10 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
           return { ...item, likes: item.likes + (seed % 3 === 0 ? 1 : 0), saves: item.saves + (seed % 7 === 0 ? 1 : 0), taps: item.taps + (seed % 4 === 0 ? 1 : 0), views: item.views + 2 + (seed % 5) };
         }),
       };
+    case "sellerPing": {
+      const sample = SAMPLE_PUSH[action.kind];
+      return { ...state, alerts: addAlert({ body: sample.body, href: sample.href, kind: sample.kind, title: sample.title }) };
+    }
     case "sellerMarkAlertRead":
       return { ...state, alerts: state.alerts.map((item) => (item.id === action.id ? { ...item, read: true } : item)) };
     case "sellerFinishSetup":

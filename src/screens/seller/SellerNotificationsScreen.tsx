@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Switch, Text as RawText, View } from "react-native";
+import { ScrollView, StyleSheet, Switch, Text as RawText, View } from "react-native";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
@@ -8,7 +8,10 @@ import { Icon, type IconName } from "@/components";
 import { relativeTime } from "@/data/format";
 import { NOTIFY_KINDS, type NotifyKind, type NotifyPrefs, type SellerAlert } from "@/seller/types";
 
+import { actionsFor, inQuietHours, SAMPLE_PUSH } from "@/seller/push";
+
 import { useSeller } from "./hooks";
+import { PushCard } from "./SellerPush";
 import { Chips, TimeStepper } from "./parts";
 import { SELLER, SellerButton, SellerCard, SellerIconButton, SellerScreen, SellerTopBar, Text } from "./ui";
 
@@ -124,6 +127,20 @@ export function SellerNotifySettingsScreen() {
     <SellerScreen tone="white" testID="seller-notify-settings">
       <SellerTopBar title="Notification settings" />
       <Text style={styles.sub}>Choose what reaches you and how. Push is sent to this phone, email to your student address.</Text>
+
+      <Text style={styles.group}>How they look</Text>
+      <ScrollView contentContainerStyle={styles.gallery} horizontal showsHorizontalScrollIndicator={false} style={styles.galleryScroll} testID="push-gallery">
+        {NOTIFY_KINDS.map((kind) => {
+          const sample = SAMPLE_PUSH[kind];
+          return (
+            <View key={kind} style={styles.sample} testID={`sample-${kind}`}>
+              <PushCard actions={actionsFor(sample)} alert={sample} quiet={inQuietHours(prefs.quiet, new Date()) || !prefs.channels[kind].push} />
+              <SellerButton label="Send me this one" onPress={() => view.dispatch({ kind, type: "sellerPing" })} size="sm" testID={`ping-${kind}`} variant="light" />
+            </View>
+          );
+        })}
+      </ScrollView>
+      <Text style={styles.hint}>Cards slide in over the app. A card on the lock screen looks the same, with the buttons under it.</Text>
       <View style={styles.list}>
         {NOTIFY_KINDS.map((kind) => (
           <SellerCard key={kind} style={styles.pref} testID={`pref-${kind}`}>
@@ -192,7 +209,11 @@ const styles = StyleSheet.create({
   group: { color: SELLER.inkSoft, fontSize: 13, fontWeight: "800", letterSpacing: 1, marginTop: 6, textTransform: "uppercase" },
   icon: { alignItems: "center", backgroundColor: "#DCE6EA", borderRadius: 18, height: 36, justifyContent: "center", width: 36 },
   iconOn: { backgroundColor: SELLER.solid },
+  gallery: { gap: 14, paddingHorizontal: 20, paddingVertical: 8 },
+  galleryScroll: { marginHorizontal: -20 },
+  hint: { color: SELLER.inkSoft, fontSize: 12, marginTop: 4 },
   list: { gap: 12, marginTop: 12 },
+  sample: { gap: 8, width: 300 },
   note: { color: SELLER.inkSoft, fontSize: 12, marginTop: 14, textAlign: "center" },
   pref: { gap: 12 },
   prefTop: { alignItems: "center", flexDirection: "row", gap: 12 },
