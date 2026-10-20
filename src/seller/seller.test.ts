@@ -489,3 +489,20 @@ describe("analytics series and insights", () => {
     expect(data.netCents).toBe(data.revenueCents - data.refundCents);
   });
 });
+
+describe("updating a verified document", () => {
+  it("sends it back for checking without losing the approval, then verifies it again and says so", () => {
+    let seller = createSellerState(NOW);
+    seller = sellerReduce(seller, { kind: "student", type: "sellerSetKind" }, { now: NOW, verifiedStudent: true });
+    seller = { ...seller, documents: seller.documents.map((doc) => ({ ...doc, status: "verified" as const, verifiedAt: "2026-10-01T10:00:00.000Z" })), status: "approved" };
+    seller = sellerReduce(seller, { fileKind: "image", fileName: "new-id.jpg", kind: "id", type: "sellerReplaceDocument", uri: "file:///new.jpg" });
+    expect(seller.status).toBe("approved");
+    expect(seller.documents.find((doc) => doc.kind === "id")).toMatchObject({ fileName: "new-id.jpg", status: "in-review", uri: "file:///new.jpg" });
+    expect(sellerReduce(seller, { fileName: "again.jpg", kind: "id", type: "sellerReplaceDocument" })).toBe(seller);
+    seller = sellerReduce(seller, { type: "sellerReviewTick" }, { now: NOW, verifiedStudent: true });
+    expect(seller.documents.find((doc) => doc.kind === "id")?.status).toBe("verified");
+    expect(seller.documents.find((doc) => doc.kind === "id")?.verifiedAt).toBeTruthy();
+    expect(seller.alerts[0]?.title).toBe("Document verified");
+    expect(seller.status).toBe("approved");
+  });
+});

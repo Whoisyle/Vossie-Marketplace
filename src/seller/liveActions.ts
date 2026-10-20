@@ -68,6 +68,7 @@ export async function runLiveSellerAction(action: SellerAction, state: DemoState
       case "sellerSaveStore":
         await saveOnboarding({ ...seller.profile, ...action.patch }, campusId);
         break;
+      case "sellerReplaceDocument":
       case "sellerUploadDocument":
         if (action.uri) await sellerService.attachSellerDocument(DOC_KIND_TO_DB[action.kind], { name: action.fileName, uri: action.uri });
         break;

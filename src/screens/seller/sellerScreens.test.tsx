@@ -924,3 +924,14 @@ describe("interactive charts and the fuller analytics", () => {
     expect(new Set(widths).size).toBe(1);
   });
 });
+
+describe("verified documents can be seen and updated", () => {
+  it("opens a verified document, says who checked it and sends a new one for checking while the store keeps trading", () => {
+    const approved = seller();
+    renderWithProviders(<SellerVerifyScreen mode="manage" />, approved);
+    fireEvent.press(screen.getAllByTestId("doc-id")[0]!);
+    expect(screen.getByTestId("doc-verified")).toBeTruthy();
+    expect(screen.getByTestId("doc-update")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("doc-update"));
+  });
+});

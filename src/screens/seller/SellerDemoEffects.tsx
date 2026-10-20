@@ -24,7 +24,7 @@ export const DEMO_REVIEW_MS = 4_500;
 export function SellerDemoEffects({ enabled = true }: { enabled?: boolean }) {
   const { dispatch, state } = useDemoStore();
   const seller = state.seller;
-  const reviewing = enabled && seller.status === "pending" && seller.documents.some((doc) => doc.status === "in-review");
+  const reviewing = enabled && (seller.status === "pending" || seller.status === "approved") && seller.documents.some((doc) => doc.status === "in-review");
   const selling = enabled && state.profile?.role === "seller" && seller.status === "approved" && seller.setupDone;
 
   useEffect(() => {

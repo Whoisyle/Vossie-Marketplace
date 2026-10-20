@@ -4,6 +4,7 @@ import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { timeOfDay } from "@/data/format";
+import { shortDate } from "@/data/format";
 import { docHints, docTitles } from "@/seller/state";
 import type { DocStatus, SellerDocument } from "@/seller/types";
 import { useDemoStore } from "@/state/DemoStore";
@@ -45,7 +46,6 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
   }
 
   const open = (doc: SellerDocument) => {
-    if (doc.status === "verified") return;
     if (doc.status === "required" || doc.status === "rejected") {
       if (!submitted) setChoosing(doc);
       return;
@@ -53,7 +53,8 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
     // something is already uploaded: look at it, replace it or take it back
     setViewing(doc);
   };
-  const keep = (doc: SellerDocument, file: Picked) => dispatch({ fileKind: file.kind, fileName: file.name, kind: doc.kind, type: "sellerUploadDocument", uri: file.uri });
+  const keep = (doc: SellerDocument, file: Picked) =>
+    dispatch(doc.status === "verified" ? { fileKind: file.kind, fileName: file.name, kind: doc.kind, type: "sellerReplaceDocument", uri: file.uri } : { fileKind: file.kind, fileName: file.name, kind: doc.kind, type: "sellerUploadDocument", uri: file.uri });
 
   const headline = approved ? { label: "Approved", tone: "success" as const } : submitted ? { label: "Pending", tone: "warn" as const } : missing > 0 ? { label: "Incomplete", tone: "danger" as const } : { label: "Ready", tone: "info" as const };
 
@@ -102,11 +103,11 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
           const look = DOC_LABEL[doc.status];
           return (
             <Animated.View entering={FadeInDown.delay(80 * (index + 1)).duration(360)} key={doc.kind}>
-              <SellerCard onPress={doc.status === "verified" ? undefined : () => open(doc)} style={styles.row} testID={`doc-${doc.kind}`}>
+              <SellerCard onPress={() => open(doc)} style={styles.row} testID={`doc-${doc.kind}`}>
                 <View style={styles.rowText}>
                   <Text style={styles.rowTitle}>{docTitles[doc.kind]}</Text>
                   <Text numberOfLines={1} style={styles.rowHint}>
-                    {doc.status === "required" || doc.status === "rejected" ? docHints[doc.kind] : doc.kind === "student-card" ? "Eduvos · checked today" : doc.fileName ?? "Uploaded"}
+                    {doc.status === "required" || doc.status === "rejected" ? docHints[doc.kind] : doc.status === "verified" ? `${doc.kind === "student-card" ? "Eduvos record" : "Verified"}${doc.verifiedAt ? ` ${shortDate(doc.verifiedAt)}` : ""} · tap to view or update` : doc.fileName ?? "Uploaded"}
                   </Text>
                 </View>
                 <Pill label={look.label} tone={look.tone} />
@@ -130,11 +131,16 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
       <AttachSheet onClose={() => setChoosing(null)} onPicked={(file) => choosing && keep(choosing, file)} title={choosing ? `Add ${docTitles[choosing.kind].toLowerCase()}` : "Add a file"} visible={Boolean(choosing)} />
       <DocPreview
         canChange={!submitted}
-        doc={viewing}
+        doc={viewing ? (seller.documents.find((item) => item.kind === viewing.kind) ?? viewing) : null}
         onClose={() => setViewing(null)}
         onRemove={() => {
           if (viewing) dispatch({ kind: viewing.kind, type: "sellerRemoveDocument" });
           setViewing(null);
+        }}
+        onUpdate={() => {
+          const doc = viewing;
+          setViewing(null);
+          if (doc) setTimeout(() => setChoosing(doc), 250);
         }}
         onReplace={() => {
           const doc = viewing;

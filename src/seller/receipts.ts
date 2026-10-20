@@ -13,6 +13,12 @@ export function referenceFor(entry: LedgerEntry): string {
   return `${prefix}-${at.getFullYear()}${String(at.getMonth() + 1).padStart(2, "0")}${String(at.getDate()).padStart(2, "0")}`;
 }
 
+/** What the balance stood at just after an entry: everything up to and including it. */
+export function balanceAfter(ledger: LedgerEntry[], entry: LedgerEntry): number {
+  const at = entry.createdAt;
+  return ledger.filter((item) => item.createdAt < at || (item.createdAt === at && ledger.indexOf(item) >= ledger.indexOf(entry))).reduce((sum, item) => sum + item.amountCents, 0);
+}
+
 export type TxFilter = "all" | "sale" | "payout" | "refund";
 export type TxRange = "7" | "30" | "all";
 

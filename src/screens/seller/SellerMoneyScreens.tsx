@@ -6,12 +6,13 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Icon, useToast } from "@/components";
 import { formatRand } from "@/data/format";
-import { filterLedger, orderFor, receiptText, referenceFor, statements, statementText, type TxFilter, type TxRange } from "@/seller/receipts";
+import { balanceAfter, filterLedger, orderFor, receiptText, referenceFor, statements, statementText, type TxFilter, type TxRange } from "@/seller/receipts";
 import type { LedgerEntry } from "@/seller/types";
 
 import { useSeller } from "./hooks";
 import { Chips } from "./parts";
 import { whenLabel } from "./OrderParts";
+import { SellerReceiptPaper } from "./SellerReceiptPaper";
 import { Pill, SELLER, SellerButton, SellerCard, SellerScreen, SellerTopBar, SellerWell, Text } from "./ui";
 
 /** Shares text through the phone's share sheet, or copies it when there is none (the web). */
@@ -104,9 +105,10 @@ export function SellerTransactionsScreen() {
   );
 }
 
-/** One receipt: the reference, the items and the fee for a sale, or the bank and amount for a payout. Share it as text. */
+/** One receipt, laid out like the buyer's: the amount and status on top, the details, then the paper receipt itself. Share it as text. */
 export function SellerReceiptScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const view = useSeller();
   const share = useShareText();
   const entry = view.seller.ledger.find((item) => item.id === id);
@@ -122,6 +124,8 @@ export function SellerReceiptScreen() {
   }
   const order = orderFor(entry, view.seller.orders);
   const text = receiptText(entry, order, view.storeName, view.seller.profile.bank);
+  const money = entry.amountCents >= 0;
+  const label = entry.kind === "sale" ? "Sale" : entry.kind === "payout" ? "Payout" : "Refund";
 
   return (
     <SellerScreen
@@ -130,33 +134,31 @@ export function SellerReceiptScreen() {
       testID="seller-receipt"
     >
       <SellerTopBar title="Receipt" />
-      <SellerCard style={styles.receipt} testID="receipt-card">
-        <View style={styles.between}>
-          <Text style={styles.hint}>{entry.kind === "sale" ? "Sale" : entry.kind === "payout" ? "Payout" : "Refund"}</Text>
-          <Pill label={entry.kind === "payout" ? entry.note ?? "Paid" : entry.kind === "refund" ? "Refunded" : "Paid to you"} tone={entry.kind === "refund" ? "danger" : "success"} />
+      <View style={styles.hero} testID="receipt-card">
+        <View style={[styles.heroIcon, money ? styles.iconIn : styles.iconOut]}>
+          <Icon color={money ? "#2F8A57" : "#B4544A"} name={money ? "arrow-down-left" : "arrow-up-right"} size={26} />
         </View>
-        <Text style={[styles.big, entry.amountCents < 0 ? styles.out : styles.in]}>{formatRand(entry.amountCents, { fixed: true, signed: true })}</Text>
+        <Text style={[styles.big, money ? styles.in : styles.out]}>{formatRand(entry.amountCents, { fixed: true, signed: true })}</Text>
+        <Text numberOfLines={2} style={styles.heroLabel}>
+          {entry.label}
+        </Text>
+        <Pill label={entry.kind === "payout" ? entry.note ?? "Paid" : entry.kind === "refund" ? "Refunded" : "Paid to you"} tone={entry.kind === "refund" ? "danger" : "success"} />
+      </View>
+
+      <SellerCard style={styles.details} testID="receipt-details">
+        <Line label="Type" value={label} />
+        <Line label="Date and time" value={whenLabel(entry.createdAt)} />
         <Line label="Reference" value={referenceFor(entry)} />
-        <Line label="Date" value={whenLabel(entry.createdAt)} />
-        {entry.kind === "sale" && order ? (
-          <>
-            <Line label="Order" value={order.number} />
-            <Line label="Buyer" value={order.buyerName} />
-            <View style={styles.rule} />
-            {order.lines.map((line) => (
-              <Line key={`${line.title}-${line.optionLabel ?? ""}`} label={`${line.quantity} x ${line.title}`} value={formatRand(line.unitPriceCents * line.quantity, { fixed: true })} />
-            ))}
-            <View style={styles.rule} />
-            <Line label="Subtotal" value={formatRand(order.subtotalCents, { fixed: true })} />
-            {order.deliveryFeeCents > 0 ? <Line label="Delivery (paid by buyer)" value={formatRand(order.deliveryFeeCents, { fixed: true })} /> : null}
-            <Line label="Vossie platform fee" value={formatRand(-order.feeCents, { fixed: true })} />
-            <Line bold label="You earned" value={formatRand(entry.amountCents, { fixed: true })} />
-          </>
-        ) : null}
-        {entry.kind === "sale" && !order ? <Line label="Details" value={entry.note ?? "Sale"} /> : null}
-        {entry.kind === "payout" ? <Line label="To" value={view.seller.profile.bank ? `${view.seller.profile.bank.bankName} ending ${view.seller.profile.bank.last4}` : "Your bank account"} /> : null}
-        {entry.kind === "refund" ? <Line label="Reason" value={entry.note ?? "Refund to the buyer"} /> : null}
+        <Line label="Balance after" value={formatRand(balanceAfter(view.seller.ledger, entry), { fixed: true })} />
+        {entry.note ? <Line label="Details" value={entry.note} /> : null}
       </SellerCard>
+
+      <Text style={styles.heading}>Receipt</Text>
+      <SellerReceiptPaper balanceAfterCents={balanceAfter(view.seller.ledger, entry)} bank={view.seller.profile.bank} entry={entry} order={order} store={view.storeName} />
+      <View style={styles.receiptActions}>
+        {order ? <SellerButton icon="clipboard" label="Open the order" onPress={() => router.push(`/seller/orders/${order.id}` as Href)} size="sm" testID="open-order" variant="light" /> : null}
+        <SellerButton icon="life-buoy" label="Report a problem" onPress={() => router.push("/seller/account/support/new" as Href)} size="sm" testID="receipt-problem" variant="outline" />
+      </View>
       <Text style={styles.note}>Demo receipt. A signed PDF comes with the live backend.</Text>
     </SellerScreen>
   );
@@ -212,9 +214,16 @@ const styles = StyleSheet.create({
   between: { alignItems: "center", flexDirection: "row", gap: 12, justifyContent: "space-between" },
   empty: { alignItems: "center", gap: 6, marginTop: 20, paddingVertical: 28 },
   flex: { flex: 1, gap: 1 },
+  details: { gap: 8, marginTop: 12 },
+  heading: { color: SELLER.ink, fontSize: 18, fontWeight: "800", marginTop: 18 },
+  hero: { alignItems: "center", gap: 8, marginTop: 14 },
+  heroIcon: { alignItems: "center", borderRadius: 30, height: 60, justifyContent: "center", width: 60 },
+  heroLabel: { color: SELLER.inkSoft, fontSize: 14, textAlign: "center" },
+  iconIn: { backgroundColor: "#DDF2E5" },
+  iconOut: { backgroundColor: "#F8DCD8" },
+  receiptActions: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 14 },
   hint: { color: SELLER.inkSoft, fontSize: 13 },
   icon: { alignItems: "center", backgroundColor: "#DDF2E5", borderRadius: 18, height: 36, justifyContent: "center", width: 36 },
-  iconOut: { backgroundColor: "#F8DCD8" },
   in: { color: "#2F8A57" },
   list: { gap: 12, marginTop: 12 },
   name: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },

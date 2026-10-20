@@ -322,7 +322,7 @@ export function createSellerState(now: number = Date.now()): SellerState {
 export function documentsFor(kind: SellerKind | null, verifiedStudent: boolean, now: number = Date.now()): SellerDocument[] {
   return docKindsFor(kind).map((docKind) =>
     docKind === "student-card" && verifiedStudent
-      ? { fileName: "Eduvos record", kind: docKind, status: "verified", uploadedAt: new Date(now).toISOString() }
+      ? { fileName: "Eduvos record", kind: docKind, status: "verified", uploadedAt: new Date(now).toISOString(), verifiedAt: new Date(now).toISOString() }
       : { kind: docKind, status: "required" },
   );
 }
@@ -378,6 +378,13 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
         ...state,
         documents: state.documents.map((doc) => (doc.kind === action.kind && doc.status !== "verified" ? { ...doc, fileKind: action.fileKind, fileName: action.fileName, status: "uploaded", uploadedAt: stamp, uri: action.uri } : doc)),
       };
+    case "sellerReplaceDocument":
+      // only a document that was verified can be sent again this way; the store keeps trading while it is checked
+      if (!state.documents.some((doc) => doc.kind === action.kind && doc.status === "verified")) return state;
+      return {
+        ...state,
+        documents: state.documents.map((doc) => (doc.kind === action.kind && doc.status === "verified" ? { fileKind: action.fileKind, fileName: action.fileName, kind: doc.kind, status: "in-review" as const, uploadedAt: stamp, uri: action.uri } : doc)),
+      };
     case "sellerRemoveDocument":
       // a file can be taken back until the documents are sent in
       if (state.status === "pending" || state.status === "approved") return state;
@@ -395,12 +402,15 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
       // demo only: Vossie Operations accepts one document at a time; when the last is accepted the seller is approved
       const next = state.documents.find((doc) => doc.status === "in-review");
       if (!next) return state;
-      const documents = state.documents.map((doc) => (doc.kind === next.kind ? { ...doc, status: "verified" as const } : doc));
+      const documents = state.documents.map((doc) => (doc.kind === next.kind ? { ...doc, status: "verified" as const, verifiedAt: stamp } : doc));
       const allVerified = documents.every((doc) => doc.status === "verified");
+      const wasApproved = state.status === "approved";
       return {
         ...state,
-        alerts: allVerified ? addAlert({ body: "You can start listing and taking orders.", href: "/seller/home", kind: "account", title: "You are an approved seller" }) : state.alerts,
-        approvedAt: allVerified ? stamp : state.approvedAt,
+        alerts: allVerified
+          ? addAlert(wasApproved ? { body: `Your ${docTitles[next.kind].toLowerCase()} was checked and is up to date.`, href: "/seller/account/documents", kind: "account", title: "Document verified" } : { body: "You can start listing and taking orders.", href: "/seller/home", kind: "account", title: "You are an approved seller" })
+          : state.alerts,
+        approvedAt: allVerified && !wasApproved ? stamp : state.approvedAt,
         documents,
         status: allVerified ? "approved" : state.status,
       };
