@@ -1,8 +1,8 @@
 import { useRouter, type Href } from "expo-router";
 import { type ReactNode, useState } from "react";
-import { StyleSheet, Switch, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Button, Card, Icon, MenuRow, RadioRow, Screen, Sheet, TwoFactorSheet, useToast } from "@/components";
+import { AnimatedSwitch, AppHeader, Button, Card, Icon, MenuRow, RadioRow, Screen, Sheet, TwoFactorSheet, useToast } from "@/components";
 import { dateAndTime } from "@/data/format";
 import type { AppSettings, ProfileVisibility } from "@/data/types";
 import { useDemoStore } from "@/state/DemoStore";
@@ -45,11 +45,9 @@ export function SecurityScreen() {
       hint={hint}
       label={label}
       right={
-        <Switch
+        <AnimatedSwitch
           accessibilityLabel={label}
           onValueChange={(value) => set(key, value as AppSettings[typeof key], `${label} ${value ? "on" : "off"}`)}
-          thumbColor={color.onPrimary}
-          trackColor={{ false: color.borderStrong, true: color.primary }}
           value={Boolean(settings[key])}
         />
       }
@@ -86,11 +84,9 @@ export function SecurityScreen() {
           icon="smartphone"
           label="Two-factor authentication"
           right={
-            <Switch
+            <AnimatedSwitch
               accessibilityLabel="Two-factor authentication"
               onValueChange={(enabled) => security.startTwoFactor(enabled)}
-              thumbColor={color.onPrimary}
-              trackColor={{ false: color.borderStrong, true: color.primary }}
               value={state.twoFactor}
             />
           }
@@ -99,12 +95,10 @@ export function SecurityScreen() {
           hint="Ask before payments and wallet actions"
           label="Face ID or Touch ID"
           right={
-            <Switch
+            <AnimatedSwitch
               accessibilityLabel="Face ID or Touch ID"
               disabled={security.busy}
               onValueChange={(value) => void security.setBiometric(value)}
-              thumbColor={color.onPrimary}
-              trackColor={{ false: color.borderStrong, true: color.primary }}
               value={settings.biometric}
             />
           }

@@ -50,7 +50,7 @@ export function VerifiedScreen() {
   const reduced = useReducedMotion();
   const { height, width } = useWindowDimensions();
   // the card is upright and as big as the screen allows, at real card proportions
-  const cardWidth = Math.min(width - 88, Math.max(200, Math.round((height - 250) * 0.631)), 290);
+  const cardWidth = Math.min(width - 88, Math.max(180, Math.round((height - 250) * 0.631)), 250);
   const cardH = cardHeight(cardWidth);
   const { email = "" } = useLocalSearchParams<{ email?: string }>();
   const record = lookupStudentRecord(email);
@@ -152,7 +152,7 @@ export function VerifiedScreen() {
         ) : (
           <Animated.View entering={ZoomIn.springify().damping(14)} style={styles.cardWrap}>
             {!reduced ? <Bubbles /> : null}
-            <StudentCard campusName={campusName} name={emailName(email)} studentNumber={record.studentNumber} vertical width={cardWidth} />
+            <StudentCard campusName={campusName} name={emailName(email)} studentNumber={record.studentNumber} width={cardWidth} />
             <View pointerEvents="none" style={styles.stampSpot}>
               <Animated.View style={[styles.ripple, rippleStyle]} />
               <Animated.View style={[styles.stamp, stampStyle]}>

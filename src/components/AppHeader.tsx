@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { color, size, space, text } from "@/theme/tokens";
 
+import { AnimatedBell } from "./AnimatedBell";
 import { Icon } from "./Icon";
 import { Wordmark } from "./Wordmark";
 
@@ -78,8 +79,14 @@ export function HeaderIconButton({
       onPress={onPress}
       style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
     >
-      <Icon name={icon} size={20} color={color.heading} />
-      {badge ? <View style={styles.badgeDot} /> : null}
+      {icon === "bell" ? (
+        <AnimatedBell unread={Boolean(badge)} />
+      ) : (
+        <>
+          <Icon name={icon} size={20} color={color.heading} />
+          {badge ? <View style={styles.badgeDot} /> : null}
+        </>
+      )}
     </Pressable>
   );
 }

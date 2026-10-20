@@ -202,6 +202,8 @@ export type SavedCard = {
   expiry: string;
   holder: string;
   isDefault: boolean;
+  /** Id of the bank that issued the card (see `data/cardBrands.ts`); the card is drawn in that bank's colours. */
+  issuer?: string;
 };
 
 export type Reel = {

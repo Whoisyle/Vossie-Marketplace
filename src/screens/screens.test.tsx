@@ -1,3 +1,4 @@
+import { TAP_DONE_MS, TAP_HOLD_MS } from "./cart/TapToPay";
 import { act, fireEvent, screen } from "@testing-library/react-native";
 
 import { createInitialState, demoReducer, type DemoState } from "@/state/demoReducer";
@@ -100,6 +101,13 @@ describe("shopping flow", () => {
     expect(screen.getByText(/WELCOME20/)).toBeTruthy();
     jest.useFakeTimers();
     fireEvent.press(screen.getByTestId("pay-now"));
+    // Apple Pay is the default method: its sheet opens, the side button is double-clicked, the phone is held to the reader
+    expect(screen.getByTestId("apple-pay-sheet")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("apple-confirm"));
+    expect(screen.getByText("Hold Here to Pay")).toBeTruthy();
+    act(() => { jest.advanceTimersByTime(TAP_HOLD_MS + 50); });
+    expect(screen.getByText("Done")).toBeTruthy();
+    act(() => { jest.advanceTimersByTime(TAP_DONE_MS + 50); });
     expect(screen.getByText("Processing payment…")).toBeTruthy();
     act(() => { jest.advanceTimersByTime(1400); });
     expect(screen.getByText("Payment successful")).toBeTruthy();

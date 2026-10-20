@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 
-import { Avatar, HeartButton, Icon, Media, StarRating } from "@/components";
+import { Avatar, HeartButton, Icon, Media, PageDots, StarRating } from "@/components";
 import { dealFor, effectivePrice } from "@/data/deals";
 import { formatRand } from "@/data/format";
 import { getCampusName } from "@/data/repository";
@@ -66,6 +66,11 @@ export function FeaturedCarousel({
     return () => clearInterval(timer);
   }, [autoPlay, listings.length, reduced, snap]);
 
+  const go = (next: number) => {
+    scroller.current?.scrollTo({ animated: true, x: next * snap });
+    setPage(next);
+  };
+
   const onEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const next = Math.round(event.nativeEvent.contentOffset.x / snap);
     if (next !== page) haptic.select();
@@ -101,9 +106,7 @@ export function FeaturedCarousel({
         ))}
       </ScrollView>
       <View style={styles.dots}>
-        {listings.map((listing, index) => (
-          <View key={listing.id} style={[styles.dot, index === page && styles.dotActive]} />
-        ))}
+        <PageDots count={listings.length} onSelect={go} page={page} />
       </View>
     </View>
   );
@@ -203,9 +206,7 @@ export function StoreCard({ following, onFollow, onOpen, seller }: { seller: Sel
 
 const styles = StyleSheet.create({
   bleed: { marginHorizontal: -space.lg },
-  dot: { backgroundColor: color.mist, borderRadius: 3, height: 6, width: 6 },
-  dotActive: { backgroundColor: color.ink, width: 18 },
-  dots: { alignItems: "center", flexDirection: "row", gap: 5, justifyContent: "center", marginTop: space.xs },
+  dots: { alignItems: "center", marginTop: space.xs },
   featured: {
     borderCurve: "continuous",
     borderRadius: corner.xl,

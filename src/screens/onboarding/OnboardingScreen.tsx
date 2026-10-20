@@ -1,10 +1,10 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Switch, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
-import { Button, Chip, Icon, Screen, TextField, useToast, type IconName } from "@/components";
+import { AnimatedSwitch, Button, Chip, Icon, Screen, TextField, useToast, type IconName } from "@/components";
 import { campusPlaces } from "@/data/geo";
 import { getCampusName, getCategories } from "@/data/repository";
 import { referralCodeFor, validateReferralCode } from "@/data/phase4";
@@ -95,7 +95,7 @@ export function OnboardingScreen() {
             <Text style={text.cardTitle}>Order and courier updates</Text>
             <Text style={text.caption}>Know when your order is accepted, on its way, and about to arrive.</Text>
           </View>
-          <Switch accessibilityLabel="Order and courier updates" onValueChange={setNotify} thumbColor={color.onPrimary} trackColor={{ false: color.borderStrong, true: color.primary }} value={notify} />
+          <AnimatedSwitch accessibilityLabel="Order and courier updates" onValueChange={setNotify} value={notify} />
         </View>
       </Section>
 

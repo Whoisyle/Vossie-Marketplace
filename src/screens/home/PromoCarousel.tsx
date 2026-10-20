@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from "react-native-reanimated";
 
-import { Icon, type IconName } from "@/components";
+import { Icon, PageDots, type IconName } from "@/components";
 import { promoDefs, promoPercent } from "@/data/promos";
 import { haptic } from "@/lib/haptics";
 import { spring } from "@/theme/motion";
@@ -114,9 +114,7 @@ export function PromoCarousel({
         ))}
       </ScrollView>
       <View style={styles.dots}>
-        {promos.map((promo, index) => (
-          <Dot active={index === page} key={promo.id} onPress={() => go(index)} />
-        ))}
+        <PageDots count={promos.length} label="Show banner" onSelect={go} page={page} />
       </View>
     </View>
   );
@@ -159,19 +157,6 @@ function Banner({ active, cardWidth, onPress, promo }: { active: boolean; cardWi
   );
 }
 
-function Dot({ active, onPress }: { active: boolean; onPress: () => void }) {
-  const grow = useSharedValue(active ? 1 : 0);
-  useEffect(() => {
-    grow.set(withSpring(active ? 1 : 0, spring.snappy));
-  }, [active, grow]);
-  const style = useAnimatedStyle(() => ({ width: 8 + grow.get() * 16, opacity: 0.4 + grow.get() * 0.6 }));
-  return (
-    <Pressable accessibilityLabel="Show banner" accessibilityRole="button" hitSlop={8} onPress={onPress}>
-      <Animated.View style={[styles.dot, style]} />
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   badge: { alignSelf: "flex-start", backgroundColor: color.mist, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { color: color.ink, fontSize: 12, fontWeight: "800" },
@@ -188,8 +173,7 @@ const styles = StyleSheet.create({
   },
   cta: { alignItems: "center", alignSelf: "flex-start", backgroundColor: color.onPrimary, borderRadius: 18, flexDirection: "row", gap: 6, marginTop: space.xs, paddingHorizontal: 14, paddingVertical: 9 },
   ctaText: { color: color.ink, fontSize: 13, fontWeight: "700" },
-  dot: { backgroundColor: color.ink, borderRadius: 4, height: 8 },
-  dots: { alignItems: "center", flexDirection: "row", gap: 6, justifyContent: "center", marginTop: space.xs },
+  dots: { alignItems: "center", marginTop: space.xs },
   iconBadge: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 36, height: 72, justifyContent: "center", width: 72 },
   row: { gap: space.xs, paddingHorizontal: space.lg },
   subtitle: { color: "rgba(255,255,255,0.88)", fontSize: 14, lineHeight: 20 },

@@ -15,6 +15,13 @@ export const TIERS: Tier[] = [
   { from: 1500, id: "gold", label: "Gold" },
 ];
 
+/** Each tier's own colours: a gradient for cards, a solid for the ring and a soft tint for the track. */
+export const TIER_COLORS: Record<Tier["id"], { gradient: readonly [string, string]; solid: string; tint: string; ink: string }> = {
+  bronze: { gradient: ["#E3A569", "#A8642A"], ink: "#FFFFFF", solid: "#C27A3C", tint: "#F4DFC9" },
+  gold: { gradient: ["#F6D96B", "#CB9A1D"], ink: "#4A3606", solid: "#E0AE2C", tint: "#F8EBB8" },
+  silver: { gradient: ["#DDE3E8", "#8E9AA6"], ink: "#27333D", solid: "#A5B0BA", tint: "#E3E8EC" },
+};
+
 /** Welcome gift so a brand-new demo account does not start empty-handed. */
 export const WELCOME_POINTS = 50;
 

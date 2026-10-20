@@ -34,8 +34,8 @@ describe("VerifiedScreen", () => {
     });
     expect(screen.getByText("You're verified")).toBeTruthy();
     expect(screen.getByTestId("student-card")).toBeTruthy();
-    expect(screen.getByText(/Potchefstroom/)).toBeTruthy();
-    expect(screen.getByText(/^\d{4} \d{5}$/)).toBeTruthy();
+    expect(screen.getByText("DISPLAY NAME")).toBeTruthy();
+    expect(screen.getByLabelText(/Student number \d{4} \d{5}\. .*Potchefstroom/)).toBeTruthy();
     expect(mockReplace).not.toHaveBeenCalled();
 
     act(() => {

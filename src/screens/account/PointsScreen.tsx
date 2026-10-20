@@ -1,12 +1,13 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { AppHeader, Card, Chip, Icon, ProgressRing, Screen, useToast } from "@/components";
 import { dateAndTime, formatRand } from "@/data/format";
-import { canRedeem, nextTier, orderPoints, pointsBalance, pointsValueCents, REDEEM_OPTIONS, TIERS, tierFor } from "@/data/points";
+import { canRedeem, nextTier, orderPoints, pointsBalance, pointsValueCents, REDEEM_OPTIONS, TIER_COLORS, TIERS, tierFor } from "@/data/points";
 import { confirmWithBiometrics } from "@/lib/biometric";
 import { useDemoStore } from "@/state/DemoStore";
-import { color, space, text } from "@/theme/tokens";
+import { color, corner, space, text } from "@/theme/tokens";
 
 type Line = { id: string; label: string; points: number; at: string };
 
@@ -27,6 +28,7 @@ export function PointsScreen() {
   const balance = pointsBalance(state.orders, state.pointsLedger);
   const tier = tierFor(balance);
   const upcoming = nextTier(balance);
+  const palette = TIER_COLORS[tier.id];
   const history = pointsHistory(state);
 
   const redeem = async (points: number) => {
@@ -46,12 +48,13 @@ export function PointsScreen() {
     <Screen testID="points-screen">
       <AppHeader back subtitle="Earn on every delivered order." title="Vossie Points" />
       <View style={styles.ringWrap}>
-        <ProgressRing accessibilityLabel={upcoming ? `${Math.round(upcoming.progress * 100)} percent of the way to ${upcoming.tier.label}` : "Top tier reached"} progress={upcoming ? upcoming.progress : 1}>
+        <ProgressRing accessibilityLabel={upcoming ? `${Math.round(upcoming.progress * 100)} percent of the way to ${upcoming.tier.label}` : "Top tier reached"} progress={upcoming ? upcoming.progress : 1} size={184} stroke={16} tint={palette.solid} track={palette.tint}>
           <Text style={styles.balance}>{balance.toLocaleString("en-ZA")}</Text>
           <Text style={text.caption}>points</Text>
           <View style={styles.tier}>
-            <Icon color={color.ink} name="award" size={12} />
-            <Text style={styles.tierText}>{tier.label}</Text>
+            <LinearGradient colors={palette.gradient} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
+            <Icon color={palette.ink} name="award" size={13} />
+            <Text style={[styles.tierText, { color: palette.ink }]}>{tier.label}</Text>
           </View>
         </ProgressRing>
         <Text style={styles.next}>
@@ -80,12 +83,20 @@ export function PointsScreen() {
       <Card>
         <Text style={text.body}>1 point for every R10 you spend, added when your order is delivered.</Text>
         <View style={styles.tiers}>
-          {TIERS.map((item) => (
-            <View key={item.id} style={[styles.tierBox, item.id === tier.id && styles.tierBoxOn]}>
-              <Text style={[styles.tierName, item.id === tier.id && styles.tierNameOn]}>{item.label}</Text>
-              <Text style={[text.caption, item.id === tier.id && styles.tierNameOn]}>{item.from === 0 ? "Start" : `${item.from}+ pts`}</Text>
-            </View>
-          ))}
+          {TIERS.map((item) => {
+            const tone = TIER_COLORS[item.id];
+            const on = item.id === tier.id;
+            return (
+              <View key={item.id} style={[styles.tierBox, on && styles.tierBoxOn]} testID={`tier-${item.id}`}>
+                <LinearGradient colors={tone.gradient} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={[StyleSheet.absoluteFill, { opacity: on ? 1 : 0.55 }]} />
+                <View style={[styles.tierBadge, { backgroundColor: on ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.4)" }]}>
+                  <Icon color={tone.ink} name={on ? "check" : "award"} size={18} />
+                </View>
+                <Text style={[styles.tierName, { color: tone.ink }]}>{item.label}</Text>
+                <Text style={[styles.tierFrom, { color: tone.ink }]}>{item.from === 0 ? "Start" : `${item.from}+ pts`}</Text>
+              </View>
+            );
+          })}
         </View>
       </Card>
 
@@ -124,11 +135,12 @@ const styles = StyleSheet.create({
   points: { fontSize: 15, fontWeight: "800" },
   ringWrap: { alignItems: "center", gap: 2, marginTop: space.md },
   row: { alignItems: "center", flexDirection: "row", gap: space.sm },
-  tier: { alignItems: "center", backgroundColor: color.mist, borderRadius: 12, flexDirection: "row", gap: 4, marginTop: 4, paddingHorizontal: 10, paddingVertical: 3 },
-  tierBox: { alignItems: "center", backgroundColor: color.surfaceSoft, borderRadius: 12, flex: 1, gap: 2, padding: space.sm },
-  tierBoxOn: { backgroundColor: color.primary },
-  tierName: { color: color.heading, fontSize: 14, fontWeight: "800" },
-  tierNameOn: { color: color.onPrimary },
-  tierText: { color: color.ink, fontSize: 12, fontWeight: "800" },
+  tier: { alignItems: "center", borderRadius: 14, flexDirection: "row", gap: 5, marginTop: 4, overflow: "hidden", paddingHorizontal: 12, paddingVertical: 5 },
+  tierBadge: { alignItems: "center", borderRadius: 20, height: 40, justifyContent: "center", width: 40 },
+  tierBox: { alignItems: "center", borderCurve: "continuous", borderRadius: corner.xl, flex: 1, gap: 4, minHeight: 124, overflow: "hidden", paddingHorizontal: space.xs, paddingVertical: space.md },
+  tierBoxOn: { boxShadow: "0 10px 22px rgba(30, 42, 56, 0.22)" },
+  tierFrom: { fontSize: 12, fontWeight: "700", opacity: 0.85 },
+  tierName: { fontSize: 17, fontWeight: "800" },
+  tierText: { fontSize: 13, fontWeight: "800" },
   tiers: { flexDirection: "row", gap: space.xs, marginTop: space.sm },
 });

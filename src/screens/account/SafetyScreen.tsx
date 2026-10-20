@@ -1,8 +1,9 @@
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useState } from "react";
-import { Linking, Share, StyleSheet, Switch, Text, View } from "react-native";
+import { Linking, Share, StyleSheet, Text, View } from "react-native";
 
 import {
+  AnimatedSwitch,
   AppHeader,
   Button,
   Card,
@@ -299,11 +300,9 @@ export function SafetyScreen() {
             ))}
           </View>
           <View style={styles.row}>
-            <Switch
+            <AnimatedSwitch
               accessibilityLabel="Let others follow my order tracking"
               onValueChange={(value) => dispatch({ key: "shareTracking", type: "setSetting", value })}
-              thumbColor={color.onPrimary}
-              trackColor={{ false: color.borderStrong, true: color.primary }}
               value={state.settings.shareTracking}
             />
             <Text style={[text.bodySmall, styles.flex]}>Let people I send a link to follow my order tracking</Text>

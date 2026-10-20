@@ -30,6 +30,7 @@ import { useOnline } from "@/lib/useOnline";
 import type { PaymentMethod } from "@/data/types";
 import { BrandMark } from "./BrandMark";
 import { DeliveryGroup } from "./DeliveryChoice";
+import { TapToPay } from "./TapToPay";
 import { PayButton, PROCESSING_MS, SUCCESS_HOLD_MS, type PayState } from "./PayButton";
 import { checkPayment, eftBanks } from "./payment";
 import { useCartTotals, useDemoStore } from "@/state/DemoStore";
@@ -46,6 +47,7 @@ export function CheckoutScreen() {
   const [voucherError, setVoucherError] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
   const [payState, setPayState] = useState<PayState>("idle");
+  const [tapOpen, setTapOpen] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   const [slotsOpen, setSlotsOpen] = useState(false);
   const [slotDay, setSlotDay] = useState<"Today" | "Tomorrow">("Today");
@@ -126,6 +128,12 @@ export function CheckoutScreen() {
     if (!online) {
       setPayError("You're offline. Reconnect to pay.");
       setPayState("failed");
+      return;
+    }
+    // Apple Pay and Google Pay: the phone's own pay screen takes over, then the order goes through
+    if (payment === "apple-pay" || payment === "google-pay") {
+      setPayError(null);
+      setTapOpen(true);
       return;
     }
     if (state.settings.biometric) {
@@ -410,6 +418,20 @@ export function CheckoutScreen() {
         {scheduleSlots().every((slot) => slot.day !== slotDay) ? <Text style={text.bodySmall}>No more slots today. Pick tomorrow.</Text> : null}
         <Text style={text.caption}>The seller is reminded before your time so it is ready when you are.</Text>
       </Sheet>
+      {payment === "apple-pay" || payment === "google-pay" ? (
+        <TapToPay
+          amountCents={totals.totalCents}
+          cardLabel={card ? `${card.brand === "visa" ? "Visa" : "Mastercard"} ending ${card.last4}` : "Vossie"}
+          merchant="Vossie Marketplace"
+          method={payment}
+          onCancel={() => setTapOpen(false)}
+          onDone={() => {
+            setTapOpen(false);
+            startPayment();
+          }}
+          visible={tapOpen}
+        />
+      ) : null}
     </Screen>
   );
 }

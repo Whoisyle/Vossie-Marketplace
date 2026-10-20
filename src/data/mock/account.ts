@@ -31,8 +31,8 @@ export const walletSeed = {
 };
 
 export const savedCardsSeed: SavedCard[] = [
-  { brand: "visa", expiry: "08/28", holder: "Vumisa", id: "card-demo-visa", isDefault: true, last4: "4242" },
-  { brand: "mastercard", expiry: "03/27", holder: "Vumisa", id: "card-demo-mc", isDefault: false, last4: "5555" },
+  { brand: "visa", expiry: "08/28", holder: "Vumisa", id: "card-demo-visa", isDefault: true, issuer: "nedbank", last4: "4242" },
+  { brand: "mastercard", expiry: "03/27", holder: "Vumisa", id: "card-demo-mc", isDefault: false, issuer: "fnb", last4: "5555" },
 ];
 
 export const loginEventsSeed: LoginEvent[] = [

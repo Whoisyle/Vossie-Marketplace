@@ -10,7 +10,8 @@ import { confirmWithBiometrics } from "@/lib/biometric";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
 
-import { CardSurface, walletCardWidth, walletItems, WalletCarousel, useWalletSelection } from "./WalletCards";
+import { VossieWalletFace } from "./PayFaces";
+import { walletCardWidth, walletItems, WalletCarousel, useWalletSelection } from "./WalletCards";
 import { parseRandToCents } from "./walletAmount";
 
 const PRESETS = [10000, 20000, 50000];
@@ -80,16 +81,7 @@ export function WalletScreen() {
     <Screen>
       <AppHeader back subtitle="Manage your Vossie balance." title="Wallet" />
       <View style={styles.balanceWrap} testID="balance-card">
-        <CardSurface colors={["#2A4658", "#16243A"]} width={Math.min(walletCardWidth(screenWidth) + 24, screenWidth - space.lg * 2)}>
-          <View style={styles.balanceRow}>
-            <Text style={styles.balanceBrand}>Vossie Wallet</Text>
-            <Text style={styles.balanceTier}>Available balance</Text>
-          </View>
-          <Text accessibilityLiveRegion="polite" style={styles.balanceValue}>
-            {formatRand(state.wallet.balanceCents, { fixed: true })}
-          </Text>
-          <Text style={styles.balanceName}>{(state.profile?.fullName ?? "").toUpperCase()}</Text>
-        </CardSurface>
+        <VossieWalletFace balanceCents={state.wallet.balanceCents} width={walletCardWidth(screenWidth)} />
         <View style={styles.balanceActions}>
           <Button label="Add funds" onPress={() => setOpen(true)} size="sm" />
           <Button icon="arrow-up-right" label="Withdraw" onPress={startWithdraw} size="sm" testID="withdraw" variant="soft" />
@@ -98,7 +90,7 @@ export function WalletScreen() {
       <Text style={styles.demo}>Demo wallet: no real money moves.</Text>
 
       <Text style={styles.heading}>Cards and payment options</Text>
-      <WalletCarousel items={items} onAdd={() => router.push("/cart/add-card" as Href)} onEditCard={(cardId) => router.push(`/account/card/${cardId}` as Href)} onSelect={setSelected} selected={selected} />
+      <WalletCarousel items={items} onAdd={() => router.push("/cart/add-card" as Href)} onChooseBank={() => setBankOpen(true)} onEditCard={(cardId) => router.push(`/account/card/${cardId}` as Href)} onSelect={setSelected} selected={selected} />
       <View style={styles.actions} testID="wallet-actions">
         {current.kind === "card" ? (
           <>
@@ -259,11 +251,6 @@ const styles = StyleSheet.create({
   balanceActions: { flexDirection: "row", gap: space.xs },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: space.xs, marginTop: space.sm },
   amount: { fontSize: 14, fontWeight: "700" },
-  balanceBrand: { color: color.onPrimary, fontSize: 15, fontWeight: "800", letterSpacing: 0.5 },
-  balanceName: { color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: "700", letterSpacing: 1 },
-  balanceRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
-  balanceTier: { color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: "600" },
-  balanceValue: { color: color.onPrimary, fontSize: 34, fontVariant: ["tabular-nums"], fontWeight: "800" },
   balanceWrap: { alignItems: "center", gap: space.sm, marginTop: space.sm },
   demo: { ...text.caption, marginTop: space.xs },
   flex: { flex: 1 },

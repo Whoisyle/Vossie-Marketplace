@@ -320,7 +320,7 @@ describe("safety", () => {
     expect(screen.getByText(/That code isn't right/)).toBeTruthy();
     fireEvent.changeText(screen.getByLabelText("6-digit code"), totp(secret));
     fireEvent.press(screen.getByTestId("two-factor-confirm"));
-    expect(screen.getByLabelText("Two-factor authentication").props.value).toBe(false);
+    expect(screen.getByLabelText("Two-factor authentication").props.accessibilityState.checked).toBe(false);
   });
 
   it("signs out other devices from the check-up", () => {

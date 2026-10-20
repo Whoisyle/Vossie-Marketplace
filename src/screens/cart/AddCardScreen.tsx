@@ -3,8 +3,10 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppHeader, Button, Card, Icon, Screen, TextField, useToast } from "@/components";
+import { IssuerPicker } from "@/screens/account/CardArt";
+import { CardFace } from "@/screens/account/WalletCards";
 import { useDemoStore } from "@/state/DemoStore";
-import { color, corner, space, text } from "@/theme/tokens";
+import { color, space, text } from "@/theme/tokens";
 
 import { formatCardNumber, formatExpiry, isValidExpiry } from "./cardFormat";
 
@@ -17,6 +19,7 @@ export function AddCardScreen() {
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
   const [makeDefault, setMakeDefault] = useState(true);
+  const [issuer, setIssuer] = useState<string | undefined>();
   const [submitted, setSubmitted] = useState(false);
 
   const digits = number.replace(/\s/g, "");
@@ -32,7 +35,7 @@ export function AddCardScreen() {
     setSubmitted(true);
     if (!valid) return;
     dispatch({
-      card: { brand, expiry, holder: state.profile?.fullName ?? "", last4: digits.slice(-4) },
+      card: { brand, expiry, holder: state.profile?.fullName ?? "", issuer, last4: digits.slice(-4) },
       makeDefault,
       type: "addCard",
     });
@@ -46,12 +49,20 @@ export function AddCardScreen() {
     >
       <AppHeader back title="Add a New Card" />
       <View style={styles.preview}>
-        <Text style={styles.previewNumber}>{number || "•••• •••• •••• ••••"}</Text>
-        <View style={styles.previewRow}>
-          <Text style={styles.previewMeta}>{state.profile?.fullName.toUpperCase() || "CARDHOLDER"}</Text>
-          <Text style={styles.previewMeta}>{expiry || "MM/YY"}</Text>
-        </View>
+        <CardFace
+          card={{
+            brand,
+            expiry: expiry || "MM/YY",
+            holder: state.profile?.fullName ?? "",
+            id: "preview",
+            isDefault: false,
+            issuer,
+            last4: digits.slice(-4).padEnd(4, "•"),
+          }}
+        />
       </View>
+      <Text style={text.label}>Bank</Text>
+      <IssuerPicker onChange={setIssuer} value={issuer} />
 
       <View style={styles.fields}>
         <TextField
@@ -127,17 +138,6 @@ const styles = StyleSheet.create({
   fields: { gap: space.sm, marginTop: space.md },
   flex: { flex: 1 },
   offers: { alignItems: "center", flexDirection: "row", marginTop: space.md },
-  preview: {
-    backgroundColor: color.primary,
-    borderRadius: corner.lg,
-    gap: space.lg,
-    marginTop: space.sm,
-    minHeight: 150,
-    justifyContent: "flex-end",
-    padding: space.md,
-  },
-  previewMeta: { color: color.onPrimary, fontSize: 12, fontWeight: "600", letterSpacing: 0.5 },
-  previewNumber: { color: color.onPrimary, fontSize: 20, fontWeight: "700", letterSpacing: 1.5 },
-  previewRow: { flexDirection: "row", justifyContent: "space-between" },
+  preview: { alignItems: "center", marginVertical: space.sm },
   row: { flexDirection: "row", gap: space.sm },
 });

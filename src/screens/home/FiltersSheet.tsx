@@ -1,8 +1,8 @@
 import { type ReactNode, useMemo, useState } from "react";
-import { PanResponder, StyleSheet, Switch, Text, View } from "react-native";
+import { PanResponder, StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
-import { Button, Chip, Icon, Sheet, type IconName } from "@/components";
+import { AnimatedSwitch, Button, Chip, Icon, Sheet, type IconName } from "@/components";
 import type { Listing } from "@/data/types";
 import { haptic } from "@/lib/haptics";
 import { spring } from "@/theme/motion";
@@ -172,14 +172,12 @@ function ToggleRow({
           <Text style={text.caption}>{caption}</Text>
         </View>
       </View>
-      <Switch
+      <AnimatedSwitch
         accessibilityLabel={label}
         onValueChange={(next) => {
           haptic.select();
           onChange(next);
         }}
-        thumbColor={color.onPrimary}
-        trackColor={{ false: color.borderStrong, true: color.primary }}
         value={value}
       />
     </View>

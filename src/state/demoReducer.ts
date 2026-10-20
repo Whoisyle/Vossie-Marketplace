@@ -219,7 +219,7 @@ export type DemoAction =
   | { type: "placeOrder" }
   | { type: "addCard"; card: Omit<SavedCard, "id" | "isDefault">; makeDefault: boolean }
   | { type: "removeCard"; cardId: string }
-  | { type: "updateCard"; cardId: string; patch: Partial<Pick<SavedCard, "brand" | "last4" | "expiry" | "holder">>; makeDefault?: boolean }
+  | { type: "updateCard"; cardId: string; patch: Partial<Pick<SavedCard, "brand" | "last4" | "expiry" | "holder" | "issuer">>; makeDefault?: boolean }
   | { type: "withdraw"; amountCents: number; cardId: string }
   | { type: "setDefaultCard"; cardId: string }
   | { type: "addFunds"; amountCents: number; source: string }

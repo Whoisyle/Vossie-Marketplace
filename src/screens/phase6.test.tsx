@@ -1,7 +1,7 @@
 import { fireEvent, screen } from "@testing-library/react-native";
 import { Text } from "react-native";
 
-import { StudentCard, cardHeight, landscapeHeight, studentQrValue } from "@/components/StudentCard";
+import { StudentCard, cardHeight, landscapeHeight } from "@/components/StudentCard";
 import { groupCode, memberShares } from "@/data/group";
 import { legalDocs } from "@/data/legal";
 import { MIN_WITHDRAW_CENTS } from "@/data/wallet";
@@ -41,16 +41,17 @@ describe("minimum withdrawal", () => {
 });
 
 describe("card sizes", () => {
-  it("draws payment cards landscape at real card proportions and the student card upright", () => {
+  it("draws bank and wallet cards horizontally and the student card upright, at real card proportions", () => {
     expect(WALLET_CARD_WIDTH / WALLET_CARD_HEIGHT).toBeCloseTo(85.6 / 54, 1);
     expect(landscapeHeight(300)).toBe(189);
-    expect(cardHeight(250) / 250).toBeCloseTo(85.6 / 54, 1);
+    expect(cardHeight(300)).toBe(476);
+    expect(320 / cardHeight(320)).toBeCloseTo(54 / 85.6, 2);
   });
 
   it("gives the card face and the balance card the same shape", () => {
     renderWithProviders(
       <>
-        <CardFace card={signedIn().cards[0]!} width={300} />
+        <CardFace card={{ ...signedIn().cards[0]!, issuer: undefined }} width={300} />
         <CardSurface colors={["#000000", "#111111"]} testID="surface" width={300}>
           <Text>Balance</Text>
         </CardSurface>
@@ -61,13 +62,12 @@ describe("card sizes", () => {
     expect(screen.getByTestId("surface").props.style).toEqual(shape);
   });
 
-  it("puts a QR code and the student details on the upright card", () => {
-    expect(studentQrValue("2023 12345")).toBe("vossie://student/202312345");
-    renderWithProviders(<StudentCard campusName="Potchefstroom" name="Vumisa" studentNumber="202309530" vertical width={250} />);
+  it("draws the student card like the Eduvos reference", () => {
+    renderWithProviders(<StudentCard campusName="Potchefstroom" name="Vumisa" studentNumber="202309530" width={320} />);
     expect(screen.getByTestId("student-card")).toBeTruthy();
-    expect(screen.getByLabelText("Student QR code")).toBeTruthy();
-    expect(screen.getByText("2023 09530")).toBeTruthy();
-    expect(screen.getByText(/Eduvos student · Potchefstroom/)).toBeTruthy();
+    expect(screen.getByText("DISPLAY NAME")).toBeTruthy();
+    expect(screen.getByText("Vumisa")).toBeTruthy();
+    expect(screen.getByLabelText("HID")).toBeTruthy();
   });
 });
 

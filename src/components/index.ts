@@ -1,3 +1,6 @@
+export { AnimatedBell } from "./AnimatedBell";
+export { AnimatedSwitch } from "./AnimatedSwitch";
+export { PageDots } from "./PageDots";
 export { AppHeader, HeaderIconButton } from "./AppHeader";
 export { Avatar } from "./Avatar";
 export { Button } from "./Button";

@@ -8,6 +8,7 @@ import { formatCardNumber, formatExpiry, isValidExpiry } from "@/screens/cart/ca
 import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
 
+import { IssuerPicker } from "./CardArt";
 import { CardFace } from "./WalletCards";
 
 /** Brand from the first digit: 4 is Visa, 5 is Mastercard; otherwise keep the current brand. */
@@ -41,6 +42,7 @@ export function CardEditScreen() {
   const [number, setNumber] = useState("");
   const [expiry, setExpiry] = useState(card?.expiry ?? "");
   const [holder, setHolder] = useState(card?.holder ?? "");
+  const [issuer, setIssuer] = useState(card?.issuer);
   const [makeDefault, setMakeDefault] = useState(card?.isDefault ?? false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -57,7 +59,7 @@ export function CardEditScreen() {
   const errors = cardEditErrors({ expiry, holder, number });
   const valid = !errors.number && !errors.expiry && !errors.holder;
   const brand = brandFor(digits, card.brand);
-  const preview: SavedCard = { ...card, brand, expiry: expiry || card.expiry, holder, last4: digits.length === 16 ? digits.slice(-4) : card.last4 };
+  const preview: SavedCard = { ...card, brand, issuer, expiry: expiry || card.expiry, holder, last4: digits.length === 16 ? digits.slice(-4) : card.last4 };
 
   const save = () => {
     setSubmitted(true);
@@ -65,7 +67,7 @@ export function CardEditScreen() {
     dispatch({
       cardId: card.id,
       makeDefault: makeDefault && !card.isDefault,
-      patch: { brand, expiry, holder: holder.trim(), last4: preview.last4 },
+      patch: { brand, expiry, holder: holder.trim(), issuer, last4: preview.last4 },
       type: "updateCard",
     });
     toast.show("Card updated");
@@ -86,6 +88,8 @@ export function CardEditScreen() {
       </View>
 
       <View style={styles.fields}>
+        <Text style={text.label}>Bank</Text>
+        <IssuerPicker onChange={setIssuer} value={issuer} />
         <TextField
           error={submitted ? errors.number : undefined}
           keyboardType="number-pad"

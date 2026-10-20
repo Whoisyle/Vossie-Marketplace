@@ -1,163 +1,105 @@
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
-import QRCode from "react-native-qrcode-svg";
 
 import { formatStudentNumber } from "@/data/studentRecord";
-import { color, corner, gradient, space } from "@/theme/tokens";
 
-import { Avatar } from "./Avatar";
-import { Icon } from "./Icon";
-import { Wordmark } from "./Wordmark";
-
-/** A bank card is 85.6 x 54 mm. Landscape it is 1.585 wide for every 1 high; held upright the width is 0.631 of the height. */
-export const CARD_RATIO = 85.6 / 54;
+/** A bank card is 54 x 85.6 mm held upright: it is 0.631 as wide as it is tall. */
 export const CARD_ASPECT = 54 / 85.6;
 
-/** Height of an upright card of the given width, at real card proportions. */
+/** Height of an upright card of the given width, at real card proportions. Every card in the app uses this. */
 export function cardHeight(width: number): number {
   return Math.round(width / CARD_ASPECT);
 }
 
-/** Height of a landscape card of the given width, at real card proportions. */
+/** Height of a horizontal card of the given width (bank and wallet cards). */
 export function landscapeHeight(width: number): number {
-  return Math.round(width / CARD_RATIO);
+  return Math.round(width * CARD_ASPECT);
 }
 
-/** What the card's QR code holds: the student number, so campus staff can look the student up. */
-export function studentQrValue(studentNumber?: string): string {
-  return `vossie://student/${(studentNumber ?? "").replace(/\D/g, "")}`;
+const LOGO = require("../../assets/branding/eduvos-logo-white.png");
+const HID = require("../../assets/branding/hid-badge.png");
+const LOGO_ASPECT = 595 / 230;
+const HID_ASPECT = 113 / 49;
+
+/** Faint vertical streaks (position as a share of the width, width, opacity) that give the card face its brushed look. */
+const STREAKS = [
+  { left: 0.08, opacity: 0.05, width: 0.09 },
+  { left: 0.3, opacity: 0.04, width: 0.14 },
+  { left: 0.52, opacity: 0.06, width: 0.08 },
+  { left: 0.7, opacity: 0.04, width: 0.15 },
+  { left: 0.88, opacity: 0.05, width: 0.08 },
+] as const;
+
+/** The soft vertical streaks laid over a card face; shared by the student card and the Vossie Wallet card. */
+export function CardStreaks() {
+  return (
+    <>
+      {STREAKS.map((streak) => (
+        <LinearGradient
+          colors={["rgba(255,255,255,0)", `rgba(255,255,255,${streak.opacity})`, "rgba(255,255,255,0)"]}
+          end={{ x: 1, y: 0 }}
+          key={streak.left}
+          pointerEvents="none"
+          start={{ x: 0, y: 0 }}
+          style={{ bottom: 0, left: `${streak.left * 100}%`, position: "absolute", top: 0, width: `${streak.width * 100}%` }}
+        />
+      ))}
+    </>
+  );
 }
 
 /**
- * The digital student card. `vertical` is the upright card at real card size: a deep navy face with soft curved
- * shapes, the student's photo, name, student number and campus, the Vossie wordmark and a QR code. The default is
- * the compact horizontal strip. The student number comes from the Eduvos record (mock until the backend).
+ * The digital student card: the Eduvos card from the owner's reference, held upright at real card size. A deep blue
+ * face with soft vertical streaks, the Eduvos crest and wordmark at the top, the display name bottom left and the HID
+ * badge bottom right. The student number comes from the Eduvos record (mock until the backend).
  */
 export function StudentCard({
-  avatarUri,
   campusName,
   name,
   studentNumber,
   verified = true,
-  vertical = false,
-  width = 270,
+  width = 200,
 }: {
   name: string;
   studentNumber?: string;
   campusName: string;
-  avatarUri?: string;
   verified?: boolean;
-  vertical?: boolean;
-  /** Width of the upright card; its height follows real card proportions. */
+  /** Width of the card; its height follows real card proportions. */
   width?: number;
 }) {
-  const number = studentNumber ? formatStudentNumber(studentNumber) : "—";
-  const label = `Student card. ${name}. Student number ${studentNumber ? number : "not available"}. ${campusName}.${verified ? " Verified." : ""}`;
-
-  if (vertical) {
-    const height = cardHeight(width);
-    const qr = Math.round(width * 0.27);
-    return (
-      <View accessibilityLabel={label} accessible style={[styles.upright, { height, width }]} testID="student-card">
-        <LinearGradient colors={["#14233A", "#0B1626"]} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
-        {/* the soft curved shapes at the top of the card */}
-        <View pointerEvents="none" style={[styles.shapeA, { height: width * 1.25, width: width * 1.25 }]}>
-          <LinearGradient colors={["#1F3A5F", "#16294A"]} end={{ x: 1, y: 1 }} start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
-        </View>
-        <View pointerEvents="none" style={[styles.shapeB, { height: width * 0.95, width: width * 0.95 }]}>
-          <LinearGradient colors={["#25497A", "#1B3558"]} end={{ x: 1, y: 1 }} start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
-        </View>
-
-        <View style={styles.uTop}>
-          <View style={styles.uPhotoRing}>
-            <Avatar name={name} size={Math.round(width * 0.3)} uri={avatarUri} />
-          </View>
-          {verified ? (
-            <View style={styles.verified}>
-              <Icon color={color.ink} name="check-circle" size={12} />
-              <Text style={styles.verifiedText}>Verified</Text>
-            </View>
-          ) : null}
-        </View>
-
-        <View style={styles.uText}>
-          <Text style={styles.uKind}>STUDENT CARD</Text>
-          <Text numberOfLines={2} style={styles.uName}>
-            {name || "Vossie student"}
-          </Text>
-          <Text style={styles.uSub}>Eduvos student · {campusName}</Text>
-          <Text style={styles.uLabel}>STUDENT NUMBER</Text>
-          <Text style={styles.uNumber}>{number}</Text>
-        </View>
-
-        <View style={styles.uBottom}>
-          <Wordmark tone="white" width={Math.round(width * 0.42)} />
-          <View accessibilityLabel="Student QR code" style={styles.qrTile}>
-            <QRCode backgroundColor="#FFFFFF" color="#0B1626" size={qr} value={studentQrValue(studentNumber)} />
-          </View>
-        </View>
-      </View>
-    );
-  }
+  const height = cardHeight(width);
+  const number = studentNumber ? formatStudentNumber(studentNumber) : "not available";
+  const label = `Student card. ${name}. Student number ${number}. ${campusName}.${verified ? " Verified." : ""}`;
+  const logoWidth = Math.round(width * 0.78);
+  const hidWidth = Math.round(width * 0.17);
 
   return (
-    <View accessibilityLabel={label} accessible style={styles.card} testID="student-card">
-      <LinearGradient colors={gradient.ink} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
-      <View style={styles.top}>
-        <Wordmark tone="white" width={92} />
-        <Text style={styles.kind}>STUDENT</Text>
-      </View>
-      <View style={styles.middle}>
-        <Avatar name={name} size={52} uri={avatarUri} />
+    <View accessibilityLabel={label} accessible style={[styles.card, { borderRadius: Math.round(width * 0.075), height, width }]} testID="student-card">
+      <LinearGradient colors={["#083264", "#0A3A79", "#054088"]} end={{ x: 1, y: 0 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
+      <CardStreaks />
+      <Image accessibilityLabel="Eduvos" contentFit="contain" source={LOGO} style={{ height: logoWidth / LOGO_ASPECT, left: width * 0.1, position: "absolute", top: height * 0.05, width: logoWidth }} />
+      <View style={[styles.bottom, { bottom: height * 0.05, left: width * 0.1, right: width * 0.1 }]}>
         <View style={styles.flex}>
-          <Text numberOfLines={1} style={styles.name}>
+          <Text style={[styles.label, { fontSize: Math.max(8, width * 0.048) }]}>DISPLAY NAME</Text>
+          <Text numberOfLines={1} style={[styles.name, { fontSize: Math.max(13, width * 0.085) }]}>
             {name || "Vossie student"}
           </Text>
-          <Text style={styles.number}>{number}</Text>
         </View>
+        <Image accessibilityLabel="HID" contentFit="contain" source={HID} style={{ borderRadius: 2, height: hidWidth / HID_ASPECT, width: hidWidth }} />
       </View>
-      <Text numberOfLines={1} style={styles.campusText}>
-        {campusName}
-      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  campusText: { color: color.mist, fontSize: 13 },
+  bottom: { alignItems: "flex-end", flexDirection: "row", gap: 6, justifyContent: "space-between", position: "absolute" },
   card: {
     borderCurve: "continuous",
-    borderRadius: corner.xl,
-    boxShadow: "0 12px 28px rgba(30, 42, 56, 0.3)",
-    gap: space.md,
+    boxShadow: "0 14px 32px rgba(5, 64, 136, 0.35)",
     overflow: "hidden",
-    padding: space.md,
   },
-  flex: { flex: 1, gap: 2 },
-  kind: { color: color.mist, fontSize: 11, fontWeight: "700", letterSpacing: 2 },
-  middle: { alignItems: "center", flexDirection: "row", gap: space.sm },
-  name: { color: color.onPrimary, fontSize: 18, fontWeight: "700" },
-  number: { color: color.onPrimary, fontSize: 22, fontVariant: ["tabular-nums"], fontWeight: "800", letterSpacing: 1 },
-  qrTile: { backgroundColor: "#FFFFFF", borderRadius: 10, padding: 6 },
-  shapeA: { borderRadius: 400, opacity: 0.9, overflow: "hidden", position: "absolute", right: "-38%", top: "-20%" },
-  shapeB: { borderRadius: 400, bottom: "34%", left: "-30%", opacity: 0.55, overflow: "hidden", position: "absolute" },
-  top: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
-  uBottom: { alignItems: "flex-end", flexDirection: "row", justifyContent: "space-between", marginTop: "auto" },
-  uKind: { color: "rgba(255,255,255,0.7)", fontSize: 10, fontWeight: "700", letterSpacing: 2 },
-  uLabel: { color: "rgba(255,255,255,0.6)", fontSize: 9, fontWeight: "700", letterSpacing: 2, marginTop: space.xs },
-  uName: { color: color.onPrimary, fontSize: 22, fontWeight: "800", lineHeight: 27 },
-  uNumber: { color: color.onPrimary, fontSize: 20, fontVariant: ["tabular-nums"], fontWeight: "800", letterSpacing: 1.5 },
-  uPhotoRing: { alignItems: "center", borderColor: "rgba(255,255,255,0.35)", borderRadius: 60, borderWidth: 3, justifyContent: "center", padding: 3 },
-  uSub: { color: "rgba(255,255,255,0.85)", fontSize: 13 },
-  uText: { gap: 2, marginTop: space.md },
-  uTop: { alignItems: "flex-start", flexDirection: "row", justifyContent: "space-between" },
-  upright: {
-    borderCurve: "continuous",
-    borderRadius: 18,
-    boxShadow: "0 18px 36px rgba(11, 22, 38, 0.4)",
-    overflow: "hidden",
-    padding: space.md,
-  },
-  verified: { alignItems: "center", backgroundColor: color.mist, borderRadius: corner.pill, flexDirection: "row", gap: 4, paddingHorizontal: 8, paddingVertical: 3 },
-  verifiedText: { color: color.ink, fontSize: 11, fontWeight: "800" },
+  flex: { flex: 1 },
+  label: { color: "#04122A", fontWeight: "500", letterSpacing: 0.4 },
+  name: { color: "#FFFFFF", fontWeight: "600" },
 });

@@ -1,7 +1,7 @@
 import type { PaymentMethod } from "@/data/types";
 
 /** South African banks offered for instant EFT (mock-up: no bank is contacted). */
-export const eftBanks = ["Absa", "Capitec", "FNB", "Nedbank", "Standard Bank", "TymeBank"] as const;
+export const eftBanks = ["Absa", "Capitec", "Discovery Bank", "FNB", "Investec", "Nedbank", "Standard Bank", "TymeBank"] as const;
 export type EftBank = (typeof eftBanks)[number];
 
 export const paymentLabels: Record<PaymentMethod, string> = {

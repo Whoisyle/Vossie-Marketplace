@@ -50,13 +50,11 @@ export function AccountScreen() {
       <AppHeader title="Your account" />
       <View style={styles.cardGap}>
         <StudentCard
-          avatarUri={profile.avatarUri}
           campusName={getCampusName(profile.campusId)}
           name={profile.fullName}
           studentNumber={profile.studentNumber}
-          vertical
           verified={profile.isVerifiedStudent}
-          width={250}
+          width={220}
         />
       </View>
 

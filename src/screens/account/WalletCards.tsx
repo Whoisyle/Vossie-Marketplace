@@ -16,15 +16,18 @@ import Svg, { Path } from "react-native-svg";
 
 import { Icon } from "@/components";
 import { landscapeHeight } from "@/components/StudentCard";
+import { issuerByName, schemeFaces } from "@/data/cardBrands";
 import { formatRand } from "@/data/format";
 import type { SavedCard } from "@/data/types";
 import { haptic } from "@/lib/haptics";
 import { spring } from "@/theme/motion";
-import { color, corner, gradient, space } from "@/theme/tokens";
+import { color, space } from "@/theme/tokens";
 
-import { BrandMark } from "../cart/BrandMark";
+import { BankFace } from "./BankFaces";
+import { Chip, Contactless, SchemeLogo } from "./CardArt";
+import { ApplePayFace, GooglePayFace, VossieWalletFace } from "./PayFaces";
 
-/** Cards are drawn landscape at real card proportions (85.6 x 54 mm). */
+/** Cards are drawn horizontally at real card proportions (85.6 x 54 mm). */
 export const WALLET_CARD_WIDTH = 300;
 export const WALLET_CARD_HEIGHT = landscapeHeight(WALLET_CARD_WIDTH);
 const GAP = space.sm;
@@ -69,8 +72,8 @@ export function walletItems(input: {
 }
 
 /**
- * The face of a payment card: a deep gradient with soft wave lines, drawn at real card proportions. Everything on
- * the wallet screen that looks like a card (saved cards, the balance, the edit preview) is built on this.
+ * A plain horizontal card face with a gradient, at real card proportions. The card preview for a card with no bank
+ * chosen and the "add a card" tile are built on this.
  */
 export function CardSurface({
   children,
@@ -87,7 +90,7 @@ export function CardSurface({
 }) {
   const height = landscapeHeight(width);
   return (
-    <View style={[styles.card, dashed && styles.dashed, { height, width }]} testID={testID}>
+    <View style={[styles.card, dashed && styles.dashed, { borderRadius: Math.round(width * 0.05), height, width }]} testID={testID}>
       {colors ? <LinearGradient colors={colors} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} /> : null}
       {colors ? (
         <Svg height={height} pointerEvents="none" style={StyleSheet.absoluteFill} width={width}>
@@ -107,34 +110,40 @@ export function CardSurface({
   );
 }
 
-/** The face of one saved card; also used as the live preview when editing a card. */
+/**
+ * The face of one saved card, drawn like the real thing: the issuing bank's own design, or the Visa or Mastercard
+ * colours when no bank is chosen. Also the live preview when adding or editing a card.
+ */
 export function CardFace({ card, width = WALLET_CARD_WIDTH }: { card: SavedCard; width?: number }) {
-  const mc = card.brand === "mastercard";
+  const issuer = issuerByName(card.issuer);
+  if (issuer) return <BankFace card={card} issuer={issuer} width={width} />;
+  const scale = width / WALLET_CARD_WIDTH;
   return (
-    <CardSurface colors={mc ? ["#10161F", "#1B2B3C"] : ["#16243A", "#2A5B6B"]} testID="card-face" width={width}>
+    <CardSurface colors={schemeFaces[card.brand].face} testID="card-face" width={width}>
       <View style={styles.row}>
-        <Text style={styles.bank}>Vossie</Text>
-        <Text style={styles.tier}>{card.isDefault ? "Default · " : ""}{mc ? "Mastercard" : "Visa"}</Text>
+        <Text style={[styles.bank, { fontSize: 15 * scale }]}>{card.brand === "mastercard" ? "Mastercard" : "Visa"}</Text>
+        <Contactless size={22 * scale} />
       </View>
-      <Text style={styles.number}>•••• •••• •••• {card.last4}</Text>
+      <Chip size={scale} />
       <View style={styles.rowEnd}>
         <View style={styles.flex}>
-          <Text style={styles.small}>VALID THRU</Text>
-          <Text style={styles.value}>{card.expiry}</Text>
+          <Text style={[styles.number, { fontSize: 18 * scale }]}>•••• •••• •••• {card.last4}</Text>
+          <Text style={styles.small}>{card.isDefault ? "DEFAULT · " : ""}VALID THRU {card.expiry}</Text>
           <Text numberOfLines={1} style={styles.holder}>
             {(card.holder || "Cardholder").toUpperCase()}
           </Text>
         </View>
-        <BrandMark kind={card.brand} />
+        <SchemeLogo brand={card.brand} size={64 * scale} />
       </View>
     </CardSurface>
   );
 }
 
-/** Landscape cards in a swipeable row that moves on by itself. The next card peeks in at the edge. */
+/** Cards in a swipeable row that moves on by itself. The next card peeks in at the edge. */
 export function WalletCarousel({
   items,
   onAdd,
+  onChooseBank,
   onEditCard,
   onSelect,
   selected,
@@ -143,6 +152,8 @@ export function WalletCarousel({
   selected: number;
   onSelect: (index: number) => void;
   onAdd: () => void;
+  /** Tapping the instant EFT card once it is showing opens the bank chooser. */
+  onChooseBank?: () => void;
   /** Tapping a saved card opens it for editing. */
   onEditCard: (cardId: string) => void;
 }) {
@@ -201,6 +212,7 @@ export function WalletCarousel({
             onPress={() => {
               if (item.kind === "add") onAdd();
               else if (item.kind === "card") onEditCard(item.card.id);
+              else if (item.kind === "eft" && index === selected && onChooseBank) onChooseBank();
               else {
                 scroller.current?.scrollTo({ animated: true, x: index * snap });
                 onSelect(index);
@@ -237,61 +249,27 @@ function WalletCard({ active, item, onPress, width }: { item: WalletItem; active
 function OtherFace({ item, width }: { item: Exclude<WalletItem, { kind: "card" }>; width: number }) {
   switch (item.kind) {
     case "apple-pay":
-      return (
-        <CardSurface colors={["#1C1C1E", "#000000"]} width={width}>
-          <View style={styles.row}>
-            <Text style={styles.bank}>Apple Pay</Text>
-            <Text style={styles.tier}>{item.ready ? "Ready" : "Not on this phone"}</Text>
-          </View>
-          <Text style={styles.big}>Pay with Face ID</Text>
-          <View style={styles.rowEnd}>
-            <Text style={[styles.small, styles.flex]}>{item.ready ? "Ready on this iPhone" : "iPhone only"}</Text>
-            <BrandMark kind="apple-pay" />
-          </View>
-        </CardSurface>
-      );
+      return <ApplePayFace ready={item.ready} width={width} />;
     case "google-pay":
-      return (
-        <CardSurface colors={["#F7F9FA", "#DCE5EA"]} width={width}>
-          <View style={styles.row}>
-            <Text style={[styles.bank, styles.dark]}>Google Pay</Text>
-            <Text style={[styles.tier, styles.darkMuted]}>{item.ready ? "Ready" : "Not on this phone"}</Text>
-          </View>
-          <Text style={[styles.big, styles.dark]}>Pay with Google</Text>
-          <View style={styles.rowEnd}>
-            <Text style={[styles.small, styles.darkMuted, styles.flex]}>{item.ready ? "Ready on this phone" : "Android only"}</Text>
-            <BrandMark kind="google-pay" />
-          </View>
-        </CardSurface>
-      );
+      return <GooglePayFace ready={item.ready} width={width} />;
     case "wallet":
-      return (
-        <CardSurface colors={gradient.teal} width={width}>
-          <View style={styles.row}>
-            <Text style={styles.bank}>Vossie Wallet</Text>
-            <Text style={styles.tier}>Balance</Text>
-          </View>
-          <Text style={styles.big}>{formatRand(item.balanceCents)}</Text>
-          <View style={styles.rowEnd}>
-            <Text style={[styles.small, styles.flex]}>Top up any time</Text>
-            <BrandMark kind="wallet" />
-          </View>
-        </CardSurface>
-      );
-    case "eft":
+      return <VossieWalletFace balanceCents={item.balanceCents} width={width} />;
+    case "eft": {
+      const bank = issuerByName(item.bank);
+      if (bank) {
+        return <BankFace card={{ brand: "visa", expiry: "", holder: "", id: "eft", isDefault: false, issuer: bank.id, last4: "" }} eft issuer={bank} width={width} />;
+      }
       return (
         <CardSurface colors={["#E8EEF1", "#CBD8DF"]} width={width}>
-          <View style={styles.row}>
-            <Text style={[styles.bank, styles.dark]}>Instant EFT</Text>
-            <Text style={[styles.tier, styles.darkMuted]}>{item.bank ? "Linked" : "Not linked"}</Text>
-          </View>
-          <Text style={[styles.big, styles.dark]}>{item.bank ?? "Choose your bank"}</Text>
-          <View style={styles.rowEnd}>
-            <Text style={[styles.small, styles.darkMuted, styles.flex]}>Pay straight from your bank</Text>
-            <BrandMark kind="eft" />
+          <Text style={[styles.bank, styles.dark]}>Instant EFT</Text>
+          <Icon color={color.heading} name="repeat" size={28} />
+          <View>
+            <Text style={[styles.big, styles.dark]}>Choose your bank</Text>
+            <Text style={[styles.small, styles.darkMuted]}>Pay straight from your bank</Text>
           </View>
         </CardSurface>
       );
+    }
     default:
       return (
         <CardSurface dashed width={width}>
@@ -326,13 +304,12 @@ function labelFor(item: WalletItem): string {
 
 const styles = StyleSheet.create({
   addCenter: { alignItems: "center", flex: 1, gap: 4, justifyContent: "center" },
-  bank: { color: color.onPrimary, fontSize: 15, fontWeight: "800", letterSpacing: 0.5 },
-  big: { color: color.onPrimary, fontSize: 26, fontVariant: ["tabular-nums"], fontWeight: "800" },
+  bank: { color: color.onPrimary, fontSize: 14, fontWeight: "800", letterSpacing: 0.5 },
+  big: { color: color.onPrimary, fontSize: 18, fontWeight: "800" },
   bleed: { marginHorizontal: -space.lg },
   card: {
     backgroundColor: color.surface,
     borderCurve: "continuous",
-    borderRadius: corner.lg,
     boxShadow: "0 10px 24px rgba(30, 42, 56, 0.22)",
     overflow: "hidden",
   },
@@ -342,17 +319,15 @@ const styles = StyleSheet.create({
   dot: { backgroundColor: color.mist, borderRadius: 3, height: 6, width: 6 },
   dotActive: { backgroundColor: color.ink, width: 18 },
   dots: { alignItems: "center", flexDirection: "row", gap: 5, justifyContent: "center", marginTop: space.sm },
-  flex: { flex: 1 },
-  holder: { color: color.onPrimary, fontSize: 13, fontWeight: "700", letterSpacing: 1, marginTop: 2 },
+  holder: { color: color.onPrimary, fontSize: 11, fontWeight: "700", letterSpacing: 0.8, marginTop: 2 },
   inner: { flex: 1, justifyContent: "space-between", padding: space.md },
-  number: { color: color.onPrimary, fontSize: 20, fontVariant: ["tabular-nums"], fontWeight: "700", letterSpacing: 2 },
+  number: { color: color.onPrimary, fontVariant: ["tabular-nums"], fontWeight: "700", letterSpacing: 1.5 },
   plus: { alignItems: "center", backgroundColor: color.surfaceIcon, borderRadius: 22, height: 44, justifyContent: "center", width: 44 },
   row: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
   rowEnd: { alignItems: "flex-end", flexDirection: "row", justifyContent: "space-between" },
+  flex: { flex: 1 },
   scrollRow: { gap: GAP, paddingHorizontal: space.lg, paddingVertical: space.xs },
-  small: { color: "rgba(255,255,255,0.75)", fontSize: 10, fontWeight: "700", letterSpacing: 1 },
-  tier: { color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: "600" },
-  value: { color: color.onPrimary, fontSize: 14, fontVariant: ["tabular-nums"], fontWeight: "700" },
+  small: { color: "rgba(255,255,255,0.75)", fontSize: 9, fontWeight: "700", letterSpacing: 0.8, marginTop: 2 },
 });
 
 /** Index of the item to show first: the default card, or the first item. */
