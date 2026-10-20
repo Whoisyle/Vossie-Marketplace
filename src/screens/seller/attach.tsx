@@ -1,6 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useState, type ReactNode } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Platform, Pressable, StyleSheet, View } from "react-native";
 
 import { Icon, Sheet, useToast, type IconName } from "@/components";
 import { color, space, text } from "@/theme/tokens";
@@ -23,9 +23,26 @@ try {
   DocumentPicker = null;
 }
 
-export const filesAvailable = DocumentPicker !== null;
+export const filesAvailable = true;
 
-export type AttachSource = "library" | "camera" | "files" | "scan";
+/** On the web, the browser's own file chooser. It stands in for the file picker package, which is only needed on a phone. */
+function chooseFileOnWeb(): Promise<Picked | null> {
+  return new Promise((resolve) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/pdf,image/*";
+    input.onchange = () => {
+      const file = input.files?.[0];
+      resolve(file ? { kind: kindOf(file.name, file.type), mime: file.type, name: file.name, uri: URL.createObjectURL(file) } : null);
+    };
+    input.oncancel = () => resolve(null);
+    input.click();
+  });
+}
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+export type AttachSource = "library" | "camera" | "files";
 
 /** A file the seller chose: where it is, what it is called and what kind it is. */
 export type Picked = { uri: string; name: string; kind: "image" | "pdf" | "file"; mime?: string };
@@ -50,19 +67,19 @@ export function useAttach() {
           const asset = result.canceled ? undefined : result.assets[0];
           return asset ? { kind: "image", mime: asset.mimeType, name: asset.fileName ?? `photo-${stamp()}.jpg`, uri: asset.uri } : null;
         }
-        if (source === "camera" || source === "scan") {
+        if (source === "camera") {
           const allowed = await ImagePicker.requestCameraPermissionsAsync();
           if (!allowed.granted) {
             toast.show("Allow the camera in Settings to take a photo.");
             return null;
           }
-          // a scan lets the seller crop to the page before it is kept
-          const result = await ImagePicker.launchCameraAsync({ allowsEditing: source === "scan", mediaTypes: ["images"], quality: source === "scan" ? 0.9 : 0.8 });
+          const result = await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 0.8 });
           const asset = result.canceled ? undefined : result.assets[0];
-          return asset ? { kind: "image", mime: asset.mimeType, name: `${source === "scan" ? "scan" : "photo"}-${stamp()}.jpg`, uri: asset.uri } : null;
+          return asset ? { kind: "image", mime: asset.mimeType, name: `photo-${stamp()}.jpg`, uri: asset.uri } : null;
         }
         if (!DocumentPicker) {
-          toast.show("Files needs an app update. Use the photo library or the camera for now.");
+          if (Platform.OS === "web") return await chooseFileOnWeb();
+          toast.show("Files needs the file picker added to the app. Use the photo library or the camera for now.");
           return null;
         }
         const result = await DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true, type: ["application/pdf", "image/*"] });
@@ -81,21 +98,21 @@ const OPTIONS: { source: AttachSource; icon: IconName; title: string; hint: stri
   { hint: "Choose a picture you already have", icon: "image", source: "library", title: "Photo library" },
   { hint: "Take a new photo now", icon: "camera", source: "camera", title: "Take a photo" },
   { hint: "A PDF or picture from your files or cloud drives", icon: "folder", source: "files", title: "Files" },
-  { hint: "Take a photo and crop it to the page", icon: "maximize", source: "scan", title: "Scan a document" },
 ];
 
 /**
  * A sheet that asks where the file comes from. `sources` narrows it (a product photo needs no PDF), and `onPicked`
  * gets the file once the seller has chosen one.
  */
-export function AttachSheet({ onClose, onPicked, sources = ["library", "camera", "files", "scan"], title = "Add a file", visible }: { visible: boolean; onClose: () => void; onPicked: (file: Picked) => void; sources?: AttachSource[]; title?: string }) {
+export function AttachSheet({ onClose, onPicked, sources = ["library", "camera", "files"], title = "Add a file", visible }: { visible: boolean; onClose: () => void; onPicked: (file: Picked) => void; sources?: AttachSource[]; title?: string }) {
   const attach = useAttach();
   const [busy, setBusy] = useState<AttachSource | null>(null);
   const choose = async (source: AttachSource) => {
     if (busy) return;
     setBusy(source);
     onClose();
-    // the picker opens over the sheet once it has closed
+    // a phone cannot open its picker while the sheet is still closing, so wait for it to finish
+    if (Platform.OS !== "web") await wait(600);
     const file = await attach(source);
     setBusy(null);
     if (file) onPicked(file);

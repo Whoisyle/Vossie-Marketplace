@@ -812,7 +812,7 @@ describe("documents from the library, camera, files or a scan", () => {
     const state = run(signedIn(), { type: "sellerStart" }, { kind: "student", type: "sellerSetKind" });
     renderWithProviders(<SellerVerifyScreen />, state);
     fireEvent.press(screen.getByTestId("doc-id"));
-    for (const source of ["library", "camera", "scan"]) expect(screen.getByTestId(`attach-${source}`)).toBeTruthy();
+    for (const source of ["library", "camera", "files"]) expect(screen.getByTestId(`attach-${source}`)).toBeTruthy();
     const uploaded = run(state, { fileKind: "image", fileName: "id.jpg", kind: "id", type: "sellerUploadDocument", uri: "file:///id.jpg" });
     renderWithProviders(<SellerVerifyScreen />, uploaded);
     fireEvent.press(screen.getAllByTestId("doc-id")[screen.getAllByTestId("doc-id").length - 1]!);
