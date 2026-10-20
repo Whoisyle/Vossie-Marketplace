@@ -2,6 +2,7 @@ export { AnimatedBell } from "./AnimatedBell";
 export { AnimatedSwitch } from "./AnimatedSwitch";
 export { PageDots } from "./PageDots";
 export { AppHeader, HeaderIconButton } from "./AppHeader";
+export { Backdrop, Bands, ReceiptBand, Rings, Ticket } from "./Decor";
 export { Avatar } from "./Avatar";
 export { Button } from "./Button";
 export { Card, SectionHeader } from "./Card";

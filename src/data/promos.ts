@@ -17,14 +17,16 @@ export type PromoDef = {
   icon: string;
   tone: "primary" | "ink" | "teal";
   target: PromoTarget;
+  /** The listing whose photo is shown on the banner. */
+  productId: string;
 };
 
 export const promoDefs: PromoDef[] = [
-  { cta: "See the deals", icon: "coffee", id: "promo-campusbites", subtitle: "Burgers and meal deals between lectures", target: { id: "campusbites", kind: "store" }, title: "Lunch deals at CampusBites", tone: "primary" },
-  { cta: "Shop fashion", icon: "shopping-bag", id: "promo-fashion", subtitle: "Thrifted and upcycled, up to 30% off", target: { id: "fashion", kind: "category" }, title: "Fashion finds", tone: "ink" },
-  { cta: "See the deals", icon: "book-open", id: "promo-paper-trail", subtitle: "Planners, highlighters and printing for exam season", target: { id: "paper-trail", kind: "store" }, title: "Exam season stationery", tone: "teal" },
-  { cta: "Browse services", icon: "tool", id: "promo-services", subtitle: "Tutors and study help from final-year students", target: { id: "services", kind: "category" }, title: "Study smart", tone: "primary" },
-  { cta: "See the deals", icon: "coffee", id: "promo-coffee", subtitle: "Iced lattes and flat whites at Plato Coffee", target: { id: "plato-coffee", kind: "store" }, title: "The coffee run", tone: "ink" },
+  { cta: "See the deals", icon: "coffee", id: "promo-campusbites", subtitle: "Burgers and meal deals between lectures", productId: "burger-chips", target: { id: "campusbites", kind: "store" }, title: "Lunch deals at CampusBites", tone: "primary" },
+  { cta: "Shop fashion", icon: "shopping-bag", id: "promo-fashion", subtitle: "Thrifted and upcycled, up to 30% off", productId: "denim-jacket", target: { id: "fashion", kind: "category" }, title: "Fashion finds", tone: "ink" },
+  { cta: "See the deals", icon: "book-open", id: "promo-paper-trail", subtitle: "Planners, highlighters and printing for exam season", productId: "desk-planner", target: { id: "paper-trail", kind: "store" }, title: "Exam season stationery", tone: "teal" },
+  { cta: "Browse services", icon: "tool", id: "promo-services", subtitle: "Tutors and study help from final-year students", productId: "maths-tutoring", target: { id: "services", kind: "category" }, title: "Study smart", tone: "primary" },
+  { cta: "See the deals", icon: "coffee", id: "promo-coffee", subtitle: "Iced lattes and flat whites at Plato Coffee", productId: "iced-latte", target: { id: "plato-coffee", kind: "store" }, title: "The coffee run", tone: "ink" },
 ];
 
 export function getPromo(id: string): PromoDef | undefined {

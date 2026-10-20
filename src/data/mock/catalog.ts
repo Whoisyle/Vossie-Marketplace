@@ -1,6 +1,7 @@
 import type { Campus, Category, Listing, Seller } from "../types";
 
 import { moreListings, moreSellers } from "./moreCatalog";
+import { listingPhotos } from "./photos";
 
 const img = {
   calculator: require("../../../assets/demo/calculator.jpg"),
@@ -382,4 +383,4 @@ const baseListings: Listing[] = [
 ];
 
 export const sellers: Seller[] = [...baseSellers, ...moreSellers];
-export const listings: Listing[] = [...baseListings, ...moreListings];
+export const listings: Listing[] = [...baseListings, ...moreListings].map((listing) => (listingPhotos[listing.id] ? { ...listing, images: [listingPhotos[listing.id]!] } : listing));

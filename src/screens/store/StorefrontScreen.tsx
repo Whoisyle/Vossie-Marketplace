@@ -20,7 +20,7 @@ import {
 } from "@/components";
 import { VossieMap } from "@/components/map/VossieMap";
 import { shortDate, formatRand } from "@/data/format";
-import { dealFor } from "@/data/deals";
+import { dealFor, effectivePrice } from "@/data/deals";
 import { isVerifiedSeller } from "@/data/phase4";
 import { storeLocation } from "@/data/geo";
 import { getCampusName, getListings, getSeller } from "@/data/repository";
@@ -76,6 +76,7 @@ export function StorefrontScreen() {
   ];
   const active = tabs.some((item) => item.key === tab) ? tab : tabs[0]!.key;
   const dealPercent = Math.max(0, ...all.map((listing) => dealFor(listing.id)));
+  const bestDeal = [...all].sort((a, b) => dealFor(b.id) - dealFor(a.id))[0];
   // a banner only when this store really has something on promotion; tapping it opens the Specials tab
   const promo: Promo | null =
     dealPercent > 0
@@ -86,6 +87,8 @@ export function StorefrontScreen() {
           icon: "percent",
           id: `store-${seller.id}`,
           subtitle: "Discounted items from this store",
+          photo: bestDeal && typeof bestDeal.images[0] === "number" ? (bestDeal.images[0] as number) : undefined,
+          productLabel: bestDeal ? `${bestDeal.title} · ${formatRand(effectivePrice(bestDeal))}` : undefined,
           title: `${seller.name} deals`,
         }
       : null;

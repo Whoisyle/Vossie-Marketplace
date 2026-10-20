@@ -1,9 +1,13 @@
 import * as Clipboard from "expo-clipboard";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Button, Card, EmptyState, Icon, Screen, SegmentedTabs, StatusBadge, useToast } from "@/components";
+import { Image } from "expo-image";
+
+import { AppHeader, Button, Card, EmptyState, Icon, Screen, SegmentedTabs, StatusBadge, Ticket, useToast } from "@/components";
+import { vouchers as voucherRules } from "@/data/mock/account";
+import { getListing } from "@/data/repository";
 import { shortDate } from "@/data/format";
 import { voucherProblem, type UserVoucher } from "@/data/phase4";
 import { promoDefs, promoPercent } from "@/data/promos";
@@ -57,19 +61,29 @@ export function VouchersScreen() {
       />
       {tab === "offers" ? (
         <View style={styles.list}>
-          {promoDefs.map((def) => (
-            <Card key={def.id} onPress={() => router.push(open("promo", def.id))} style={styles.card} testID={`offer-${def.id}`} variant="soft">
-              <View style={styles.badge}>
-                <Icon color={color.onPrimary} name="percent" size={18} />
-              </View>
-              <View style={styles.flex}>
-                <Text style={text.cardTitle}>{def.title}</Text>
-                <Text style={text.caption}>{def.subtitle}</Text>
-                {promoPercent(def) > 0 ? <Text style={styles.code}>Up to {promoPercent(def)}% off</Text> : null}
-              </View>
-              <Icon color={color.textMuted} name="chevron-right" size={18} />
-            </Card>
-          ))}
+          {promoDefs.map((def, index) => {
+            const photo = getListing(def.productId)?.images[0];
+            return (
+              <Pressable accessibilityRole="button" key={def.id} onPress={() => router.push(open("promo", def.id))} testID={`offer-${def.id}`}>
+                <Ticket
+                  stub={
+                    typeof photo === "number" ? (
+                      <Image accessibilityLabel={getListing(def.productId)?.title} contentFit="cover" source={photo} style={styles.stubPhoto} />
+                    ) : (
+                      <Icon color={color.onPrimary} name="percent" size={26} />
+                    )
+                  }
+                  stubColours={STUB_COLOURS[index % STUB_COLOURS.length]!}
+                >
+                  <View style={styles.flex}>
+                    <Text style={text.cardTitle}>{def.title}</Text>
+                    <Text style={text.caption}>{def.subtitle}</Text>
+                    {promoPercent(def) > 0 ? <Text style={styles.code}>Up to {promoPercent(def)}% off</Text> : null}
+                  </View>
+                </Ticket>
+              </Pressable>
+            );
+          })}
           <Card onPress={() => router.push("/account/referral" as Href)} style={styles.card} testID="offer-referral" variant="soft">
             <View style={styles.badge}>
               <Icon color={color.onPrimary} name="gift" size={18} />
@@ -119,41 +133,67 @@ export function VouchersScreen() {
   );
 }
 
+/** What a voucher is worth, in the big print on the ticket stub. */
+export function voucherValue(code: string): { big: string; small: string } {
+  const rule = voucherRules[code];
+  if (rule?.percentOff) return { big: `${rule.percentOff}%`, small: "OFF" };
+  if (rule?.centsOff) return { big: `R${Math.round(rule.centsOff / 100)}`, small: "OFF" };
+  return { big: "%", small: "DEAL" };
+}
+
+/** Stub colours for the tickets: slate, ink and a warm accent, in turn. */
+const STUB_COLOURS: readonly (readonly [string, string])[] = [
+  ["#40677A", "#2F5A67"],
+  ["#2C4150", "#1E2A38"],
+  ["#D39A5C", "#B07338"],
+];
+
 function VoucherCard({ onApply, voucher }: { voucher: UserVoucher; onApply?: () => void }) {
   const toast = useToast();
   const left = daysLeft(voucher.expiresAt);
   const expired = left < 0;
+  const value = voucherValue(voucher.code);
+  const colours = STUB_COLOURS[voucher.code.length % STUB_COLOURS.length]!;
   return (
-    <Card style={[styles.card, expired && styles.expired]} testID={`voucher-${voucher.code}`} variant="soft">
-      <View style={styles.badge}>
-        <Icon color={color.onPrimary} name="tag" size={18} />
-      </View>
-      <View style={styles.flex}>
-        <Text style={text.cardTitle}>{voucher.label}</Text>
-        <Text style={styles.code}>{voucher.code}</Text>
-        <Text style={text.caption}>{voucher.detail}</Text>
-        <Text style={[text.caption, !expired && left <= 7 && styles.soon]}>
-          {expired ? `Expired ${shortDate(voucher.expiresAt)}` : left <= 7 ? `Ends in ${left} ${left === 1 ? "day" : "days"}` : `Valid until ${shortDate(voucher.expiresAt)}`}
-        </Text>
-      </View>
-      {expired ? (
-        <StatusBadge label="Expired" tone="neutral" />
-      ) : (
-        <View style={styles.buttons}>
-          <Button
-            label="Copy"
-            onPress={() => {
-              void Clipboard.setStringAsync(voucher.code);
-              toast.show(`${voucher.code} copied`);
-            }}
-            size="sm"
-            testID={`copy-${voucher.code}`}
-            variant="soft"
-          />
-          <Button label="Apply" onPress={onApply ?? (() => undefined)} size="sm" />
+    <Ticket
+      dim={expired}
+      stub={
+        <>
+          <Text style={styles.stubBig}>{value.big}</Text>
+          <Text style={styles.stubSmall}>{value.small}</Text>
+        </>
+      }
+      stubColours={colours}
+      testID={`voucher-${voucher.code}`}
+    >
+      <View style={styles.ticketRow}>
+        <View style={styles.flex}>
+          <Text style={text.cardTitle}>{voucher.label}</Text>
+          <Text style={styles.code}>{voucher.code}</Text>
+          <Text style={text.caption}>{voucher.detail}</Text>
+          <Text style={[text.caption, !expired && left <= 7 && styles.soon]}>
+            {expired ? `Expired ${shortDate(voucher.expiresAt)}` : left <= 7 ? `Ends in ${left} ${left === 1 ? "day" : "days"}` : `Valid until ${shortDate(voucher.expiresAt)}`}
+          </Text>
         </View>
-      )}
-    </Card>
+        {expired ? (
+          <StatusBadge label="Expired" tone="neutral" />
+        ) : (
+          <View style={styles.buttons}>
+            <Button
+              label="Copy"
+              onPress={() => {
+                void Clipboard.setStringAsync(voucher.code);
+                toast.show(`${voucher.code} copied`);
+              }}
+              size="sm"
+              testID={`copy-${voucher.code}`}
+              variant="soft"
+            />
+            <Button label="Apply" onPress={onApply ?? (() => undefined)} size="sm" />
+          </View>
+        )}
+      </View>
+    </Ticket>
   );
 }
 
@@ -167,4 +207,8 @@ const styles = StyleSheet.create({
   heading: { ...text.sectionTitle, marginBottom: space.xs, marginTop: space.lg },
   list: { gap: space.xs, marginTop: space.sm },
   soon: { color: color.warning, fontWeight: "700" },
+  stubBig: { color: "#FFFFFF", fontSize: 28, fontWeight: "900", letterSpacing: -0.5 },
+  stubPhoto: { borderColor: "#FFFFFF", borderRadius: 32, borderWidth: 3, height: 64, width: 64 },
+  stubSmall: { color: "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: "800", letterSpacing: 1.5 },
+  ticketRow: { alignItems: "center", flexDirection: "row", gap: space.sm },
 });

@@ -8,12 +8,23 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
+import { usePathname } from "expo-router";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { SafeAreaView, type Edge, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { color, size, space } from "@/theme/tokens";
 
+import { Backdrop, type BackdropTone, toneForPath } from "./Decor";
 import { TAB_BAR_HEIGHT, useTabChrome } from "./nav/TabChrome";
+
+/** The route the screen is on, or nothing where there is no router (tests, previews). */
+function useRoutePath(): string {
+  try {
+    return usePathname() ?? "";
+  } catch {
+    return "";
+  }
+}
 
 type ScreenProps = {
   children: ReactNode;
@@ -23,12 +34,15 @@ type ScreenProps = {
   /** Screens inside the tab navigator leave the bottom inset to the tab bar. */
   inTabs?: boolean;
   background?: string;
+  /** Soft drifting shapes behind the page. Each area of the app has its own tone; "none" turns them off. */
+  backdrop?: BackdropTone | "none";
   contentStyle?: StyleProp<ViewStyle>;
   testID?: string;
 };
 
 export function Screen({
   background = color.background,
+  backdrop,
   children,
   contentStyle,
   footer,
@@ -36,6 +50,8 @@ export function Screen({
   scroll = true,
   testID,
 }: ScreenProps) {
+  const path = useRoutePath();
+  const tone = backdrop ?? toneForPath(path);
   const edges: Edge[] = inTabs ? ["top", "left", "right"] : ["top", "left", "right", "bottom"];
   const chrome = useTabChrome();
   const insets = useSafeAreaInsets();
@@ -51,6 +67,7 @@ export function Screen({
 
   return (
     <SafeAreaView edges={edges} style={[styles.safeArea, { backgroundColor: background }]} testID={testID}>
+      {tone === "none" ? null : <Backdrop tone={tone} />}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.flex}

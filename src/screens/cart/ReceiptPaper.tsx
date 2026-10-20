@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
-import { Icon, StatusBadge, Wordmark } from "@/components";
+import { Icon, ReceiptBand, StatusBadge, Wordmark } from "@/components";
 import { deliveryLabels } from "@/data/delivery";
 import { dateAndTime, formatRand } from "@/data/format";
 import { orderPoints } from "@/data/points";
@@ -49,12 +49,14 @@ export function ReceiptPaper({
   const paidWith = method ? paymentLabels[method] : "your chosen method";
   return (
     <Animated.View entering={FadeInDown.delay(delay).duration(400)} style={styles.paper} testID="receipt-paper">
-      <View style={styles.paperHead}>
-        <Wordmark width={96} />
-        <View style={styles.right}>
-          <Text style={styles.number}>{number}</Text>
-          <Text style={text.caption}>{dateAndTime(placedAt)}</Text>
-        </View>
+      <View style={styles.bandBleed}>
+        <ReceiptBand height={64}>
+          <Wordmark tone="white" width={96} />
+          <View style={styles.right}>
+            <Text style={styles.numberOnBand}>{number}</Text>
+            <Text style={styles.dateOnBand}>{dateAndTime(placedAt)}</Text>
+          </View>
+        </ReceiptBand>
       </View>
 
       <View style={styles.paidRow}>
@@ -138,6 +140,7 @@ function Row({ bold = false, label, value }: { label: string; value: string; bol
 const styles = StyleSheet.create({
   arrival: { alignItems: "center", flexDirection: "row", gap: 6, marginTop: 2 },
   arrivalText: { color: color.textSecondary, flex: 1, fontSize: 12 },
+  bandBleed: { marginHorizontal: -space.md, marginTop: -space.md },
   bar: { backgroundColor: color.ink, height: 40 },
   barcode: { alignItems: "center", flexDirection: "row", gap: 2, height: 40, justifyContent: "center", overflow: "hidden" },
   barcodeText: { color: color.textMuted, fontSize: 11, letterSpacing: 2, textAlign: "center" },
@@ -145,7 +148,8 @@ const styles = StyleSheet.create({
   dashed: { borderColor: color.borderStrong, borderStyle: "dashed", borderTopWidth: 1.5, marginVertical: space.xs },
   flex: { flex: 1 },
   line: { alignItems: "flex-start", flexDirection: "row", gap: space.sm, justifyContent: "space-between", paddingVertical: 2 },
-  number: { color: color.heading, fontSize: 15, fontWeight: "800" },
+  dateOnBand: { color: "rgba(255,255,255,0.8)", fontSize: 12 },
+  numberOnBand: { color: "#FFFFFF", fontSize: 15, fontWeight: "800" },
   orderBlock: { gap: 4, marginTop: space.xs },
   orderHead: { alignItems: "center", flexDirection: "row", gap: space.xs },
   paidRow: { alignItems: "center", backgroundColor: color.surfaceSoft, borderCurve: "continuous", borderRadius: corner.md, flexDirection: "row", gap: space.sm, padding: space.sm },
@@ -161,7 +165,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
     paddingTop: space.md,
   },
-  paperHead: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
   points: { alignItems: "center", backgroundColor: color.mist, borderRadius: corner.md, flexDirection: "row", gap: space.xs, padding: space.sm },
   pointsText: { color: color.ink, flex: 1, fontSize: 13, fontWeight: "600" },
   right: { alignItems: "flex-end", gap: 1 },

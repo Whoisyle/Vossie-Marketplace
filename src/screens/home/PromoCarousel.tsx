@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -9,12 +10,15 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from "react-native-reanimated";
 
-import { Icon, PageDots, type IconName } from "@/components";
+import { Bands, Icon, PageDots, Rings, type IconName } from "@/components";
+import { effectivePrice } from "@/data/deals";
+import { formatRand } from "@/data/format";
 import { promoDefs, promoPercent } from "@/data/promos";
+import { getListing } from "@/data/repository";
 import { haptic } from "@/lib/haptics";
-import { spring } from "@/theme/motion";
+import { ease, spring } from "@/theme/motion";
 import { color, corner, gradient, space } from "@/theme/tokens";
 
 export type Promo = {
@@ -28,6 +32,9 @@ export type Promo = {
   badge?: string;
   /** Marks a stand-in banner that does not lead anywhere yet. */
   placeholder?: boolean;
+  /** Photo of the product the banner is about, and the line printed on its tag. */
+  photo?: number;
+  productLabel?: string;
 };
 
 const TONES = { ink: gradient.ink, primary: gradient.primary, teal: gradient.teal } as const;
@@ -35,7 +42,10 @@ const TONES = { ink: gradient.ink, primary: gradient.primary, teal: gradient.tea
 /** The campus promotion banners: each opens a store or category page with its deals first. */
 export const PROMOS: Promo[] = promoDefs.map((def) => {
   const percent = promoPercent(def);
+  const product = getListing(def.productId);
   return {
+    photo: typeof product?.images[0] === "number" ? (product.images[0] as number) : undefined,
+    productLabel: product ? `${product.title} · ${formatRand(effectivePrice(product))}` : undefined,
     badge: percent > 0 ? `Up to ${percent}% off` : undefined,
     colors: TONES[def.tone],
     cta: def.cta,
@@ -120,16 +130,31 @@ export function PromoCarousel({
   );
 }
 
+const PHOTO = 128;
+
+/** Accent colours for the bands on each tone: a lighter step of the banner plus one warm peach stripe. */
+const BAND_COLOURS = ["rgba(255,255,255,0.10)", "rgba(255,255,255,0.07)", "rgba(233,196,150,0.20)"] as const;
+
 function Banner({ active, cardWidth, onPress, promo }: { active: boolean; cardWidth: number; onPress: () => void; promo: Promo }) {
+  const reduced = useReducedMotion();
   const lift = useSharedValue(active ? 1 : 0);
+  const float = useSharedValue(0);
   useEffect(() => {
     lift.set(withSpring(active ? 1 : 0, spring.soft));
   }, [active, lift]);
+  // the product photo floats a little while its banner is in front
+  useEffect(() => {
+    if (reduced || !active) return;
+    float.set(withRepeat(withSequence(withTiming(1, { duration: 2600, easing: ease.sine }), withTiming(0, { duration: 2600, easing: ease.sine })), -1));
+    return () => float.set(0);
+  }, [active, float, reduced]);
   const style = useAnimatedStyle(() => ({ transform: [{ scale: 0.96 + lift.get() * 0.04 }], opacity: 0.8 + lift.get() * 0.2 }));
+  const photoStyle = useAnimatedStyle(() => ({ transform: [{ translateY: (float.get() - 0.5) * 8 }, { rotate: `${(float.get() - 0.5) * 3}deg` }] }));
   return (
     <Pressable accessibilityLabel={`${promo.title}. ${promo.subtitle}`} accessibilityRole="button" onPress={onPress}>
       <Animated.View style={[styles.card, { width: cardWidth }, style]}>
         <LinearGradient colors={promo.colors} end={{ x: 1, y: 1 }} start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
+        <Bands colours={BAND_COLOURS} height={188} width={cardWidth} />
         <View style={styles.bubbleBig} />
         <View style={styles.bubbleSmall} />
         <View style={styles.texts}>
@@ -149,9 +174,25 @@ function Banner({ active, cardWidth, onPress, promo }: { active: boolean; cardWi
             <Icon color={color.ink} name="arrow-right" size={14} />
           </View>
         </View>
-        <View style={styles.iconBadge}>
-          <Icon color={color.onPrimary} name={promo.icon} size={34} />
-        </View>
+        {promo.photo ? (
+          <Animated.View style={[styles.photoWrap, photoStyle]}>
+            <View style={styles.rings}>
+              <Rings size={PHOTO + 40} />
+            </View>
+            <Image accessibilityLabel={promo.productLabel} contentFit="cover" source={promo.photo} style={styles.photo} transition={150} />
+            {promo.productLabel ? (
+              <View style={styles.tag}>
+                <Text numberOfLines={1} style={styles.tagText}>
+                  {promo.productLabel}
+                </Text>
+              </View>
+            ) : null}
+          </Animated.View>
+        ) : (
+          <View style={styles.iconBadge}>
+            <Icon color={color.onPrimary} name={promo.icon} size={34} />
+          </View>
+        )}
       </Animated.View>
     </Pressable>
   );
@@ -175,8 +216,13 @@ const styles = StyleSheet.create({
   ctaText: { color: color.ink, fontSize: 13, fontWeight: "700" },
   dots: { alignItems: "center", marginTop: space.xs },
   iconBadge: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 36, height: 72, justifyContent: "center", width: 72 },
+  photo: { borderColor: "#FFFFFF", borderRadius: PHOTO / 2, borderWidth: 4, height: PHOTO, width: PHOTO },
+  photoWrap: { alignItems: "center", height: PHOTO + 40, justifyContent: "center", marginRight: -22, width: PHOTO + 40 },
+  rings: { left: 0, position: "absolute", top: 0 },
   row: { gap: space.xs, paddingHorizontal: space.lg },
+  tag: { alignSelf: "center", backgroundColor: color.mist, borderRadius: 12, bottom: 4, maxWidth: PHOTO + 30, paddingHorizontal: 10, paddingVertical: 4, position: "absolute" },
+  tagText: { color: color.ink, fontSize: 11, fontWeight: "800" },
   subtitle: { color: "rgba(255,255,255,0.88)", fontSize: 14, lineHeight: 20 },
-  texts: { flex: 1, gap: 4, paddingRight: space.sm },
+  texts: { flex: 1, gap: 4, justifyContent: "center", paddingRight: space.xs },
   title: { color: color.onPrimary, fontSize: 24, fontWeight: "800", lineHeight: 29 },
 });

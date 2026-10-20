@@ -48,9 +48,11 @@ describe("Wallet cards", () => {
     expect(screen.getByTestId("wallet-card-card-demo-visa")).toBeTruthy();
     expect(screen.getByTestId("wallet-card-apple-pay")).toBeTruthy();
     expect(screen.getByTestId("wallet-card-eft")).toBeTruthy();
-    // tapping a saved card opens it for editing
-    fireEvent.press(screen.getByTestId("wallet-card-card-demo-mc"));
-    expect(mockPush).toHaveBeenCalledWith("/account/card/card-demo-mc");
+    // tapping the card in front turns it over; the Edit button opens it for editing
+    fireEvent.press(screen.getByTestId("wallet-card-card-demo-visa"));
+    expect(mockPush).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("edit-card"));
+    expect(mockPush).toHaveBeenCalledWith("/account/card/card-demo-visa");
     // tapping another option selects it and shows its actions
     fireEvent.press(screen.getByTestId("wallet-card-eft"));
     expect(screen.getByText("Choose bank")).toBeTruthy();
