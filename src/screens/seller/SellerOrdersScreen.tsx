@@ -40,7 +40,7 @@ export function SellerOrdersScreen() {
         Orders
       </Text>
       <Chips
-        items={CHIPS.map((chip) => ({ key: chip.key, label: `${chip.label}${view.counts[chip.key] > 0 && chip.key !== "done" && chip.key !== "cancelled" ? ` ${view.counts[chip.key]}` : ""}` }))}
+        items={CHIPS.map((chip) => ({ count: chip.key === "done" || chip.key === "cancelled" ? 0 : view.counts[chip.key], key: chip.key, label: chip.label }))}
         onChange={setGroup}
         value={group}
       />

@@ -8,7 +8,8 @@ import { feesPaidCents, pendingCents } from "@/seller/selectors";
 
 import { PageTitle, StatTile } from "./parts";
 import { useSeller } from "./hooks";
-import { BarChart, Confetti, CountUpRand } from "./motion";
+import { ScrubBars } from "./charts";
+import { Confetti, CountUpRand } from "./motion";
 import { SELLER, SellerButton, SellerCard, SellerHeader, SellerHeading, SellerScreen, Text } from "./ui";
 import { TxRow } from "./SellerMoneyScreens";
 import { WithdrawSheet } from "./WithdrawSheet";
@@ -42,7 +43,7 @@ export function SellerPayoutsScreen() {
       <SellerHeading>This week</SellerHeading>
       <Animated.View entering={FadeInDown.delay(100).duration(380)}>
         <SellerCard style={styles.chart}>
-          <BarChart bars={view.bars} />
+          <ScrubBars bars={view.bars.map((bar) => ({ detail: bar.isToday ? "Today" : undefined, label: bar.label, title: `${bar.label} · ${formatRand(bar.cents)}`, value: bar.cents }))} testID="week-chart" />
           <Text style={styles.small}>
             {formatRand(view.week.thisWeekCents)} in the last 7 days
             {view.week.changePercent === null ? "" : view.week.changePercent >= 0 ? `, ${view.week.changePercent}% up on the week before` : `, ${Math.abs(view.week.changePercent)}% down on the week before`}

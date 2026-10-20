@@ -7,23 +7,39 @@ import { shiftTime } from "@/seller/schedule";
 
 import { SELLER, Text, useTone } from "./ui";
 
-/** A row of filter chips on the gradient. The chosen one turns white. */
-export function Chips<T extends string>({ items, onChange, value, prefix = "chip" }: { items: { key: T; label: string }[]; value: T; onChange: (key: T) => void; prefix?: string }) {
+/**
+ * A row of filter chips. Every chip is the same width (as wide as the longest label), and a count sits in its own reserved
+ * spot, so choosing a chip or a count changing never makes the row jump or a chip grow.
+ */
+export function Chips<T extends string>({ items, onChange, value, prefix = "chip" }: { items: { key: T; label: string; count?: number }[]; value: T; onChange: (key: T) => void; prefix?: string }) {
   const look = useTone();
+  const counted = items.some((item) => item.count !== undefined);
+  const width = Math.max(...items.map((item) => item.label.length)) * 8.4 + 34 + (counted ? 26 : 0);
   return (
     <ScrollView contentContainerStyle={styles.chips} horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
-      {items.map((chip) => (
-        <Pressable
-          accessibilityRole="tab"
-          accessibilityState={{ selected: value === chip.key }}
-          key={chip.key}
-          onPress={() => onChange(chip.key)}
-          style={[styles.chip, { backgroundColor: value === chip.key ? look.chipOn : look.chip, boxShadow: value === chip.key ? look.pressed : look.raised }]}
-          testID={`${prefix}-${chip.key}`}
-        >
-          <Text style={[styles.chipText, { color: value === chip.key ? look.chipTextOn : look.chipText }]}>{chip.label}</Text>
-        </Pressable>
-      ))}
+      {items.map((chip) => {
+        const on = value === chip.key;
+        return (
+          <Pressable
+            accessibilityLabel={chip.count ? `${chip.label}, ${chip.count}` : chip.label}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: on }}
+            key={chip.key}
+            onPress={() => onChange(chip.key)}
+            style={[styles.chip, { backgroundColor: on ? look.chipOn : look.chip, boxShadow: on ? look.pressed : look.raised, width }]}
+            testID={`${prefix}-${chip.key}`}
+          >
+            <Text numberOfLines={1} style={[styles.chipText, { color: on ? look.chipTextOn : look.chipText }]}>
+              {chip.label}
+            </Text>
+            {counted ? (
+              <View style={[styles.count, chip.count ? { backgroundColor: on ? "rgba(255,255,255,0.28)" : "rgba(56,96,111,0.16)" } : styles.countNone]}>
+                {chip.count ? <Text style={[styles.countText, { color: on ? look.chipTextOn : SELLER.solid }]}>{chip.count > 99 ? "99+" : chip.count}</Text> : null}
+              </View>
+            ) : null}
+          </Pressable>
+        );
+      })}
     </ScrollView>
   );
 }
@@ -136,7 +152,10 @@ const styles = StyleSheet.create({
   boxOn: { backgroundColor: SELLER.solid },
   check: { alignItems: "center", flexDirection: "row", gap: 10, minHeight: 36 },
   checkText: { color: SELLER.ink, flex: 1, fontSize: 15 },
-  chip: { borderRadius: 20, minHeight: 38, paddingHorizontal: 16, paddingVertical: 9 },
+  chip: { alignItems: "center", borderRadius: 20, flexDirection: "row", gap: 6, height: 40, justifyContent: "center", paddingHorizontal: 12 },
+  count: { alignItems: "center", borderRadius: 10, height: 20, justifyContent: "center", minWidth: 20, paddingHorizontal: 5 },
+  countNone: { backgroundColor: "transparent" },
+  countText: { fontSize: 11, fontWeight: "800" },
   chipScroll: { marginHorizontal: -20 },
   chipText: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" },
   chips: { gap: 10, paddingHorizontal: 20, paddingVertical: 10 },

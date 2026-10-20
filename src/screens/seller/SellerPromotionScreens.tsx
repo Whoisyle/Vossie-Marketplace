@@ -56,7 +56,7 @@ export function SellerPromotionsScreen() {
     >
       <SellerTopBar title="Promotions" />
       <Text style={styles.sub}>Offers for your buyers</Text>
-      <Chips items={TABS.map((entry) => ({ key: entry.key, label: `${entry.label}${count(entry.key) ? ` ${count(entry.key)}` : ""}` }))} onChange={setTab} value={tab} />
+      <Chips items={TABS.map((entry) => ({ count: count(entry.key), key: entry.key, label: entry.label }))} onChange={setTab} value={tab} />
       <View style={styles.tiles}>
         <SellerCard style={styles.tile}>
           <Text style={styles.hint}>Redemptions</Text>

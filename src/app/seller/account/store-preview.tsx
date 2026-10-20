@@ -1,5 +1,5 @@
-import { SellerStorePreviewScreen } from "@/screens/seller/SellerInsightScreens";
+import { SellerStorefrontPreview } from "@/screens/seller/SellerStorefrontPreview";
 
 export default function Route() {
-  return <SellerStorePreviewScreen />;
+  return <SellerStorefrontPreview />;
 }

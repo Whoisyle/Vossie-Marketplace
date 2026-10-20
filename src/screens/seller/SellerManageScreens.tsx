@@ -24,7 +24,7 @@ export function SellerCasesScreen() {
     <SellerScreen tone="white" testID="seller-cases">
       <SellerTopBar title="Returns & disputes" />
       <Text style={styles.sub}>{open} open {open === 1 ? "case" : "cases"}</Text>
-      <Chips items={[{ key: "open", label: `Open ${open}` }, { key: "resolved", label: "Resolved" }, { key: "all", label: "All" }]} onChange={setTab} value={tab} />
+      <Chips items={[{ count: open, key: "open", label: "Open" }, { key: "resolved", label: "Resolved" }, { key: "all", label: "All" }]} onChange={setTab} value={tab} />
       <View style={styles.stack}>
         {shown.length === 0 ? (
           <SellerCard testID="cases-empty">

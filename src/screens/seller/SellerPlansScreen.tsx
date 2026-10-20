@@ -2,7 +2,7 @@ import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
-import { Button, Icon, Sheet, useToast } from "@/components";
+import { BandPanel, Button, Icon, Sheet, useToast, type IconName } from "@/components";
 import { dateAndTime, formatRand } from "@/data/format";
 import { getPlan, hasPlan, type PlanId } from "@/data/subscriptions";
 import { confirmWithBiometrics } from "@/lib/biometric";
@@ -14,6 +14,13 @@ import { useSeller } from "./hooks";
 import { Pill, SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, SellerTopBar, Text } from "./ui";
 
 const ORDER: SellerPlan[] = ["free", "plus", "pro"];
+
+/** How each plan card looks: free is plain and light, Plus is the brand teal, Pro is deep ink with a gold touch. */
+const LOOK: Record<SellerPlan, { colours: readonly [string, string]; bands: readonly string[]; ink: string; soft: string; chip: string; rule: string; tick: string; tickFg: string; icon: IconName; iconBg: string; iconFg: string; tagline: string }> = {
+  free: { bands: ["rgba(56,96,111,0.05)", "rgba(56,96,111,0.04)", "rgba(56,96,111,0.06)"], chip: "rgba(56,96,111,0.12)", colours: ["#F4F8FA", "#DCE6EA"], icon: "package", iconBg: "#FFFFFF", iconFg: "#38606F", ink: "#1E2B33", rule: "rgba(56,96,111,0.2)", soft: "#5F6E76", tagline: "Start selling today", tick: "#38606F", tickFg: "#FFFFFF" },
+  plus: { bands: ["rgba(255,255,255,0.12)", "rgba(255,255,255,0.08)", "rgba(255,255,255,0.1)"], chip: "rgba(255,255,255,0.22)", colours: ["#4E7B86", "#2F5A67"], icon: "trending-up", iconBg: "rgba(255,255,255,0.2)", iconFg: "#FFFFFF", ink: "#FFFFFF", rule: "rgba(255,255,255,0.25)", soft: "rgba(255,255,255,0.82)", tagline: "Room to grow", tick: "#FFFFFF", tickFg: "#2F5A67" },
+  pro: { bands: ["rgba(255,215,106,0.12)", "rgba(255,255,255,0.05)", "rgba(255,215,106,0.1)"], chip: "rgba(255,215,106,0.22)", colours: ["#2C4150", "#141F29"], icon: "award", iconBg: "rgba(255,215,106,0.22)", iconFg: "#FFD76A", ink: "#FFFFFF", rule: "rgba(255,215,106,0.3)", soft: "rgba(255,255,255,0.75)", tagline: "The full toolkit", tick: "#FFD76A", tickFg: "#141F29" },
+};
 const PLAN_ID: Record<Exclude<SellerPlan, "free">, PlanId> = { plus: "seller-plus", pro: "seller-pro" };
 
 function perksFor(plan: SellerPlan): string[] {
@@ -74,27 +81,53 @@ export function SellerPlansScreen() {
         {ORDER.map((plan, index) => {
           const price = plan === "free" ? 0 : getPlan(PLAN_ID[plan]).priceCents;
           const here = plan === current;
+          const look = LOOK[plan];
+          const rank = ORDER.indexOf(plan) - ORDER.indexOf(current);
           return (
-            <Animated.View entering={FadeInDown.delay(index * 70).duration(320)} key={plan}>
-              <SellerCard style={[styles.plan, here && styles.planHere]} testID={`plan-${plan}`}>
-                <View style={styles.between}>
-                  <Text style={styles.big}>{PLAN_NAMES[plan]}</Text>
-                  <Text style={styles.price}>{price === 0 ? "R 0" : `${formatRand(price)} / month`}</Text>
-                </View>
-                {perksFor(plan).map((perk) => (
-                  <View key={perk} style={styles.perk}>
-                    <Icon color={SELLER.solid} name="check" size={15} />
-                    <Text style={styles.perkText}>{perk}</Text>
+            <Animated.View entering={FadeInDown.delay(index * 90).duration(380)} key={plan}>
+              <BandPanel bands={look.bands} colours={look.colours} ring={plan !== "free"} style={[styles.plan, here && styles.planHere]}>
+                <View style={styles.planTop} testID={`plan-${plan}`}>
+                  <View style={[styles.planIcon, { backgroundColor: look.iconBg }]}>
+                    <Icon color={look.iconFg} name={look.icon} size={22} />
                   </View>
+                  <View style={styles.flex}>
+                    <Text style={[styles.planName, { color: look.ink }]}>{PLAN_NAMES[plan]}</Text>
+                    <Text style={[styles.planTag, { color: look.soft }]}>{look.tagline}</Text>
+                  </View>
+                  {plan === "plus" && !here ? (
+                    <View style={styles.popular}>
+                      <Text style={styles.popularText}>Most popular</Text>
+                    </View>
+                  ) : null}
+                  {here ? (
+                    <View style={styles.hereBadge}>
+                      <Icon color="#1E7A4A" name="check-circle" size={13} />
+                      <Text style={styles.hereText}>Your plan</Text>
+                    </View>
+                  ) : null}
+                </View>
+                <View style={styles.priceRow}>
+                  <Text style={[styles.priceBig, { color: look.ink }]}>{price === 0 ? "R 0" : formatRand(price)}</Text>
+                  <Text style={[styles.priceUnit, { color: look.soft }]}>{price === 0 ? "forever" : "a month"}</Text>
+                  <View style={[styles.feeChip, { backgroundColor: look.chip }]}>
+                    <Text style={[styles.feeText, { color: look.ink }]}>{FEE_PERCENT[plan]}% fee</Text>
+                  </View>
+                </View>
+                <View style={[styles.rule, { backgroundColor: look.rule }]} />
+                {perksFor(plan).map((perk, perkIndex) => (
+                  <Animated.View entering={FadeInDown.delay(index * 90 + 160 + perkIndex * 50).duration(300)} key={perk} style={styles.perk}>
+                    <View style={[styles.tick, { backgroundColor: look.tick }]}>
+                      <Icon color={look.tickFg} name="check" size={11} />
+                    </View>
+                    <Text style={[styles.perkText, { color: look.ink }]}>{perk}</Text>
+                  </Animated.View>
                 ))}
-                {here ? (
-                  <Pill label="Your plan" tone="success" />
-                ) : plan === "free" ? (
-                  <SellerButton label="Switch to Free" onPress={() => setLeaving(true)} size="sm" testID="choose-free" variant="outline" />
+                {here ? null : plan === "free" ? (
+                  <SellerButton label="Switch to Free" onPress={() => setLeaving(true)} size="sm" style={styles.planButton} testID="choose-free" variant="light" />
                 ) : (
-                  <SellerButton label={ORDER.indexOf(plan) > ORDER.indexOf(current) ? `Choose ${PLAN_NAMES[plan]}` : `Switch to ${PLAN_NAMES[plan]}`} onPress={() => setChoosing(plan)} size="sm" testID={`choose-${plan}`} variant="solid" />
+                  <SellerButton label={rank > 0 ? `Choose ${PLAN_NAMES[plan]}` : `Switch to ${PLAN_NAMES[plan]}`} onPress={() => setChoosing(plan)} size="sm" style={styles.planButton} testID={`choose-${plan}`} variant="light" />
                 )}
-              </SellerCard>
+              </BandPanel>
             </Animated.View>
           );
         })}
@@ -157,11 +190,26 @@ const styles = StyleSheet.create({
   hint: { color: SELLER.inkSoft, fontSize: 13 },
   name: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },
   note: { color: SELLER.inkSoft, fontSize: 12, marginTop: 14, textAlign: "center" },
-  perk: { alignItems: "center", flexDirection: "row", gap: 8 },
-  perkText: { color: SELLER.ink, flex: 1, fontSize: 14 },
-  plan: { gap: 10 },
-  planHere: { borderColor: SELLER.solid, borderWidth: 1.5 },
-  price: { color: SELLER.solid, fontSize: 15, fontWeight: "800" },
+  perk: { alignItems: "center", flexDirection: "row", gap: 10 },
+  perkText: { flex: 1, fontSize: 14 },
+  feeChip: { borderRadius: 12, marginLeft: "auto", paddingHorizontal: 10, paddingVertical: 4 },
+  feeText: { fontSize: 12, fontWeight: "800" },
+  hereBadge: { alignItems: "center", backgroundColor: "#DDF2E5", borderRadius: 12, flexDirection: "row", gap: 4, paddingHorizontal: 8, paddingVertical: 4 },
+  hereText: { color: "#1E7A4A", fontSize: 11, fontWeight: "800" },
+  plan: { borderRadius: 24, gap: 10, padding: 18 },
+  planButton: { alignSelf: "flex-start", marginTop: 6 },
+  planHere: { borderColor: "#FFFFFF", borderWidth: 2 },
+  planIcon: { alignItems: "center", borderRadius: 14, height: 44, justifyContent: "center", width: 44 },
+  planName: { fontSize: 20, fontWeight: "800" },
+  planTag: { fontSize: 13 },
+  planTop: { alignItems: "center", flexDirection: "row", gap: 12 },
+  popular: { backgroundColor: "#FFD76A", borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  popularText: { color: "#5C3D00", fontSize: 11, fontWeight: "800" },
+  priceBig: { fontSize: 32, fontWeight: "800", letterSpacing: -0.5 },
+  priceRow: { alignItems: "baseline", flexDirection: "row", gap: 6 },
+  priceUnit: { fontSize: 14 },
+  rule: { height: 1 },
+  tick: { alignItems: "center", borderRadius: 9, height: 18, justifyContent: "center", width: 18 },
   stack: { gap: 12, marginTop: 14 },
   warn: { color: "#B4544A" },
 });

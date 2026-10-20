@@ -2,6 +2,7 @@ import { type Href, Redirect } from "expo-router";
 import { Tabs } from "expo-router/tabs";
 
 import { OfflineBanner, TabBar } from "@/components";
+import { TabChromeProvider } from "@/components/nav/TabChrome";
 import type { IconName } from "@/components";
 import { orderCounts } from "@/seller/selectors";
 import { useDemoStore } from "@/state/DemoStore";
@@ -24,7 +25,7 @@ export default function SellerLayout() {
   const badges = { orders: state.seller.status === "approved" ? counts.new : 0 };
 
   return (
-    <>
+    <TabChromeProvider>
       <Tabs backBehavior="history" screenOptions={{ headerShown: false }} tabBar={(props) => <TabBar {...props} badges={badges} fixed neo tabs={SELLER_TABS} />}>
         <Tabs.Screen name="home" options={{ title: "Home" }} />
         <Tabs.Screen name="products" options={{ title: "Products" }} />
@@ -33,6 +34,6 @@ export default function SellerLayout() {
         <Tabs.Screen name="account" options={{ title: "Account" }} />
       </Tabs>
       <OfflineBanner />
-    </>
+    </TabChromeProvider>
   );
 }

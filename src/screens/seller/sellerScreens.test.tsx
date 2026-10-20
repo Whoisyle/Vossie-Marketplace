@@ -7,7 +7,8 @@ import { AccountScreen } from "@/screens/account/AccountScreen";
 
 import { SellerAccountScreen } from "./SellerAccountScreen";
 import { SellerInventoryScreen } from "./SellerInventoryScreen";
-import { SellerAnalyticsScreen, SellerReviewsScreen, SellerStorePreviewScreen } from "./SellerInsightScreens";
+import { SellerAnalyticsScreen, SellerReviewsScreen } from "./SellerInsightScreens";
+import { SellerStorefrontPreview } from "./SellerStorefrontPreview";
 import { SellerCasesScreen, SellerTeamScreen } from "./SellerManageScreens";
 import { SellerPromotionFormScreen, SellerPromotionsScreen } from "./SellerPromotionScreens";
 import { SellerHandoverScreen, SellerPrepareScreen } from "./SellerPrepareScreens";
@@ -422,7 +423,7 @@ describe("preparing a delivery and handing it to the courier", () => {
 
 describe("store, reviews, analytics, promotions, cases and team", () => {
   it("shows how buyers see the store", () => {
-    renderWithProviders(<SellerStorePreviewScreen />, seller());
+    renderWithProviders(<SellerStorefrontPreview />, seller());
     expect(screen.getByText("How buyers see you")).toBeTruthy();
     expect(screen.getByTestId("preview-sl-calculus")).toBeTruthy();
     fireEvent.press(screen.getByTestId("edit-store"));
@@ -643,7 +644,7 @@ describe("reels, analytics tabs, plans and the growth hub", () => {
   it("locks the product and reel analytics until the plan allows them", () => {
     renderWithProviders(<SellerAnalyticsScreen />, seller());
     fireEvent.press(screen.getByTestId("tab-products"));
-    expect(screen.getByText(/Analytics by product starts with Seller Plus/)).toBeTruthy();
+    expect(screen.getByText(/Product and customer analytics start with Seller Plus/)).toBeTruthy();
     expect(screen.queryByTestId("analytics-products")).toBeNull();
   });
 
@@ -801,7 +802,7 @@ describe("sharing the store", () => {
   });
 
   it("opens from the store preview", () => {
-    renderWithProviders(<SellerStorePreviewScreen />, seller());
+    renderWithProviders(<SellerStorefrontPreview />, seller());
     fireEvent.press(screen.getByTestId("share-store"));
     expect(screen.getByTestId("store-qr")).toBeTruthy();
   });
@@ -893,5 +894,33 @@ describe("maps on orders and handover", () => {
     const ready = run(seller(), { id: "so-2038", to: "ready", type: "sellerAdvanceOrder" }, { id: "so-2038", type: "sellerAssignCourier" });
     renderWithProviders(<SellerHandoverScreen />, ready);
     expect(screen.getByTestId("handover-map")).toBeTruthy();
+  });
+});
+
+describe("interactive charts and the fuller analytics", () => {
+  it("shows a value over a bar when it is touched, and finds the heat grid and donut readable", () => {
+    renderWithProviders(<SellerAnalyticsScreen />, seller());
+    expect(screen.getByTestId("scrub-line")).toBeTruthy();
+    expect(screen.getByTestId("heat-grid")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("cell-4-1"));
+    expect(screen.getByTestId("heat-note").props.children).toMatch(/Fri afternoon: \d+ sales?/);
+    fireEvent.press(screen.getByTestId("slice-delivery"));
+    expect(screen.getByTestId("donut")).toBeTruthy();
+  });
+
+  it("opens the customers tab on a paid plan and the reel funnel on Pro", () => {
+    renderWithProviders(<SellerAnalyticsScreen />, run(seller(), { planId: "seller-pro", type: "subscribe" }));
+    fireEvent.press(screen.getByTestId("tab-customers"));
+    expect(screen.getByTestId("analytics-customers")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("tab-reels"));
+    expect(screen.getByTestId("funnel")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("funnel-taps"));
+    expect(screen.getByText(/of the step before/)).toBeTruthy();
+  });
+
+  it("keeps every chip the same width whatever the counts", () => {
+    renderWithProviders(<SellerPromotionsScreen />, seller());
+    const widths = ["active", "scheduled", "paused", "ended"].map((key) => (screen.getByTestId(`chip-${key}`).props.style as { width: number }[]).flat().find((item) => item && "width" in item)?.width);
+    expect(new Set(widths).size).toBe(1);
   });
 });

@@ -1,6 +1,6 @@
 import { createInitialState, demoReducer, type DemoAction, type DemoState } from "@/state/demoReducer";
 
-import { activeListings, analytics, bestReel, engagementPercent, liveReelCount, productCount, rankReels, attentionItems, feesPaidCents, isLowStock, pendingCents, orderCounts, ordersInGroup, weekBars, weekTotals } from "./selectors";
+import { activeListings, analytics, bestReel, insights, revenueSeries, engagementPercent, liveReelCount, productCount, rankReels, attentionItems, feesPaidCents, isLowStock, pendingCents, orderCounts, ordersInGroup, weekBars, weekTotals } from "./selectors";
 import { filterLedger, receiptText, referenceFor, statements, statementText } from "./receipts";
 import { applyPreset, applyTimetable, pickupSlots, storeStatus, summaryRange } from "./schedule";
 import { distanceKm } from "@/data/geo";
@@ -463,5 +463,29 @@ describe("distance and time on the order map", () => {
     const moved = offsetPoint(from, 800);
     expect(distanceKm(from, moved)).toBeGreaterThan(0.4);
     expect(distanceKm(from, moved)).toBeLessThan(1.2);
+  });
+});
+
+describe("analytics series and insights", () => {
+  it("builds a line for each day and the stretch before it, and groups 90 days", () => {
+    const seller = createSellerState(NOW);
+    const week = revenueSeries(seller.ledger, 7, NOW);
+    expect(week.points).toHaveLength(7);
+    expect(week.points.reduce((sum, point) => sum + point.cents, 0)).toBe(124_500);
+    expect(week.previous.reduce((sum, point) => sum + point.cents, 0)).toBe(111_100);
+    expect(revenueSeries(seller.ledger, 90, NOW).points).toHaveLength(30);
+  });
+
+  it("splits buyers, deliveries and categories, and finds the busy times", () => {
+    const seller = createSellerState(NOW);
+    const data = insights(seller, 30, NOW);
+    expect(data.delivery + data.collection).toBe(data.orders);
+    expect(data.returningBuyers).toBeGreaterThanOrEqual(1);
+    expect(data.newBuyers + data.returningBuyers).toBeGreaterThan(0);
+    expect(data.categories.length).toBeGreaterThan(0);
+    expect(data.heat).toHaveLength(7);
+    expect(data.heat.flat().reduce((a, b) => a + b, 0)).toBe(seller.ledger.filter((entry) => entry.kind === "sale").length);
+    expect(data.feesCents).toBeGreaterThan(0);
+    expect(data.netCents).toBe(data.revenueCents - data.refundCents);
   });
 });

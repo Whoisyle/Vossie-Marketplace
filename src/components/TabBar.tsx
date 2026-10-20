@@ -4,6 +4,7 @@ import type { BottomTabBarProps } from "expo-router/tabs";
 import { useEffect, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
+  interpolateColor,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -44,9 +45,18 @@ export type TabConfig = { name: string; label: string; icon: IconName };
  * The bottom bar. By default it shows the buyer's six tabs; pass `tabs` for another set (seller mode) and `badges` for
  * counts on them. Without `badges` the Cart tab shows how many items are in the cart.
  */
-export function TabBar({ badges, fixed = false, insets, navigation, neo = false, state, tabs }: BottomTabBarProps & { tabs?: readonly TabConfig[]; badges?: Record<string, number>; /** Never slides away while scrolling. */ fixed?: boolean; /** The soft raised look used in seller mode. */ neo?: boolean }) {
+export function TabBar({ badges, fixed = false, insets, navigation, neo = false, state, tabs }: BottomTabBarProps & { tabs?: readonly TabConfig[]; badges?: Record<string, number>; /** Icons and labels keep one size and never hop; the bar still slides away while scrolling down. */ fixed?: boolean; /** The soft raised look used in seller mode. */ neo?: boolean }) {
   const config = tabs ?? TABS;
-  const dark = useBarTone() === "dark" && neo;
+  const wantDark = useBarTone() === "dark" && neo;
+  // the bar slides from one colour to the other, and the icons and shadow follow half way through so nothing is ever unreadable
+  const fade = useSharedValue(wantDark ? 1 : 0);
+  const [dark, setDark] = useState(wantDark);
+  useEffect(() => {
+    fade.set(withTiming(wantDark ? 1 : 0, { duration: 320 }));
+    const timer = setTimeout(() => setDark(wantDark), 150);
+    return () => clearTimeout(timer);
+  }, [fade, wantDark]);
+  const neoFill = useAnimatedStyle(() => ({ backgroundColor: interpolateColor(fade.get(), [0, 1], ["#E9EFF3", "#38606F"]) }));
   const { itemCount } = useCartTotals();
   const chrome = useTabChrome();
   const reduced = useReducedMotion();
@@ -69,7 +79,7 @@ export function TabBar({ badges, fixed = false, insets, navigation, neo = false,
   const pillStyle = useAnimatedStyle(() => ({ transform: [{ translateX: pillX.get() }] }));
   const bottom = Math.max(insets.bottom, space.sm);
   const slideStyle = useAnimatedStyle(() => {
-    const away = chrome && !fixed ? chrome.hidden.get() : 0;
+    const away = chrome ? chrome.hidden.get() : 0;
     return {
       opacity: 1 - away * 0.95,
       transform: [{ translateY: away * (TAB_BAR_HEIGHT + bottom + 20) }],
@@ -87,7 +97,7 @@ export function TabBar({ badges, fixed = false, insets, navigation, neo = false,
         style={[styles.bar, neo && styles.neoShadow, dark && styles.neoShadowDark]}
       >
         {neo ? (
-          <View style={[StyleSheet.absoluteFill, styles.neoBar, dark && styles.neoBarDark]} />
+          <Animated.View style={[StyleSheet.absoluteFill, neoFill]} />
         ) : (
           <>
             {Platform.OS === "android" ? (

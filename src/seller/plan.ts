@@ -9,10 +9,10 @@ export const FEE_PERCENT: Record<SellerPlan, number> = { free: 5, plus: 3, pro: 
 export const PLAN_NAMES: Record<SellerPlan, string> = { free: "Free", plus: "Seller Plus", pro: "Seller Pro" };
 
 /** What each plan allows. `Infinity` means no limit. */
-export const LIMITS: Record<SellerPlan, { products: number; liveReels: number; analytics: ("sales" | "products" | "reels")[] }> = {
+export const LIMITS: Record<SellerPlan, { products: number; liveReels: number; analytics: ("sales" | "products" | "customers" | "reels")[] }> = {
   free: { analytics: ["sales"], liveReels: 0, products: 10 },
-  plus: { analytics: ["sales", "products"], liveReels: 5, products: Infinity },
-  pro: { analytics: ["sales", "products", "reels"], liveReels: Infinity, products: Infinity },
+  plus: { analytics: ["sales", "products", "customers"], liveReels: 5, products: Infinity },
+  pro: { analytics: ["sales", "products", "customers", "reels"], liveReels: Infinity, products: Infinity },
 };
 
 /** The plan a seller is on, from their subscriptions. The better plan wins when they hold both. */
@@ -26,5 +26,5 @@ export function sellerPlanOf(subscriptions: Subscription[], now: Date = new Date
 export function upgradeReason(kind: "products" | "reels" | "analytics"): string {
   if (kind === "products") return "The Free plan holds 10 products. Seller Plus has no limit.";
   if (kind === "reels") return "Reels start with Seller Plus (up to 5 live) and are unlimited on Seller Pro.";
-  return "Analytics by product starts with Seller Plus. Reel analytics are on Seller Pro.";
+  return "Product and customer analytics start with Seller Plus. Reel analytics are on Seller Pro.";
 }

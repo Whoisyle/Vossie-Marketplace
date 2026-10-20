@@ -72,7 +72,7 @@ export function SellerProductsScreen() {
         </View>
         <SellerButton icon="plus" label="Add product" onPress={() => (productCount(view.seller.listings) >= LIMITS[view.plan].products ? setUpgrade(true) : router.push("/seller/products/new" as Href))} size="sm" testID="add-listing" variant="light" />
       </View>
-      <Chips items={[{ key: "products", label: "Products" }, { key: "reels", label: `Reels ${view.seller.reels.length}` }]} onChange={setTab} prefix="view" value={tab} />
+      <Chips items={[{ count: view.seller.listings.length, key: "products", label: "Products" }, { count: view.seller.reels.length, key: "reels", label: "Reels" }]} onChange={setTab} prefix="view" value={tab} />
       {tab === "reels" ? (
         <ReelsPanel />
       ) : (

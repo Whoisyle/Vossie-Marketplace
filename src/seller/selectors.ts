@@ -162,3 +162,90 @@ export function liveReelCount(reels: SellerReel[]): number {
 export function productCount(listings: SellerListing[]): number {
   return listings.filter((item) => item.status !== "archived").length;
 }
+
+export type SeriesPoint = { label: string; startsAt: number; cents: number };
+
+const SHORT_MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** Sales for each day (or each few days over 90 days, so the line stays readable), oldest first, with the same stretch the period before. */
+export function revenueSeries(ledger: LedgerEntry[], days: 7 | 30 | 90, now: number = Date.now()): { points: SeriesPoint[]; previous: SeriesPoint[] } {
+  const today = startOfDay(now);
+  const step = days === 90 ? 3 : 1;
+  const count = days / step;
+  const build = (endDay: number): SeriesPoint[] =>
+    Array.from({ length: count }, (_, i) => {
+      const from = endDay - (days - 1) * DAY + i * step * DAY;
+      const date = new Date(from);
+      return { cents: salesBetween(ledger, from, from + step * DAY), label: `${date.getDate()} ${SHORT_MONTH[date.getMonth()]}`, startsAt: from };
+    });
+  return { points: build(today), previous: build(today - days * DAY) };
+}
+
+export type Insights = {
+  revenueCents: number;
+  netCents: number;
+  feesCents: number;
+  refundCents: number;
+  orders: number;
+  averageOrderCents: number;
+  newBuyers: number;
+  returningBuyers: number;
+  repeatPercent: number;
+  delivery: number;
+  collection: number;
+  cancelledPercent: number;
+  categories: { key: string; label: string; cents: number }[];
+  /** Sales by weekday (Monday first) and time of day (morning, afternoon, evening). */
+  heat: number[][];
+  topBuyers: { name: string; orders: number; cents: number }[];
+};
+
+/** Everything the Analytics tabs show beyond the revenue line, worked out from the seller's own orders and ledger. */
+export function insights(state: Pick<SellerState, "ledger" | "orders" | "listings">, days: 7 | 30 | 90, now: number = Date.now()): Insights {
+  const from = startOfDay(now) - (days - 1) * DAY;
+  const inRange = state.orders.filter((item) => new Date(item.placedAt).getTime() >= from);
+  const sold = inRange.filter((item) => item.status !== "declined" && item.status !== "cancelled");
+  const sales = state.ledger.filter((entry) => entry.kind === "sale" && new Date(entry.createdAt).getTime() >= from);
+  const revenueCents = sales.reduce((sum, entry) => sum + entry.amountCents, 0);
+  const feesCents = sales.reduce((sum, entry) => sum + (entry.feeCents ?? 0), 0);
+  const refundCents = state.ledger.filter((entry) => entry.kind === "refund" && new Date(entry.createdAt).getTime() >= from).reduce((sum, entry) => sum - entry.amountCents, 0);
+  const everyOrder = new Map<string, number>();
+  for (const item of state.orders) if (item.status !== "declined" && item.status !== "cancelled") everyOrder.set(item.buyerName, (everyOrder.get(item.buyerName) ?? 0) + 1);
+  const buyers = new Map<string, { orders: number; cents: number }>();
+  for (const item of sold) {
+    const current = buyers.get(item.buyerName) ?? { cents: 0, orders: 0 };
+    buyers.set(item.buyerName, { cents: current.cents + item.subtotalCents, orders: current.orders + 1 });
+  }
+  const returning = [...buyers.keys()].filter((name) => (everyOrder.get(name) ?? 0) > 1).length;
+  const categories = new Map<string, number>();
+  for (const item of sold) {
+    for (const line of item.lines) {
+      const category = state.listings.find((listing) => listing.title === line.title)?.category ?? "other";
+      categories.set(category, (categories.get(category) ?? 0) + line.unitPriceCents * line.quantity);
+    }
+  }
+  const heat = Array.from({ length: 7 }, () => [0, 0, 0]);
+  for (const entry of sales) {
+    const at = new Date(entry.createdAt);
+    const row = (at.getDay() + 6) % 7;
+    const hour = at.getHours();
+    heat[row]![hour < 12 ? 0 : hour < 17 ? 1 : 2]! += 1;
+  }
+  return {
+    averageOrderCents: sold.length > 0 ? Math.round(sold.reduce((sum, item) => sum + item.subtotalCents, 0) / sold.length) : 0,
+    cancelledPercent: inRange.length > 0 ? Math.round(((inRange.length - sold.length) / inRange.length) * 100) : 0,
+    categories: [...categories.entries()].map(([key, cents]) => ({ cents, key, label: key[0]!.toUpperCase() + key.slice(1) })).sort((a, b) => b.cents - a.cents),
+    collection: sold.filter((item) => item.fulfilment === "collection").length,
+    delivery: sold.filter((item) => item.fulfilment === "delivery").length,
+    feesCents,
+    heat,
+    netCents: revenueCents - refundCents,
+    newBuyers: buyers.size - returning,
+    orders: sold.length,
+    refundCents,
+    repeatPercent: buyers.size > 0 ? Math.round((returning / buyers.size) * 100) : 0,
+    returningBuyers: returning,
+    revenueCents,
+    topBuyers: [...buyers.entries()].map(([name, value]) => ({ name, ...value })).sort((a, b) => b.cents - a.cents).slice(0, 3),
+  };
+}
