@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -13,6 +14,7 @@ import { space, text } from "@/theme/tokens";
 
 import { useSeller } from "./hooks";
 import { Chips, Stars, StatTile } from "./parts";
+import { PlaceCard } from "./SellerPlaceScreen";
 import { ShareStoreSheet } from "./ShareStore";
 import { UpgradeSheet } from "./SellerReelsScreens";
 import { Pill, SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, SellerTopBar, Text } from "./ui";
@@ -43,8 +45,8 @@ export function SellerStorePreviewScreen() {
     >
       <SellerTopBar title="Store preview" />
       <Text style={styles.sub}>How buyers see you</Text>
-      <View style={styles.banner}>
-        <Icon color="#FFFFFF" name="image" size={30} />
+      <View style={styles.banner} testID="preview-banner">
+        {profile.bannerUri ? <Image accessibilityLabel="Store banner" contentFit="cover" source={{ uri: profile.bannerUri }} style={StyleSheet.absoluteFill} /> : <Icon color="#FFFFFF" name="image" size={30} />}
       </View>
       <SellerCard style={styles.head}>
         <View style={styles.logo}>
@@ -78,6 +80,7 @@ export function SellerStorePreviewScreen() {
           </View>
         ))}
       </View>
+      <PlaceCard place={profile.place} />
       <ShareStoreSheet onClose={() => setSharing(false)} place={profile.location || undefined} storeId={profile.storeId || "campusbites"} storeName={view.storeName} visible={sharing} />
     </SellerScreen>
   );

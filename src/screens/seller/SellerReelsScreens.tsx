@@ -50,7 +50,7 @@ function Thumb({ listing }: { listing?: SellerListing }) {
 const STATUS = { draft: { label: "Draft", tone: "neutral" }, hidden: { label: "Hidden", tone: "warn" }, published: { label: "Live", tone: "success" } } as const;
 
 /** The seller's reels inside Products: each with how it is doing, the best performer marked, and a way to hide, edit or delete it. */
-export function ReelsPanel() {
+export function ReelsPanel({ onPreview }: { onPreview?: (id: string) => void } = {}) {
   const router = useRouter();
   const toast = useToast();
   const view = useSeller();
@@ -106,6 +106,7 @@ export function ReelsPanel() {
                     <Stat label="Orders" value={reel.orders} />
                   </View>
                   <View style={styles.actions}>
+                    <SellerButton icon="play" label="Preview" onPress={() => (onPreview ?? ((id: string) => router.push(`/seller/account/reel-preview/${id}` as Href)))(reel.id)} size="sm" testID={`preview-${reel.id}`} variant="light" />
                     {reel.status === "draft" || reel.status === "hidden" ? (
                       <SellerButton
                         label="Publish"

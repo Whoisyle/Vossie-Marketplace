@@ -13,6 +13,9 @@ import { SellerPromotionFormScreen, SellerPromotionsScreen } from "./SellerPromo
 import { SellerHandoverScreen, SellerPrepareScreen } from "./SellerPrepareScreens";
 import { SellerReceiptScreen, SellerStatementsScreen, SellerTransactionsScreen } from "./SellerMoneyScreens";
 import { SellerPlaceScreen } from "./SellerPlaceScreen";
+import { SellerReelPreviewScreen, SellerReelsPageScreen } from "./SellerReelPreview";
+import { SellerWalletScreen } from "./SellerWalletScreen";
+import { SellerListingFormScreen } from "./SellerListingFormScreen";
 import { SellerPlansScreen } from "./SellerPlansScreen";
 import { SellerSupportFormScreen, SellerSupportScreen, SellerTicketScreen } from "./SellerSupportScreens";
 import { ShareStoreSheet, storeLink, storeSlug } from "./ShareStore";
@@ -815,5 +818,80 @@ describe("documents from the library, camera, files or a scan", () => {
     fireEvent.press(screen.getAllByTestId("doc-id")[screen.getAllByTestId("doc-id").length - 1]!);
     expect(screen.getByTestId("doc-preview")).toBeTruthy();
     fireEvent.press(screen.getByTestId("doc-remove"));
+  });
+});
+
+describe("reels page and preview", () => {
+  it("lists the reels on Account with a preview for each", () => {
+    renderWithProviders(<SellerReelsPageScreen />, seller());
+    expect(screen.getByTestId("seller-reels-page")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("preview-rl-ti30"));
+    expect(mockPush).toHaveBeenCalledWith("/seller/account/reel-preview/rl-ti30");
+  });
+
+  it("shows a reel the way a buyer sees it, and pauses on a tap", () => {
+    mockParams = { id: "rl-ti30" };
+    renderWithProviders(<SellerReelPreviewScreen />, seller());
+    expect(screen.getByTestId("preview-caption")).toBeTruthy();
+    expect(screen.getByText("TI-30XS unboxing, student price")).toBeTruthy();
+    expect(screen.getByTestId("preview-product")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("reel-surface"));
+    expect(screen.getByLabelText("Play")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("close-preview"));
+  });
+});
+
+describe("seller wallet and the student card on Account", () => {
+  it("shows the balance card that flips, the payout cards and the recent money", () => {
+    renderWithProviders(<SellerWalletScreen />, seller());
+    expect(screen.getByTestId("seller-balance-card")).toBeTruthy();
+    expect(screen.getByTestId("wallet-pending")).toBeTruthy();
+    expect(screen.getByTestId("seller-wallet-actions")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("wallet-payout"));
+    expect(screen.getByText("Withdraw to bank")).toBeTruthy();
+  });
+
+  it("shows the flipping student card and the wallet, reels and support rows on Account", () => {
+    renderWithProviders(<SellerAccountScreen />, seller());
+    expect(screen.getByTestId("seller-student-card")).toBeTruthy();
+    for (const [row, path] of [["row-wallet", "/seller/account/wallet"], ["row-reels", "/seller/account/reels"], ["row-support", "/seller/account/support"], ["row-plans", "/seller/account/plans"]] as const) {
+      fireEvent.press(screen.getByTestId(row));
+      expect(mockPush).toHaveBeenCalledWith(path);
+    }
+  });
+});
+
+describe("product photos", () => {
+  it("adds photos from the library or camera, the first being the cover, and takes one away", () => {
+    mockParams = { id: "sl-ti30" };
+    renderWithProviders(<SellerListingFormScreen />, run(seller(), { listing: { ...seller().seller.listings.find((item) => item.id === "sl-ti30")!, photos: ["file:///a.jpg", "file:///b.jpg"] }, type: "sellerSaveListing" }));
+    expect(screen.getByText("Cover")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("photo-1"));
+    fireEvent.press(screen.getByTestId("remove-photo-1"));
+    fireEvent.press(screen.getByTestId("add-photo"));
+    expect(screen.getByTestId("attach-library")).toBeTruthy();
+    expect(screen.getByTestId("attach-camera")).toBeTruthy();
+    expect(screen.queryByTestId("attach-scan")).toBeNull();
+  });
+});
+
+describe("maps on orders and handover", () => {
+  it("shows the pickup place and the drop-off on a delivery order, and the pickup alone on a collection", () => {
+    const original = global.fetch;
+    global.fetch = jest.fn().mockResolvedValue({ json: async () => [], ok: true }) as never;
+    mockParams = { id: "so-2041" };
+    renderWithProviders(<SellerOrderDetailScreen />, seller());
+    expect(screen.getByTestId("order-map")).toBeTruthy();
+    mockParams = { id: "so-2039" };
+    renderWithProviders(<SellerOrderDetailScreen />, seller());
+    expect(screen.getByText("Collect here")).toBeTruthy();
+    global.fetch = original;
+  });
+
+  it("shows the pickup place and the courier on the handover page", () => {
+    mockParams = { id: "so-2038" };
+    const ready = run(seller(), { id: "so-2038", to: "ready", type: "sellerAdvanceOrder" }, { id: "so-2038", type: "sellerAssignCourier" });
+    renderWithProviders(<SellerHandoverScreen />, ready);
+    expect(screen.getByTestId("handover-map")).toBeTruthy();
   });
 });

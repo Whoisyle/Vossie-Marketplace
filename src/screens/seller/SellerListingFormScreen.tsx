@@ -11,7 +11,8 @@ import { productCount } from "@/seller/selectors";
 import { sellerId } from "@/seller/state";
 import type { SellerListing } from "@/seller/types";
 
-import { SellerField, usePickImage } from "./fields";
+import { AttachSheet } from "./attach";
+import { SellerField } from "./fields";
 import { useSeller } from "./hooks";
 import { UpgradeSheet } from "./SellerReelsScreens";
 import { SELLER, SellerButton, SellerScreen, SellerTopBar, Text } from "./ui";
@@ -39,7 +40,7 @@ export function SellerListingFormScreen() {
   const [unlimited, setUnlimited] = useState(existing?.unlimited ?? false);
   const [variants, setVariants] = useState((existing?.variants ?? []).join(", "));
   const [photos, setPhotos] = useState<string[]>(existing?.photos ?? []);
-  const pick = usePickImage();
+  const [attaching, setAttaching] = useState(false);
   const [upgrade, setUpgrade] = useState(false);
   const [errors, setErrors] = useState<{ title?: string; price?: string; stock?: string }>({});
 
@@ -88,26 +89,29 @@ export function SellerListingFormScreen() {
       <View style={styles.fields}>
         <View style={styles.block}>
           <Text style={styles.label}>Photos · up to 6</Text>
-          <View style={styles.row}>
-            {photos.map((uri) => (
-              <Image contentFit="cover" key={uri} source={{ uri }} style={styles.photo} />
+          <Text style={styles.hint}>The first photo is the cover. Tap another to make it the cover.</Text>
+          <View style={styles.row} testID="product-photos">
+            {photos.map((uri, index) => (
+              <Pressable accessibilityLabel={index === 0 ? "Cover photo" : "Make this the cover photo"} accessibilityRole="button" key={uri} onPress={() => setPhotos((current) => [uri, ...current.filter((item) => item !== uri)])} style={styles.photo} testID={`photo-${index}`}>
+                <Image contentFit="cover" source={{ uri }} style={StyleSheet.absoluteFill} />
+                {index === 0 ? (
+                  <View style={styles.cover}>
+                    <Text style={styles.coverText}>Cover</Text>
+                  </View>
+                ) : null}
+                <Pressable accessibilityLabel="Remove photo" accessibilityRole="button" hitSlop={6} onPress={() => setPhotos((current) => current.filter((item) => item !== uri))} style={styles.remove} testID={`remove-photo-${index}`}>
+                  <Icon color="#FFFFFF" name="x" size={12} />
+                </Pressable>
+              </Pressable>
             ))}
             {photos.length < 6 ? (
-              <Pressable
-                accessibilityLabel="Add photo"
-                accessibilityRole="button"
-                onPress={async () => {
-                  const picked = await pick();
-                  if (picked) setPhotos((current) => [...current, picked.uri]);
-                }}
-                style={[styles.photo, styles.photoAdd]}
-                testID="add-photo"
-              >
-                <Icon color="#FFFFFF" name="camera" size={22} />
+              <Pressable accessibilityLabel="Add photo" accessibilityRole="button" onPress={() => setAttaching(true)} style={[styles.photo, styles.photoAdd]} testID="add-photo">
+                <Icon color={SELLER.solid} name="camera" size={22} />
               </Pressable>
             ) : null}
           </View>
         </View>
+
         <SellerField error={errors.title} icon="tag" label="Name" onChangeText={setTitle} placeholder="Burger & Chips" testID="listing-title" value={title} />
         <SellerField label="Description" multiline onChangeText={setDescription} placeholder="What is it? What comes with it?" testID="listing-description" value={description} />
         <SellerField error={errors.price} icon="dollar-sign" keyboardType="decimal-pad" label="Price (R)" onChangeText={setPrice} placeholder="60" testID="listing-price" value={price} />
@@ -160,6 +164,7 @@ export function SellerListingFormScreen() {
           />
         ) : null}
       </View>
+      <AttachSheet onClose={() => setAttaching(false)} onPicked={(file) => setPhotos((current) => (current.length < 6 ? [...current, file.uri] : current))} sources={["library", "camera"]} title="Add a product photo" visible={attaching} />
       <UpgradeSheet kind="products" onClose={() => setUpgrade(false)} visible={upgrade} />
     </SellerScreen>
   );
@@ -177,8 +182,11 @@ const styles = StyleSheet.create({
   footer: { gap: 8 },
   hint: { color: "rgba(255,255,255,0.8)", fontSize: 13 },
   label: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" },
-  photo: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 14, height: 64, justifyContent: "center", overflow: "hidden", width: 64 },
-  photoAdd: { borderColor: "rgba(255,255,255,0.6)", borderStyle: "dashed", borderWidth: 1.5 },
+  cover: { backgroundColor: "rgba(20,35,44,0.7)", bottom: 0, left: 0, paddingVertical: 2, position: "absolute", right: 0 },
+  coverText: { color: "#FFFFFF", fontSize: 10, fontWeight: "800", textAlign: "center" },
+  remove: { alignItems: "center", backgroundColor: "rgba(20,35,44,0.75)", borderRadius: 9, height: 18, justifyContent: "center", position: "absolute", right: 3, top: 3, width: 18 },
+  photo: { alignItems: "center", backgroundColor: "#DCE6EA", borderRadius: 14, height: 64, justifyContent: "center", overflow: "hidden", width: 64 },
+  photoAdd: { borderColor: "#B5C4CB", borderStyle: "dashed", borderWidth: 1.5 },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   stockRow: { alignItems: "center", flexDirection: "row", gap: 12 },
 });

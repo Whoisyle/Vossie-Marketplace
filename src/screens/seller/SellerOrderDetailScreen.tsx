@@ -12,6 +12,7 @@ import { useHandoff } from "./actions";
 import { SellerField } from "./fields";
 import { useSeller } from "./hooks";
 import { Confetti, SlideToConfirm, useShake } from "./motion";
+import { OrderMap } from "./OrderMap";
 import { DeclineSheet, OrderThumb, STATUS_PILL, whenLabel } from "./OrderParts";
 import { Pill, SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, SellerTopBar, Text } from "./ui";
 
@@ -136,6 +137,10 @@ export function SellerOrderDetailScreen() {
             {order.by ? ` by ${order.by}` : ""}
           </Text>
         </SellerCard>
+      </Animated.View>
+
+      <Animated.View entering={FadeInDown.delay(210).duration(340)}>
+        <OrderMap order={order} />
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(240).duration(340)}>

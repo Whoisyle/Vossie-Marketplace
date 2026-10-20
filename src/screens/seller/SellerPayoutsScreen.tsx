@@ -63,6 +63,7 @@ export function SellerPayoutsScreen() {
           </Animated.View>
         ))}
       </View>
+      <SellerButton icon="credit-card" label="Wallet" onPress={() => router.push("/seller/account/wallet" as Href)} size="sm" style={styles.withdraw} testID="payouts-wallet" variant="glass" />
       <SellerButton icon="file-text" label="Monthly statements" onPress={() => router.push("/seller/payouts/statements" as Href)} size="sm" style={styles.withdraw} testID="payouts-statements" variant="light" />
 
       <WithdrawSheet availableCents={view.available} onClose={() => setWithdrawing(false)} onPaid={() => setCoins(true)} visible={withdrawing} />

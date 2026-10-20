@@ -1,3 +1,4 @@
+import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Switch, View } from "react-native";
 import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
@@ -9,6 +10,7 @@ import { DAY_KEYS, DAY_LABELS, type DayKey, type SellerSchedule } from "@/seller
 
 import { useSeller } from "./hooks";
 import { Chips, TimeStepper } from "./parts";
+import { PlaceCard } from "./SellerPlaceScreen";
 import { Pill, SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, SellerTopBar, Text } from "./ui";
 
 type Preset = SellerSchedule["preset"];
@@ -30,6 +32,7 @@ const CLOSURE_LABELS = ["Exam week", "Holiday", "Away"] as const;
  * blocked out ahead.
  */
 export function SellerScheduleScreen() {
+  const router = useRouter();
   const view = useSeller();
   const schedule = view.seller.schedule;
   const [now] = useState(() => Date.now());
@@ -146,9 +149,10 @@ export function SellerScheduleScreen() {
         <SellerButton icon="plus" label="Block these days" onPress={addClosure} size="sm" testID="add-closure" variant="solid" />
       </SellerCard>
 
-      <SellerHeading>Pickup times</SellerHeading>
+      <SellerHeading>Pickup place and times</SellerHeading>
+      <PlaceCard onChoose={() => router.push("/seller/account/place" as Href)} place={view.seller.profile.place} testID="pickup-place" />
       <SellerCard style={styles.stack} testID="pickup">
-        <Text style={styles.hint}>Buyers choose a pickup time from your open hours.</Text>
+        <Text style={styles.hint}>Buyers choose a pickup time from your open hours, at the place above.</Text>
         <Chips items={[{ key: "30", label: "30 minute slots" }, { key: "60", label: "1 hour slots" }]} onChange={(key) => save({ ...schedule, slotMinutes: key === "30" ? 30 : 60 })} prefix="slot" value={String(schedule.slotMinutes)} />
         <Chips items={[15, 30, 45, 60].map((minutes) => ({ key: String(minutes), label: `${minutes} min cut-off` }))} onChange={(key) => save({ ...schedule, cutoffMinutes: Number(key) })} prefix="cutoff" value={String(schedule.cutoffMinutes)} />
         <View style={styles.slots} testID="slot-preview">

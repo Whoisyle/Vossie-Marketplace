@@ -3,6 +3,8 @@ import { createInitialState, demoReducer, type DemoAction, type DemoState } from
 import { activeListings, analytics, bestReel, engagementPercent, liveReelCount, productCount, rankReels, attentionItems, feesPaidCents, isLowStock, pendingCents, orderCounts, ordersInGroup, weekBars, weekTotals } from "./selectors";
 import { filterLedger, receiptText, referenceFor, statements, statementText } from "./receipts";
 import { applyPreset, applyTimetable, pickupSlots, storeStatus, summaryRange } from "./schedule";
+import { distanceKm } from "@/data/geo";
+import { minutesFor, offsetPoint } from "@/screens/seller/OrderMap";
 import { sellerPlanOf } from "./plan";
 import { CAMPUS_HUBS, locationFromPlace, locationLine, placeFromHit } from "./places";
 import { promotionDetail, promotionProblems, promotionState } from "./promotions";
@@ -450,5 +452,16 @@ describe("documents and places", () => {
     const seller = sellerReduce(createSellerState(NOW), { patch: { bannerUri: "file:///b.jpg", place: locationFromPlace(CAMPUS_HUBS[0]!, "hub") }, type: "sellerSaveStore" });
     expect(seller.profile.bannerUri).toBe("file:///b.jpg");
     expect(seller.profile.place?.name).toBe("Eduvos Potchefstroom campus");
+  });
+});
+
+describe("distance and time on the order map", () => {
+  it("works out minutes at campus speed and offsets the demo courier", () => {
+    expect(minutesFor(0.2)).toBe(1);
+    expect(minutesFor(1.4)).toBe(7);
+    const from = { latitude: -26.694, longitude: 27.094 };
+    const moved = offsetPoint(from, 800);
+    expect(distanceKm(from, moved)).toBeGreaterThan(0.4);
+    expect(distanceKm(from, moved)).toBeLessThan(1.2);
   });
 });

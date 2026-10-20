@@ -7,6 +7,12 @@ import { Icon, useToast } from "@/components";
 import { formatRand, initials } from "@/data/format";
 import type { ParcelSize } from "@/seller/types";
 
+import { VossieMap } from "@/components/map/VossieMap";
+import type { MapMarker } from "@/components/map/mapTypes";
+import { routeBetween } from "@/data/geo";
+import { START_POINT } from "@/seller/places";
+
+import { offsetPoint } from "./OrderMap";
 import { SellerField } from "./fields";
 import { ScanSheet } from "./ScanSheet";
 import { useSeller } from "./hooks";
@@ -114,6 +120,24 @@ function Step({ active, done, label, note }: { label: string; note?: string; don
   );
 }
 
+/** Where the courier collects: the store's pickup place, with the courier shown on their way. The courier position is a demo until couriers are tracked. */
+function HandoverMap({ arrivesInMin }: { arrivesInMin?: number }) {
+  const view = useSeller();
+  const place = view.seller.profile.place;
+  const store = place ? { latitude: place.latitude, longitude: place.longitude } : START_POINT;
+  const courier = arrivesInMin ? offsetPoint(store, arrivesInMin * 200) : null;
+  const markers: MapMarker[] = [{ coordinate: store, id: "store", kind: "store", title: place?.name ?? "Pickup" }];
+  if (courier) markers.push({ coordinate: courier, id: "courier", kind: "courier", title: "Courier" });
+  return (
+    <SellerCard style={styles.mapCard} testID="handover-map">
+      <View style={styles.map}>
+        <VossieMap accessibilityLabel="Map of the pickup place and the courier" initialRegion={{ ...store, latitudeDelta: 0.012, longitudeDelta: 0.012 }} interactive={false} key={courier ? "with" : "without"} markers={markers} route={courier ? routeBetween(courier, store) : undefined} style={StyleSheet.absoluteFill} testID="handover-map-view" />
+      </View>
+      <Text style={styles.hint}>{place ? `Pickup: ${place.name}` : "Set your pickup place in Store profile."}</Text>
+    </SellerCard>
+  );
+}
+
 /** Handover: the four digits the courier must say, confirmed once the parcel is sealed and the label matches. */
 export function SellerHandoverScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -160,6 +184,8 @@ export function SellerHandoverScreen() {
         </View>
         <Pill label={done ? "Collected" : courier ? `Arriving ${courier.arrivesInMin} min` : "Waiting"} tone={done ? "success" : courier ? "warn" : "neutral"} />
       </SellerCard>
+
+      <HandoverMap arrivesInMin={courier?.arrivesInMin} />
 
       <Animated.View entering={ZoomIn.duration(320)}>
         <SellerCard style={styles.codeCard} testID="handover-code-card">
@@ -215,6 +241,8 @@ const styles = StyleSheet.create({
   flex: { flex: 1, gap: 1 },
   gap: { marginTop: 14 },
   hint: { color: SELLER.inkSoft, fontSize: 13 },
+  map: { borderRadius: 16, height: 150, overflow: "hidden" },
+  mapCard: { gap: 8, marginTop: 14, padding: 12 },
   list: { gap: 2 },
   missing: { alignItems: "flex-start", gap: 12, marginTop: 20 },
   name: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },

@@ -45,14 +45,17 @@ export function SellerAccountScreen() {
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(60).duration(380)}>
-        <SellerCard style={styles.store} testID="store-card">
-          <View style={styles.logo}>
-            {profile.logoUri ? <Image accessibilityLabel="Store logo" contentFit="cover" source={{ uri: profile.logoUri }} style={StyleSheet.absoluteFill} /> : <Text style={styles.logoText}>{initials(profile.storeName || "Store")}</Text>}
-          </View>
-          <View style={styles.storeText}>
-            <Text style={styles.name}>{view.storeName}</Text>
-            <Text style={styles.hint}>{profile.location || "Add a collection location"}</Text>
-            <Pill label={view.canTrade ? "Verified seller" : "In review"} tone={view.canTrade ? "success" : "warn"} />
+        <SellerCard style={styles.storeCol} testID="store-card">
+          {profile.bannerUri ? <Image accessibilityLabel="Store banner" contentFit="cover" source={{ uri: profile.bannerUri }} style={styles.cardBanner} /> : null}
+          <View style={styles.store}>
+            <View style={styles.logo}>
+              {profile.logoUri ? <Image accessibilityLabel="Store logo" contentFit="cover" source={{ uri: profile.logoUri }} style={StyleSheet.absoluteFill} /> : <Text style={styles.logoText}>{initials(profile.storeName || "Store")}</Text>}
+            </View>
+            <View style={styles.storeText}>
+              <Text style={styles.name}>{view.storeName}</Text>
+              <Text style={styles.hint}>{profile.location || "Add a collection location"}</Text>
+              <Pill label={view.canTrade ? "Verified seller" : "In review"} tone={view.canTrade ? "success" : "warn"} />
+            </View>
           </View>
         </SellerCard>
       </Animated.View>
@@ -135,6 +138,7 @@ function Row({ delay, hint, icon, label, onPress, testID }: { icon: IconName; la
 
 const styles = StyleSheet.create({
   cardGap: { alignItems: "center", marginTop: 4 },
+  cardBanner: { borderRadius: 16, height: 70, marginBottom: 6, width: "100%" },
   hint: { color: SELLER.inkSoft, fontSize: 13 },
   list: { gap: 10 },
   logo: { alignItems: "center", backgroundColor: "#D5DDE1", borderRadius: 36, height: 72, justifyContent: "center", overflow: "hidden", width: 72 },
@@ -144,6 +148,7 @@ const styles = StyleSheet.create({
   rowIcon: { alignItems: "center", backgroundColor: "#E3ECEF", borderRadius: 14, height: 42, justifyContent: "center", width: 42 },
   rowTitle: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },
   store: { alignItems: "center", flexDirection: "row", gap: 14 },
+  storeCol: { gap: 8 },
   storeText: { flex: 1, gap: 3 },
   logout: { marginTop: 12 },
   switch: { marginTop: 24 },

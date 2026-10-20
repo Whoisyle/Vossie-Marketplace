@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
@@ -98,7 +99,7 @@ export function SellerProductsScreen() {
             return (
               <Animated.View entering={FadeInDown.delay(Math.min(index, 6) * 50).duration(340)} key={listing.id} layout={LinearTransition.springify().damping(20)}>
                 <SellerCard onPress={() => router.push(`/seller/products/${listing.id}` as Href)} style={styles.card} testID={`listing-${listing.id}`}>
-                  <View style={styles.thumb}>{listing.artId && hasArt(listing.artId) ? <ArtTile id={listing.artId} inset={0.06} /> : <Icon color="#FFFFFF" name="package" size={24} />}</View>
+                  <View style={styles.thumb}>{listing.photos[0] ? <Image contentFit="cover" source={{ uri: listing.photos[0] }} style={StyleSheet.absoluteFill} /> : listing.artId && hasArt(listing.artId) ? <ArtTile id={listing.artId} inset={0.06} /> : <Icon color="#FFFFFF" name="package" size={24} />}</View>
                   <View style={styles.cardText}>
                     <Text numberOfLines={1} style={styles.cardTitle}>
                       {listing.title}

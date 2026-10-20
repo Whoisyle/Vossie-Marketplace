@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
@@ -43,7 +44,7 @@ export function SellerInventoryScreen() {
         {counted.map((item, index) => (
           <Animated.View entering={FadeInDown.delay(Math.min(index, 6) * 40).duration(300)} key={item.id}>
             <SellerCard style={styles.row} testID={`stock-${item.id}`}>
-              <View style={styles.thumb}>{item.artId && hasArt(item.artId) ? <ArtTile id={item.artId} inset={0.06} /> : <Icon color="#FFFFFF" name="package" size={20} />}</View>
+              <View style={styles.thumb}>{item.photos[0] ? <Image contentFit="cover" source={{ uri: item.photos[0] }} style={StyleSheet.absoluteFill} /> : item.artId && hasArt(item.artId) ? <ArtTile id={item.artId} inset={0.06} /> : <Icon color="#FFFFFF" name="package" size={20} />}</View>
               <View style={styles.text}>
                 <Text numberOfLines={1} style={styles.name}>
                   {item.title}
