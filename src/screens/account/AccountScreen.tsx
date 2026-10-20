@@ -11,9 +11,9 @@ import {
   RadioRow,
   Screen,
   Sheet,
-  StudentCard,
   useToast,
 } from "@/components";
+import { StudentCardFlip } from "./CardBacks";
 import { deliveryLabels, deliveryOption, type DeliveryMode } from "@/data/delivery";
 import { formatRand } from "@/data/format";
 import { nextTier, pointsBalance, pointsValueCents, tierFor } from "@/data/points";
@@ -49,7 +49,7 @@ export function AccountScreen() {
     <Screen testID="account-screen">
       <AppHeader title="Your account" />
       <View style={styles.cardGap}>
-        <StudentCard
+        <StudentCardFlip
           campusName={getCampusName(profile.campusId)}
           name={profile.fullName}
           studentNumber={profile.studentNumber}

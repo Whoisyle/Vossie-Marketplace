@@ -14,7 +14,7 @@ import {
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
 
-import { Icon } from "@/components";
+import { FlipCard, Icon } from "@/components";
 import { landscapeHeight } from "@/components/StudentCard";
 import { issuerByName, schemeFaces } from "@/data/cardBrands";
 import { formatRand } from "@/data/format";
@@ -24,6 +24,7 @@ import { spring } from "@/theme/motion";
 import { color, space } from "@/theme/tokens";
 
 import { BankFace } from "./BankFaces";
+import { ApplePayBack, BankBack, GooglePayBack, SchemeBack, WalletBack } from "./CardBacks";
 import { Chip, Contactless, SchemeLogo } from "./CardArt";
 import { ApplePayFace, GooglePayFace, VossieWalletFace } from "./PayFaces";
 
@@ -139,12 +140,32 @@ export function CardFace({ card, width = WALLET_CARD_WIDTH }: { card: SavedCard;
   );
 }
 
+/** A saved card that turns over on tap to show its back. Used for the previews when adding or editing a card. */
+export function SavedCardFlip({ card, width = WALLET_CARD_WIDTH }: { card: SavedCard; width?: number }) {
+  const issuer = issuerByName(card.issuer);
+  return (
+    <FlipCard
+      back={issuer ? <BankBack card={card} issuer={issuer} width={width} /> : <SchemeBack card={card} width={width} />}
+      front={<CardFace card={card} width={width} />}
+      height={landscapeHeight(width)}
+      label={`${card.brand === "mastercard" ? "Mastercard" : "Visa"} ending ${card.last4}`}
+      width={width}
+    />
+  );
+}
+
+/** The Vossie Wallet card with the balance on it; tapping turns it over. */
+export function WalletBalanceFlip({ balanceCents, width }: { balanceCents: number; width: number }) {
+  return (
+    <FlipCard back={<WalletBack width={width} />} front={<VossieWalletFace balanceCents={balanceCents} width={width} />} height={landscapeHeight(width)} label={`Vossie Wallet, ${formatRand(balanceCents)}`} width={width} />
+  );
+}
+
 /** Cards in a swipeable row that moves on by itself. The next card peeks in at the edge. */
 export function WalletCarousel({
   items,
   onAdd,
   onChooseBank,
-  onEditCard,
   onSelect,
   selected,
 }: {
@@ -154,8 +175,6 @@ export function WalletCarousel({
   onAdd: () => void;
   /** Tapping the instant EFT card once it is showing opens the bank chooser. */
   onChooseBank?: () => void;
-  /** Tapping a saved card opens it for editing. */
-  onEditCard: (cardId: string) => void;
 }) {
   const { width: screenWidth } = useWindowDimensions();
   const cardWidth = walletCardWidth(screenWidth);
@@ -211,9 +230,8 @@ export function WalletCarousel({
             key={item.id}
             onPress={() => {
               if (item.kind === "add") onAdd();
-              else if (item.kind === "card") onEditCard(item.card.id);
               else if (item.kind === "eft" && index === selected && onChooseBank) onChooseBank();
-              else {
+              else if (index !== selected) {
                 scroller.current?.scrollTo({ animated: true, x: index * snap });
                 onSelect(index);
               }
@@ -233,17 +251,49 @@ export function WalletCarousel({
 
 function WalletCard({ active, item, onPress, width }: { item: WalletItem; active: boolean; onPress: () => void; width: number }) {
   const lift = useSharedValue(active ? 1 : 0);
+  const [flipped, setFlipped] = useState(false);
   useEffect(() => {
     lift.set(withSpring(active ? 1 : 0, spring.soft));
+    // a card that is no longer in front turns back so it is never found face down
+    if (!active) setFlipped(false);
   }, [active, lift]);
   const style = useAnimatedStyle(() => ({ opacity: 0.85 + lift.get() * 0.15, transform: [{ scale: 0.96 + lift.get() * 0.04 }] }));
   const label = labelFor(item);
+  const back = backFor(item, width);
+  const height = landscapeHeight(width);
+  const front = item.kind === "card" ? <CardFace card={item.card} width={width} /> : <OtherFace item={item} width={width} />;
 
+  // the add tile and the bank chooser act on tap; every other card turns over once it is in front
+  if (!back || !active) {
+    return (
+      <Pressable accessibilityLabel={label} accessibilityRole="button" accessibilityState={{ selected: active }} onPress={onPress} testID={`wallet-card-${item.id}`}>
+        <Animated.View style={style}>{front}</Animated.View>
+      </Pressable>
+    );
+  }
   return (
-    <Pressable accessibilityLabel={label} accessibilityRole="button" accessibilityState={{ selected: active }} onPress={onPress} testID={`wallet-card-${item.id}`}>
-      <Animated.View style={style}>{item.kind === "card" ? <CardFace card={item.card} width={width} /> : <OtherFace item={item} width={width} />}</Animated.View>
-    </Pressable>
+    <Animated.View style={style}>
+      <FlipCard back={back} flipped={flipped} front={front} height={height} label={label} onFlip={setFlipped} testID={`wallet-card-${item.id}`} width={width} />
+    </Animated.View>
   );
+}
+
+/** The back of a wallet item, or nothing for the tiles that do not turn over. */
+function backFor(item: WalletItem, width: number) {
+  switch (item.kind) {
+    case "card": {
+      const issuer = issuerByName(item.card.issuer);
+      return issuer ? <BankBack card={item.card} issuer={issuer} width={width} /> : <SchemeBack card={item.card} width={width} />;
+    }
+    case "apple-pay":
+      return <ApplePayBack ready={item.ready} width={width} />;
+    case "google-pay":
+      return <GooglePayBack ready={item.ready} width={width} />;
+    case "wallet":
+      return <WalletBack width={width} />;
+    default:
+      return null;
+  }
 }
 
 function OtherFace({ item, width }: { item: Exclude<WalletItem, { kind: "card" }>; width: number }) {
@@ -288,7 +338,7 @@ function OtherFace({ item, width }: { item: Exclude<WalletItem, { kind: "card" }
 function labelFor(item: WalletItem): string {
   switch (item.kind) {
     case "card":
-      return `${item.card.brand === "mastercard" ? "Mastercard" : "Visa"} ending ${item.card.last4}${item.card.isDefault ? ", default" : ""}. Opens the card to edit.`;
+      return `${item.card.brand === "mastercard" ? "Mastercard" : "Visa"} ending ${item.card.last4}${item.card.isDefault ? ", default" : ""}. Tap to turn it over.`;
     case "apple-pay":
       return `Apple Pay, ${item.ready ? "ready" : "not on this phone"}`;
     case "google-pay":

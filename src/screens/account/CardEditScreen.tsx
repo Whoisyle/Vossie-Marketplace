@@ -9,7 +9,7 @@ import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
 
 import { IssuerPicker } from "./CardArt";
-import { CardFace } from "./WalletCards";
+import { SavedCardFlip } from "./WalletCards";
 
 /** Brand from the first digit: 4 is Visa, 5 is Mastercard; otherwise keep the current brand. */
 export function brandFor(digits: string, current: SavedCard["brand"]): SavedCard["brand"] {
@@ -84,7 +84,7 @@ export function CardEditScreen() {
     <Screen footer={<Button fullWidth label="Save changes" onPress={save} size="lg" testID="save-card" />} testID="card-edit">
       <AppHeader back subtitle={`${brand === "visa" ? "Visa" : "Mastercard"} ending ${card.last4}`} title="Edit card" />
       <View style={styles.preview}>
-        <CardFace card={preview} />
+        <SavedCardFlip card={preview} />
       </View>
 
       <View style={styles.fields}>

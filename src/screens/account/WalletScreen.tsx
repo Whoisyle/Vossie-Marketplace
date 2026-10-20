@@ -10,8 +10,7 @@ import { confirmWithBiometrics } from "@/lib/biometric";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
 
-import { VossieWalletFace } from "./PayFaces";
-import { walletCardWidth, walletItems, WalletCarousel, useWalletSelection } from "./WalletCards";
+import { walletCardWidth, walletItems, WalletCarousel, useWalletSelection, WalletBalanceFlip } from "./WalletCards";
 import { parseRandToCents } from "./walletAmount";
 
 const PRESETS = [10000, 20000, 50000];
@@ -81,7 +80,7 @@ export function WalletScreen() {
     <Screen>
       <AppHeader back subtitle="Manage your Vossie balance." title="Wallet" />
       <View style={styles.balanceWrap} testID="balance-card">
-        <VossieWalletFace balanceCents={state.wallet.balanceCents} width={walletCardWidth(screenWidth)} />
+        <WalletBalanceFlip balanceCents={state.wallet.balanceCents} width={walletCardWidth(screenWidth)} />
         <View style={styles.balanceActions}>
           <Button label="Add funds" onPress={() => setOpen(true)} size="sm" />
           <Button icon="arrow-up-right" label="Withdraw" onPress={startWithdraw} size="sm" testID="withdraw" variant="soft" />
@@ -90,7 +89,7 @@ export function WalletScreen() {
       <Text style={styles.demo}>Demo wallet: no real money moves.</Text>
 
       <Text style={styles.heading}>Cards and payment options</Text>
-      <WalletCarousel items={items} onAdd={() => router.push("/cart/add-card" as Href)} onChooseBank={() => setBankOpen(true)} onEditCard={(cardId) => router.push(`/account/card/${cardId}` as Href)} onSelect={setSelected} selected={selected} />
+      <WalletCarousel items={items} onAdd={() => router.push("/cart/add-card" as Href)} onChooseBank={() => setBankOpen(true)} onSelect={setSelected} selected={selected} />
       <View style={styles.actions} testID="wallet-actions">
         {current.kind === "card" ? (
           <>
@@ -105,6 +104,7 @@ export function WalletScreen() {
                 variant="soft"
               />
             ) : null}
+            <Button label="Edit" onPress={() => router.push(`/account/card/${current.card.id}` as Href)} size="sm" variant="soft" testID="edit-card" />
             <Button
               label="Use at checkout"
               onPress={() => {

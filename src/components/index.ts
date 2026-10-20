@@ -7,6 +7,7 @@ export { Button } from "./Button";
 export { Card, SectionHeader } from "./Card";
 export { Chip, FilterChips, type FilterOption } from "./Chip";
 export { EmptyState } from "./EmptyState";
+export { FlipCard } from "./FlipCard";
 export { FilterButton } from "./FilterButton";
 export { HeartButton } from "./HeartButton";
 export { Icon, type IconName } from "./Icon";

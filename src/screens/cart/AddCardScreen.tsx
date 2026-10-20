@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppHeader, Button, Card, Icon, Screen, TextField, useToast } from "@/components";
 import { IssuerPicker } from "@/screens/account/CardArt";
-import { CardFace } from "@/screens/account/WalletCards";
+import { SavedCardFlip } from "@/screens/account/WalletCards";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, space, text } from "@/theme/tokens";
 
@@ -49,7 +49,7 @@ export function AddCardScreen() {
     >
       <AppHeader back title="Add a New Card" />
       <View style={styles.preview}>
-        <CardFace
+        <SavedCardFlip
           card={{
             brand,
             expiry: expiry || "MM/YY",

@@ -177,7 +177,7 @@ describe("wallet cards and transactions", () => {
     jest.useFakeTimers();
     const onSelect = jest.fn();
     const items = walletItems({ balanceCents: 1000, bank: null, cards: signedIn().cards, os: "ios" });
-    renderWithProviders(<WalletCarousel items={items} onAdd={jest.fn()} onEditCard={jest.fn()} onSelect={onSelect} selected={0} />);
+    renderWithProviders(<WalletCarousel items={items} onAdd={jest.fn()} onSelect={onSelect} selected={0} />);
     act(() => {
       jest.advanceTimersByTime(WALLET_AUTO_MS + 50);
     });
@@ -185,12 +185,14 @@ describe("wallet cards and transactions", () => {
     jest.useRealTimers();
   });
 
-  it("opens a card for editing when it is tapped", () => {
-    const onEdit = jest.fn();
+  it("turns a card over when it is tapped, and only the card in front", () => {
     const items = walletItems({ balanceCents: 1000, bank: null, cards: signedIn().cards, os: "ios" });
-    renderWithProviders(<WalletCarousel items={items} onAdd={jest.fn()} onEditCard={onEdit} onSelect={jest.fn()} selected={0} />);
+    const onSelect = jest.fn();
+    renderWithProviders(<WalletCarousel items={items} onAdd={jest.fn()} onSelect={onSelect} selected={0} />);
+    expect(screen.getAllByTestId("card-back").length).toBeGreaterThan(0);
     fireEvent.press(screen.getByTestId("wallet-card-card-demo-visa"));
-    expect(onEdit).toHaveBeenCalledWith("card-demo-visa");
+    fireEvent.press(screen.getByTestId("wallet-card-apple-pay"));
+    expect(onSelect).toHaveBeenCalledWith(items.findIndex((item) => item.kind === "apple-pay"));
   });
 
   it("checks card edits and finds the brand from the number", () => {
