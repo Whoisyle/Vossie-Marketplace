@@ -51,6 +51,10 @@ Last updated: 2026-10-20.
 - [ ] **Promotions** can be edited with every option (type, value, what it covers, minimum spend, code or automatic, dates, limits) but are not applied at buyer checkout and usage counts do not rise.
 - [ ] **Share store:** the web link (vossie.app/s/...) is a demo address. The QR code holds a Vossie app link (vossie://home/store/<id>) which opens the store in the app for anyone who has it.
 - [ ] **Seller wallet:** the balance card, payout cards and transactions are the seller's earnings, shown like the buyer's wallet. Payout cards are the buyer's saved cards; paying out to a card or by instant EFT is a demo.
+- [ ] **Push notifications:** the cards, their buttons (Accept, Decline, Restock, Reply, View), quiet hours, sound and the per-kind switches all work inside the app, and the heads-up slides in when an alert arrives while the app is open. Real push on a locked phone needs `expo-notifications` (not installed: npm refused the registry certificate on this PC), Expo push tokens saved per seller, a server trigger for each event, and the notification action buttons registered with the phone. Email delivery of the same alerts needs a mail sender.
+- [ ] **Analytics:** the charts are interactive (drag across the line and bars, tap the ring, the grid and the funnel). Their numbers come from the demo orders, ledger and reels. New and returning buyers are matched by name, which is not reliable; real analytics need buyer ids and event tracking for views and taps on products.
+- [ ] **Store preview** is built from the seller's own data and the buyer's own components, so it looks the same as the buyer's store page, but followers are always 0, ratings on cards are fixed demo values and the buyer's store page itself does not yet read the seller's place, banner or hours.
+- [ ] **Verified documents** can be viewed and replaced; the new file is re-checked by a demo timer. The Eduvos student card has no file to show, only the record.
 
 ## Courier, delivery and maps
 
