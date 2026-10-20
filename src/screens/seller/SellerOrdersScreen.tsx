@@ -15,7 +15,8 @@ import { Pill, SELLER, SellerButton, SellerCard, SellerHeader, SellerScreen } fr
 
 const CHIPS: { key: OrderGroup; label: string }[] = [
   { key: "new", label: "New" },
-  { key: "preparing", label: "Preparing" },
+  { key: "accepted", label: "Accepted" },
+  { key: "preparing", label: "Packing" },
   { key: "ready", label: "Ready" },
   { key: "done", label: "Done" },
   { key: "cancelled", label: "Cancelled" },
@@ -45,7 +46,7 @@ export function SellerOrdersScreen() {
             <Pressable accessibilityLabel={`${chip.label}, ${count}`} accessibilityRole="tab" accessibilityState={{ selected: on }} key={chip.key} onPress={() => setGroup(chip.key)} style={[styles.chip, on && styles.chipOn]} testID={`chip-${chip.key}`}>
               <Text style={[styles.chipText, on && styles.chipTextOn]}>
                 {chip.label}
-                {count > 0 && (chip.key === "new" || chip.key === "preparing" || chip.key === "ready") ? ` ${count}` : ""}
+                {count > 0 && (chip.key === "new" || chip.key === "accepted" || chip.key === "preparing" || chip.key === "ready") ? ` ${count}` : ""}
               </Text>
             </Pressable>
           );

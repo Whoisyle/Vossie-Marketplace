@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
 import { Icon } from "@/components";
@@ -24,6 +24,7 @@ export function SellerOrderDetailScreen() {
   const [declining, setDeclining] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const shake = useShake();
+  const chat = view.messages.find((item) => order && item.name.toLowerCase().startsWith(order.buyerName.split(" ")[0]!.toLowerCase()));
 
   if (!order) {
     return (
@@ -80,7 +81,11 @@ export function SellerOrderDetailScreen() {
 
       <Animated.View entering={FadeInDown.duration(340)}>
         <SellerCard style={styles.status} testID="order-status">
-          <Pill label={look.label} tone={look.tone} />
+          <View style={styles.tags}>
+            <Pill label={look.label} tone={look.tone} />
+            <Pill label={order.paymentLabel} tone="success" />
+            <Pill label={order.fulfilmentLabel} tone="info" />
+          </View>
           <Text style={styles.placed}>Placed {whenLabel(order.placedAt).toLowerCase()}</Text>
         </SellerCard>
       </Animated.View>
@@ -116,6 +121,9 @@ export function SellerOrderDetailScreen() {
               <Text style={styles.hint}>{order.buyerVerified ? "Verified student" : "Student"}</Text>
             </View>
           </View>
+          <Pressable accessibilityLabel={`Message ${order.buyerName}`} accessibilityRole="button" onPress={() => router.push((chat ? `/seller/home/messages/${chat.id}` : "/seller/home/messages") as Href)} style={styles.chat} testID="message-buyer">
+            <Icon color={SELLER.solid} name="message-circle" size={18} />
+          </Pressable>
         </SellerCard>
       </Animated.View>
 
@@ -139,6 +147,8 @@ export function SellerOrderDetailScreen() {
           <TotalRow bold label="You earn" value={formatRand(order.subtotalCents - order.feeCents, { fixed: true })} />
         </SellerCard>
       </Animated.View>
+
+      <Timeline order={order} />
 
       {order.status === "ready" && order.fulfilment !== "delivery" ? <HandOver onDone={() => setCelebrate(true)} order={order} /> : null}
       {order.status === "done" ? (
@@ -199,6 +209,42 @@ function HandOver({ onDone, order }: { order: SellerOrder; onDone: () => void })
   );
 }
 
+const FLOW: { key: SellerOrder["status"]; label: string; note: (order: SellerOrder) => string }[] = [
+  { key: "new", label: "Order placed", note: (order) => whenLabel(order.placedAt) },
+  { key: "accepted", label: "Accepted", note: () => "You took the order" },
+  { key: "preparing", label: "Packing", note: () => "Getting it ready" },
+  { key: "ready", label: "Ready", note: (order) => (order.fulfilment === "delivery" ? "Waiting for the courier" : "Waiting for the buyer") },
+  { key: "done", label: "Handed over", note: () => "Paid to you" },
+];
+const RANK: Record<SellerOrder["status"], number> = { accepted: 1, cancelled: -1, declined: -1, done: 4, new: 0, preparing: 2, ready: 3 };
+
+/** Where the order has been and where it goes next. A new order shows how long the seller has to answer. */
+function Timeline({ order }: { order: SellerOrder }) {
+  if (order.status === "declined" || order.status === "cancelled") return null;
+  const at = RANK[order.status];
+  return (
+    <Animated.View entering={FadeInDown.delay(300).duration(340)}>
+      <SellerCard style={styles.timeline} testID="order-timeline">
+        {FLOW.map((step, index) => {
+          const done = index <= at;
+          const current = index === at + 1 || (at === 0 && index === 1);
+          return (
+            <View key={step.key} style={styles.stepRow}>
+              <Animated.View entering={done ? ZoomIn.delay(index * 80).springify() : undefined} style={[styles.dot, done && styles.dotDone]}>
+                {done ? <Icon color="#FFFFFF" name="check" size={12} /> : null}
+              </Animated.View>
+              <View>
+                <Text style={[styles.itemTitle, !done && !current && styles.hint]}>{index === 1 && at === 0 ? "Awaiting your acceptance" : step.label}</Text>
+                <Text style={styles.hint}>{index === 1 && at === 0 ? "Respond within 30 min" : done || current ? step.note(order) : ""}</Text>
+              </View>
+            </View>
+          );
+        })}
+      </SellerCard>
+    </Animated.View>
+  );
+}
+
 function TotalRow({ bold, label, value }: { label: string; value: string; bold?: boolean }) {
   return (
     <View style={styles.total}>
@@ -225,11 +271,17 @@ const styles = StyleSheet.create({
   locked: { color: "#FFFFFF", fontSize: 13, marginTop: 12, textAlign: "center" },
   missing: { alignItems: "flex-start", gap: 12, marginTop: 20 },
   placed: { color: SELLER.ink, fontSize: 14 },
-  status: { alignItems: "center", flexDirection: "row", gap: 10, marginTop: 14 },
+  status: { gap: 8, marginTop: 14 },
   total: { flexDirection: "row", justifyContent: "space-between" },
   totalBold: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },
   totalValue: { color: SELLER.ink, fontSize: 14 },
   totals: { gap: 6, marginTop: 14 },
+  chat: { alignItems: "center", backgroundColor: "#E3ECEF", borderRadius: 20, height: 40, justifyContent: "center", width: 40 },
+  dot: { alignItems: "center", backgroundColor: "#C3CED3", borderRadius: 10, height: 20, justifyContent: "center", width: 20 },
+  dotDone: { backgroundColor: SELLER.solid },
+  stepRow: { alignItems: "flex-start", flexDirection: "row", gap: 12 },
+  tags: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  timeline: { gap: 12, marginTop: 14 },
   verified: { alignItems: "center", flexDirection: "row", gap: 4 },
   where: { gap: 2 },
 });

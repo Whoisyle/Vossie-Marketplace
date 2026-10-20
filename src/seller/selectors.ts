@@ -38,10 +38,9 @@ export function weekTotals(state: Pick<SellerState, "ledger">, now: number = Dat
 }
 
 /** How a seller order status is grouped under the Orders filter chips. */
-export type OrderGroup = "new" | "preparing" | "ready" | "done" | "cancelled";
+export type OrderGroup = "new" | "accepted" | "preparing" | "ready" | "done" | "cancelled";
 
 export function groupOf(status: SellerOrderStatus): OrderGroup {
-  if (status === "accepted" || status === "preparing") return "preparing";
   if (status === "declined" || status === "cancelled") return "cancelled";
   return status;
 }
@@ -51,7 +50,7 @@ export function ordersInGroup(orders: SellerOrder[], group: OrderGroup): SellerO
 }
 
 export function orderCounts(orders: SellerOrder[]): Record<OrderGroup, number> {
-  const counts: Record<OrderGroup, number> = { cancelled: 0, done: 0, new: 0, preparing: 0, ready: 0 };
+  const counts: Record<OrderGroup, number> = { accepted: 0, cancelled: 0, done: 0, new: 0, preparing: 0, ready: 0 };
   for (const item of orders) counts[groupOf(item.status)] += 1;
   return counts;
 }

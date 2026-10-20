@@ -164,8 +164,10 @@ describe("seller orders", () => {
     renderWithProviders(<SellerOrdersScreen />, seller());
     expect(screen.getByTestId("order-so-2041")).toBeTruthy();
     expect(screen.queryByTestId("order-so-2038")).toBeNull();
-    fireEvent.press(screen.getByTestId("chip-preparing"));
+    fireEvent.press(screen.getByTestId("chip-accepted"));
     expect(screen.getByTestId("order-so-2038")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("chip-preparing"));
+    expect(screen.getByTestId("order-so-2036")).toBeTruthy();
     fireEvent.press(screen.getByTestId("chip-ready"));
     expect(screen.getByTestId("order-so-2035")).toBeTruthy();
   });
@@ -178,7 +180,7 @@ describe("seller orders", () => {
       jest.advanceTimersByTime(500);
     });
     expect(screen.queryByTestId("order-so-2041")).toBeNull();
-    fireEvent.press(screen.getByTestId("chip-preparing"));
+    fireEvent.press(screen.getByTestId("chip-accepted"));
     expect(screen.getByTestId("order-so-2041")).toBeTruthy();
     jest.useRealTimers();
   });
@@ -213,8 +215,12 @@ describe("seller order detail", () => {
     renderWithProviders(<SellerOrderDetailScreen />, seller());
     expect(screen.getByText("Order #VM-2041")).toBeTruthy();
     expect(screen.getByText("Thabo Mokoena")).toBeTruthy();
-    expect(screen.getByText("Courier delivery")).toBeTruthy();
-    expect(screen.getByText("Paid in app")).toBeTruthy();
+    expect(screen.getAllByText("Courier delivery").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Paid in app").length).toBeGreaterThan(0);
+    expect(screen.getByText("Awaiting your acceptance")).toBeTruthy();
+    expect(screen.getByText("Respond within 30 min")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("message-buyer"));
+    expect(mockPush).toHaveBeenCalled();
     expect(screen.getByText("Delivery fee (paid by buyer)")).toBeTruthy();
     expect(screen.getByText("Vossie platform fee")).toBeTruthy();
     expect(screen.getByText("You earn")).toBeTruthy();
@@ -412,5 +418,24 @@ describe("store, reviews, analytics, promotions, cases and team", () => {
     expect(screen.getAllByText("naledi@vossie.net").length).toBeGreaterThan(0);
     fireEvent.press(screen.getByTestId("remove-tm-2"));
     expect(screen.queryByTestId("member-tm-2")).toBeNull();
+  });
+});
+
+describe("seller account extras", () => {
+  it("explains sign-in security and logs out", () => {
+    renderWithProviders(<SellerAccountScreen />, seller());
+    fireEvent.press(screen.getByTestId("row-security"));
+    expect(screen.getByText(/one-time code/)).toBeTruthy();
+    fireEvent.press(screen.getByTestId("row-details"));
+    expect(mockPush).toHaveBeenCalledWith("/seller/account/store");
+    fireEvent.press(screen.getByTestId("seller-logout"));
+    expect(mockReplace).toHaveBeenCalledWith("/sign-in");
+  });
+
+  it("shows the order timeline moving on with the status", () => {
+    mockParams = { id: "so-2036" };
+    renderWithProviders(<SellerOrderDetailScreen />, seller());
+    expect(screen.getByTestId("order-timeline")).toBeTruthy();
+    expect(screen.getByText("Packing")).toBeTruthy();
   });
 });

@@ -50,7 +50,8 @@ describe("seller demo data", () => {
   });
 
   it("groups accepted orders under Preparing and declined ones under Cancelled", () => {
-    expect(ordersInGroup(seller.orders, "preparing")).toHaveLength(2);
+    expect(ordersInGroup(seller.orders, "preparing")).toHaveLength(1);
+    expect(ordersInGroup(seller.orders, "accepted")).toHaveLength(1);
     expect(ordersInGroup(seller.orders, "cancelled")).toHaveLength(1);
   });
 });

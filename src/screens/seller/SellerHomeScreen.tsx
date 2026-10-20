@@ -68,7 +68,7 @@ export function SellerHomeScreen() {
 
       <View style={styles.tiles}>
         <Tile delay={160} label="New orders" onPress={() => go("/seller/orders")} testID="tile-orders" value={view.counts.new} />
-        <Tile delay={200} label="To ship" onPress={() => go("/seller/orders")} testID="tile-ship" value={view.counts.preparing + view.counts.ready} />
+        <Tile delay={200} label="To ship" onPress={() => go("/seller/orders")} testID="tile-ship" value={view.counts.accepted + view.counts.preparing + view.counts.ready} />
         <Tile delay={240} label="Low stock" onPress={() => go("/seller/products/inventory")} testID="tile-low" value={view.lowStock} />
         <Tile delay={280} label="Rating" onPress={() => go("/seller/account/reviews")} testID="tile-rating" value={view.rating.toFixed(1)} />
       </View>

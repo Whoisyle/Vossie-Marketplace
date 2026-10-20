@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
 import { ArtTile, hasArt } from "@/components/art/ProductArt";
 import { Icon } from "@/components";
@@ -54,9 +54,9 @@ export function SellerInventoryScreen() {
                 <Pressable accessibilityLabel={`Remove one ${item.title}`} accessibilityRole="button" disabled={item.onHand === 0} onPress={() => view.dispatch({ delta: -1, id: item.id, type: "sellerAdjustStock" })} style={[styles.step, item.onHand === 0 && styles.stepOff]} testID={`stock-minus-${item.id}`}>
                   <Icon color={SELLER.solid} name="minus" size={18} />
                 </Pressable>
-                <Text style={[styles.count, item.onHand <= 5 && styles.countLow]} testID={`stock-count-${item.id}`}>
+                <Animated.Text entering={ZoomIn.duration(180)} key={item.onHand} style={[styles.count, item.onHand <= 5 && styles.countLow]} testID={`stock-count-${item.id}`}>
                   {item.onHand}
-                </Text>
+                </Animated.Text>
                 <Pressable accessibilityLabel={`Add one ${item.title}`} accessibilityRole="button" onPress={() => view.dispatch({ delta: 1, id: item.id, type: "sellerAdjustStock" })} style={styles.step} testID={`stock-plus-${item.id}`}>
                   <Icon color={SELLER.solid} name="plus" size={18} />
                 </Pressable>

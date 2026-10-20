@@ -95,7 +95,15 @@ export function SellerPrepareScreen() {
 function Step({ active, done, label, note }: { label: string; note?: string; done?: boolean; active?: boolean }) {
   return (
     <View style={styles.step}>
-      <View style={[styles.dot, done && styles.dotDone, active && styles.dotActive]}>{done ? <Icon color="#FFFFFF" name="check" size={13} /> : null}</View>
+      <View style={[styles.dot, done && styles.dotDone, active && styles.dotActive]}>
+        {done ? (
+          <Animated.View entering={ZoomIn.springify()}>
+            <Icon color="#FFFFFF" name="check" size={13} />
+          </Animated.View>
+        ) : active ? (
+          <Animated.View entering={ZoomIn.duration(300)} style={styles.pulse} />
+        ) : null}
+      </View>
       <View>
         <Text style={[styles.stepLabel, !done && !active && styles.stepOff]}>{label}</Text>
         {note ? <Text style={styles.hint}>{note}</Text> : null}
@@ -197,6 +205,7 @@ const styles = StyleSheet.create({
   list: { gap: 2 },
   missing: { alignItems: "flex-start", gap: 12, marginTop: 20 },
   name: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },
+  pulse: { backgroundColor: "#FFFFFF", borderRadius: 4, height: 8, width: 8 },
   requested: { alignItems: "center", flexDirection: "row", gap: 10, marginTop: 14 },
   scan: { alignItems: "center", flexDirection: "row", gap: 12, marginTop: 14 },
   step: { alignItems: "center", flexDirection: "row", gap: 12, minHeight: 40 },

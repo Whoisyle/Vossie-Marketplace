@@ -1,9 +1,11 @@
 import { Image } from "expo-image";
 import { useRouter, type Href } from "expo-router";
+import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
-import { Icon, type IconName } from "@/components";
+import { Button, Icon, Sheet, type IconName } from "@/components";
+import { text } from "@/theme/tokens";
 import { initials } from "@/data/format";
 
 import { useSeller } from "./hooks";
@@ -16,6 +18,7 @@ export function SellerAccountScreen() {
   const view = useSeller();
   const profile = view.seller.profile;
   const go = (path: string) => router.push(path as Href);
+  const [security, setSecurity] = useState(false);
   return (
     <SellerScreen testID="seller-account">
       <SellerHeader />
@@ -52,6 +55,8 @@ export function SellerAccountScreen() {
         <Row delay={360} hint={`${view.seller.cases.filter((item) => item.status === "open").length} open cases`} icon="alert-circle" label="Returns and disputes" onPress={() => go("/seller/account/cases")} testID="row-cases" />
         <Row delay={380} hint="Sales trends and performance" icon="bar-chart-2" label="Analytics" onPress={() => go("/seller/account/analytics")} testID="row-analytics" />
         <Row delay={400} hint={`${view.seller.team.length} people`} icon="users" label="Team members" onPress={() => go("/seller/account/team")} testID="row-team" />
+        <Row delay={410} hint="Sign in with an email code" icon="lock" label="Security and password" onPress={() => setSecurity(true)} testID="row-security" />
+        <Row delay={420} hint={`${view.firstName} · ${view.storeName}`} icon="user" label="Account details" onPress={() => go("/seller/account/store")} testID="row-details" />
         <SettingRow hint="Push and email" icon="bell" label="Order notifications" onToggle={(value) => view.dispatch({ key: "orderNotifications", type: "sellerSetSetting", value })} testID="row-notifications" toggle={view.seller.settings.orderNotifications} />
       </View>
 
@@ -67,7 +72,23 @@ export function SellerAccountScreen() {
           testID="switch-to-buyer"
           variant="glass"
         />
+        <SellerButton
+          icon="log-out"
+          label="Log out"
+          onPress={() => {
+            view.dispatch({ type: "signOut" });
+            router.replace("/sign-in" as Href);
+          }}
+          size="lg"
+          style={styles.logout}
+          testID="seller-logout"
+          variant="outline"
+        />
       </Animated.View>
+      <Sheet onClose={() => setSecurity(false)} title="Security and password" visible={security}>
+        <Text style={text.body}>Vossie has no password to remember. You sign in with a one-time code sent to your student email, and your phone&apos;s Face ID or fingerprint can lock the app.</Text>
+        <Button fullWidth label="Got it" onPress={() => setSecurity(false)} testID="security-close" variant="soft" />
+      </Sheet>
     </SellerScreen>
   );
 }
@@ -100,6 +121,7 @@ const styles = StyleSheet.create({
   rowTitle: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },
   store: { alignItems: "center", flexDirection: "row", gap: 14 },
   storeText: { flex: 1, gap: 3 },
+  logout: { marginTop: 12 },
   switch: { marginTop: 24 },
   title: { color: "#FFFFFF", fontSize: 28, fontWeight: "800", marginBottom: 12, marginTop: 18 },
 });
