@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { type LayoutChangeEvent, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { type LayoutChangeEvent, StyleSheet, View, useWindowDimensions } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Easing,
@@ -19,7 +19,7 @@ import { seeded, spring } from "@/theme/motion";
 
 import type { WeekBar } from "@/seller/selectors";
 
-import { SELLER } from "./ui";
+import { SELLER, Text, useTone } from "./ui";
 
 /** A number that counts up to its value, and from the old value to a new one when it changes. Reduce Motion shows the value at once. */
 export function useCountUp(target: number, duration = 900): number {
@@ -139,6 +139,7 @@ const KNOB = 48;
  * ticks and confirms. Screen readers get a plain "activate" action instead of a drag.
  */
 export function SlideToConfirm({ label = "Slide to accept", onConfirm, testID }: { label?: string; onConfirm: () => void; testID?: string }) {
+  const look = useTone();
   const [width, setWidth] = useState(0);
   const x = useSharedValue(0);
   const done = useSharedValue(0);
@@ -174,11 +175,11 @@ export function SlideToConfirm({ label = "Slide to accept", onConfirm, testID }:
         if (event.nativeEvent.actionName === "activate") confirm();
       }}
       onLayout={onLayout}
-      style={styles.track}
+      style={[styles.track, look.tone === "white" && { backgroundColor: look.well, borderColor: "transparent", boxShadow: look.pressed }]}
       testID={testID}
     >
-      <Animated.View style={[styles.trackFill, fill]} />
-      <Animated.Text style={[styles.trackLabel, labelStyle]}>{label}</Animated.Text>
+      <Animated.View style={[styles.trackFill, look.tone === "white" && { backgroundColor: "rgba(56,96,111,0.22)" }, fill]} />
+      <Animated.Text style={[styles.trackLabel, { color: look.tone === "white" ? SELLER.inkSoft : "#FFFFFF" }, labelStyle]}>{label}</Animated.Text>
       <GestureDetector gesture={pan}>
         <Animated.View style={[styles.knob, knob]}>
           <Icon color={SELLER.solid} name="chevrons-right" size={22} />

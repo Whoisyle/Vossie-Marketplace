@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
 import { Icon } from "@/components";
@@ -13,7 +13,7 @@ import { SellerField } from "./fields";
 import { useSeller } from "./hooks";
 import { Confetti, SlideToConfirm, useShake } from "./motion";
 import { DeclineSheet, OrderThumb, STATUS_PILL, whenLabel } from "./OrderParts";
-import { Pill, SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, SellerTopBar } from "./ui";
+import { Pill, SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, SellerTopBar, Text } from "./ui";
 
 /** One order: where it is up to, what was bought, who bought it, where to hand it over, and what it adds up to. */
 export function SellerOrderDetailScreen() {
@@ -28,7 +28,7 @@ export function SellerOrderDetailScreen() {
 
   if (!order) {
     return (
-      <SellerScreen testID="seller-order-missing">
+      <SellerScreen tone="white" testID="seller-order-missing">
         <SellerTopBar title="Order" />
         <SellerCard style={styles.missing}>
           <Text style={styles.itemTitle}>That order is not here any more.</Text>
@@ -42,7 +42,7 @@ export function SellerOrderDetailScreen() {
   const open = order.status === "new";
 
   return (
-    <SellerScreen
+    <SellerScreen tone="white"
       footer={
         order.status === "new" ? (
           <View style={styles.footer}>

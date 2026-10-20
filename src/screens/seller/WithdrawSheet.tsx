@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { Button, Chip, Sheet, TextField, useToast } from "@/components";
 import { formatRand } from "@/data/format";
@@ -11,6 +11,7 @@ import { useDemoStore } from "@/state/DemoStore";
 
 import { useSellerDispatch } from "./actions";
 import { color, space, text } from "@/theme/tokens";
+import { Text } from "./ui";
 
 /**
  * Withdraw earnings to the seller's bank account: pick or type an amount, choose the bank the first time, confirm with

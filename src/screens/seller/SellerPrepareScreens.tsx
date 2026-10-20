@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
 import { Icon, useToast } from "@/components";
@@ -12,7 +12,7 @@ import { ScanSheet } from "./ScanSheet";
 import { useSeller } from "./hooks";
 import { Confetti } from "./motion";
 import { Check, Chips } from "./parts";
-import { Pill, SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, SellerTopBar } from "./ui";
+import { Pill, SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, SellerTopBar, Text } from "./ui";
 
 const SIZES: { key: ParcelSize; label: string }[] = [
   { key: "small", label: "Small" },
@@ -60,6 +60,7 @@ export function SellerPrepareScreen() {
     <SellerScreen
       footer={<SellerButton disabled={!allPacked || ready || !view.canTrade} icon="check" label={ready ? "Ready for pickup" : "Mark ready for pickup"} onPress={markReady} size="lg" testID="mark-ready" variant="glass" />}
       testID="seller-prepare"
+      tone="white"
     >
       <SellerTopBar title="Prepare order" />
       <Text style={styles.sub}>

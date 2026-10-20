@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { type ReactNode, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, StyleSheet, Text as RNText, type TextProps, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import Svg, { Circle, Defs, Pattern, Rect } from "react-native-svg";
 
@@ -25,6 +25,90 @@ export const SELLER = {
   solidPressed: "#2C4E5B",
   white: "#FFFFFF",
 } as const;
+
+/**
+ * Seller pages come in two tones (owner choice, 2026-10-20): blue pages for the numbers (Home, Payouts, Analytics, Reviews)
+ * and white pages for the work (Products, Orders, forms, settings). Both are soft and raised ("neumorphic"): cards stand
+ * out of the page with a light shadow on one side and a dark one on the other, and inputs are pressed in.
+ */
+export type Tone = "blue" | "white";
+
+export type ToneLook = {
+  /** Text sitting straight on the page. */
+  page: string;
+  pageSoft: string;
+  pageBg: string;
+  card: string;
+  raised: string;
+  pressed: string;
+  chip: string;
+  chipOn: string;
+  chipText: string;
+  chipTextOn: string;
+  wordmark: "brand" | "white";
+  well: string;
+};
+
+export const TONES: Record<Tone, ToneLook> = {
+  blue: {
+    card: "#EEF3F6",
+    chip: "rgba(255,255,255,0.14)",
+    chipOn: "#FFFFFF",
+    chipText: "#FFFFFF",
+    chipTextOn: SELLER.solid,
+    page: "#FFFFFF",
+    pageBg: SELLER.bgBottom,
+    pageSoft: "rgba(255,255,255,0.85)",
+    pressed: "inset 3px 3px 7px rgba(10, 26, 34, 0.38), inset -3px -3px 7px rgba(255, 255, 255, 0.16)",
+    raised: "-5px -5px 12px rgba(255, 255, 255, 0.16), 8px 8px 18px rgba(10, 26, 34, 0.42)",
+    well: "#DCE6EA",
+    wordmark: "white",
+  },
+  white: {
+    card: "#E9EFF3",
+    chip: "#E9EFF3",
+    chipOn: SELLER.solid,
+    chipText: SELLER.inkSoft,
+    chipTextOn: "#FFFFFF",
+    page: SELLER.ink,
+    pageBg: "#E9EFF3",
+    pageSoft: SELLER.inkSoft,
+    pressed: "inset 3px 3px 7px rgba(150, 166, 180, 0.55), inset -3px -3px 7px rgba(255, 255, 255, 0.95)",
+    raised: "-6px -6px 14px rgba(255, 255, 255, 0.95), 7px 7px 16px rgba(150, 166, 180, 0.5)",
+    well: "#E0E8ED",
+    wordmark: "brand",
+  },
+};
+
+const ToneContext = createContext<Tone>("blue");
+
+/** The tone of the seller page this component is on. */
+export function useTone(): ToneLook & { tone: Tone } {
+  const tone = useContext(ToneContext);
+  return { ...TONES[tone], tone };
+}
+
+/**
+ * Text for seller pages. Text written in white for a blue page turns dark on a white page, so each screen is written
+ * once and both tones work.
+ */
+export function Text({ style, ...rest }: TextProps) {
+  const { page, pageSoft } = useTone();
+  const flat = StyleSheet.flatten(style) as TextStyle | undefined;
+  const colour = flat?.color;
+  const swapped = colour === "#FFFFFF" ? page : typeof colour === "string" && colour.startsWith("rgba(255,255,255") ? pageSoft : undefined;
+  return <RNText {...rest} style={swapped ? [style, { color: swapped }] : style} />;
+}
+
+/** A pressed-in area: where something is typed or chosen. */
+export function SellerWell({ children, style, testID }: { children: ReactNode; style?: StyleProp<ViewStyle>; testID?: string }) {
+  const look = useTone();
+  return (
+    <View style={[styles.well, { backgroundColor: look.well, boxShadow: look.pressed }, style]} testID={testID}>
+      {children}
+    </View>
+  );
+}
 
 /** The gradient, a dotted texture and slowly drifting contour lines in white. Sits behind every seller screen. */
 export function SellerBackground() {
@@ -51,6 +135,7 @@ export function SellerScreen({
   scroll = true,
   tabs = true,
   testID,
+  tone = "blue",
 }: {
   children: ReactNode;
   footer?: ReactNode;
@@ -58,25 +143,30 @@ export function SellerScreen({
   /** False on the setup pages, which have no tab bar. */
   tabs?: boolean;
   testID?: string;
+  /** Blue for the numbers pages, white for the pages where work is done. */
+  tone?: Tone;
 }) {
   return (
-    <View style={styles.page}>
-      <SellerBackground />
-      <Screen background="transparent" backdrop="none" footer={footer} inTabs={tabs} scroll={scroll} testID={testID}>
-        {children}
-      </Screen>
-    </View>
+    <ToneContext.Provider value={tone}>
+      <View style={[styles.page, { backgroundColor: TONES[tone].pageBg }]}>
+        {tone === "blue" ? <SellerBackground /> : <Backdrop tone="mist" />}
+        <Screen background="transparent" backdrop="none" footer={footer} inTabs={tabs} scroll={scroll} testID={testID}>
+          {children}
+        </Screen>
+      </View>
+    </ToneContext.Provider>
   );
 }
 
 /** The wordmark with the "Seller mode" pill, and an optional control on the right, such as the bell. */
 export function SellerHeader({ right }: { right?: ReactNode }) {
+  const look = useTone();
   return (
     <View style={styles.header}>
       <View style={styles.brand}>
-        <Wordmark tone="white" width={116} />
-        <View style={styles.modePill}>
-          <Text style={styles.modePillText}>Seller mode</Text>
+        <Wordmark tone={look.wordmark} width={116} />
+        <View style={[styles.modePill, look.tone === "white" && { backgroundColor: SELLER.solid }]}>
+          <RNText style={[styles.modePillText, look.tone === "white" && { color: "#FFFFFF" }]}>Seller mode</RNText>
         </View>
       </View>
       {right}
@@ -87,10 +177,11 @@ export function SellerHeader({ right }: { right?: ReactNode }) {
 /** A title row for detail pages: a back arrow, the title, and a control on the right. */
 export function SellerTopBar({ onBack, right, title }: { title: string; onBack?: () => void; right?: ReactNode }) {
   const router = useRouter();
+  const look = useTone();
   return (
     <View style={styles.topBar}>
-      <Pressable accessibilityLabel="Back" accessibilityRole="button" hitSlop={10} onPress={onBack ?? (() => router.back())} style={styles.backButton}>
-        <Icon color="#FFFFFF" name="arrow-left" size={22} />
+      <Pressable accessibilityLabel="Back" accessibilityRole="button" hitSlop={10} onPress={onBack ?? (() => router.back())} style={[styles.backButton, { backgroundColor: look.card, boxShadow: look.raised }]}>
+        <Icon color={SELLER.solid} name="arrow-left" size={20} />
       </Pressable>
       <Text accessibilityRole="header" numberOfLines={1} style={styles.topTitle}>
         {title}
@@ -102,12 +193,13 @@ export function SellerTopBar({ onBack, right, title }: { title: string; onBack?:
 
 /** A round icon button for the header, with an optional count. */
 export function SellerIconButton({ badge, icon, label, onPress, testID }: { icon: IconName; label: string; onPress: () => void; badge?: number; testID?: string }) {
+  const look = useTone();
   return (
-    <Pressable accessibilityLabel={label} accessibilityRole="button" onPress={onPress} style={styles.iconButton} testID={testID}>
-      <Icon color="#FFFFFF" name={icon} size={20} />
+    <Pressable accessibilityLabel={label} accessibilityRole="button" onPress={onPress} style={[styles.iconButton, { backgroundColor: look.card, boxShadow: look.raised }]} testID={testID}>
+      <Icon color={SELLER.solid} name={icon} size={20} />
       {badge ? (
         <View style={styles.iconBadge}>
-          <Text style={styles.iconBadgeText}>{badge > 9 ? "9+" : badge}</Text>
+          <RNText style={styles.iconBadgeText}>{badge > 9 ? "9+" : badge}</RNText>
         </View>
       ) : null}
     </Pressable>
@@ -124,15 +216,17 @@ export function SellerHeading({ children, style }: { children: ReactNode; style?
 
 /** A light card on the gradient. Pressable when `onPress` is given. */
 export function SellerCard({ children, onPress, style, testID }: { children: ReactNode; onPress?: () => void; style?: StyleProp<ViewStyle>; testID?: string }) {
+  const look = useTone();
+  const raised: ViewStyle = { backgroundColor: look.card, boxShadow: look.raised };
   if (onPress) {
     return (
-      <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, style, pressed && styles.cardPressed]} testID={testID}>
+      <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, raised, style, pressed && { boxShadow: look.pressed, transform: [{ scale: 0.99 }] }]} testID={testID}>
         {children}
       </Pressable>
     );
   }
   return (
-    <View style={[styles.card, style]} testID={testID}>
+    <View style={[styles.card, raised, style]} testID={testID}>
       {children}
     </View>
   );
@@ -164,7 +258,8 @@ export function SellerButton({
 }) {
   const press = useSharedValue(0);
   const scale = useAnimatedStyle(() => ({ transform: [{ scale: 1 - press.get() * 0.04 }] }));
-  const look = BUTTONS[variant];
+  const tone = useTone();
+  const look = buttonLook(variant, tone);
   return (
     <Animated.View style={[size === "lg" && styles.fullWidth, scale, style]}>
       <Pressable
@@ -183,10 +278,21 @@ export function SellerButton({
       >
         {loading ? <ActivityIndicator color={look.text} size="small" /> : null}
         {!loading && icon ? <Icon color={look.text} name={icon} size={size === "sm" ? 14 : 18} /> : null}
-        <Text style={[styles.buttonText, size === "sm" && styles.buttonTextSm, { color: look.text }]}>{label}</Text>
+        <RNText style={[styles.buttonText, size === "sm" && styles.buttonTextSm, { color: look.text }]}>{label}</RNText>
       </Pressable>
     </Animated.View>
   );
+}
+
+/** On a white page the glass button becomes a solid one and the light one a raised one, so nothing disappears. */
+function buttonLook(variant: ButtonVariant, tone: ToneLook & { tone: Tone }): { box: ViewStyle; text: string } {
+  if (tone.tone === "white") {
+    if (variant === "glass" || variant === "solid") return { box: { backgroundColor: SELLER.solid, boxShadow: tone.raised }, text: "#FFFFFF" };
+    if (variant === "light" || variant === "outline") return { box: { backgroundColor: tone.card, boxShadow: tone.raised }, text: SELLER.solid };
+    return { box: { backgroundColor: "#14232C", boxShadow: tone.raised }, text: "#FFFFFF" };
+  }
+  const base = BUTTONS[variant];
+  return variant === "solid" || variant === "light" || variant === "dark" ? { box: { ...base.box, boxShadow: tone.raised }, text: base.text } : base;
 }
 
 const BUTTONS: Record<ButtonVariant, { box: ViewStyle; text: string }> = {
@@ -226,13 +332,13 @@ export function Pill({ label, tone = "neutral" }: { label: string; tone?: PillTo
   const look = PILLS[current.tone];
   return (
     <Animated.View style={[styles.pill, { backgroundColor: look.bg }, style]}>
-      <Text style={[styles.pillText, { color: look.fg }]}>{current.label}</Text>
+      <RNText style={[styles.pillText, { color: look.fg }]}>{current.label}</RNText>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  backButton: { alignItems: "center", height: 40, justifyContent: "center", width: 40 },
+  backButton: { alignItems: "center", borderRadius: 20, height: 40, justifyContent: "center", width: 40 },
   brand: { alignItems: "center", flexDirection: "row", gap: 10 },
   button: { alignItems: "center", borderCurve: "continuous", borderRadius: 14, flexDirection: "row", gap: 8, justifyContent: "center", minHeight: 44, paddingHorizontal: 18 },
   buttonDisabled: { opacity: 0.45 },
@@ -240,19 +346,20 @@ const styles = StyleSheet.create({
   buttonSm: { minHeight: 36, paddingHorizontal: 14 },
   buttonText: { fontSize: 15, fontWeight: "700" },
   buttonTextSm: { fontSize: 13 },
-  card: { backgroundColor: SELLER.card, borderCurve: "continuous", borderRadius: 24, boxShadow: "0 8px 22px rgba(18, 36, 44, 0.18)", padding: 16 },
+  card: { borderCurve: "continuous", borderRadius: 24, padding: 16 },
   cardPressed: { opacity: 0.92, transform: [{ scale: 0.99 }] },
   fullWidth: { alignSelf: "stretch" },
   header: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", paddingTop: 6 },
   heading: { color: "#FFFFFF", fontSize: 20, fontWeight: "800", marginBottom: 10, marginTop: 20 },
   iconBadge: { alignItems: "center", backgroundColor: "#FFE14A", borderRadius: 9, height: 18, justifyContent: "center", minWidth: 18, paddingHorizontal: 4, position: "absolute", right: -2, top: -2 },
   iconBadgeText: { color: "#1E2B33", fontSize: 10, fontWeight: "900" },
-  iconButton: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.16)", borderRadius: 22, height: 44, justifyContent: "center", width: 44 },
+  iconButton: { alignItems: "center", borderRadius: 22, height: 44, justifyContent: "center", width: 44 },
   modePill: { backgroundColor: "rgba(255,255,255,0.85)", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
   modePillText: { color: SELLER.ink, fontSize: 10, fontWeight: "800" },
   page: { backgroundColor: SELLER.bgBottom, flex: 1 },
   pill: { alignSelf: "flex-start", borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   pillText: { fontSize: 12, fontWeight: "800" },
+  well: { borderCurve: "continuous", borderRadius: 16 },
   topBar: { alignItems: "center", flexDirection: "row", gap: 6, paddingTop: 6 },
   topRight: { alignItems: "flex-end", minWidth: 40 },
   topTitle: { color: "#FFFFFF", flex: 1, fontSize: 20, fontWeight: "800", textAlign: "center" },

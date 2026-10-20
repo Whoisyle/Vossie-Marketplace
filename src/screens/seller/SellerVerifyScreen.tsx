@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { timeOfDay } from "@/data/format";
@@ -12,7 +12,7 @@ import { useSellerDispatch } from "./actions";
 
 import { usePickImage } from "./fields";
 import { Confetti, StepBar } from "./motion";
-import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerScreen, SellerTopBar } from "./ui";
+import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerScreen, SellerTopBar, Text } from "./ui";
 
 const DOC_LABEL: Record<DocStatus, { label: string; tone: PillTone }> = {
   "in-review": { label: "In review", tone: "warn" },

@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
 import { Icon, type IconName } from "@/components";
@@ -15,7 +15,7 @@ import type { SellerKind } from "@/seller/types";
 
 import { SellerField } from "./fields";
 import { StepBar } from "./motion";
-import { SELLER, SellerButton, SellerCard, SellerScreen } from "./ui";
+import { SELLER, SellerButton, SellerCard, SellerScreen, Text } from "./ui";
 
 export const KINDS: { kind: SellerKind; title: string; hint: string; icon: IconName }[] = [
   { hint: "Items from your room or dorm", icon: "user", kind: "student", title: "Student seller" },

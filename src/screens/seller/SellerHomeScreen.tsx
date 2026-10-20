@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown, FadeOutRight, LinearTransition } from "react-native-reanimated";
 
 import { Icon } from "@/components";
@@ -8,7 +8,7 @@ import type { Attention } from "@/seller/selectors";
 
 import { useSeller, greeting } from "./hooks";
 import { CountUpRand, useCountUp } from "./motion";
-import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerHeader, SellerHeading, SellerIconButton, SellerScreen } from "./ui";
+import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerHeader, SellerHeading, SellerIconButton, SellerScreen, Text } from "./ui";
 import { RestockSheet } from "./RestockSheet";
 
 const KIND: Record<Attention["kind"], { label: string; tone: PillTone; action: string }> = {

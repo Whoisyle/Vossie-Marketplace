@@ -1,11 +1,12 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRef, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 
 import { Button, Sheet } from "@/components";
 import { haptic } from "@/lib/haptics";
 import { scanMatchesCourierCode } from "@/seller/state";
 import { color, space, text } from "@/theme/tokens";
+import { Text } from "./ui";
 
 /**
  * Points the camera at the courier's QR code. A code that is not this order's four digits is refused with a message

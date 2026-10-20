@@ -1,19 +1,19 @@
 import { useRouter, type Href } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Icon } from "@/components";
 import { initials, relativeTime } from "@/data/format";
 
 import { useBuyerMessages } from "./hooks";
-import { SELLER, SellerCard, SellerScreen, SellerTopBar } from "./ui";
+import { SELLER, SellerCard, SellerScreen, SellerTopBar, Text } from "./ui";
 
 /** Seller Messages: the buyers who have written, newest first, with an unread dot. Opens the conversation. */
 export function SellerMessagesScreen() {
   const router = useRouter();
   const messages = useBuyerMessages();
   return (
-    <SellerScreen testID="seller-messages">
+    <SellerScreen tone="white" testID="seller-messages">
       <SellerTopBar title="Messages" />
       {messages.length === 0 ? (
         <SellerCard style={styles.empty}>

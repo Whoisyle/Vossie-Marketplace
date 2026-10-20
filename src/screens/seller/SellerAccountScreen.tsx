@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Button, Icon, Sheet, type IconName } from "@/components";
@@ -10,7 +10,7 @@ import { initials } from "@/data/format";
 
 import { useSeller } from "./hooks";
 import { SettingRow } from "./parts";
-import { Pill, SELLER, SellerButton, SellerCard, SellerHeader, SellerHeading, SellerScreen } from "./ui";
+import { Pill, SELLER, SellerButton, SellerCard, SellerHeader, SellerHeading, SellerScreen, Text } from "./ui";
 
 /** Seller Account: the store as buyers see it, the documents and the bank account behind it, and the way back to buying. */
 export function SellerAccountScreen() {
@@ -20,7 +20,7 @@ export function SellerAccountScreen() {
   const go = (path: string) => router.push(path as Href);
   const [security, setSecurity] = useState(false);
   return (
-    <SellerScreen testID="seller-account">
+    <SellerScreen tone="white" testID="seller-account">
       <SellerHeader />
       <Text accessibilityRole="header" style={styles.title}>
         Account

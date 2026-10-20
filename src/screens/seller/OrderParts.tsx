@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { ArtTile, hasArt } from "@/components/art/ProductArt";
 import { Button, Icon, Sheet } from "@/components";
@@ -8,6 +8,7 @@ import type { SellerListing, SellerOrder, SellerOrderStatus } from "@/seller/typ
 import { space, text } from "@/theme/tokens";
 
 import type { PillTone } from "./ui";
+import { Text } from "./ui";
 
 /** "Today 10:42", "Yesterday 16:05" or "12 Oct, 09:30". */
 export function whenLabel(iso: string, now: Date = new Date()): string {

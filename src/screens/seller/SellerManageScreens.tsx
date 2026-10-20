@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Button, Icon, Sheet, TextField, useToast, type IconName } from "@/components";
@@ -10,7 +10,7 @@ import { space, text } from "@/theme/tokens";
 
 import { useSeller } from "./hooks";
 import { Chips, SettingRow, StatTile } from "./parts";
-import { Pill, SELLER, SellerButton, SellerCard, SellerScreen, SellerTopBar } from "./ui";
+import { Pill, SELLER, SellerButton, SellerCard, SellerScreen, SellerTopBar, Text } from "./ui";
 
 const PROMO_ICON: Record<PromotionKind, IconName> = { bundle: "tag", "free-delivery": "truck", percent: "percent" };
 
@@ -31,7 +31,7 @@ export function SellerPromotionsScreen() {
   const redemptions = all.reduce((sum, item) => sum + item.redemptions, 0);
 
   return (
-    <SellerScreen
+    <SellerScreen tone="white"
       footer={<SellerButton icon="plus" label="Create promotion" onPress={() => setCreating(true)} size="lg" testID="create-promotion" variant="glass" />}
       testID="seller-promotions"
     >
@@ -93,7 +93,7 @@ export function SellerCasesScreen() {
   const open = cases.filter((item) => item.status === "open").length;
 
   return (
-    <SellerScreen testID="seller-cases">
+    <SellerScreen tone="white" testID="seller-cases">
       <SellerTopBar title="Returns & disputes" />
       <Text style={styles.sub}>{open} open {open === 1 ? "case" : "cases"}</Text>
       <Chips items={[{ key: "open", label: `Open ${open}` }, { key: "resolved", label: "Resolved" }, { key: "all", label: "All" }]} onChange={setTab} value={tab} />
@@ -157,7 +157,7 @@ export function SellerTeamScreen() {
   const valid = /^\S+@\S+\.\S+$/.test(email.trim());
 
   return (
-    <SellerScreen
+    <SellerScreen tone="white"
       footer={<SellerButton icon="user-plus" label="Invite someone" onPress={() => setInviting(true)} size="lg" testID="invite-team" variant="glass" />}
       testID="seller-team"
     >

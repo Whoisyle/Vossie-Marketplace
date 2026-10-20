@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Button, Icon, Sheet, useToast } from "@/components";
@@ -12,7 +12,7 @@ import { space, text } from "@/theme/tokens";
 
 import { useSeller } from "./hooks";
 import { Chips, Stars, StatTile } from "./parts";
-import { Pill, SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, SellerTopBar } from "./ui";
+import { Pill, SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, SellerTopBar, Text } from "./ui";
 
 /** Store preview: the shop as a buyer sees it, with a way to edit it or share it. */
 export function SellerStorePreviewScreen() {
@@ -36,6 +36,7 @@ export function SellerStorePreviewScreen() {
         </View>
       }
       testID="seller-store-preview"
+      tone="white"
     >
       <SellerTopBar title="Store preview" />
       <Text style={styles.sub}>How buyers see you</Text>
@@ -223,7 +224,6 @@ export function SellerAnalyticsScreen() {
     </SellerScreen>
   );
 }
-
 
 const styles = StyleSheet.create({
   banner: { alignItems: "center", backgroundColor: "#7FA3B2", borderRadius: 20, height: 100, justifyContent: "center", marginTop: 12 },

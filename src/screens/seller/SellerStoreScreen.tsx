@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
 import { initials } from "@/data/format";
@@ -13,7 +13,7 @@ import { useSellerDispatch } from "./actions";
 
 import { SellerField, usePickImage } from "./fields";
 import { StepBar } from "./motion";
-import { SELLER, SellerButton, SellerScreen, SellerTopBar } from "./ui";
+import { SELLER, SellerButton, SellerScreen, SellerTopBar, Text } from "./ui";
 
 /** "08:00" style times only. */
 export function isTime(value: string): boolean {

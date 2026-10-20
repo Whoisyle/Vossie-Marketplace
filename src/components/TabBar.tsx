@@ -43,7 +43,7 @@ export type TabConfig = { name: string; label: string; icon: IconName };
  * The bottom bar. By default it shows the buyer's six tabs; pass `tabs` for another set (seller mode) and `badges` for
  * counts on them. Without `badges` the Cart tab shows how many items are in the cart.
  */
-export function TabBar({ badges, insets, navigation, state, tabs }: BottomTabBarProps & { tabs?: readonly TabConfig[]; badges?: Record<string, number> }) {
+export function TabBar({ badges, fixed = false, insets, navigation, neo = false, state, tabs }: BottomTabBarProps & { tabs?: readonly TabConfig[]; badges?: Record<string, number>; /** Never slides away while scrolling. */ fixed?: boolean; /** The soft raised look used in seller mode. */ neo?: boolean }) {
   const config = tabs ?? TABS;
   const { itemCount } = useCartTotals();
   const chrome = useTabChrome();
@@ -67,7 +67,7 @@ export function TabBar({ badges, insets, navigation, state, tabs }: BottomTabBar
   const pillStyle = useAnimatedStyle(() => ({ transform: [{ translateX: pillX.get() }] }));
   const bottom = Math.max(insets.bottom, space.sm);
   const slideStyle = useAnimatedStyle(() => {
-    const away = chrome ? chrome.hidden.get() : 0;
+    const away = chrome && !fixed ? chrome.hidden.get() : 0;
     return {
       opacity: 1 - away * 0.95,
       transform: [{ translateY: away * (TAB_BAR_HEIGHT + bottom + 20) }],
@@ -82,26 +82,34 @@ export function TabBar({ badges, insets, navigation, state, tabs }: BottomTabBar
       <View
         accessibilityRole="tablist"
         onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}
-        style={styles.bar}
+        style={[styles.bar, neo && styles.neoShadow]}
       >
-        {Platform.OS === "android" ? (
-          <View style={[StyleSheet.absoluteFill, styles.androidGlass]} />
+        {neo ? (
+          <View style={[StyleSheet.absoluteFill, styles.neoBar]} />
         ) : (
-          <BlurView intensity={55} style={StyleSheet.absoluteFill} tint="light" />
-        )}
-        <LinearGradient
-          colors={["rgba(255,255,255,0.78)", "rgba(237,243,246,0.55)"]}
-          pointerEvents="none"
-          style={StyleSheet.absoluteFill}
-        />
-        {tabWidth > 0 ? (
-          <Animated.View pointerEvents="none" style={[styles.pill, { width: tabWidth - 4 }, pillStyle]}>
+          <>
+            {Platform.OS === "android" ? (
+              <View style={[StyleSheet.absoluteFill, styles.androidGlass]} />
+            ) : (
+              <BlurView intensity={55} style={StyleSheet.absoluteFill} tint="light" />
+            )}
             <LinearGradient
-              colors={["rgba(255,255,255,0.95)", "rgba(215,225,231,0.75)"]}
-              end={{ x: 1, y: 1 }}
-              start={{ x: 0, y: 0 }}
+              colors={["rgba(255,255,255,0.78)", "rgba(237,243,246,0.55)"]}
+              pointerEvents="none"
               style={StyleSheet.absoluteFill}
             />
+          </>
+        )}
+        {tabWidth > 0 ? (
+          <Animated.View pointerEvents="none" style={[styles.pill, { width: tabWidth - 4 }, neo && styles.neoPill, pillStyle]}>
+            {neo ? null : (
+              <LinearGradient
+                colors={["rgba(255,255,255,0.95)", "rgba(215,225,231,0.75)"]}
+                end={{ x: 1, y: 1 }}
+                start={{ x: 0, y: 0 }}
+                style={StyleSheet.absoluteFill}
+              />
+            )}
           </Animated.View>
         ) : null}
         {state.routes.map((route, index) => {
@@ -228,6 +236,9 @@ const styles = StyleSheet.create({
   iconWrap: { alignItems: "center", height: 30, justifyContent: "center", width: 40 },
   label: { color: color.textMuted, fontSize: 10 },
   labelActive: { color: color.ink, fontWeight: "700" },
+  neoShadow: { borderColor: "transparent", boxShadow: "-6px -6px 14px rgba(255, 255, 255, 0.95), 7px 7px 16px rgba(150, 166, 180, 0.55)" },
+  neoBar: { backgroundColor: "#E9EFF3" },
+  neoPill: { backgroundColor: "#E9EFF3", borderWidth: 0, boxShadow: "inset 3px 3px 6px rgba(150, 166, 180, 0.6), inset -3px -3px 6px rgba(255, 255, 255, 0.95)" },
   pill: {
     borderColor: "rgba(255,255,255,0.9)",
     borderRadius: 22,

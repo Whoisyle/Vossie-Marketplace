@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
 import { ArtTile, hasArt } from "@/components/art/ProductArt";
@@ -7,7 +7,7 @@ import { isLowStock } from "@/seller/selectors";
 
 import { useSeller } from "./hooks";
 import { PageTitle, StatTile } from "./parts";
-import { SELLER, SellerCard, SellerScreen, SellerTopBar } from "./ui";
+import { SELLER, SellerCard, SellerScreen, SellerTopBar, Text } from "./ui";
 
 /** Inventory: how many of everything is left, with a plus and a minus to correct the count right here. */
 export function SellerInventoryScreen() {
@@ -20,7 +20,7 @@ export function SellerInventoryScreen() {
   const almost = counted.filter((item) => item.status === "published" && item.onHand > 0 && isLowStock(item))[0] ?? counted.find((item) => item.onHand === 0);
 
   return (
-    <SellerScreen testID="seller-inventory">
+    <SellerScreen tone="white" testID="seller-inventory">
       <SellerTopBar title="Inventory" />
       <PageTitle subtitle="Track stock levels" title="Inventory" />
       <View style={styles.tiles}>

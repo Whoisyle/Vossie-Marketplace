@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Image } from "expo-image";
-import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import { Pressable, StyleSheet, Switch, View } from "react-native";
 
 import { Icon, useToast } from "@/components";
 import { formatRand } from "@/data/format";
@@ -11,7 +11,7 @@ import type { SellerListing } from "@/seller/types";
 
 import { SellerField, usePickImage } from "./fields";
 import { useSeller } from "./hooks";
-import { SELLER, SellerButton, SellerScreen, SellerTopBar } from "./ui";
+import { SELLER, SellerButton, SellerScreen, SellerTopBar, Text } from "./ui";
 
 const CATEGORIES: { key: SellerListing["category"]; label: string }[] = [
   { key: "food", label: "Food" },
@@ -70,7 +70,7 @@ export function SellerListingFormScreen() {
   };
 
   return (
-    <SellerScreen
+    <SellerScreen tone="white"
       footer={
         <View style={styles.footer}>
           <SellerButton label={view.canTrade ? "Publish" : "Submit for review"} onPress={() => save(true)} size="lg" testID="listing-publish" variant="glass" />

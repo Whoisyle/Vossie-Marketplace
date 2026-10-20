@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { formatRand } from "@/data/format";
@@ -9,7 +9,7 @@ import { PageTitle, StatTile } from "./parts";
 import { useSeller } from "./hooks";
 import { BarChart, Confetti, CountUpRand } from "./motion";
 import { whenLabel } from "./OrderParts";
-import { SELLER, SellerButton, SellerCard, SellerHeader, SellerHeading, SellerScreen } from "./ui";
+import { SELLER, SellerButton, SellerCard, SellerHeader, SellerHeading, SellerScreen, Text } from "./ui";
 import { WithdrawSheet } from "./WithdrawSheet";
 
 /** Seller Earnings: the balance that can be withdrawn, the last seven days as bars, and every sale and payout. */

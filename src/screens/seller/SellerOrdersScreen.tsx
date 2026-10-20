@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown, FadeOutRight, LinearTransition, SlideInUp } from "react-native-reanimated";
 
 import { Icon } from "@/components";
@@ -9,9 +9,10 @@ import { ordersInGroup, type OrderGroup } from "@/seller/selectors";
 import type { SellerOrder } from "@/seller/types";
 
 import { useSeller } from "./hooks";
+import { Chips } from "./parts";
 import { useShake } from "./motion";
 import { DeclineSheet, orderTitle, OrderThumb, STATUS_PILL, whenLabel } from "./OrderParts";
-import { Pill, SELLER, SellerButton, SellerCard, SellerHeader, SellerScreen } from "./ui";
+import { Pill, SELLER, SellerButton, SellerCard, SellerHeader, SellerScreen, Text } from "./ui";
 
 const CHIPS: { key: OrderGroup; label: string }[] = [
   { key: "new", label: "New" },
@@ -33,25 +34,16 @@ export function SellerOrdersScreen() {
   const orders = ordersInGroup(view.seller.orders, group);
 
   return (
-    <SellerScreen testID="seller-orders">
+    <SellerScreen tone="white" testID="seller-orders">
       <SellerHeader />
       <Text accessibilityRole="header" style={styles.title}>
         Orders
       </Text>
-      <ScrollView contentContainerStyle={styles.chips} horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
-        {CHIPS.map((chip) => {
-          const count = view.counts[chip.key];
-          const on = group === chip.key;
-          return (
-            <Pressable accessibilityLabel={`${chip.label}, ${count}`} accessibilityRole="tab" accessibilityState={{ selected: on }} key={chip.key} onPress={() => setGroup(chip.key)} style={[styles.chip, on && styles.chipOn]} testID={`chip-${chip.key}`}>
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                {chip.label}
-                {count > 0 && (chip.key === "new" || chip.key === "accepted" || chip.key === "preparing" || chip.key === "ready") ? ` ${count}` : ""}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      <Chips
+        items={CHIPS.map((chip) => ({ key: chip.key, label: `${chip.label}${view.counts[chip.key] > 0 && chip.key !== "done" && chip.key !== "cancelled" ? ` ${view.counts[chip.key]}` : ""}` }))}
+        onChange={setGroup}
+        value={group}
+      />
 
       {!view.canTrade ? (
         <SellerCard onPress={() => router.push("/seller/account/documents" as Href)} style={styles.note} testID="orders-locked">

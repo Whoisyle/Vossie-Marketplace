@@ -1,12 +1,12 @@
 import { useRouter, type Href } from "expo-router";
 import { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown, FadeInLeft, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 
 import { Icon, type IconName } from "@/components";
 import { ease } from "@/theme/motion";
 import { useSellerDispatch } from "./actions";
-import { SellerButton, SellerHeader, SellerScreen } from "./ui";
+import { SellerButton, SellerHeader, SellerScreen, Text } from "./ui";
 
 const BENEFITS: { icon: IconName; text: string }[] = [
   { icon: "plus", text: "List what you sell" },

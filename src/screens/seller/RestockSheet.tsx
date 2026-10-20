@@ -1,10 +1,11 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { Button, Sheet, useToast } from "@/components";
 import { useDemoStore } from "@/state/DemoStore";
 
 import { useSellerDispatch } from "./actions";
 import { color, space, text } from "@/theme/tokens";
+import { Text } from "./ui";
 
 /** Quick restock: how many are left, and buttons to add ten, twenty or fifty. Shown from Home and the listings. */
 export function RestockSheet({ listingId, onClose }: { listingId: string | null; onClose: () => void }) {

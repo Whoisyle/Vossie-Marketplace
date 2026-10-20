@@ -1,5 +1,5 @@
 import { useRouter, type Href } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Icon, type IconName } from "@/components";
@@ -7,7 +7,7 @@ import { relativeTime } from "@/data/format";
 import type { SellerAlert } from "@/seller/types";
 
 import { useSeller } from "./hooks";
-import { SELLER, SellerButton, SellerCard, SellerScreen, SellerTopBar } from "./ui";
+import { SELLER, SellerButton, SellerCard, SellerScreen, SellerTopBar, Text } from "./ui";
 
 const ICONS: Record<SellerAlert["kind"], IconName> = { account: "shield", message: "message-circle", money: "dollar-sign", order: "package", stock: "alert-triangle" };
 
@@ -16,7 +16,7 @@ export function SellerNotificationsScreen() {
   const router = useRouter();
   const view = useSeller();
   return (
-    <SellerScreen testID="seller-notifications">
+    <SellerScreen tone="white" testID="seller-notifications">
       <SellerTopBar
         right={view.unreadAlerts > 0 ? <SellerButton label="Read all" onPress={() => view.dispatch({ type: "sellerMarkAlertsRead" })} size="sm" testID="alerts-read-all" variant="glass" /> : undefined}
         title="Notifications"

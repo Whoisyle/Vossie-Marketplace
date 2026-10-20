@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, TextInput, View } from "react-native";
 import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
 
 import { ArtTile, hasArt } from "@/components/art/ProductArt";
@@ -10,7 +10,8 @@ import { isLowStock } from "@/seller/selectors";
 import type { SellerListing, SellerListingStatus } from "@/seller/types";
 
 import { useSeller } from "./hooks";
-import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerHeader, SellerScreen } from "./ui";
+import { Chips } from "./parts";
+import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerHeader, SellerScreen, Text } from "./ui";
 import { RestockSheet } from "./RestockSheet";
 
 type Filter = "all" | "active" | "low" | "paused" | "draft" | "archived";
@@ -53,7 +54,7 @@ export function SellerProductsScreen() {
   const lowCount = view.seller.listings.filter(isLowStock).length;
 
   return (
-    <SellerScreen testID="seller-listings">
+    <SellerScreen tone="white" testID="seller-listings">
       <SellerHeader />
       <View style={styles.titleRow}>
         <View>
@@ -70,13 +71,7 @@ export function SellerProductsScreen() {
         <Icon color={SELLER.inkSoft} name="search" size={18} />
         <TextInput accessibilityLabel="Search products" onChangeText={setQuery} placeholder="Search products" placeholderTextColor="#8A99A1" style={styles.searchInput} testID="product-search" value={query} />
       </View>
-      <ScrollView contentContainerStyle={styles.chips} horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
-        {FILTERS.map((chip) => (
-          <Pressable accessibilityRole="tab" accessibilityState={{ selected: filter === chip.key }} key={chip.key} onPress={() => setFilter(chip.key)} style={[styles.chip, filter === chip.key && styles.chipOn]} testID={`filter-${chip.key}`}>
-            <Text style={[styles.chipText, filter === chip.key && styles.chipTextOn]}>{chip.label}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+      <Chips items={FILTERS} onChange={setFilter} prefix="filter" value={filter} />
 
       <SellerButton icon="bar-chart-2" label="Inventory" onPress={() => router.push("/seller/products/inventory" as Href)} size="sm" style={styles.inventory} testID="open-inventory" variant="glass" />
 

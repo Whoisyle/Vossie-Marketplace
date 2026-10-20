@@ -1,17 +1,25 @@
 import { type ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 
 import { Icon, type IconName } from "@/components";
 
-import { SELLER } from "./ui";
+import { SELLER, Text, useTone } from "./ui";
 
 /** A row of filter chips on the gradient. The chosen one turns white. */
-export function Chips<T extends string>({ items, onChange, value }: { items: { key: T; label: string }[]; value: T; onChange: (key: T) => void }) {
+export function Chips<T extends string>({ items, onChange, value, prefix = "chip" }: { items: { key: T; label: string }[]; value: T; onChange: (key: T) => void; prefix?: string }) {
+  const look = useTone();
   return (
     <ScrollView contentContainerStyle={styles.chips} horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
       {items.map((chip) => (
-        <Pressable accessibilityRole="tab" accessibilityState={{ selected: value === chip.key }} key={chip.key} onPress={() => onChange(chip.key)} style={[styles.chip, value === chip.key && styles.chipOn]} testID={`chip-${chip.key}`}>
-          <Text style={[styles.chipText, value === chip.key && styles.chipTextOn]}>{chip.label}</Text>
+        <Pressable
+          accessibilityRole="tab"
+          accessibilityState={{ selected: value === chip.key }}
+          key={chip.key}
+          onPress={() => onChange(chip.key)}
+          style={[styles.chip, { backgroundColor: value === chip.key ? look.chipOn : look.chip, boxShadow: value === chip.key ? look.pressed : look.raised }]}
+          testID={`${prefix}-${chip.key}`}
+        >
+          <Text style={[styles.chipText, { color: value === chip.key ? look.chipTextOn : look.chipText }]}>{chip.label}</Text>
         </Pressable>
       ))}
     </ScrollView>
@@ -104,12 +112,10 @@ const styles = StyleSheet.create({
   boxOn: { backgroundColor: SELLER.solid },
   check: { alignItems: "center", flexDirection: "row", gap: 10, minHeight: 36 },
   checkText: { color: SELLER.ink, flex: 1, fontSize: 15 },
-  chip: { backgroundColor: "rgba(255,255,255,0.16)", borderRadius: 20, minHeight: 38, paddingHorizontal: 16, paddingVertical: 9 },
-  chipOn: { backgroundColor: "#FFFFFF" },
+  chip: { borderRadius: 20, minHeight: 38, paddingHorizontal: 16, paddingVertical: 9 },
   chipScroll: { marginHorizontal: -20 },
   chipText: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" },
-  chipTextOn: { color: SELLER.solid },
-  chips: { gap: 8, paddingHorizontal: 20, paddingVertical: 4 },
+  chips: { gap: 10, paddingHorizontal: 20, paddingVertical: 10 },
   row: { alignItems: "center", backgroundColor: SELLER.card, borderCurve: "continuous", borderRadius: 20, flexDirection: "row", gap: 12, padding: 14 },
   rowHint: { color: SELLER.inkSoft, fontSize: 13 },
   rowIcon: { alignItems: "center", backgroundColor: "#E3ECEF", borderRadius: 14, height: 42, justifyContent: "center", width: 42 },
