@@ -139,10 +139,10 @@ function listing(partial: Partial<SellerListing> & Pick<SellerListing, "id" | "t
 function listingsSeed(now: number): SellerListing[] {
   const at = new Date(now - 3 * DAY).toISOString();
   return [
-    listing({ artId: "ti-30xs-calculator", category: "electronics", description: "Barely used, comes with cover. Collect on campus.", id: "sl-ti30", onHand: 2, priceCents: 22000, title: "TI-30XS Calculator", variants: ["Black", "Blue"] }, at, 1),
-    listing({ artId: "calculus-textbook", category: "books", description: "Latest edition, light highlighting, no torn pages.", id: "sl-calculus", onHand: 8, priceCents: 34000, title: "Calculus Textbook" }, at, 2),
-    listing({ artId: "desk-lamp", category: "electronics", description: "White LED desk lamp with a flexible arm.", id: "sl-lamp", onHand: 14, priceCents: 12000, title: "Desk Lamp (white)" }, at, 3),
-    listing({ artId: "hoodie-teal", category: "fashion", description: "Teal hoodie, medium. Worn twice.", id: "sl-hoodie", onHand: 0, priceCents: 28000, status: "draft", title: "Hoodie Teal (M)", variants: ["M", "L"] }, at, 4),
+    listing({ artId: "casio-calculator", category: "electronics", description: "Barely used, comes with cover. Collect on campus.", id: "sl-ti30", onHand: 2, priceCents: 22000, title: "TI-30XS Calculator", variants: ["Black", "Blue"] }, at, 1),
+    listing({ artId: "eng-maths", category: "books", description: "Latest edition, light highlighting, no torn pages.", id: "sl-calculus", onHand: 8, priceCents: 34000, title: "Calculus Textbook" }, at, 2),
+    listing({ category: "electronics", description: "White LED desk lamp with a flexible arm.", id: "sl-lamp", onHand: 14, priceCents: 12000, title: "Desk Lamp (white)" }, at, 3),
+    listing({ artId: "campus-hoodie", category: "fashion", description: "Teal hoodie, medium. Worn twice.", id: "sl-hoodie", onHand: 0, priceCents: 28000, status: "draft", title: "Hoodie Teal (M)", variants: ["M", "L"] }, at, 4),
     listing({ artId: "casio-calculator", category: "electronics", description: "Casio scientific calculator, works perfectly.", id: "sl-casio", onHand: 6, priceCents: 15000, title: "Casio Scientific Calculator" }, at, 5),
     listing({ artId: "textbook-econ", category: "books", description: "Economics 101, latest edition.", id: "sl-econ", onHand: 9, priceCents: 24000, title: "Economics 101 Textbook" }, at, 6),
     listing({ artId: "textbook-prog", category: "books", description: "Covers the full first-year module.", id: "sl-python", onHand: 7, priceCents: 19500, title: "Intro to Programming (Python)" }, at, 7),

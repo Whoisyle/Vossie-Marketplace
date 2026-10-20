@@ -29,10 +29,10 @@ const BENEFITS: { icon: IconName; text: string }[] = [
 
 /** Products that float behind the welcome: where on the screen, how big, how far they drift and how fast. */
 const FLOATERS: { art: string; top: string; left?: string; right?: string; size: number; drift: number; ms: number; tilt: number }[] = [
-  { art: "ti-30xs-calculator", drift: 14, left: "6%", ms: 3200, size: 76, tilt: -8, top: "14%" },
-  { art: "headphones", drift: 18, ms: 3800, right: "8%", size: 84, tilt: 7, top: "20%" },
-  { art: "desk-lamp", drift: 12, left: "12%", ms: 4200, size: 64, tilt: 6, top: "56%" },
-  { art: "calculus-textbook", drift: 16, ms: 3500, right: "6%", size: 72, tilt: -6, top: "62%" },
+  { art: "casio-calculator", drift: 14, left: "6%", ms: 3200, size: 72, tilt: -8, top: "12%" },
+  { art: "headphones", drift: 18, ms: 3800, right: "8%", size: 80, tilt: 7, top: "16%" },
+  { art: "campus-hoodie", drift: 12, left: "8%", ms: 4200, size: 64, tilt: 6, top: "72%" },
+  { art: "eng-maths", drift: 16, ms: 3500, right: "7%", size: 70, tilt: -6, top: "70%" },
 ];
 
 /** One product art tile that bobs up and down and sways, for ever. */

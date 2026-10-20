@@ -29,6 +29,8 @@ export function CampusExtrasScreen() {
   const tutors = getListings({ categoryId: "services" }).filter((listing) => /tutor/i.test(listing.title));
   const slots = tutorSlots();
   const days = [...new Set(slots.map((slot) => slot.day))];
+  // late in the evening there is nothing left today, so the first day with times is shown
+  const shownDay = days.includes(day) ? day : (days[0] ?? day);
   const activeTutor = tutors.find((listing) => listing.id === tutor);
 
   return (
@@ -176,12 +178,12 @@ export function CampusExtrasScreen() {
       <Sheet onClose={() => setTutor(null)} title={activeTutor ? `Book ${activeTutor.title}` : "Book a tutor"} visible={Boolean(activeTutor)}>
         <View style={styles.chips}>
           {days.map((item) => (
-            <Chip key={item} label={item} onPress={() => setDay(item)} selected={day === item} />
+            <Chip key={item} label={item} onPress={() => setDay(item)} selected={shownDay === item} />
           ))}
         </View>
         <View style={styles.chips}>
           {slots
-            .filter((slot) => slot.day === day)
+            .filter((slot) => slot.day === shownDay)
             .map((slot) => (
               <Chip
                 key={slot.iso}
