@@ -3,7 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { landscapeHeight } from "@/components/StudentCard";
+import { FLAT_RADIUS, landscapeHeight } from "@/components/StudentCard";
 import { Wordmark } from "@/components/Wordmark";
 import { formatRand } from "@/data/format";
 
@@ -19,7 +19,7 @@ const ART = {
 export function ApplePayFace({ ready, width }: { ready: boolean; width: number }) {
   const h = landscapeHeight(width);
   return (
-    <View style={[styles.frame, { borderRadius: width * 0.05, height: h, width }]} testID="card-face">
+    <View style={[styles.frame, { borderRadius: width * FLAT_RADIUS, height: h, width }]} testID="card-face">
       <LinearGradient colors={["#242426", "#141415", "#0A0A0B"]} pointerEvents="none" style={StyleSheet.absoluteFill} />
       <Image accessibilityLabel="Apple Pay" contentFit="contain" source={ART.appleLogo} style={{ height: (width * 0.34 * 104) / 220, left: width * 0.06, position: "absolute", top: h * 0.08, width: width * 0.34 }} />
       <View style={{ position: "absolute", right: width * 0.06, top: h * 0.1 }}>
@@ -37,9 +37,9 @@ export function ApplePayFace({ ready, width }: { ready: boolean; width: number }
 export function GooglePayFace({ ready, width }: { ready: boolean; width: number }) {
   const h = landscapeHeight(width);
   return (
-    <View style={[styles.frame, styles.light, { borderRadius: width * 0.05, height: h, width }]} testID="card-face">
+    <View style={[styles.frame, styles.light, { borderRadius: width * FLAT_RADIUS, height: h, width }]} testID="card-face">
       <Image accessibilityLabel="Google Pay" contentFit="contain" source={ART.googleLogo} style={{ height: (width * 0.28 * 76) / 175, left: width * 0.06, position: "absolute", top: h * 0.08, width: width * 0.28 }} />
-      <Image contentFit="contain" source={ART.googleArt} style={{ bottom: 0, height: h * 0.78, position: "absolute", right: width * 0.04, width: (h * 0.78 * 440) / 342 }} />
+      <Image contentFit="contain" source={ART.googleArt} style={{ bottom: 0, height: h * 0.58, position: "absolute", right: width * 0.04, width: (h * 0.58 * 440) / 342 }} />
       <View style={{ bottom: h * 0.09, left: width * 0.06, position: "absolute" }}>
         <Text style={{ color: "#3C4043", fontSize: h * 0.11, fontWeight: "600" }}>{ready ? "Hold to reader" : "Not on this phone"}</Text>
         <Text style={{ color: "#5F6368", fontSize: h * 0.07, marginTop: 2 }}>{ready ? "Tap to pay" : "Android only"}</Text>
@@ -55,7 +55,7 @@ export function GooglePayFace({ ready, width }: { ready: boolean; width: number 
 export function VossieWalletFace({ balanceCents, width }: { balanceCents: number; width: number }) {
   const h = landscapeHeight(width);
   return (
-    <View style={[styles.frame, { borderRadius: width * 0.05, height: h, width }]} testID="wallet-balance-card">
+    <View style={[styles.frame, { borderRadius: width * FLAT_RADIUS, height: h, width }]} testID="wallet-balance-card">
       <LinearGradient colors={["#2C2C2E", "#363638", "#404042"]} end={{ x: 1, y: 0.2 }} pointerEvents="none" start={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
       <Svg height={h} style={StyleSheet.absoluteFill} width={width}>
         {Array.from({ length: 38 }, (_, i) => {
@@ -75,7 +75,7 @@ export function VossieWalletFace({ balanceCents, width }: { balanceCents: number
         <Wordmark tone="white" width={Math.round(width * 0.26)} />
       </View>
       <View style={{ left: width * 0.07, position: "absolute", top: h * 0.33 }}>
-        <Chip colour="#C9CACC" size={h / 105} />
+        <Chip colour="#C9CACC" width={(11.2 * width) / 85.6} />
       </View>
       <View style={{ bottom: h * 0.09, left: width * 0.07, position: "absolute" }}>
         <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: Math.max(8, h * 0.055), fontWeight: "500", letterSpacing: 0.5 }}>WALLET BALANCE</Text>

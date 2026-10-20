@@ -15,7 +15,7 @@ import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSprin
 import Svg, { Path } from "react-native-svg";
 
 import { FlipCard, Icon } from "@/components";
-import { landscapeHeight } from "@/components/StudentCard";
+import { FLAT_RADIUS, landscapeHeight } from "@/components/StudentCard";
 import { issuerByName, schemeFaces } from "@/data/cardBrands";
 import { formatRand } from "@/data/format";
 import type { SavedCard } from "@/data/types";
@@ -91,7 +91,7 @@ export function CardSurface({
 }) {
   const height = landscapeHeight(width);
   return (
-    <View style={[styles.card, dashed && styles.dashed, { borderRadius: Math.round(width * 0.05), height, width }]} testID={testID}>
+    <View style={[styles.card, dashed && styles.dashed, { borderRadius: width * FLAT_RADIUS, height, width }]} testID={testID}>
       {colors ? <LinearGradient colors={colors} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} /> : null}
       {colors ? (
         <Svg height={height} pointerEvents="none" style={StyleSheet.absoluteFill} width={width}>
@@ -125,7 +125,7 @@ export function CardFace({ card, width = WALLET_CARD_WIDTH }: { card: SavedCard;
         <Text style={[styles.bank, { fontSize: 15 * scale }]}>{card.brand === "mastercard" ? "Mastercard" : "Visa"}</Text>
         <Contactless size={22 * scale} />
       </View>
-      <Chip size={scale} />
+      <Chip width={(11.2 * width) / 85.6} />
       <View style={styles.rowEnd}>
         <View style={styles.flex}>
           <Text style={[styles.number, { fontSize: 18 * scale }]}>•••• •••• •••• {card.last4}</Text>

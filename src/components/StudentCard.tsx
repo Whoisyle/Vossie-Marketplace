@@ -12,6 +12,15 @@ export function cardHeight(width: number): number {
   return Math.round(width / CARD_ASPECT);
 }
 
+/** Corner radius of a real card, 3.18 mm, as a share of the width of a flat card (85.6 mm) and of an upright card (54 mm). */
+export const FLAT_RADIUS = 3.18 / 85.6;
+export const UPRIGHT_RADIUS = 3.18 / 54;
+
+/** Width of the upright student card when a flat bank card is drawn `bankWidth` wide, so both are at the same scale. */
+export function uprightWidth(bankWidth: number): number {
+  return Math.round((bankWidth * 54) / 85.6);
+}
+
 /** Height of a horizontal card of the given width (bank and wallet cards). */
 export function landscapeHeight(width: number): number {
   return Math.round(width * CARD_ASPECT);
@@ -71,18 +80,20 @@ export function StudentCard({
   const height = cardHeight(width);
   const number = studentNumber ? formatStudentNumber(studentNumber) : "not available";
   const label = `Student card. ${name}. Student number ${number}. ${campusName}.${verified ? " Verified." : ""}`;
-  const logoWidth = Math.round(width * 0.78);
-  const hidWidth = Math.round(width * 0.17);
+  // every size below is in millimetres, measured from the Eduvos card: the logo is 41.5 mm wide, the HID badge 8 mm
+  const mm = width / 54;
+  const logoWidth = 41.5 * mm;
+  const hidWidth = 8 * mm;
 
   return (
-    <View accessibilityLabel={label} accessible style={[styles.card, { borderRadius: Math.round(width * 0.075), height, width }]} testID="student-card">
+    <View accessibilityLabel={label} accessible style={[styles.card, { borderRadius: UPRIGHT_RADIUS * width, height, width }]} testID="student-card">
       <LinearGradient colors={["#083264", "#0A3A79", "#054088"]} end={{ x: 1, y: 0 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
       <CardStreaks />
-      <Image accessibilityLabel="Eduvos" contentFit="contain" source={LOGO} style={{ height: logoWidth / LOGO_ASPECT, left: width * 0.1, position: "absolute", top: height * 0.05, width: logoWidth }} />
-      <View style={[styles.bottom, { bottom: height * 0.05, left: width * 0.1, right: width * 0.1 }]}>
+      <Image accessibilityLabel="Eduvos" contentFit="contain" source={LOGO} style={{ height: logoWidth / LOGO_ASPECT, left: 4.5 * mm, position: "absolute", top: 3.5 * mm, width: logoWidth }} />
+      <View style={[styles.bottom, { bottom: 3.8 * mm, left: 3.7 * mm, right: 3.7 * mm }]}>
         <View style={styles.flex}>
-          <Text style={[styles.label, { fontSize: Math.max(8, width * 0.048) }]}>DISPLAY NAME</Text>
-          <Text numberOfLines={1} style={[styles.name, { fontSize: Math.max(13, width * 0.085) }]}>
+          <Text style={[styles.label, { fontSize: 2.2 * mm }]}>DISPLAY NAME</Text>
+          <Text numberOfLines={1} style={[styles.name, { fontSize: 3.3 * mm }]}>
             {name || "Vossie student"}
           </Text>
         </View>

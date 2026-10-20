@@ -4,7 +4,7 @@ import QRCode from "react-native-qrcode-svg";
 
 import { Wordmark } from "@/components/Wordmark";
 import { FlipCard } from "@/components/FlipCard";
-import { cardHeight, landscapeHeight, StudentCard } from "@/components/StudentCard";
+import { cardHeight, FLAT_RADIUS, landscapeHeight, StudentCard, UPRIGHT_RADIUS } from "@/components/StudentCard";
 import type { Issuer } from "@/data/cardBrands";
 import { formatStudentNumber } from "@/data/studentRecord";
 import type { SavedCard } from "@/data/types";
@@ -48,7 +48,7 @@ export function BankBack({ card, issuer, width }: { card: SavedCard; issuer: Iss
   const h = landscapeHeight(width);
   const look = BACKS[issuer.id] ?? DEFAULT_BACK;
   return (
-    <View style={[styles.frame, { borderRadius: width * 0.05, height: h, width }]} testID="card-back">
+    <View style={[styles.frame, { borderRadius: width * FLAT_RADIUS, height: h, width }]} testID="card-back">
       <LinearGradient colors={look.base} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
       <StripeAndPanel h={h} ink={look.ink} stripe={look.stripe} w={width} />
       <Text style={{ color: look.ink, fontSize: h * 0.05, left: width * 0.06, lineHeight: h * 0.07, opacity: 0.85, position: "absolute", right: width * 0.32, top: h * 0.66 }}>
@@ -68,7 +68,7 @@ export function BankBack({ card, issuer, width }: { card: SavedCard; issuer: Iss
 export function SchemeBack({ card, width }: { card: SavedCard; width: number }) {
   const h = landscapeHeight(width);
   return (
-    <View style={[styles.frame, { borderRadius: width * 0.05, height: h, width }]} testID="card-back">
+    <View style={[styles.frame, { borderRadius: width * FLAT_RADIUS, height: h, width }]} testID="card-back">
       <LinearGradient colors={card.brand === "visa" ? ["#1A1F71", "#0E1345"] : ["#1B1B1F", "#3A2A2A"]} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
       <StripeAndPanel h={h} ink="#E8EAF2" stripe="#000000" w={width} />
       <Text style={{ bottom: h * 0.07, color: "#E8EAF2", fontSize: h * 0.05, left: width * 0.06, letterSpacing: 1, opacity: 0.85, position: "absolute" }}>
@@ -85,7 +85,7 @@ export function SchemeBack({ card, width }: { card: SavedCard; width: number }) 
 export function WalletBack({ width }: { width: number }) {
   const h = landscapeHeight(width);
   return (
-    <View style={[styles.frame, { borderRadius: width * 0.05, height: h, width }]} testID="card-back">
+    <View style={[styles.frame, { borderRadius: width * FLAT_RADIUS, height: h, width }]} testID="card-back">
       <LinearGradient colors={["#3A3A3C", "#2A2A2C"]} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
       <View style={{ backgroundColor: "#1B1B1D", height: h * 0.17, left: 0, position: "absolute", right: 0, top: h * 0.12 }} />
       <View style={{ left: width * 0.07, position: "absolute", top: h * 0.4 }}>
@@ -103,7 +103,7 @@ export function WalletBack({ width }: { width: number }) {
 export function ApplePayBack({ ready, width }: { ready: boolean; width: number }) {
   const h = landscapeHeight(width);
   return (
-    <View style={[styles.frame, { backgroundColor: "#121213", borderRadius: width * 0.05, height: h, width }]} testID="card-back">
+    <View style={[styles.frame, { backgroundColor: "#121213", borderRadius: width * FLAT_RADIUS, height: h, width }]} testID="card-back">
       <View style={{ backgroundColor: "#050505", height: h * 0.17, left: 0, position: "absolute", right: 0, top: h * 0.12 }} />
       <Text style={{ color: "#FFFFFF", fontSize: h * 0.075, fontWeight: "600", left: width * 0.07, position: "absolute", top: h * 0.4 }}>Apple Pay</Text>
       <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: h * 0.058, left: width * 0.07, lineHeight: h * 0.085, position: "absolute", right: width * 0.07, top: h * 0.53 }}>
@@ -117,7 +117,7 @@ export function ApplePayBack({ ready, width }: { ready: boolean; width: number }
 export function GooglePayBack({ ready, width }: { ready: boolean; width: number }) {
   const h = landscapeHeight(width);
   return (
-    <View style={[styles.frame, { backgroundColor: "#FFFFFF", borderColor: "#E3E6E8", borderRadius: width * 0.05, borderWidth: 1, height: h, width }]} testID="card-back">
+    <View style={[styles.frame, { backgroundColor: "#FFFFFF", borderColor: "#E3E6E8", borderRadius: width * FLAT_RADIUS, borderWidth: 1, height: h, width }]} testID="card-back">
       <View style={{ backgroundColor: "#E8EAED", height: h * 0.17, left: 0, position: "absolute", right: 0, top: h * 0.12 }} />
       <Text style={{ color: "#3C4043", fontSize: h * 0.075, fontWeight: "600", left: width * 0.07, position: "absolute", top: h * 0.4 }}>Google Pay</Text>
       <Text style={{ color: "#5F6368", fontSize: h * 0.058, left: width * 0.07, lineHeight: h * 0.085, position: "absolute", right: width * 0.07, top: h * 0.53 }}>
@@ -135,7 +135,7 @@ export function StudentBack({ studentNumber, width }: { studentNumber?: string; 
   const h = cardHeight(width);
   const qr = Math.round(width * 0.62);
   return (
-    <View style={[styles.frame, { borderRadius: Math.round(width * 0.075), height: h, width }]} testID="student-card-back">
+    <View style={[styles.frame, { borderRadius: UPRIGHT_RADIUS * width, height: h, width }]} testID="student-card-back">
       <LinearGradient colors={["#083264", "#0A3A79", "#054088"]} end={{ x: 1, y: 0 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
       <View style={{ alignItems: "center", left: 0, position: "absolute", right: 0, top: h * 0.12 }}>
         <View style={{ backgroundColor: "#FFFFFF", borderRadius: width * 0.04, padding: width * 0.05 }}>

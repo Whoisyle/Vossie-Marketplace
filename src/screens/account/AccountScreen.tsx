@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 import {
   AppHeader,
@@ -13,7 +13,9 @@ import {
   Sheet,
   useToast,
 } from "@/components";
+import { uprightWidth } from "@/components/StudentCard";
 import { StudentCardFlip } from "./CardBacks";
+import { walletCardWidth } from "./WalletCards";
 import { deliveryLabels, deliveryOption, type DeliveryMode } from "@/data/delivery";
 import { formatRand } from "@/data/format";
 import { nextTier, pointsBalance, pointsValueCents, tierFor } from "@/data/points";
@@ -30,6 +32,7 @@ export const roleLabels: Record<Role, string> = {
 
 /** Account tab: profile summary and entry points to the account sub-screens. */
 export function AccountScreen() {
+  const { width: screenWidth } = useWindowDimensions();
   const router = useRouter();
   const toast = useToast();
   const { dispatch, state } = useDemoStore();
@@ -54,7 +57,7 @@ export function AccountScreen() {
           name={profile.fullName}
           studentNumber={profile.studentNumber}
           verified={profile.isVerifiedStudent}
-          width={220}
+          width={uprightWidth(walletCardWidth(screenWidth))}
         />
       </View>
 

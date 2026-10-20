@@ -6,7 +6,9 @@ import { haptic } from "@/lib/haptics";
 import { color, corner, space } from "@/theme/tokens";
 
 /** The gold EMV chip on a bank card. */
-export function Chip({ colour = "#D8B65A", size = 1 }: { colour?: string; size?: number }) {
+export function Chip({ colour = "#D8B65A", size = 1, width }: { colour?: string; size?: number; width?: number }) {
+  // `width` in pixels wins; cards pass 11.2 mm worth of pixels, the real size of the contact pad
+  if (width !== undefined) size = width / 38;
   const w = 38 * size;
   const h = 29 * size;
   const line = { backgroundColor: "rgba(120, 85, 20, 0.55)", position: "absolute" } as const;
@@ -31,7 +33,9 @@ export function Contactless({ colour = "#FFFFFF", size = 22 }: { colour?: string
 }
 
 /** Visa and Mastercard marks drawn in code; the official artwork replaces these before release. */
-export function SchemeLogo({ brand, size = 60, tone = "white" }: { brand: "visa" | "mastercard"; size?: number; tone?: "white" | "gold" }) {
+export function SchemeLogo({ brand, size = 60, tone = "white", width }: { brand: "visa" | "mastercard"; size?: number; tone?: "white" | "gold"; width?: number }) {
+  // `width` in pixels is the mark's overall width: two circles overlapping for Mastercard, the wordmark for Visa
+  if (width !== undefined) size = brand === "mastercard" ? width / 0.8 : width / 0.9;
   if (brand === "mastercard") {
     const d = size * 0.5;
     return (

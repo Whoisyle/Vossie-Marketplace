@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet } from "react-native";
 
-import { StudentCard } from "@/components/StudentCard";
+import { StudentCard, uprightWidth } from "@/components/StudentCard";
 import { issuers } from "@/data/cardBrands";
 import { BankFace } from "@/screens/account/BankFaces";
 import { ApplePayFace, GooglePayFace, VossieWalletFace } from "@/screens/account/PayFaces";
@@ -13,7 +13,7 @@ const card = { brand: "visa" as const, expiry: "08/28", holder: "Vumisa", id: "x
 export default function CardGallery() {
   return (
     <ScrollView contentContainerStyle={styles.grid} style={styles.page}>
-      <StudentCard campusName="Potchefstroom" name="Paballo Kali" studentNumber="202309530" width={200} />
+      <StudentCard campusName="Potchefstroom" name="Paballo Kali" studentNumber="202309530" width={uprightWidth(W)} />
       <VossieWalletFace balanceCents={125000} width={W} />
       {issuers.map((issuer, i) => (
         <BankFace card={{ ...card, brand: i % 2 ? "mastercard" : "visa", issuer: issuer.id }} issuer={issuer} key={issuer.id} width={W} />
