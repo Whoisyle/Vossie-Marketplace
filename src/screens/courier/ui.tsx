@@ -1,119 +1,90 @@
-import { useRouter, type Href } from "expo-router";
-import { createContext, use, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
-import Animated, { FadeInDown, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect, useRouter, type Href } from "expo-router";
+import { useCallback, useEffect, type ReactNode } from "react";
+import { Pressable, StyleSheet, Text as RNText, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import Animated, { Easing, FadeInDown, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withSpring, withTiming, type SharedValue } from "react-native-reanimated";
+import Svg, { Circle } from "react-native-svg";
 
-import { Icon, Wordmark, type IconName } from "@/components";
+import { Icon, type IconName } from "@/components";
+import { useTabChrome } from "@/components/nav/TabChrome";
 import { haptic } from "@/lib/haptics";
+import { Chips as SellerChips, PageTitle, SettingRow, StatTile } from "@/screens/seller/parts";
+import { Pill as SellerPill, SELLER, SellerButton, SellerCard, SellerHeader, SellerHeading, SellerIconButton, SellerScreen, SellerTopBar, SellerWell, Text, useTone, type PillTone as SellerPillTone } from "@/screens/seller/ui";
 import { useDemoStore } from "@/state/DemoStore";
 import { spring } from "@/theme/motion";
 
-/** The courier app's colours, taken from the courier designs: a teal frame, a white sheet, soft grey-blue cards. */
+/**
+ * The courier app is the seller app with a courier's content: the same pages (blue for the numbers, white for the work), the same
+ * soft raised and pressed-in cards, the same header, buttons, chips, rows and floating bar. Nothing here is see-through.
+ */
 export const COURIER = {
-  amber: "#B7791F",
-  amberSoft: "#FFF1D6",
-  band: "#DADFE1",
-  blue: "#2C6E9E",
-  blueSoft: "#E3EFF8",
+  amber: "#B0680F",
+  amberSoft: "#FCE9D0",
+  blue: "#2C5C94",
+  blueSoft: "#DCE9F7",
   border: "#D9E3E7",
-  card: "#EFF4F6",
-  frame: "#3B6370",
+  card: "#E9EFF3",
+  frame: "#3A5D69",
   green: "#2F8A57",
-  greenSoft: "#E1F3E8",
-  ink: "#1E2B33",
-  inkSoft: "#5F6E76",
+  greenSoft: "#DDF2E5",
+  ink: SELLER.ink,
+  inkSoft: SELLER.inkSoft,
   muted: "#8A9AA2",
   red: "#B4544A",
-  redSoft: "#FBE3DF",
-  solid: "#3B6370",
-  solidPressed: "#2F5360",
+  redSoft: "#F8DCD8",
+  solid: SELLER.solid,
+  solidPressed: SELLER.solidPressed,
   white: "#FFFFFF",
 } as const;
-
-/** The serif the page titles are set in. It is loaded by the courier layout; until it is, the system serif is used. */
-export const SERIF = "Lora_600SemiBold";
 
 export const type = StyleSheet.create({
   body: { color: COURIER.ink, fontSize: 14, lineHeight: 20 },
   caption: { color: COURIER.inkSoft, fontSize: 12 },
   card: { color: COURIER.ink, fontSize: 15, fontWeight: "700" },
   label: { color: COURIER.inkSoft, fontSize: 13 },
-  section: { color: COURIER.ink, fontSize: 16, fontWeight: "700" },
-  title: { color: COURIER.ink, fontFamily: SERIF, fontSize: 28, lineHeight: 34 },
+  section: { color: COURIER.ink, fontSize: 17, fontWeight: "800" },
+  title: { color: COURIER.ink, fontSize: 26, fontWeight: "800", letterSpacing: -0.4, lineHeight: 32 },
 });
 
-/** The tab bar hides on the pages where the designs have none (a request, the pickup, a failed delivery). */
-type Chrome = { hidden: boolean; setHidden: (hidden: boolean) => void };
-const ChromeContext = createContext<Chrome | null>(null);
-
-export function CourierChromeProvider({ children }: { children: (hidden: boolean) => ReactNode }) {
-  const [hidden, setHidden] = useState(false);
-  const value = useMemo(() => ({ hidden, setHidden }), [hidden]);
-  return <ChromeContext value={value}>{children(hidden)}</ChromeContext>;
+/** The raised look of the page the component is on: use it for anything that should stand out of the page. */
+export function useRaised() {
+  const look = useTone();
+  return { backgroundColor: look.card, boxShadow: look.raised } as const;
 }
 
-/** Hide the tab bar while this screen is showing. */
+/** Hide the tab bar while this screen is showing (a request, the pickup, a failed delivery), and bring it back on leaving. */
 export function useHideTabBar(hide: boolean) {
-  const chrome = use(ChromeContext);
-  const setHidden = chrome?.setHidden;
-  useEffect(() => {
-    setHidden?.(hide);
-    return () => setHidden?.(false);
-  }, [hide, setHidden]);
-}
-
-/** The strip across the top: the Vossie mark, the Courier pill and the bell with a dot when something is new. */
-export function CourierTopBar() {
-  const router = useRouter();
-  const { state } = useDemoStore();
-  const insets = useSafeAreaInsets();
-  const unread = state.courier.alerts.some((alert) => !alert.read);
-  return (
-    <View style={[styles.band, { paddingTop: insets.top + 6 }]}>
-      <Wordmark tone="brand" width={92} />
-      <View style={styles.bandRight}>
-        <Pressable accessibilityLabel="Courier mode" accessibilityRole="button" onPress={() => router.push("/courier/account" as Href)} style={styles.courierPill} testID="courier-pill">
-          <Icon color="#FFFFFF" name="truck" size={13} />
-          <Text style={styles.courierPillText}>Courier</Text>
-        </Pressable>
-        <Pressable accessibilityLabel={unread ? "Notifications, new" : "Notifications"} accessibilityRole="button" onPress={() => router.push("/courier/home/notifications" as Href)} style={styles.bell} testID="courier-bell">
-          <Icon color={COURIER.ink} name="bell" size={18} />
-          {unread ? <View style={styles.dot} /> : null}
-        </Pressable>
-      </View>
-    </View>
+  const chrome = useTabChrome();
+  useFocusEffect(
+    useCallback(() => {
+      chrome?.lock(hide);
+      return () => chrome?.lock(false);
+    }, [chrome, hide]),
   );
 }
 
-/** The teal frame with the white sheet every courier page sits in. The tab bar floats at the bottom of the sheet. */
-export function CourierFrame({ children }: { children: ReactNode }) {
-  const insets = useSafeAreaInsets();
-  return (
-    <View style={styles.root}>
-      <CourierTopBar />
-      <View style={[styles.frame, { paddingBottom: Math.max(10, insets.bottom) }]}>
-        <View style={styles.sheet}>{children}</View>
-      </View>
-    </View>
-  );
+/** Small text sitting straight on the page: white on a blue page, grey on a white one. */
+export function Muted({ children, style }: { children: ReactNode; style?: StyleProp<TextStyle> }) {
+  return <Text style={[styles.muted, style]}>{children}</Text>;
 }
 
 /**
- * One page inside the sheet: an optional back button, the serif title and its grey line, an optional round button on the
- * right, then the content. It leaves room under the content for the tab bar unless the bar is hidden.
+ * One courier page, built on the seller's page: the gradient or the soft white behind a normal scrolling screen, the header with the
+ * mark and the Courier mode pill (or a back arrow and a centred title on a detail page), and the title. `tone` is blue for the numbers
+ * pages (Home, Earnings, Wallet, Performance) and white for the pages where work is done.
  */
 export function CourierPage({
   back,
+  bar = true,
   children,
+  footer,
+  onBack,
   right,
   scroll = true,
   subtitle,
   testID,
   title,
-  onBack,
-  bar = true,
-  footer,
+  tone = "white",
 }: {
   title: string;
   subtitle?: string;
@@ -125,44 +96,20 @@ export function CourierPage({
   children: ReactNode;
   /** True when the tab bar floats over the bottom of this page. */
   bar?: boolean;
-  /** Pinned to the bottom, above the tab bar: the main button of the page. */
+  /** Pinned to the bottom: the main button of the page. */
   footer?: ReactNode;
+  tone?: "blue" | "white";
 }) {
   const router = useRouter();
-  const head = (
-    <View style={styles.head}>
-      {back ? (
-        <Pressable accessibilityLabel="Back" accessibilityRole="button" hitSlop={8} onPress={onBack ?? (() => router.back())} style={styles.back} testID="courier-back">
-          <Icon color={COURIER.ink} name="chevron-left" size={20} />
-        </Pressable>
-      ) : null}
-      <View style={styles.flex}>
-        <Text accessibilityRole="header" style={type.title}>
-          {title}
-        </Text>
-        {subtitle ? <Text style={type.caption}>{subtitle}</Text> : null}
-      </View>
-      {right}
-    </View>
-  );
-  const bottom = footer ? 96 : bar ? 104 : 24;
-  if (!scroll) {
-    return (
-      <View style={styles.page} testID={testID}>
-        <View style={styles.pad}>{head}</View>
-        <View style={[styles.flex, styles.pad, { paddingBottom: bottom }]}>{children}</View>
-        {footer ? <View style={styles.footer}>{footer}</View> : null}
-      </View>
-    );
-  }
+  const { state } = useDemoStore();
+  const unread = state.courier.alerts.filter((alert) => !alert.read).length;
+  const bell = <SellerIconButton badge={unread} icon="bell" label={unread ? "Notifications, unread" : "Notifications"} onPress={() => router.push("/courier/home/notifications" as Href)} testID="courier-bell" />;
   return (
-    <View style={styles.page} testID={testID}>
-      <ScrollView contentContainerStyle={[styles.pad, { paddingBottom: bottom + (footer ? 24 : 0) }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        {head}
-        {children}
-      </ScrollView>
-      {footer ? <View style={styles.footer}>{footer}</View> : null}
-    </View>
+    <SellerScreen footer={footer} scroll={scroll} tabs={bar} testID={testID} tone={tone}>
+      {back ? <SellerTopBar onBack={onBack} right={right} title={title} /> : <SellerHeader mode="Courier mode" right={bell} />}
+      {back ? subtitle ? <Muted style={styles.sub}>{subtitle}</Muted> : null : <PageTitle right={right} subtitle={subtitle} title={title} />}
+      {children}
+    </SellerScreen>
   );
 }
 
@@ -176,98 +123,112 @@ export function Rise({ children, index = 0, style }: { children: ReactNode; inde
   );
 }
 
-export function Card({ children, onPress, style, tone = "plain", testID }: { children: ReactNode; onPress?: () => void; style?: StyleProp<ViewStyle>; tone?: "plain" | "soft" | "dark" | "warn" | "selected"; testID?: string }) {
-  const look = tone === "soft" ? styles.cardSoft : tone === "dark" ? styles.cardDark : tone === "warn" ? styles.cardWarn : tone === "selected" ? styles.cardSelected : styles.cardPlain;
-  if (!onPress) {
+/** A section title, in the seller's heading. */
+export function Heading({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  return <SellerHeading style={style}>{children}</SellerHeading>;
+}
+
+const HERO_COLOURS = ["#4C7888", "#2D5260"] as const;
+
+type CardTone = "plain" | "soft" | "dark" | "warn" | "selected";
+
+/** A card. Plain is the seller's raised card; soft is pressed in; dark is the dark teal card for the big number; warn is amber; selected has a teal edge. */
+export function Card({ children, onPress, style, tone = "plain", testID }: { children: ReactNode; onPress?: () => void; style?: StyleProp<ViewStyle>; tone?: CardTone; testID?: string }) {
+  const look = useTone();
+  if (tone === "soft") {
     return (
-      <View style={[styles.card, look, style]} testID={testID}>
+      <SellerWell style={[styles.well, style]} testID={testID}>
         {children}
-      </View>
+      </SellerWell>
     );
   }
+  if (tone === "dark") {
+    const dark = (
+      <>
+        <LinearGradient colors={HERO_COLOURS} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
+        <HeroDecor />
+        {children}
+      </>
+    );
+    if (!onPress) {
+      return (
+        <View style={[styles.dark, { boxShadow: look.raised }, style]} testID={testID}>
+          {dark}
+        </View>
+      );
+    }
+    return (
+      <Pressable accessibilityRole="button" onPress={() => { haptic.tap(); onPress(); }} style={({ pressed }) => [styles.dark, { boxShadow: pressed ? look.pressed : look.raised }, style]} testID={testID}>
+        {dark}
+      </Pressable>
+    );
+  }
+  const extra: ViewStyle = tone === "warn" ? { backgroundColor: COURIER.amberSoft } : tone === "selected" ? { borderColor: COURIER.solid, borderWidth: 2 } : {};
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={() => {
-        haptic.tap();
-        onPress();
-      }}
-      style={({ pressed }) => [styles.card, look, style, pressed && styles.pressed]}
-      testID={testID}
-    >
+    <SellerCard onPress={onPress ? () => { haptic.tap(); onPress(); } : undefined} style={[extra, style]} testID={testID}>
       {children}
-    </Pressable>
+    </SellerCard>
+  );
+}
+
+/** Soft rings in the corner of a dark card, so it is not a flat block. Solid colours only. */
+export function HeroDecor() {
+  return (
+    <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.decor]}>
+      <Svg height="100%" width="100%">
+        <Circle cx="100%" cy="0" fill="#517C8B" r={86} />
+        <Circle cx="100%" cy="0" fill="none" r={120} stroke="#5C8695" strokeWidth={1} />
+        <Circle cx="100%" cy="0" fill="none" r={158} stroke="#4F7A89" strokeWidth={1} />
+        <Circle cx={18} cy="108%" fill="#43707E" r={64} />
+      </Svg>
+    </View>
   );
 }
 
 export type PillTone = "green" | "amber" | "red" | "blue" | "grey";
 
+const PILL: Record<PillTone, SellerPillTone> = { amber: "warn", blue: "info", green: "success", grey: "neutral", red: "danger" };
+
 export function Pill({ label, tone = "grey", style, testID }: { label: string; tone?: PillTone; style?: StyleProp<ViewStyle>; testID?: string }) {
-  const [bg, fg] = tone === "green" ? [COURIER.greenSoft, COURIER.green] : tone === "amber" ? [COURIER.amberSoft, COURIER.amber] : tone === "red" ? [COURIER.redSoft, COURIER.red] : tone === "blue" ? [COURIER.blueSoft, COURIER.blue] : [COURIER.card, COURIER.inkSoft];
   return (
-    <View style={[styles.pill, { backgroundColor: bg }, style]} testID={testID}>
-      <Text style={[styles.pillText, { color: fg }]}>{label}</Text>
+    <View style={[styles.pillBox, style]} testID={testID}>
+      <SellerPill label={label} tone={PILL[tone]} />
     </View>
   );
 }
 
-/** A row of equal-width filter chips; the chosen one is dark. */
-export function Chips<T extends string>({ chips, onChange, value, testID }: { chips: { key: T; label: string; count?: number }[]; value: T; onChange: (key: T) => void; testID?: string }) {
-  return (
-    <ScrollView contentContainerStyle={styles.chips} horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} testID={testID}>
-      {chips.map((chip) => {
-        const on = chip.key === value;
-        return (
-          <Pressable accessibilityLabel={chip.label} accessibilityRole="tab" accessibilityState={{ selected: on }} key={chip.key} onPress={() => { haptic.tap(); onChange(chip.key); }} style={[styles.chip, on && styles.chipOn]} testID={`chip-${chip.key}`}>
-            <Text style={[styles.chipText, on && styles.chipTextOn]}>
-              {chip.label}
-              {chip.count !== undefined && chip.count > 0 ? ` ${chip.count}` : ""}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </ScrollView>
-  );
+/** A row of equal-width filter chips, the seller's. */
+export function Chips<T extends string>({ chips, onChange, value }: { chips: { key: T; label: string; count?: number }[]; value: T; onChange: (key: T) => void; testID?: string }) {
+  return <SellerChips items={chips} onChange={onChange} prefix="chip" value={value} />;
 }
 
-export function Button({ disabled, icon, label, onPress, tone = "solid", testID }: { label: string; onPress: () => void; tone?: "solid" | "outline" | "danger" | "light"; icon?: IconName; disabled?: boolean; testID?: string }) {
-  const solid = tone === "solid";
-  const [bg, fg, border] = tone === "outline" ? ["#FFFFFF", COURIER.solid, COURIER.solid] : tone === "danger" ? [COURIER.red, "#FFFFFF", COURIER.red] : tone === "light" ? [COURIER.card, COURIER.solid, COURIER.card] : [COURIER.solid, "#FFFFFF", COURIER.solid];
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled: Boolean(disabled) }}
-      disabled={disabled}
-      onPress={() => {
-        haptic.tap();
-        onPress();
-      }}
-      style={({ pressed }) => [styles.button, { backgroundColor: bg, borderColor: border }, solid && pressed && { backgroundColor: COURIER.solidPressed }, !solid && pressed && styles.pressed, disabled && styles.disabled]}
-      testID={testID}
-    >
-      <Text style={[styles.buttonText, { color: fg }]}>{label}</Text>
-      {icon ? <Icon color={fg} name={icon} size={18} /> : null}
-    </Pressable>
-  );
+/** A button: solid to confirm, outline for the other choice, light on a blue page, danger in red. It gives under the finger and ticks. */
+export function Button({ disabled, icon, label, onPress, size = "lg", tone = "solid", testID }: { label: string; onPress: () => void; tone?: "solid" | "outline" | "danger" | "light"; icon?: IconName; disabled?: boolean; testID?: string; size?: "sm" | "md" | "lg" }) {
+  if (tone === "danger") {
+    return (
+      <Pressable accessibilityRole="button" accessibilityState={{ disabled: Boolean(disabled) }} disabled={disabled} onPress={() => { haptic.tap(); onPress(); }} style={[styles.danger, disabled && styles.disabled]} testID={testID}>
+        {icon ? <Icon color="#FFFFFF" name={icon} size={18} /> : null}
+        <RNText style={styles.dangerText}>{label}</RNText>
+      </Pressable>
+    );
+  }
+  return <SellerButton disabled={disabled} icon={icon} label={label} onPress={onPress} size={size} testID={testID} variant={tone === "outline" ? "outline" : tone === "light" ? "light" : "solid"} />;
 }
 
 /** A small round button, for call, chat and filters. */
 export function RoundButton({ icon, label, onPress, dark = false, testID }: { icon: IconName; label: string; onPress: () => void; dark?: boolean; testID?: string }) {
+  const look = useTone();
+  if (!dark) return <SellerIconButton icon={icon} label={label} onPress={() => { haptic.tap(); onPress(); }} testID={testID} />;
   return (
-    <Pressable accessibilityLabel={label} accessibilityRole="button" hitSlop={6} onPress={() => { haptic.tap(); onPress(); }} style={({ pressed }) => [styles.round, dark && styles.roundDark, pressed && styles.pressed]} testID={testID}>
-      <Icon color={dark ? "#FFFFFF" : COURIER.solid} name={icon} size={18} />
+    <Pressable accessibilityLabel={label} accessibilityRole="button" hitSlop={6} onPress={() => { haptic.tap(); onPress(); }} style={[styles.round, { backgroundColor: SELLER.solid, boxShadow: look.raised }]} testID={testID}>
+      <Icon color="#FFFFFF" name={icon} size={18} />
     </Pressable>
   );
 }
 
-/** A number with a small label above it, in a soft tile: Today, Done, Rating. */
-export function Stat({ label, value, testID }: { label: string; value: string; testID?: string }) {
-  return (
-    <View style={styles.stat} testID={testID}>
-      <Text style={type.caption}>{label}</Text>
-      <Text style={styles.statValue}>{value}</Text>
-    </View>
-  );
+/** A number with a small label above it, in a raised tile: Today, Done, Rating. */
+export function Stat({ label, value, testID }: { label: string; value: string; icon?: IconName; testID?: string }) {
+  return <StatTile label={label} testID={testID} value={value} />;
 }
 
 /** Pickup above, drop-off below, joined by a line: the two ends of a delivery. */
@@ -281,12 +242,12 @@ export function RouteLine({ dropoff, pickup }: { pickup: { title: string; sub: s
       </View>
       <View style={styles.flex}>
         <View style={styles.routeStop}>
-          <Text style={type.card}>{pickup.title}</Text>
-          <Text style={type.caption}>{pickup.sub}</Text>
+          <RNText style={type.card}>{pickup.title}</RNText>
+          <RNText style={type.caption}>{pickup.sub}</RNText>
         </View>
         <View style={styles.routeStop}>
-          <Text style={type.card}>{dropoff.title}</Text>
-          <Text style={type.caption}>{dropoff.sub}</Text>
+          <RNText style={type.card}>{dropoff.title}</RNText>
+          <RNText style={type.caption}>{dropoff.sub}</RNText>
         </View>
       </View>
     </View>
@@ -297,8 +258,8 @@ export function RouteLine({ dropoff, pickup }: { pickup: { title: string; sub: s
 export function Fact({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.fact}>
-      <Text style={type.label}>{label}</Text>
-      <Text style={styles.factValue}>{value}</Text>
+      <RNText style={type.label}>{label}</RNText>
+      <RNText style={styles.factValue}>{value}</RNText>
     </View>
   );
 }
@@ -317,36 +278,69 @@ export function Toggle({ label, on, onChange, onDark = false, testID }: { on: bo
   );
 }
 
-/** A line on a card with an icon tile at the start and a chevron at the end. */
-export function MenuRow({ detail, icon, label, onPress, right, testID, tone }: { icon: IconName; label: string; detail?: string; onPress?: () => void; right?: ReactNode; testID?: string; tone?: "danger" }) {
-  const danger = tone === "danger";
+/** A row in a list: an icon tile, the words, and a chevron or a switch, the seller's setting row. Danger is red, for logging out. */
+export function MenuRow({ detail, icon, label, onPress, onToggle, testID, toggle, tone }: { icon: IconName; label: string; detail?: string; onPress?: () => void; testID?: string; tone?: "danger"; toggle?: boolean; onToggle?: (value: boolean) => void }) {
+  if (tone === "danger") {
+    return (
+      <SellerCard onPress={onPress} style={styles.dangerRow} testID={testID}>
+        <View style={[styles.dangerIcon]}>
+          <Icon color={COURIER.red} name={icon} size={20} />
+        </View>
+        <RNText style={[type.card, { color: COURIER.red }]}>{label}</RNText>
+      </SellerCard>
+    );
+  }
   return (
-    <Card onPress={onPress} style={styles.menuRow} testID={testID}>
-      <View style={[styles.menuIcon, danger && { backgroundColor: COURIER.redSoft }]}>
-        <Icon color={danger ? COURIER.red : COURIER.solid} name={icon} size={20} />
-      </View>
-      <View style={styles.flex}>
-        <Text style={[type.card, danger && { color: COURIER.red }]}>{label}</Text>
-        {detail ? <Text style={type.caption}>{detail}</Text> : null}
-      </View>
-      {right ?? (onPress ? <Icon color={COURIER.muted} name="chevron-right" size={18} /> : null)}
-    </Card>
+    <View style={styles.menuGap}>
+      <SettingRow hint={detail} icon={icon} label={label} onPress={onPress} onToggle={onToggle} testID={testID} toggle={toggle} />
+    </View>
   );
 }
 
 export function Empty({ detail, icon, title }: { icon: IconName; title: string; detail: string }) {
   return (
-    <View style={styles.empty}>
+    <SellerCard style={styles.empty}>
       <View style={styles.emptyIcon}>
-        <Icon color={COURIER.solid} name={icon} size={26} />
+        <Icon color={COURIER.solid} name={icon} size={24} />
       </View>
-      <Text style={type.card}>{title}</Text>
-      <Text style={[type.caption, styles.center]}>{detail}</Text>
+      <RNText style={type.card}>{title}</RNText>
+      <RNText style={[type.caption, styles.center]}>{detail}</RNText>
+    </SellerCard>
+  );
+}
+
+function useRing(value: SharedValue<number>, active: boolean) {
+  return useAnimatedStyle(() => ({ opacity: active ? (1 - value.get()) * 0.55 : 0, transform: [{ scale: 0.5 + value.get() * 1.1 }] }));
+}
+
+/** Rings that grow and fade out from a dot while the courier is online, like a radar looking for jobs. Still when offline or with Reduce Motion. */
+export function Radar({ active, size = 46 }: { active: boolean; size?: number }) {
+  const reduced = useReducedMotion();
+  const a = useSharedValue(0);
+  const b = useSharedValue(0);
+  useEffect(() => {
+    if (!active || reduced) {
+      a.set(0);
+      b.set(0);
+      return;
+    }
+    a.set(withRepeat(withTiming(1, { duration: 2200, easing: Easing.out(Easing.quad) }), -1));
+    b.set(withRepeat(withSequence(withTiming(0, { duration: 1100 }), withTiming(1, { duration: 2200, easing: Easing.out(Easing.quad) })), -1));
+  }, [a, active, b, reduced]);
+  const one = useRing(a, active);
+  const two = useRing(b, active);
+  return (
+    <View style={{ alignItems: "center", height: size, justifyContent: "center", width: size }} testID="radar">
+      <Animated.View style={[styles.ring, { borderRadius: size / 2, height: size, width: size }, one]} />
+      <Animated.View style={[styles.ring, { borderRadius: size / 2, height: size, width: size }, two]} />
+      <View style={[styles.radarDot, active && styles.radarDotOn]}>
+        <Icon color={active ? COURIER.solid : "#FFFFFF"} name="power" size={16} />
+      </View>
     </View>
   );
 }
 
-export const TABS: { name: string; label: string; icon: IconName }[] = [
+export const COURIER_TABS: { name: string; label: string; icon: IconName }[] = [
   { icon: "home", label: "Home", name: "home" },
   { icon: "search", label: "Jobs", name: "jobs" },
   { icon: "truck", label: "Active", name: "active" },
@@ -354,109 +348,38 @@ export const TABS: { name: string; label: string; icon: IconName }[] = [
   { icon: "user", label: "Account", name: "account" },
 ];
 
-/** The courier's bottom bar: five tabs, with a dark bubble that slides to the one you are on. */
-export function CourierTabBar({ activeIndex, onGo, hidden, badges }: { activeIndex: number; onGo: (name: string) => void; hidden: boolean; badges?: Record<string, number> }) {
-  const [width, setWidth] = useState(0);
-  const tabWidth = width / TABS.length;
-  const x = useSharedValue(0);
-  const reduced = useReducedMotion();
-  useEffect(() => {
-    if (tabWidth > 0) x.set(reduced ? tabWidth * activeIndex : withSpring(tabWidth * activeIndex, spring.snappy));
-  }, [activeIndex, reduced, tabWidth, x]);
-  const bubble = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() + (tabWidth - 44) / 2 }] }));
-  const onLayout = useCallback((event: { nativeEvent: { layout: { width: number } } }) => setWidth(event.nativeEvent.layout.width), []);
-  if (hidden) return null;
-  return (
-    <View style={styles.tabBar} testID="courier-tabs">
-      <View onLayout={onLayout} style={styles.tabRow}>
-        {tabWidth > 0 ? <Animated.View pointerEvents="none" style={[styles.bubble, bubble]} /> : null}
-        {TABS.map((tab, index) => {
-          const on = index === activeIndex;
-          const count = badges?.[tab.name] ?? 0;
-          return (
-            <Pressable accessibilityLabel={tab.label} accessibilityRole="tab" accessibilityState={{ selected: on }} key={tab.name} onPress={() => { if (!on) haptic.tap(); onGo(tab.name); }} style={styles.tab} testID={`courier-tab-${tab.name}`}>
-              <View style={styles.tabIcon}>
-                <Icon color={on ? "#FFFFFF" : COURIER.inkSoft} name={tab.icon} size={20} />
-                {count > 0 ? (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{count}</Text>
-                  </View>
-                ) : null}
-              </View>
-              <Text style={[styles.tabLabel, on && styles.tabLabelOn]}>{tab.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
-export const textOn = (color: string): TextStyle => ({ color });
-
 const styles = StyleSheet.create({
-  back: { alignItems: "center", backgroundColor: COURIER.card, borderRadius: 18, height: 36, justifyContent: "center", width: 36 },
-  badge: { alignItems: "center", backgroundColor: COURIER.red, borderRadius: 8, height: 16, justifyContent: "center", minWidth: 16, paddingHorizontal: 3, position: "absolute", right: -6, top: -6 },
-  badgeText: { color: "#FFFFFF", fontSize: 10, fontWeight: "800" },
-  band: { alignItems: "center", backgroundColor: COURIER.band, flexDirection: "row", justifyContent: "space-between", paddingBottom: 12, paddingHorizontal: 16 },
-  bandRight: { alignItems: "center", flexDirection: "row", gap: 10 },
-  bell: { alignItems: "center", backgroundColor: "#FFFFFF", borderRadius: 20, height: 40, justifyContent: "center", width: 40 },
-  bubble: { backgroundColor: COURIER.solid, borderRadius: 22, height: 44, left: 0, position: "absolute", top: 0, width: 44 },
-  button: { alignItems: "center", borderRadius: 28, borderWidth: 1.5, flexDirection: "row", gap: 8, justifyContent: "center", minHeight: 54, paddingHorizontal: 20 },
-  buttonText: { fontSize: 16, fontWeight: "700" },
-  card: { borderRadius: 20, padding: 14 },
-  cardDark: { backgroundColor: COURIER.solid },
-  cardPlain: { backgroundColor: "#FFFFFF", borderColor: COURIER.border, borderWidth: 1 },
-  cardSelected: { backgroundColor: "#E3EDF0", borderColor: COURIER.solid, borderWidth: 2 },
-  cardSoft: { backgroundColor: COURIER.card },
-  cardWarn: { backgroundColor: COURIER.amberSoft },
   center: { textAlign: "center" },
-  chip: { alignItems: "center", backgroundColor: COURIER.card, borderRadius: 18, height: 36, justifyContent: "center", minWidth: 84, paddingHorizontal: 14 },
-  chipOn: { backgroundColor: COURIER.solid },
-  chipScroll: { flexGrow: 0, marginBottom: 12, marginTop: 4 },
-  chipText: { color: COURIER.ink, fontSize: 13, fontWeight: "600" },
-  chipTextOn: { color: "#FFFFFF" },
-  chips: { gap: 8, paddingRight: 8 },
-  courierPill: { alignItems: "center", backgroundColor: COURIER.solid, borderRadius: 18, flexDirection: "row", gap: 6, height: 36, paddingHorizontal: 14 },
-  courierPillText: { color: "#FFFFFF", fontSize: 13, fontWeight: "700" },
+  danger: { alignItems: "center", backgroundColor: COURIER.red, borderRadius: 30, flexDirection: "row", gap: 8, height: 56, justifyContent: "center" },
+  dangerIcon: { alignItems: "center", backgroundColor: COURIER.redSoft, borderRadius: 14, height: 44, justifyContent: "center", width: 44 },
+  dangerRow: { alignItems: "center", flexDirection: "row", gap: 12, marginTop: 4 },
+  dangerText: { color: "#FFFFFF", fontSize: 16, fontWeight: "800" },
+  dark: { borderCurve: "continuous", borderRadius: 24, overflow: "hidden", padding: 16 },
+  decor: { overflow: "hidden" },
   disabled: { opacity: 0.45 },
-  dot: { backgroundColor: COURIER.red, borderRadius: 4, height: 8, position: "absolute", right: 10, top: 9, width: 8 },
-  empty: { alignItems: "center", gap: 8, paddingHorizontal: 24, paddingVertical: 36 },
-  emptyIcon: { alignItems: "center", backgroundColor: COURIER.card, borderRadius: 28, height: 56, justifyContent: "center", width: 56 },
+  empty: { alignItems: "center", gap: 8, paddingVertical: 26 },
+  emptyIcon: { alignItems: "center", backgroundColor: "#DDE8EC", borderRadius: 26, height: 52, justifyContent: "center", width: 52 },
   fact: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 5 },
   factValue: { color: COURIER.ink, flexShrink: 1, fontSize: 13, fontWeight: "700", textAlign: "right" },
   flex: { flex: 1 },
-  footer: { backgroundColor: "rgba(255,255,255,0.96)", bottom: 0, left: 0, paddingBottom: 16, paddingHorizontal: 18, paddingTop: 8, position: "absolute", right: 0 },
-  frame: { backgroundColor: COURIER.frame, flex: 1, paddingHorizontal: 12, paddingTop: 12 },
-  head: { alignItems: "center", flexDirection: "row", gap: 10, marginBottom: 14 },
   knob: { backgroundColor: "#FFFFFF", borderRadius: 13, boxShadow: "0 1px 3px rgba(0,0,0,0.3)", height: 26, left: 3, position: "absolute", top: 3, width: 26 },
   knobDark: { backgroundColor: COURIER.solid },
-  menuIcon: { alignItems: "center", backgroundColor: "#E3EDF0", borderRadius: 14, height: 44, justifyContent: "center", width: 44 },
-  menuRow: { alignItems: "center", flexDirection: "row", gap: 12, marginBottom: 10 },
-  pad: { paddingHorizontal: 18, paddingTop: 18 },
-  page: { flex: 1 },
-  pill: { alignSelf: "flex-start", borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
-  pillText: { fontSize: 11, fontWeight: "800" },
-  pressed: { opacity: 0.8 },
-  root: { backgroundColor: COURIER.band, flex: 1 },
-  round: { alignItems: "center", backgroundColor: "#FFFFFF", borderColor: COURIER.border, borderRadius: 20, borderWidth: 1, height: 40, justifyContent: "center", width: 40 },
-  roundDark: { backgroundColor: COURIER.solid, borderColor: COURIER.solid },
+  menuGap: { marginBottom: 12 },
+  muted: { color: "rgba(255,255,255,0.85)", fontSize: 13, marginBottom: 6 },
+  pillBox: { alignSelf: "flex-start" },
+  radarDot: { alignItems: "center", backgroundColor: "#5C8695", borderRadius: 18, height: 36, justifyContent: "center", width: 36 },
+  radarDotOn: { backgroundColor: "#FFFFFF" },
+  ring: { borderColor: "#FFFFFF", borderWidth: 2, position: "absolute" },
+  round: { alignItems: "center", borderRadius: 20, height: 40, justifyContent: "center", width: 40 },
   routeFrom: { backgroundColor: "#FFFFFF", borderColor: COURIER.solid, borderRadius: 7, borderWidth: 3, height: 14, width: 14 },
   routeLine: { backgroundColor: COURIER.solid, flex: 1, marginVertical: 2, opacity: 0.5, width: 2 },
   routeRail: { alignItems: "center", paddingVertical: 4, width: 18 },
   routeRow: { flexDirection: "row", gap: 10 },
   routeStop: { minHeight: 44 },
   routeTo: { backgroundColor: COURIER.solid, borderRadius: 7, height: 14, width: 14 },
-  sheet: { backgroundColor: "#FFFFFF", borderRadius: 30, flex: 1, overflow: "hidden" },
-  stat: { backgroundColor: COURIER.card, borderRadius: 18, flex: 1, gap: 4, padding: 12 },
-  statValue: { color: COURIER.ink, fontSize: 20, fontWeight: "800" },
-  tab: { alignItems: "center", flex: 1, gap: 2, height: 62, justifyContent: "flex-start", paddingTop: 0 },
-  tabBar: { backgroundColor: "rgba(255,255,255,0.97)", borderColor: COURIER.border, borderRadius: 32, borderWidth: 1, bottom: 10, boxShadow: "0 6px 18px rgba(20,35,44,0.18)", left: 10, paddingHorizontal: 6, paddingVertical: 7, position: "absolute", right: 10 },
-  tabIcon: { alignItems: "center", height: 44, justifyContent: "center", width: 44 },
-  tabLabel: { color: COURIER.inkSoft, fontSize: 11 },
-  tabLabelOn: { color: COURIER.ink, fontWeight: "800" },
-  tabRow: { flexDirection: "row" },
-  toggle: { backgroundColor: "#C9D3D8", borderRadius: 16, height: 32, width: 54 },
-  toggleDark: { backgroundColor: "rgba(255,255,255,0.9)" },
+  sub: { marginTop: -4 },
+  toggle: { backgroundColor: "#C3CED3", borderRadius: 16, height: 32, width: 54 },
+  toggleDark: { backgroundColor: "#FFFFFF" },
   toggleOn: { backgroundColor: COURIER.solid },
+  well: { borderRadius: 20, padding: 14 },
 });

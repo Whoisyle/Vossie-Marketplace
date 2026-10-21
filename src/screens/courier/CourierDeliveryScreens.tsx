@@ -10,6 +10,7 @@ import { MAX_ATTEMPTS } from "@/courier/state";
 import type { CourierJob } from "@/courier/types";
 import { haptic } from "@/lib/haptics";
 import { AttachSheet } from "@/screens/seller/attach";
+import { Confetti, useCountUp } from "@/screens/seller/motion";
 import { SlidePill } from "@/screens/seller/SlidePill";
 
 import { CourierMap } from "./CourierMap";
@@ -254,6 +255,7 @@ function PickupView({ job }: { job: CourierJob }) {
           </Text>
         </View>
         <RoundButton icon="phone" label={`Call ${job.storeName}`} onPress={() => call(job.storeName, job.pickup.phone)} testID="call-seller" />
+        <RoundButton icon="message-circle" label={`Message ${job.storeName}`} onPress={() => router.push(`/courier/active/chat/${job.id}?with=seller` as Href)} testID="chat-seller" />
       </Card>
       <View style={styles.codeHead}>
         <Text style={type.section}>Handover code from seller</Text>
@@ -405,11 +407,33 @@ function ReturningView({ job }: { job: CourierJob }) {
   );
 }
 
+/** Just delivered: confetti, a tick, and the money counting up. It plays for a delivery finished in the last twenty seconds, and not again. */
+function Celebrate({ job }: { job: CourierJob }) {
+  const [fresh] = useState(() => job.status === "delivered" && job.deliveredAt !== undefined && Date.now() - new Date(job.deliveredAt).getTime() < 20_000);
+  const shown = useCountUp(fresh ? Math.round(job.payoutCents / 100) : 0, 900);
+  if (!fresh) return null;
+  return (
+    <View style={styles.celebrate} testID="celebrate">
+      <Confetti coins play />
+      <Card style={styles.celebrateCard} tone="dark">
+        <View style={styles.celebrateTick}>
+          <Icon color={COURIER.green} name="check" size={22} />
+        </View>
+        <View style={styles.flex}>
+          <Text style={styles.celebrateTitle}>Delivered!</Text>
+          <Text style={styles.celebrateValue}>+ R {shown}</Text>
+        </View>
+      </Card>
+    </View>
+  );
+}
+
 /** A delivery after the fact: where it went, what was in it, what it paid and how it ended. */
 function DetailView({ job }: { job: CourierJob }) {
   const pill = statusPill(job);
   return (
     <CourierPage back right={<Pill label={pill.label} tone={pill.tone} />} subtitle={`${job.number} · ${job.storeName} to ${job.dropoff.name}`} testID="courier-detail" title="Delivery">
+      <Celebrate job={job} />
       <CourierMap job={job} phase="preview" />
       <Text style={styles.section}>Items ({job.items.length})</Text>
       {job.items.map((item) => (
@@ -444,6 +468,11 @@ function DetailView({ job }: { job: CourierJob }) {
 }
 
 const styles = StyleSheet.create({
+  celebrate: { marginBottom: 12 },
+  celebrateCard: { alignItems: "center", flexDirection: "row", gap: 14 },
+  celebrateTick: { alignItems: "center", backgroundColor: "#FFFFFF", borderRadius: 22, height: 44, justifyContent: "center", width: 44 },
+  celebrateTitle: { color: "rgba(255,255,255,0.85)", fontSize: 14, fontWeight: "700" },
+  celebrateValue: { color: "#FFFFFF", fontSize: 30, fontWeight: "800" },
   activeCard: { gap: 10, marginBottom: 12 },
   addressLabel: { color: COURIER.inkSoft, fontSize: 12, marginBottom: 6 },
   addressRow: { alignItems: "center", flexDirection: "row", gap: 8 },

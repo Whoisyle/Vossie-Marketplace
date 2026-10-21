@@ -12,7 +12,7 @@ import { AttachSheet } from "@/screens/seller/attach";
 
 import { mmss, useCourier, useJob, useNow } from "./hooks";
 import { CodeBoxes, SignaturePad } from "./Proof";
-import { Button, Card, CourierPage, COURIER, Empty, Pill, type, useHideTabBar } from "./ui";
+import { Button, Card, Chips, CourierPage, COURIER, Empty, Pill, type, useHideTabBar } from "./ui";
 
 const WAIT = liveBackend ? WAIT_MS : DEMO_WAIT_MS;
 
@@ -211,40 +211,55 @@ export function CourierFailedScreen() {
   );
 }
 
-/** A short conversation with the buyer about the delivery. It is the same thread the buyer sees under their order. */
+/** A short conversation about the delivery, with the buyer or with the seller at pickup. Each is the same thread the other person sees. */
 export function CourierChatScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, with: who } = useLocalSearchParams<{ id: string; with?: string }>();
   const { dispatch, state } = useCourier();
   const job = useJob(id);
+  const [to, setTo] = useState<"buyer" | "seller">(who === "seller" ? "seller" : "buyer");
   const [draft, setDraft] = useState("");
   useHideTabBar(true);
-  const thread = job?.buyerOrderId ? state.conversations.find((item) => item.id === `courier-${job.buyerOrderId}`) : undefined;
-  const real = Boolean(job?.buyerOrderId);
+  const threadId = to === "buyer" ? (job?.buyerOrderId ? `courier-${job.buyerOrderId}` : undefined) : job?.sellerOrderId ? `courier-seller-${job.sellerOrderId}` : undefined;
+  const thread = threadId ? state.conversations.find((item) => item.id === threadId) : undefined;
+  const real = Boolean(threadId);
+  const name = to === "buyer" ? job?.buyerName : job?.storeName;
   const send = () => {
     if (!job || !draft.trim()) return;
-    dispatch({ body: draft, id: job.id, type: "courierSendMessage" });
+    dispatch({ body: draft, id: job.id, to, type: "courierSendMessage" });
     setDraft("");
   };
   return (
-    <CourierPage back bar={false} scroll={false} subtitle={job ? `About ${job.number}` : undefined} testID="courier-chat" title={job?.buyerName ?? "Chat"}>
+    <CourierPage back bar={false} scroll={false} subtitle={job ? `About ${job.number}` : undefined} testID="courier-chat" title={name ?? "Chat"}>
       {!job ? (
         <Empty detail="This delivery is no longer on your list." icon="alert-circle" title="Not found" />
-      ) : !real ? (
-        <Empty detail="This is a demo job, so there is no student to message. On a real delivery the thread opens here." icon="message-circle" title="Demo job" />
       ) : (
         <>
-          <ScrollView contentContainerStyle={styles.thread} showsVerticalScrollIndicator={false}>
-            {(thread?.messages ?? []).length === 0 ? <Text style={[type.caption, styles.center]}>Say hello. Ask for the gate code or tell them you are close.</Text> : null}
-            {(thread?.messages ?? []).map((message) => (
-              <View key={message.id} style={[styles.bubble, message.fromMe ? styles.theirs : styles.mine]}>
-                <Text style={[type.body, !message.fromMe && { color: "#FFFFFF" }]}>{message.body}</Text>
+          <Chips
+            chips={[
+              { key: "buyer", label: "Buyer" },
+              { key: "seller", label: "Seller" },
+            ]}
+            onChange={setTo}
+            value={to}
+          />
+          {!real ? (
+            <Empty detail={`This is a demo job, so there is no ${to === "buyer" ? "student" : "seller"} to message. On a real delivery the thread opens here.`} icon="message-circle" title="Demo job" />
+          ) : (
+            <>
+              <ScrollView contentContainerStyle={styles.thread} showsVerticalScrollIndicator={false}>
+                {(thread?.messages ?? []).length === 0 ? <Text style={[type.caption, styles.center]}>{to === "buyer" ? "Say hello. Ask for the gate code or tell them you are close." : "Ask about the order, or tell them when you will be there."}</Text> : null}
+                {(thread?.messages ?? []).map((message) => (
+                  <View key={message.id} style={[styles.bubble, message.fromMe ? styles.theirs : styles.mine]}>
+                    <Text style={[type.body, !message.fromMe && { color: "#FFFFFF" }]}>{message.body}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+              <View style={styles.composer}>
+                <TextInput accessibilityLabel="Message" onChangeText={setDraft} onSubmitEditing={send} placeholder={`Write to the ${to}`} placeholderTextColor={COURIER.muted} returnKeyType="send" style={styles.composerInput} testID="chat-input" value={draft} />
+                <Button disabled={!draft.trim()} label="Send" onPress={send} size="md" testID="chat-send" />
               </View>
-            ))}
-          </ScrollView>
-          <View style={styles.composer}>
-            <TextInput accessibilityLabel="Message" onChangeText={setDraft} onSubmitEditing={send} placeholder="Write to the buyer" placeholderTextColor={COURIER.muted} returnKeyType="send" style={styles.composerInput} testID="chat-input" value={draft} />
-            <Button disabled={!draft.trim()} label="Send" onPress={send} testID="chat-send" />
-          </View>
+            </>
+          )}
         </>
       )}
     </CourierPage>

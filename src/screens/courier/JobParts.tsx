@@ -21,6 +21,7 @@ export function JobCard({ job, onAccept, onOpen }: { job: CourierJob; onOpen: ()
       <View style={styles.top}>
         <Text style={styles.pay}>{rand(job.payoutCents)}</Text>
         <View style={styles.pills}>
+          {job.boostCents ? <Pill label={`+${rand(job.boostCents)} bonus`} tone="green" /> : null}
           {job.source === "demo" ? <Pill label="Demo job" tone="blue" /> : null}
           <ExpiryPill job={job} />
         </View>

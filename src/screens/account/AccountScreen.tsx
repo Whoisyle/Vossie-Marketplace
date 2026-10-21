@@ -186,7 +186,7 @@ export function AccountScreen() {
               }
               if (role === "courier") {
                 // a first-time courier does the setup; one who is already set up goes straight to the app
-                router.replace((state.courier.status === "none" || state.courier.status === "setup" || state.courier.status === "rejected" ? "/courier-setup/details" : "/courier/home") as Href);
+                router.replace((state.courier.status === "none" || state.courier.status === "setup" || state.courier.status === "rejected" ? "/courier-setup/welcome" : "/courier/home") as Href);
                 return;
               }
               toast.show(`Switched to ${roleLabels[role]}`);

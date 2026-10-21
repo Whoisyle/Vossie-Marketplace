@@ -1,15 +1,16 @@
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { RadioRow, Sheet, useToast } from "@/components";
+import { Icon, RadioRow, Sheet, useToast } from "@/components";
 import { ArtTile, hasArt } from "@/components/art/ProductArt";
 import { rand } from "@/courier/pay";
-import { offeredJobs, sortOffers, type JobSort } from "@/courier/selectors";
+import { hiddenOffers, sortOffers, visibleOffers, type JobSort } from "@/courier/selectors";
+import { workStatus } from "@/courier/schedule";
 import { haptic } from "@/lib/haptics";
 
 import { CourierMap } from "./CourierMap";
-import { useCourier, useJob } from "./hooks";
+import { useCourier, useJob, useNow } from "./hooks";
 import { ExpiryPill, JobCard } from "./JobParts";
 import { Button, Card, Chips, CourierPage, COURIER, Empty, Fact, Pill, RoundButton, Rise, RouteLine, type, useHideTabBar } from "./ui";
 
@@ -22,7 +23,10 @@ export function CourierJobsScreen() {
   const [sort, setSort] = useState<JobSort>("nearby");
   const [filterOpen, setFilterOpen] = useState(false);
   const [maxKm, setMaxKm] = useState<number>(0);
-  const all = offeredJobs(courier);
+  const clock = new Date(useNow(15_000));
+  const all = visibleOffers(courier, clock);
+  const hidden = hiddenOffers(courier, clock);
+  const onBreak = workStatus(courier.schedule, clock).reason === "break";
   const shown = sortOffers(all, sort).filter((job) => maxKm === 0 || job.distanceKm <= maxKm);
 
   const accept = (id: string) => {
@@ -34,7 +38,7 @@ export function CourierJobsScreen() {
   return (
     <CourierPage
       right={<RoundButton dark icon="sliders" label="Filter jobs" onPress={() => setFilterOpen(true)} testID="jobs-filter" />}
-      subtitle={courier.online ? `${shown.length} ${shown.length === 1 ? "job" : "jobs"} near you` : "You are offline"}
+      subtitle={!courier.online ? "You are offline" : onBreak ? "On a break" : `${shown.length} ${shown.length === 1 ? "job" : "jobs"} in your zones`}
       testID="courier-jobs"
       title="Deliveries"
     >
@@ -49,6 +53,8 @@ export function CourierJobsScreen() {
       />
       {!courier.online ? (
         <Empty detail="Go online from Home to see delivery offers near you." icon="power" title="You are offline" />
+      ) : onBreak ? (
+        <Empty detail="Offers are paused until your break ends. Resume from Home." icon="coffee" title="On a break" />
       ) : shown.length === 0 ? (
         <Empty detail={all.length > 0 ? "No offers match this filter. Try a longer distance." : "New offers appear here as soon as a student orders delivery near you."} icon="inbox" title="No offers right now" />
       ) : (
@@ -58,6 +64,14 @@ export function CourierJobsScreen() {
           </Rise>
         ))
       )}
+      {courier.online && !onBreak && hidden.length > 0 ? (
+        <Pressable accessibilityRole="button" onPress={() => router.push("/courier/account/availability" as Href)} style={styles.hiddenBanner} testID="hidden-offers">
+          <Icon color={COURIER.amber} name="eye-off" size={16} />
+          <Text style={styles.hiddenText}>
+            {hidden.length} {hidden.length === 1 ? "offer is" : "offers are"} outside your zones or longest trip. Tap to widen them.
+          </Text>
+        </Pressable>
+      ) : null}
       <Sheet onClose={() => setFilterOpen(false)} title="Show jobs" visible={filterOpen}>
         {MAX_KM.map((option) => (
           <RadioRow key={option.key} onPress={() => { setMaxKm(option.key); setFilterOpen(false); }} selected={option.key === maxKm} title={option.label} />
@@ -158,6 +172,7 @@ export function CourierRequestScreen() {
         <View style={styles.payRow}>
           <Text style={styles.payValue}>{`R ${(job.payoutCents / 100).toFixed(2)}`}</Text>
           {job.bonusCents > 0 ? <Pill label={`Incl. ${rand(job.bonusCents)} distance bonus`} tone="green" /> : null}
+          {job.boostCents ? <Pill label={`+${rand(job.boostCents)} busy-area bonus`} tone="green" /> : null}
         </View>
       </Card>
     </CourierPage>
@@ -165,6 +180,8 @@ export function CourierRequestScreen() {
 }
 
 const styles = StyleSheet.create({
+  hiddenBanner: { alignItems: "center", backgroundColor: COURIER.amberSoft, borderRadius: 16, flexDirection: "row", gap: 8, marginTop: 4, padding: 12 },
+  hiddenText: { color: COURIER.amber, flex: 1, fontSize: 12, fontWeight: "700" },
   buttons: { flexDirection: "row", gap: 10 },
   expiry: { alignItems: "center", flexDirection: "row", gap: 6, marginBottom: 10 },
   facts: { gap: 2, marginTop: 14 },

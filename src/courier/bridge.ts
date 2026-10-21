@@ -1,16 +1,14 @@
 import { liveBackend } from "@/backend/mode";
 import type { NotificationItem, Order } from "@/data/types";
 import { applySellerAction } from "@/seller/bridge";
-import { DEMO_STORE_ID, sellerId } from "@/seller/state";
+import { DEMO_STORE_ID, sellerId, sellerReduce } from "@/seller/state";
 import type { DemoAction, DemoState } from "@/state/demoReducer";
 
 import { demoJobs, jobFromOrder, storePoint } from "./jobs";
-import { courierReduce, DEMO_WAIT_MS, OFFER_MS, WAIT_MS } from "./state";
-import type { CourierAction, CourierJob, FailReason, Vehicle } from "./types";
+import { courierReduce, DEMO_WAIT_MS, OFFER_MS, vehicleLabel, WAIT_MS } from "./state";
+import type { CourierAction, CourierJob, FailReason } from "./types";
 
 type Reduce = (state: DemoState, action: DemoAction) => DemoState;
-
-const VEHICLE_LABEL: Record<Vehicle, string> = { bicycle: "Bicycle", car: "Car", scooter: "Scooter", walking: "On foot" };
 
 export const REASON_LABEL: Record<FailReason, string> = {
   address: "the address was wrong or incomplete",
@@ -40,14 +38,14 @@ function shortName(name: string): string {
  * read out their code, delivering finishes the buyer's order, and a failed delivery tells everyone what happened.
  */
 export function applyCourierAction(state: DemoState, action: CourierAction, reduce: Reduce): DemoState {
-  if (action.type === "courierSendMessage") return sendToBuyer(state, action.id, action.body);
+  if (action.type === "courierSendMessage") return action.to === "seller" ? sendToSeller(state, action.id, action.body) : sendToBuyer(state, action.id, action.body);
   let courier = courierReduce(state.courier, action, { waitMs: liveBackend ? WAIT_MS : DEMO_WAIT_MS });
   if (courier === state.courier) return state;
   // a new courier going online for the first time is shown a few demo jobs, marked as demo, so the list is never empty
-  if (action.type === "courierSetOnline" && action.online && !courier.jobs.some((job) => job.source === "demo")) {
+  if (action.type === "courierSetOnline" && action.online && !courier.jobs.some((job) => job.id.startsWith("demo-job-"))) {
     const now = Date.now();
     const seeds = demoJobs(now, courier.profile.campusId, courier.profile.vehicle).map((job, index) => ({ ...job, expiresAt: new Date(now + OFFER_MS - index * 100_000).toISOString() }));
-    courier = { ...courier, jobs: [...courier.jobs, ...seeds], offersSeen: courier.offersSeen + seeds.length };
+    courier = { ...courier, jobs: [...seeds, ...courier.jobs], offersSeen: courier.offersSeen + seeds.length };
   }
   let next: DemoState = { ...state, courier };
   const id = "id" in action ? action.id : undefined;
@@ -61,8 +59,8 @@ export function applyCourierAction(state: DemoState, action: CourierAction, redu
   switch (action.type) {
     case "courierAcceptJob": {
       const rating = courierRating(courier.jobs);
-      next = applySellerAction(next, { courier: { arrivesInMin: Math.max(2, Math.round(job.minutes / 2)), name: shortName(courier.profile.fullName), rating, vehicle: VEHICLE_LABEL[courier.profile.vehicle] }, id: job.sellerOrderId!, type: "sellerCourierTaken" }, reduce);
-      next = { ...next, orders: next.orders.map((order) => (order.id === job.buyerOrderId ? { ...order, courier: { name: shortName(courier.profile.fullName), phone: courier.profile.phone, rating, vehicle: VEHICLE_LABEL[courier.profile.vehicle] } } : order)) };
+      next = applySellerAction(next, { courier: { arrivesInMin: Math.max(2, Math.round(job.minutes / 2)), name: shortName(courier.profile.fullName), rating, vehicle: vehicleLabel(courier.profile) }, id: job.sellerOrderId!, type: "sellerCourierTaken" }, reduce);
+      next = { ...next, orders: next.orders.map((order) => (order.id === job.buyerOrderId ? { ...order, courier: { name: shortName(courier.profile.fullName), phone: courier.profile.phone, rating, vehicle: vehicleLabel(courier.profile) } } : order)) };
       next = { ...next, notifications: [note("A courier has your order", `${shortName(courier.profile.fullName)} is on the way to collect ${job.number} from the seller.`, job.buyerOrderId!), ...next.notifications] };
       break;
     }
@@ -146,4 +144,23 @@ function sendToBuyer(state: DemoState, jobId: string, body: string): DemoState {
     ? state.conversations.map((item) => (item.id === conversationId ? { ...item, messages: [...item.messages, message], unread: true } : item))
     : [{ id: conversationId, kind: "courier" as const, messages: [message], name, orderId: job.buyerOrderId, unread: true }, ...state.conversations];
   return { ...state, conversations, notifications: [{ body: text, createdAt: message.sentAt, href: `/account/inbox/${conversationId}`, id: sellerId("n"), read: false, title: `${name} (courier)` }, ...state.notifications] };
+}
+
+/**
+ * The courier writes to the seller about the pickup: the message lands in the seller's Messages as a thread for that order, and the seller
+ * is told. The seller's reply, written in that thread, is what the courier reads.
+ */
+function sendToSeller(state: DemoState, jobId: string, body: string): DemoState {
+  const job = state.courier.jobs.find((item) => item.id === jobId);
+  const text = body.trim();
+  if (!job || !job.sellerOrderId || !text) return state;
+  const conversationId = `courier-seller-${job.sellerOrderId}`;
+  const message = { body: text, fromMe: false, id: sellerId("m"), sentAt: new Date().toISOString() };
+  const name = shortName(state.courier.profile.fullName);
+  const exists = state.conversations.some((item) => item.id === conversationId);
+  const conversations = exists
+    ? state.conversations.map((item) => (item.id === conversationId ? { ...item, messages: [...item.messages, message], unread: true } : item))
+    : [{ id: conversationId, kind: "courier" as const, messages: [message], name: `${name} (courier) · ${job.number}`, orderId: job.buyerOrderId, unread: true }, ...state.conversations];
+  const seller = sellerReduce(state.seller, { body: text, href: `/seller/home/messages/${conversationId}`, kind: "message", title: `${name} (courier)`, type: "sellerNote" }, { plan: "free", verifiedStudent: state.profile?.isVerifiedStudent ?? false });
+  return { ...state, conversations, seller };
 }

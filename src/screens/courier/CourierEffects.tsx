@@ -1,12 +1,17 @@
 import { useEffect } from "react";
 
+import { withinHours } from "@/courier/schedule";
+import { activeJobs } from "@/courier/state";
+import { dateKey } from "@/seller/schedule";
 import { useDemoStore } from "@/state/DemoStore";
+
+import { useNow } from "./hooks";
 
 /** How long after a document goes in for review the demo review clears the next check. */
 export const COURIER_REVIEW_MS = 4_500;
 /** How often the courier moves along the road in the demo, and how much of the road each step covers. */
-export const COURIER_STEP_MS = 1_500;
-export const COURIER_STEP = 1 / 30;
+export const COURIER_STEP_MS = 500;
+export const COURIER_STEP = 1 / 90;
 
 /**
  * Demo only, kept apart from the screens so it is easy to remove. It stands in for people and systems that do not exist yet:
@@ -50,6 +55,28 @@ export function CourierEffects({ enabled = true }: { enabled?: boolean }) {
     }, COURIER_STEP_MS);
     return () => clearInterval(timer);
   }, [dispatch, enabled, moving]);
+
+  // the working hours end: go offline with a notice, unless the courier started outside them on purpose or is in the middle of a delivery
+  const now = useNow(20_000);
+  const clock = new Date(now);
+  const hoursOver = courier.online && courier.status === "approved" && courier.schedule.autoOffline && !withinHours(courier.schedule, clock) && courier.schedule.overrideOn !== dateKey(clock) && activeJobs(courier).length === 0;
+  useEffect(() => {
+    if (enabled && hoursOver) dispatch({ type: "courierAutoOffline" });
+  }, [dispatch, enabled, hoursOver]);
+
+  // a break ends by itself
+  const breakUntil = courier.schedule.breakUntil;
+  useEffect(() => {
+    if (!enabled || !breakUntil) return;
+    const timer = setTimeout(() => dispatch({ type: "courierEndBreak" }), Math.max(250, new Date(breakUntil).getTime() - Date.now()));
+    return () => clearTimeout(timer);
+  }, [breakUntil, dispatch, enabled]);
+
+  // the licence: a reminder when it is about to run out, and again when it has (the reducer sends each once)
+  const licenceDate = courier.documents.find((doc) => doc.kind === "licence")?.expiresAt;
+  useEffect(() => {
+    if (enabled && courier.status === "approved") dispatch({ type: "courierCheckDocuments" });
+  }, [courier.status, dispatch, enabled, licenceDate]);
 
   return null;
 }

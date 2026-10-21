@@ -1,11 +1,14 @@
 import type { CampusId } from "@/data/types";
+import type { BankAccount } from "@/seller/types";
+
+import type { CourierSchedule } from "./schedule";
 
 /** Where the courier is on the road to being allowed to deliver. */
 export type CourierStatus = "none" | "setup" | "pending" | "approved" | "rejected";
 
 export type Vehicle = "walking" | "bicycle" | "scooter" | "car";
 
-export type CourierDocKind = "id" | "selfie" | "vehicle" | "background";
+export type CourierDocKind = "id" | "selfie" | "licence" | "background";
 
 export type CourierDocStatus = "missing" | "uploaded" | "in-review" | "verified" | "rejected";
 
@@ -15,24 +18,25 @@ export type CourierDoc = {
   fileName?: string;
   /** Picture of the document or selfie, when one was taken or picked. */
   uri?: string;
-  /** "Update your licence in 14 days": set on a document that is about to expire. */
+  /** When the document stops being valid, as 2027-03-01. For the driving licence; the courier is reminded before it runs out. */
   expiresAt?: string;
 };
+
+/** The car or scooter a courier delivers on. The number plate is what the buyer sees, so they know what is arriving. */
+export type VehicleInfo = { make: string; model: string; colour: string; plate: string };
 
 export type CourierProfile = {
   fullName: string;
   phone: string;
   campusId: CampusId;
   vehicle: Vehicle;
+  vehicleInfo: VehicleInfo;
+  /** The number on the driving licence, for a car or scooter. */
+  licenceNumber: string;
 };
 
-export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
-
-export const WEEKDAYS: Weekday[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-
-export type CourierHours = { days: Weekday[]; from: string; to: string };
-
-export type CourierZone = { id: string; name: string; on: boolean };
+/** A place the courier takes jobs from. Offers whose pickup is more than about a kilometre from every zone that is on are not shown. */
+export type CourierZone = { id: string; name: string; detail: string; latitude: number; longitude: number; on: boolean; /** Added by the courier, by searching for a place. */ custom?: boolean };
 
 /** One thing the courier can be told: a job offer, a ready parcel, a payout, a rating, a document running out. */
 export type CourierAlertKind = "offer" | "order" | "money" | "rating" | "document" | "system";
@@ -124,6 +128,8 @@ export type CourierJob = {
   waitingSince?: string;
   /** 0 to 1 along the road to the buyer; the buyer's tracking reads the same number. */
   progress: number;
+  /** A bonus on top of the pay, for a busy area. Already counted in the payout. */
+  boostCents?: number;
   /** The student's rating and tip after delivery, copied from the buyer's order. */
   rating?: number;
   tipCents?: number;
@@ -147,35 +153,51 @@ export type CourierState = {
   profile: CourierProfile;
   documents: CourierDoc[];
   online: boolean;
-  hours: CourierHours;
+  schedule: CourierSchedule;
   zones: CourierZone[];
+  /** The longest delivery the courier will take, in kilometres. */
+  maxKm: number;
   jobAlerts: boolean;
   jobs: CourierJob[];
   earnings: EarningEntry[];
   payouts: CourierPayout[];
   alerts: CourierAlert[];
   cases: CourierCase[];
-  bank: string;
+  /** Where payouts go. Saved the first time the courier withdraws. */
+  bank?: BankAccount;
   /** For the acceptance rate: offers the courier saw and what they did with them. */
   offersSeen: number;
   offersAccepted: number;
   /** The reason the last review failed, when it did. */
   rejectedReason?: string;
+  /** What the courier wants to earn in a week, and the week a goal was last reached in so it is celebrated once. */
+  goal: { weeklyCents: number | null };
+  goalReachedWeek?: string;
+  /** The licence reminder that was already sent (expiry date and how near), so it is sent once. */
+  licenceNotice?: string;
 };
 
 export type CourierAction =
   | { type: "courierStart" }
-  | { type: "courierSetProfile"; patch: Partial<CourierProfile> }
-  | { type: "courierUploadDocument"; kind: CourierDocKind; fileName: string; uri?: string }
+  | { type: "courierSetProfile"; patch: Partial<Omit<CourierProfile, "vehicleInfo">> & { vehicleInfo?: Partial<VehicleInfo> } }
+  | { type: "courierUploadDocument"; kind: CourierDocKind; fileName: string; uri?: string; expiresAt?: string }
+  | { type: "courierSetLicenceExpiry"; expiresAt: string }
+  | { type: "courierCheckDocuments" }
   | { type: "courierSubmitVerification" }
   | { type: "courierReviewTick" }
   | { type: "courierApprovalSeen" }
   | { type: "courierSetOnline"; online: boolean }
-  | { type: "courierSetHours"; patch: Partial<CourierHours> }
-  | { type: "courierToggleDay"; day: Weekday }
+  | { type: "courierSetSchedule"; schedule: CourierSchedule }
+  | { type: "courierStartBreak"; minutes: number }
+  | { type: "courierEndBreak" }
+  | { type: "courierFinishToday" }
+  | { type: "courierAutoOffline" }
   | { type: "courierToggleZone"; id: string }
+  | { type: "courierAddZone"; name: string; detail: string; latitude: number; longitude: number }
+  | { type: "courierRemoveZone"; id: string }
+  | { type: "courierSetMaxKm"; km: number }
   | { type: "courierSetJobAlerts"; on: boolean }
-  | { type: "courierSetBank"; bank: string }
+  | { type: "courierSaveBank"; bank: BankAccount }
   | { type: "courierReceiveJob"; job: CourierJob }
   | { type: "courierSeedDemoJobs" }
   | { type: "courierExpireJobs" }
@@ -188,8 +210,9 @@ export type CourierAction =
   | { type: "courierFailAttempt"; id: string; reason: FailReason; photoUri?: string }
   | { type: "courierConfirmReturn"; id: string; code: string }
   | { type: "courierRated"; id: string; rating: number; tipCents: number; feedback?: string }
-  | { type: "courierCashOut" }
+  | { type: "courierWithdraw"; amountCents: number }
   | { type: "courierReadAlerts"; ids?: string[] }
   | { type: "courierOpenCase"; title: string; detail: string; jobNumber?: string; sos?: boolean }
   | { type: "courierSetStatus"; status: CourierStatus }
-  | { type: "courierSendMessage"; id: string; body: string };
+  | { type: "courierSetGoal"; weeklyCents: number | null }
+  | { type: "courierSendMessage"; id: string; body: string; to?: "buyer" | "seller" };

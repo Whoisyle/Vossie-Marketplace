@@ -1,19 +1,23 @@
 import { useRouter, type Href } from "expo-router";
-import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useState, type ReactNode } from "react";
+import { Image, Pressable, StyleSheet, Text as RNText, View } from "react-native";
 
-import { Icon, RadioRow, Sheet, Wordmark, type IconName } from "@/components";
-import { WEEKDAYS, type CourierDocKind, type CourierDocStatus, type Vehicle, type Weekday } from "@/courier/types";
+import { Icon, RadioRow, Sheet, type IconName } from "@/components";
+import { daysLeft, needsLicence, parseExpiry, setupProblem } from "@/courier/state";
+import type { CourierDocKind, CourierDocStatus, Vehicle, VehicleInfo } from "@/courier/types";
+import { expiryProblem, normalisePlate, validLicenceNumber } from "@/courier/validate";
+import { COLOURS, makesFor, modelsFor } from "@/courier/vehicles";
 import { getCampusName, getCampuses } from "@/data/repository";
 import type { CampusId } from "@/data/types";
 import { haptic } from "@/lib/haptics";
-
+import { SellerField } from "@/screens/seller/fields";
 import { AttachSheet } from "@/screens/seller/attach";
+import { StepBar } from "@/screens/seller/motion";
+import { SellerButton, SellerScreen, Text, useTone } from "@/screens/seller/ui";
 
-import { useCourier } from "./hooks";
-import { Button, COURIER, Card, Pill, Rise, Toggle, type PillTone, type } from "./ui";
+import { AvailabilityEditor } from "./CourierScheduleScreens";
+import { useCourier, useNow } from "./hooks";
+import { Card, Chips, COURIER, Pill, Rise, type PillTone, type } from "./ui";
 
 const VEHICLES: { key: Vehicle; label: string }[] = [
   { key: "walking", label: "Walking" },
@@ -22,79 +26,107 @@ const VEHICLES: { key: Vehicle; label: string }[] = [
   { key: "car", label: "Car" },
 ];
 
-const DAY_LABEL: Record<Weekday, string> = { fri: "Fri", mon: "Mon", sat: "Sat", sun: "Sun", thu: "Thu", tue: "Tue", wed: "Wed" };
-
 /** A South African mobile number: ten digits starting with 0, or +27 and nine digits. Spaces and dashes do not matter. */
 export function validPhone(value: string): boolean {
   const digits = value.replace(/[\s-]/g, "");
   return /^0\d{9}$/.test(digits) || /^\+27\d{9}$/.test(digits);
 }
 
-/** A time written as 08:00 or 8:00, between 00:00 and 23:59. */
-export function validTime(value: string): boolean {
-  return /^([01]?\d|2[0-3]):[0-5]\d$/.test(value.trim());
+/** "01/03/2027" or "1-3-2027" to "2027-03-01", or null when it is not a real date. */
+export function dateToIso(value: string): string | null {
+  const match = /^(\d{1,2})[/\-. ](\d{1,2})[/\-. ](\d{4})$/.exec(value.trim());
+  if (!match) return null;
+  const iso = `${match[3]}-${match[2]!.padStart(2, "0")}-${match[1]!.padStart(2, "0")}`;
+  return parseExpiry(iso) ? iso : null;
 }
 
-/** A white setup page: the Vossie mark, the three-step bar and its title. */
-function SetupPage({ children, footer, step, subtitle, title, testID }: { step: 1 | 2 | 3; title: string; subtitle: string; children: React.ReactNode; footer: React.ReactNode; testID: string }) {
+/** "2027-03-01" to "01/03/2027". */
+export function isoToDate(iso: string | undefined): string {
+  const date = parseExpiry(iso);
+  return date ? `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}` : "";
+}
+
+/** A text field, the seller's. */
+export function Field({ error, icon, keyboardType, label, onChangeText, placeholder, testID, value }: { label: string; value: string; onChangeText: (value: string) => void; placeholder?: string; icon?: IconName; error?: string; testID: string; keyboardType?: "phone-pad" | "default" | "numbers-and-punctuation" | "number-pad"; autoCapitalize?: "words" | "none" | "characters" }) {
+  return <SellerField error={error} icon={icon} keyboardType={keyboardType} label={label} onChangeText={onChangeText} placeholder={placeholder} testID={testID} value={value} />;
+}
+
+/** A field you tap to choose from a list: the same pressed-in box as a text field, with the choice in it and a chevron. */
+export function PickerField({ disabled, error, icon, label, onPress, placeholder, testID, value }: { label: string; value: string; placeholder: string; onPress: () => void; icon?: IconName; error?: string; testID: string; disabled?: boolean }) {
+  const look = useTone();
   return (
-    <SafeAreaView edges={["top", "bottom"]} style={styles.page} testID={testID}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <Wordmark tone="brand" width={150} />
-        <Steps step={step} />
-        <Text accessibilityRole="header" style={[type.title, styles.setupTitle]}>
+    <View style={styles.pickWrap}>
+      <Text style={styles.pickLabel}>{label}</Text>
+      <Pressable accessibilityLabel={`${label}, ${value || "not chosen"}`} accessibilityRole="button" accessibilityState={{ disabled: Boolean(disabled) }} disabled={disabled} onPress={onPress} style={[styles.pick, { backgroundColor: look.well, boxShadow: look.pressed }, error ? styles.pickError : null, disabled && { opacity: 0.5 }]} testID={testID}>
+        {icon ? <Icon color={COURIER.inkSoft} name={icon} size={20} /> : null}
+        <RNText style={[styles.pickText, !value && { color: "#8A99A1" }]}>{value || placeholder}</RNText>
+        <Icon color={COURIER.muted} name="chevron-down" size={18} />
+      </Pressable>
+      {error ? <Text style={styles.pickErrorText}>{error}</Text> : null}
+    </View>
+  );
+}
+
+/** A sheet of choices, one tap to pick. */
+export function OptionSheet({ onClose, onPick, options, selected, title, visible }: { visible: boolean; title: string; options: { value: string; sub?: string }[]; selected: string; onClose: () => void; onPick: (value: string) => void }) {
+  return (
+    <Sheet onClose={onClose} title={title} visible={visible}>
+      {options.map((option) => (
+        <RadioRow key={option.value} onPress={() => { onPick(option.value); onClose(); }} selected={option.value === selected} subtitle={option.sub} testID={`option-${option.value}`} title={option.value} />
+      ))}
+    </Sheet>
+  );
+}
+
+/** The make, model, colour and number plate of a car or scooter, each chosen from a list or checked for its form. Used in setup and in Documents. */
+export function VehicleForm({ errors, info, onChange, vehicle }: { vehicle: Vehicle; info: VehicleInfo; onChange: (info: VehicleInfo) => void; errors?: Partial<Record<keyof VehicleInfo, string>> }) {
+  const [picking, setPicking] = useState<"make" | "model" | "colour" | null>(null);
+  const makes = makesFor(vehicle);
+  const models = modelsFor(vehicle, info.make);
+  return (
+    <View testID="vehicle-form">
+      <View style={styles.pair}>
+        <View style={styles.flex}>
+          <PickerField error={errors?.make} label="Make" onPress={() => setPicking("make")} placeholder="Choose" testID="vehicle-make" value={info.make} />
+        </View>
+        <View style={styles.flex}>
+          <PickerField disabled={!info.make} error={errors?.model} label="Model" onPress={() => setPicking("model")} placeholder={info.make ? "Choose" : "Pick a make"} testID="vehicle-model" value={info.model} />
+        </View>
+      </View>
+      <View style={styles.pair}>
+        <View style={styles.flex}>
+          <PickerField error={errors?.colour} label="Colour" onPress={() => setPicking("colour")} placeholder="Choose" testID="vehicle-colour" value={info.colour} />
+        </View>
+        <View style={styles.flex}>
+          <SellerField error={errors?.plate} label="Number plate" onChangeText={(plate) => onChange({ ...info, plate })} placeholder="CA 123-456" testID="vehicle-plate" value={info.plate} />
+        </View>
+      </View>
+      {info.plate && normalisePlate(info.plate) && normalisePlate(info.plate) !== info.plate ? <Text style={styles.plateHint}>Saved as {normalisePlate(info.plate)}</Text> : null}
+      <OptionSheet onClose={() => setPicking(null)} onPick={(make) => onChange({ ...info, make, model: modelsFor(vehicle, make).includes(info.model) ? info.model : "" })} options={makes.map((value) => ({ value }))} selected={info.make} title="Make" visible={picking === "make"} />
+      <OptionSheet onClose={() => setPicking(null)} onPick={(model) => onChange({ ...info, model })} options={models.map((value) => ({ value }))} selected={info.model} title={`${info.make} models`} visible={picking === "model"} />
+      <OptionSheet onClose={() => setPicking(null)} onPick={(colour) => onChange({ ...info, colour })} options={COLOURS.map((value) => ({ value }))} selected={info.colour} title="Colour" visible={picking === "colour"} />
+    </View>
+  );
+}
+
+/** A setup page: the seller's blue page with the three-step bar, the title and its line, then the form, and the button pinned below. */
+export function SetupPage({ children, footer, step, subtitle, title, testID }: { step: 1 | 2 | 3; title: string; subtitle: string; children: ReactNode; footer: ReactNode; testID: string }) {
+  return (
+    <SellerScreen footer={footer} tabs={false} testID={testID}>
+      <View style={styles.top}>
+        <StepBar step={step} />
+        <Text style={styles.step}>Step {step} of 3</Text>
+        <Text accessibilityRole="header" style={styles.title}>
           {title}
         </Text>
-        <Text style={type.caption}>{subtitle}</Text>
-        <View style={styles.body}>{children}</View>
-      </ScrollView>
-      <View style={styles.footer}>{footer}</View>
-    </SafeAreaView>
-  );
-}
-
-/** "Step 2 of 3" with three bars that fill as you go. */
-function Steps({ step }: { step: 1 | 2 | 3 }) {
-  return (
-    <View style={styles.steps} testID="courier-steps">
-      <View style={styles.bars}>
-        {[1, 2, 3].map((n) => (
-          <Bar done={n <= step} key={n} />
-        ))}
+        <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
-      <Text style={type.caption}>Step {step} of 3</Text>
-    </View>
+      {children}
+    </SellerScreen>
   );
 }
 
-function Bar({ done }: { done: boolean }) {
-  const reduced = useReducedMotion();
-  const fill = useSharedValue(reduced ? (done ? 1 : 0) : 0);
-  useEffect(() => {
-    fill.set(withTiming(done ? 1 : 0, { duration: 500 }));
-  }, [done, fill]);
-  const style = useAnimatedStyle(() => ({ width: `${fill.get() * 100}%` }));
-  return (
-    <View style={styles.bar}>
-      <Animated.View style={[styles.barFill, style]} />
-    </View>
-  );
-}
-
-function Field({ error, icon, label, onChangeText, placeholder, testID, value, keyboardType, autoCapitalize }: { label: string; value: string; onChangeText: (value: string) => void; placeholder?: string; icon?: IconName; error?: string; testID: string; keyboardType?: "phone-pad" | "default"; autoCapitalize?: "words" | "none" }) {
-  return (
-    <View style={styles.field}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={[styles.input, error ? styles.inputError : null]}>
-        {icon ? <Icon color={COURIER.inkSoft} name={icon} size={20} /> : null}
-        <TextInput accessibilityLabel={label} autoCapitalize={autoCapitalize ?? "words"} keyboardType={keyboardType} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor={COURIER.muted} style={styles.inputText} testID={testID} value={value} />
-      </View>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-    </View>
-  );
-}
-
-/** Step 1: who you are, which campus, and how you will deliver. */
+/** Step 1: who you are, which campus, how you will deliver and, for a car or scooter, what it is and the licence number. */
 export function CourierDetailsScreen() {
   const router = useRouter();
   const { courier, dispatch, state } = useCourier();
@@ -102,120 +134,148 @@ export function CourierDetailsScreen() {
   const [phone, setPhone] = useState(courier.profile.phone || state.profile?.phone || "");
   const [campus, setCampus] = useState<CampusId>(courier.profile.campusId || state.profile?.campusId || "potchefstroom");
   const [vehicle, setVehicle] = useState<Vehicle>(courier.profile.vehicle);
+  const [info, setInfo] = useState(courier.profile.vehicleInfo);
+  const [licenceNumber, setLicenceNumber] = useState(courier.profile.licenceNumber);
   const [campusOpen, setCampusOpen] = useState(false);
   const [tried, setTried] = useState(false);
-  const nameError = name.trim().length < 2 ? "Enter your full name" : undefined;
-  const phoneError = !validPhone(phone) ? "Enter a South African mobile number, like 082 573 5164" : undefined;
+  const motor = needsLicence(vehicle);
+  const plate = normalisePlate(info.plate);
+  const errors = {
+    colour: motor && !COLOURS.includes(info.colour as (typeof COLOURS)[number]) ? "Choose a colour" : undefined,
+    licence: motor && !validLicenceNumber(licenceNumber) ? "Enter the licence number as printed on your card (10 to 13 letters and digits)" : undefined,
+    make: motor && !makesFor(vehicle).includes(info.make) ? "Choose a make" : undefined,
+    model: motor && !modelsFor(vehicle, info.make).includes(info.model) ? "Choose a model" : undefined,
+    name: name.trim().length < 2 ? "Enter your full name" : undefined,
+    phone: !validPhone(phone) ? "Enter a South African mobile number, like 082 573 5164" : undefined,
+    plate: motor && !plate ? "Use a South African plate, like CA 123-456 or ABC 123 GP" : undefined,
+  };
+  const bad = Object.values(errors).some(Boolean);
 
   const next = () => {
     setTried(true);
-    if (nameError || phoneError) {
+    if (bad) {
       haptic.error();
       return;
     }
     dispatch({ type: "courierStart" });
-    dispatch({ patch: { campusId: campus, fullName: name.trim(), phone: phone.trim(), vehicle }, type: "courierSetProfile" });
+    dispatch({ patch: { campusId: campus, fullName: name.trim(), licenceNumber: licenceNumber.toUpperCase().replace(/\s/g, ""), phone: phone.trim(), vehicle, vehicleInfo: motor ? { ...info, plate: plate! } : info }, type: "courierSetProfile" });
     router.push("/courier-setup/verify" as Href);
   };
 
   return (
-    <SetupPage footer={<Button label="Continue" onPress={next} testID="courier-continue" />} step={1} subtitle="Earn by delivering on campus" testID="courier-details" title="Become a courier">
-      <Field error={tried ? nameError : undefined} label="Full name" onChangeText={setName} placeholder="Name" testID="courier-name" value={name} />
-      <Field error={tried ? phoneError : undefined} icon="phone" keyboardType="phone-pad" label="Phone number" onChangeText={setPhone} placeholder="087 983 9342" testID="courier-phone" value={phone} />
-      <View style={styles.field}>
-        <Text style={styles.fieldLabel}>Campus</Text>
-        <Pressable accessibilityLabel={`Campus, ${getCampusName(campus)}`} accessibilityRole="button" onPress={() => setCampusOpen(true)} style={styles.input} testID="courier-campus">
-          <Icon color={COURIER.inkSoft} name="map-pin" size={20} />
-          <Text style={[styles.inputText, styles.flex]}>{getCampusName(campus)}</Text>
-          <Icon color={COURIER.muted} name="chevron-down" size={18} />
-        </Pressable>
-      </View>
-      <Text style={styles.fieldLabel}>How will you deliver?</Text>
-      <View style={styles.vehicles}>
-        {VEHICLES.map((item) => {
-          const on = item.key === vehicle;
-          return (
-            <Pressable accessibilityLabel={item.label} accessibilityRole="radio" accessibilityState={{ checked: on }} key={item.key} onPress={() => { haptic.tap(); setVehicle(item.key); }} style={[styles.vehicle, on && styles.vehicleOn]} testID={`vehicle-${item.key}`}>
-              <Text style={[styles.vehicleText, on && styles.vehicleTextOn]}>{item.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      <Card style={styles.note} tone="soft">
-        <Text style={type.body}>Earn per delivery plus tips, paid out weekly</Text>
-      </Card>
-      <Sheet onClose={() => setCampusOpen(false)} title="Your campus" visible={campusOpen}>
-        {getCampuses().map((item) => (
-          <RadioRow key={item.id} onPress={() => { setCampus(item.id); setCampusOpen(false); }} selected={item.id === campus} subtitle={item.region} title={item.name} />
-        ))}
-      </Sheet>
+    <SetupPage footer={<SellerButton label="Continue" onPress={next} size="lg" testID="courier-continue" variant="light" />} step={1} subtitle="Earn by delivering on campus" testID="courier-details" title="Become a courier">
+      <SellerField error={tried ? errors.name : undefined} label="Full name" onChangeText={setName} placeholder="Name" testID="courier-name" value={name} />
+      <SellerField error={tried ? errors.phone : undefined} icon="phone" keyboardType="phone-pad" label="Phone number" onChangeText={setPhone} placeholder="087 983 9342" testID="courier-phone" value={phone} />
+      <PickerField icon="map-pin" label="Campus" onPress={() => setCampusOpen(true)} placeholder="Choose" testID="courier-campus" value={getCampusName(campus)} />
+      <Text style={styles.pickLabel}>How will you deliver?</Text>
+      <Chips chips={VEHICLES} onChange={setVehicle} value={vehicle} />
+      {motor ? (
+        <Rise>
+          <Card style={styles.vehicleCard} testID="vehicle-details">
+            <RNText style={type.card}>Your {vehicle === "car" ? "car" : "scooter"}</RNText>
+            <RNText style={type.caption}>Pick it from the lists. The buyer sees the make, colour and number plate so they know what is arriving.</RNText>
+            <VehicleForm errors={tried ? errors : undefined} info={info} onChange={setInfo} vehicle={vehicle} />
+            <SellerField error={tried ? errors.licence : undefined} icon="credit-card" label="Driving licence number" onChangeText={setLicenceNumber} placeholder="As printed on your card" testID="licence-number" value={licenceNumber} />
+          </Card>
+        </Rise>
+      ) : null}
+      <OptionSheet onClose={() => setCampusOpen(false)} onPick={(label) => setCampus(getCampuses().find((item) => item.name === label)?.id ?? campus)} options={getCampuses().map((item) => ({ sub: item.region, value: item.name }))} selected={getCampusName(campus)} title="Your campus" visible={campusOpen} />
     </SetupPage>
   );
 }
 
-const CHECKS: { kind: CourierDocKind; icon: IconName; title: string; sub: string; optional?: boolean }[] = [
-  { icon: "file-text", kind: "id", sub: "South African ID or passport", title: "ID document" },
-  { icon: "camera", kind: "selfie", sub: "Match your ID photo", title: "Selfie check" },
-  { icon: "truck", kind: "vehicle", optional: true, sub: "Only if using a bike or car", title: "Vehicle or licence" },
-  { icon: "shield", kind: "background", sub: "Run by Vossie Operations", title: "Background check" },
-];
-
-function docLabel(status: CourierDocStatus, kind: CourierDocKind, optional?: boolean): { label: string; tone: PillTone } {
+function docLook(status: CourierDocStatus, kind: CourierDocKind): { label: string; tone: PillTone } {
   if (kind === "background") return status === "verified" ? { label: "Verified", tone: "green" } : status === "in-review" ? { label: "In review", tone: "amber" } : { label: "After you submit", tone: "grey" };
   if (status === "verified") return { label: "Verified", tone: "green" };
   if (status === "in-review") return { label: "In review", tone: "amber" };
   if (status === "uploaded") return { label: "Added", tone: "blue" };
   if (status === "rejected") return { label: "Try again", tone: "red" };
-  return optional ? { label: "Optional", tone: "grey" } : { label: "Required", tone: "red" };
+  return { label: "Required", tone: "red" };
 }
 
-/** Step 2: the ID, the selfie, an optional vehicle document, and the check Vossie Operations runs. */
+export const CHECK_INFO: Record<CourierDocKind, { icon: IconName; title: string; sub: string }> = {
+  background: { icon: "shield", sub: "Run by Vossie Operations", title: "Background check" },
+  id: { icon: "file-text", sub: "South African ID or passport", title: "ID document" },
+  licence: { icon: "truck", sub: "Required for a car or scooter", title: "Driving licence" },
+  selfie: { icon: "camera", sub: "Match your ID photo", title: "Selfie check" },
+};
+
+/** Step 2: the ID, the selfie, the driving licence with its expiry date for a car or scooter, and the check Vossie Operations runs. */
 export function CourierVerifyScreen() {
   const router = useRouter();
   const { courier, dispatch } = useCourier();
+  const now = useNow(60_000);
   const [adding, setAdding] = useState<CourierDocKind | null>(null);
+  const [expiry, setExpiry] = useState(isoToDate(courier.documents.find((doc) => doc.kind === "licence")?.expiresAt));
+  const [tried, setTried] = useState(false);
   const doc = (kind: CourierDocKind) => courier.documents.find((item) => item.kind === kind)!;
-  const done = courier.documents.filter((item) => item.status === "uploaded" || item.status === "verified" || item.status === "in-review").length;
-  const needed = courier.profile.vehicle === "walking" ? 3 : 4;
-  const ready = doc("id").status !== "missing" && doc("selfie").status !== "missing";
-  const checks = CHECKS.filter((check) => check.kind !== "vehicle" || courier.profile.vehicle !== "walking");
+  const motor = needsLicence(courier.profile.vehicle);
+  const checks = (["id", "selfie", "licence", "background"] as CourierDocKind[]).filter((kind) => kind !== "licence" || motor);
+  const needed = checks.length;
+  const done = checks.filter((kind) => ["uploaded", "verified", "in-review"].includes(doc(kind).status) && kind !== "background").length;
+  const iso = dateToIso(expiry);
+  const left = iso ? daysLeft(iso, now) : null;
+  const dateProblem = iso ? expiryProblem(iso, now) : null;
+  const expiryError = !motor ? undefined : expiry.trim() === "" ? "Enter the date your licence expires" : !iso ? "Use the date as 25/12/2027" : dateProblem === "past" ? "That licence has already expired" : dateProblem === "far" ? "A licence lasts five years, so that date is too far away" : undefined;
+  const problem = doc("id").status === "missing" || doc("selfie").status === "missing" ? "Add your ID and a selfie to go on." : motor && doc("licence").status === "missing" ? "Add your driving licence to go on." : (expiryError ?? setupProblem(courier, now));
+  const ready = problem === null;
+
+  const setExpiryText = (value: string) => {
+    setExpiry(value);
+    const parsed = dateToIso(value);
+    if (parsed) dispatch({ expiresAt: parsed, type: "courierSetLicenceExpiry" });
+  };
 
   const submit = () => {
+    setTried(true);
+    if (!ready) {
+      haptic.error();
+      return;
+    }
     dispatch({ type: "courierSubmitVerification" });
     router.push("/courier-setup/availability" as Href);
   };
 
   return (
-    <SetupPage footer={<Button disabled={!ready} label="Submit for review" onPress={submit} testID="courier-submit" />} step={2} subtitle="Required before your first job" testID="courier-verify" title="Verify your identity">
+    <SetupPage footer={<SellerButton label="Submit for review" onPress={submit} size="lg" testID="courier-submit" variant="light" />} step={2} subtitle={motor ? "Your licence is needed before your first job" : "Required before your first job"} testID="courier-verify" title="Verify your identity">
       <Card style={styles.status} tone="selected">
         <View style={styles.statusIcon}>
           <Icon color={COURIER.solid} name="shield" size={22} />
         </View>
         <View style={styles.flex}>
-          <Text style={type.card}>Verification status</Text>
-          <Text style={type.caption}>{Math.min(done, needed)} of {needed} checks complete</Text>
+          <RNText style={type.card}>Verification status</RNText>
+          <RNText style={type.caption}>
+            {Math.min(done, needed - 1)} of {needed} checks complete
+          </RNText>
         </View>
         <Pill label={courier.status === "pending" ? "In review" : "Pending"} tone="amber" />
       </Card>
-      {checks.map((check, index) => {
-        const current = doc(check.kind);
-        const look = docLabel(current.status, check.kind, check.optional);
-        const tappable = check.kind !== "background";
+      {checks.map((kind, index) => {
+        const current = doc(kind);
+        const look = docLook(current.status, kind);
+        const info = CHECK_INFO[kind];
         return (
-          <Rise index={index} key={check.kind}>
-            <Card onPress={tappable ? () => setAdding(check.kind) : undefined} style={styles.check} testID={`check-${check.kind}`}>
-              <View style={styles.checkIcon}>
-                <Icon color={COURIER.solid} name={check.icon} size={22} />
-              </View>
+          <Rise index={index} key={kind}>
+            <Card onPress={kind === "background" ? undefined : () => setAdding(kind)} style={styles.check} testID={`check-${kind}`}>
+              <View style={styles.checkIcon}>{current.uri && kind !== "background" ? <Image source={{ uri: current.uri }} style={styles.thumb} /> : <Icon color={COURIER.solid} name={info.icon} size={22} />}</View>
               <View style={styles.flex}>
-                <Text style={type.card}>{check.title}</Text>
-                <Text style={type.caption}>{current.fileName ?? check.sub}</Text>
+                <RNText style={type.card}>{info.title}</RNText>
+                <RNText style={type.caption}>{current.fileName ?? info.sub}</RNText>
               </View>
               <Pill label={look.label} tone={look.tone} />
             </Card>
           </Rise>
         );
       })}
+      {motor ? (
+        <Rise index={5}>
+          <View testID="licence-expiry-card">
+            <SellerField error={tried || expiry ? expiryError : undefined} icon="calendar" keyboardType="numbers-and-punctuation" label="Licence expiry date" onChangeText={setExpiryText} placeholder="25/12/2027" testID="licence-expiry" value={expiry} />
+            <Text style={styles.hint}>{left !== null && left > 0 && !dateProblem ? `Valid for ${left} more ${left === 1 ? "day" : "days"}. We remind you before it runs out.` : "We remind you before it runs out, so you are never stopped by surprise."}</Text>
+          </View>
+        </Rise>
+      ) : null}
+      {tried && !ready ? <Text style={styles.error}>{problem}</Text> : null}
       <AttachSheet
         onClose={() => setAdding(null)}
         onPicked={(file) => {
@@ -223,72 +283,10 @@ export function CourierVerifyScreen() {
           setAdding(null);
         }}
         sources={adding === "selfie" ? ["camera", "library"] : ["library", "camera", "files"]}
-        title={adding === "selfie" ? "Take a selfie" : "Add your document"}
+        title={adding === "selfie" ? "Take a selfie" : adding === "licence" ? "Add your driving licence" : "Add your document"}
         visible={adding !== null}
       />
     </SetupPage>
-  );
-}
-
-/** Working days, hours and zones. Used as step 3 and again from Account. */
-export function AvailabilityForm({ onVehicle }: { onVehicle?: boolean }) {
-  const { courier, dispatch } = useCourier();
-  const [from, setFrom] = useState(courier.hours.from);
-  const [to, setTo] = useState(courier.hours.to);
-  return (
-    <View testID="availability-form">
-      <Text style={styles.sectionLabel}>Working days</Text>
-      <View style={styles.days}>
-        {WEEKDAYS.map((day) => {
-          const on = courier.hours.days.includes(day);
-          return (
-            <Pressable accessibilityLabel={DAY_LABEL[day]} accessibilityRole="checkbox" accessibilityState={{ checked: on }} key={day} onPress={() => { haptic.tap(); dispatch({ day, type: "courierToggleDay" }); }} style={[styles.day, on && styles.dayOn]} testID={`day-${day}`}>
-              <Text style={[styles.dayText, on && styles.dayTextOn]}>{DAY_LABEL[day]}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      <View style={styles.times}>
-        <View style={styles.flex}>
-          <Text style={styles.fieldLabel}>From</Text>
-          <View style={styles.input}>
-            <TextInput accessibilityLabel="From" keyboardType="numbers-and-punctuation" onBlur={() => validTime(from) && dispatch({ patch: { from: from.trim().padStart(5, "0") }, type: "courierSetHours" })} onChangeText={setFrom} placeholder="08:00" placeholderTextColor={COURIER.muted} style={styles.inputText} testID="hours-from" value={from} />
-          </View>
-        </View>
-        <View style={styles.flex}>
-          <Text style={styles.fieldLabel}>To</Text>
-          <View style={styles.input}>
-            <TextInput accessibilityLabel="To" keyboardType="numbers-and-punctuation" onBlur={() => validTime(to) && dispatch({ patch: { to: to.trim().padStart(5, "0") }, type: "courierSetHours" })} onChangeText={setTo} placeholder="17:00" placeholderTextColor={COURIER.muted} style={styles.inputText} testID="hours-to" value={to} />
-          </View>
-        </View>
-      </View>
-      {!validTime(from) || !validTime(to) ? <Text style={styles.error}>Use the 24 hour clock, like 08:00 or 17:30</Text> : null}
-      <Text style={styles.sectionLabel}>Delivery zones</Text>
-      {courier.zones.map((zone) => (
-        <Card key={zone.id} style={styles.zone}>
-          <View style={styles.checkIcon}>
-            <Icon color={COURIER.solid} name="map-pin" size={20} />
-          </View>
-          <Text style={[type.card, styles.flex]}>{zone.name}</Text>
-          <Toggle label={zone.name} on={zone.on} onChange={() => dispatch({ id: zone.id, type: "courierToggleZone" })} testID={`zone-${zone.id}`} />
-        </Card>
-      ))}
-      {onVehicle ? (
-        <>
-          <Text style={styles.sectionLabel}>How you deliver</Text>
-          <View style={styles.vehicles}>
-            {VEHICLES.map((item) => {
-              const on = item.key === courier.profile.vehicle;
-              return (
-                <Pressable accessibilityLabel={item.label} accessibilityRole="radio" accessibilityState={{ checked: on }} key={item.key} onPress={() => { haptic.tap(); dispatch({ patch: { vehicle: item.key }, type: "courierSetProfile" }); }} style={[styles.vehicle, on && styles.vehicleOn]} testID={`vehicle-${item.key}`}>
-                  <Text style={[styles.vehicleText, on && styles.vehicleTextOn]}>{item.label}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </>
-      ) : null}
-    </View>
   );
 }
 
@@ -296,45 +294,33 @@ export function AvailabilityForm({ onVehicle }: { onVehicle?: boolean }) {
 export function CourierAvailabilityStepScreen() {
   const router = useRouter();
   return (
-    <SetupPage footer={<Button label="Finish" onPress={() => router.replace("/courier/home" as Href)} testID="courier-finish" />} step={3} subtitle="Choose when you deliver" testID="courier-availability-step" title="Availability">
-      <AvailabilityForm />
+    <SetupPage footer={<SellerButton label="Finish" onPress={() => router.replace("/courier/home" as Href)} size="lg" testID="courier-finish" variant="light" />} step={3} subtitle="Choose when and where you deliver" testID="courier-availability-step" title="Availability">
+      <AvailabilityEditor setup />
     </SetupPage>
   );
 }
 
 const styles = StyleSheet.create({
-  bar: { backgroundColor: "#D8E2E6", borderRadius: 3, flex: 1, height: 6, overflow: "hidden" },
-  barFill: { backgroundColor: COURIER.solid, borderRadius: 3, height: 6 },
-  bars: { flexDirection: "row", gap: 8 },
-  body: { gap: 4, marginTop: 14 },
-  check: { alignItems: "center", flexDirection: "row", gap: 12, marginBottom: 10 },
-  checkIcon: { alignItems: "center", backgroundColor: "#E3EDF0", borderRadius: 14, height: 44, justifyContent: "center", width: 44 },
-  day: { alignItems: "center", backgroundColor: COURIER.card, borderRadius: 16, height: 32, justifyContent: "center", paddingHorizontal: 10 },
-  dayOn: { backgroundColor: COURIER.solid },
-  dayText: { color: COURIER.ink, fontSize: 12, fontWeight: "600" },
-  dayTextOn: { color: "#FFFFFF" },
-  days: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 14 },
-  error: { color: COURIER.red, fontSize: 12, marginTop: 4 },
-  field: { marginBottom: 12 },
-  fieldLabel: { color: COURIER.ink, fontSize: 14, fontWeight: "700", marginBottom: 6 },
+  check: { alignItems: "center", flexDirection: "row", gap: 12, marginBottom: 12 },
+  checkIcon: { alignItems: "center", backgroundColor: "#DDE8EC", borderRadius: 14, height: 44, justifyContent: "center", overflow: "hidden", width: 44 },
+  error: { color: "#FFD8D2", fontSize: 13, fontWeight: "700", marginTop: 6 },
   flex: { flex: 1 },
-  footer: { paddingBottom: 12, paddingHorizontal: 18, paddingTop: 6 },
-  input: { alignItems: "center", backgroundColor: "#FFFFFF", borderColor: COURIER.border, borderRadius: 18, borderWidth: 1, flexDirection: "row", gap: 10, minHeight: 52, paddingHorizontal: 14 },
-  inputError: { borderColor: COURIER.red },
-  inputText: { color: COURIER.ink, flex: 1, fontSize: 15, paddingVertical: 12 },
-  note: { marginTop: 8 },
-  page: { backgroundColor: "#FFFFFF", flex: 1 },
-  scroll: { gap: 4, padding: 18, paddingBottom: 30 },
-  sectionLabel: { color: COURIER.ink, fontSize: 15, fontWeight: "700", marginBottom: 8, marginTop: 14 },
-  setupTitle: { marginTop: 14 },
+  hint: { color: "rgba(255,255,255,0.85)", fontSize: 12, marginTop: -4 },
+  pair: { flexDirection: "row", gap: 10 },
+  pick: { alignItems: "center", borderRadius: 18, flexDirection: "row", gap: 10, minHeight: 52, paddingHorizontal: 14 },
+  pickError: { borderColor: "#B4544A", borderWidth: 1.5 },
+  pickErrorText: { color: "#FFD8D2", fontSize: 12, marginTop: 4 },
+  pickLabel: { color: "#FFFFFF", fontSize: 14, fontWeight: "700", marginBottom: 6 },
+  pickText: { color: COURIER.ink, flex: 1, fontSize: 15 },
+  pickWrap: { marginBottom: 12 },
+  plateHint: { color: "rgba(255,255,255,0.85)", fontSize: 12, marginBottom: 8, marginTop: -6 },
   status: { alignItems: "center", flexDirection: "row", gap: 12, marginBottom: 12 },
   statusIcon: { alignItems: "center", backgroundColor: "#FFFFFF", borderRadius: 14, height: 44, justifyContent: "center", width: 44 },
-  steps: { gap: 6, marginTop: 16 },
-  times: { flexDirection: "row", gap: 12 },
-  vehicle: { alignItems: "center", backgroundColor: "#DCE3E6", borderRadius: 16, height: 32, justifyContent: "center", paddingHorizontal: 12 },
-  vehicleOn: { backgroundColor: COURIER.solid },
-  vehicleText: { color: COURIER.ink, fontSize: 12, fontWeight: "600" },
-  vehicleTextOn: { color: "#FFFFFF" },
-  vehicles: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 12 },
-  zone: { alignItems: "center", flexDirection: "row", gap: 12, marginBottom: 10 },
+  step: { color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: "700" },
+  subtitle: { color: "rgba(255,255,255,0.85)", fontSize: 14 },
+  thumb: { height: 44, width: 44 },
+  title: { color: "#FFFFFF", fontSize: 32, fontWeight: "800", letterSpacing: -0.5 },
+  top: { gap: 6, marginBottom: 14, marginTop: 6 },
+  vehicleCard: { gap: 8, marginBottom: 12, marginTop: 8 },
 });
+

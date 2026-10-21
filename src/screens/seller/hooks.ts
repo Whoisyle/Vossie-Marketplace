@@ -23,7 +23,7 @@ export function useBuyerMessages() {
   return useMemo(
     () =>
       state.conversations
-        .filter((item: Conversation) => item.kind === "buyer")
+        .filter((item: Conversation) => item.kind === "buyer" || item.id.startsWith("courier-seller-"))
         .map((item) => {
           const last = item.messages[item.messages.length - 1];
           return { at: last?.sentAt ?? "", id: item.id, name: item.name, preview: last?.body ?? "", unread: item.unread };

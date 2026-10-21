@@ -81,7 +81,7 @@ export const TONES: Record<Tone, ToneLook> = {
   },
 };
 
-const ToneContext = createContext<Tone>("blue");
+export const ToneContext = createContext<Tone>("blue");
 
 /** The tone of the seller page this component is on. */
 export function useTone(): ToneLook & { tone: Tone } {
@@ -166,14 +166,14 @@ export function SellerScreen({
 }
 
 /** The wordmark with the "Seller mode" pill, and an optional control on the right, such as the bell. */
-export function SellerHeader({ right }: { right?: ReactNode }) {
+export function SellerHeader({ mode = "Seller mode", right }: { right?: ReactNode; /** The words in the pill beside the mark: Seller mode, or Courier mode. */ mode?: string }) {
   const look = useTone();
   return (
     <View style={styles.header}>
       <View style={styles.brand}>
         <Wordmark tone={look.wordmark} width={116} />
         <View style={[styles.modePill, look.tone === "white" && { backgroundColor: SELLER.solid }]}>
-          <RNText style={[styles.modePillText, look.tone === "white" && { color: "#FFFFFF" }]}>Seller mode</RNText>
+          <RNText style={[styles.modePillText, look.tone === "white" && { color: "#FFFFFF" }]}>{mode}</RNText>
         </View>
       </View>
       {right}

@@ -1,30 +1,24 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useMemo, useState } from "react";
+import { type LayoutChangeEvent, StyleSheet, View } from "react-native";
 
-import { color, space } from "@/theme/tokens";
-
-import { Icon } from "../Icon";
+import { TileMap, zoomFor } from "./TileMap";
 import type { VossieMapProps } from "./mapTypes";
 
-/** Web stand-in: the native map does not run in the browser build, so list what the map would show. */
-export function VossieMap({ accessibilityLabel = "Map", markers = [], style, testID }: VossieMapProps) {
+/**
+ * The browser build of the map: the native map does not run there, so it draws a still map from OpenStreetMap tiles with the
+ * same markers, route and travelled line. It cannot be dragged.
+ */
+export function VossieMap({ accessibilityLabel = "Map", initialRegion, markers = [], route, style, testID, travelled }: VossieMapProps) {
+  const [box, setBox] = useState({ height: 0, width: 0 });
+  const zoom = useMemo(() => (box.width > 0 ? zoomFor(initialRegion, box.width, box.height) : 15), [box.height, box.width, initialRegion]);
+  const onLayout = (event: LayoutChangeEvent) => setBox({ height: event.nativeEvent.layout.height, width: event.nativeEvent.layout.width });
   return (
-    <View accessibilityLabel={accessibilityLabel} style={[styles.box, style]} testID={testID}>
-      <Icon color={color.textSecondary} name="map" size={28} />
-      <Text style={styles.title}>Map preview</Text>
-      <Text style={styles.body}>The live map shows on the phone (Expo Go or a development build).</Text>
-      {markers
-        .filter((marker) => marker.title)
-        .map((marker) => (
-          <Text key={marker.id} style={styles.body}>
-            • {marker.title}
-          </Text>
-        ))}
+    <View onLayout={onLayout} style={[styles.fill, style]}>
+      <TileMap accessibilityLabel={accessibilityLabel} center={{ latitude: initialRegion.latitude, longitude: initialRegion.longitude }} markers={markers} route={route} style={StyleSheet.absoluteFill} testID={testID} travelled={travelled} zoom={zoom} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  body: { color: color.textSecondary, fontSize: 12, textAlign: "center" },
-  box: { alignItems: "center", backgroundColor: color.surfaceSoft, gap: 4, justifyContent: "center", padding: space.md },
-  title: { color: color.heading, fontSize: 15, fontWeight: "700" },
+  fill: { overflow: "hidden" },
 });
