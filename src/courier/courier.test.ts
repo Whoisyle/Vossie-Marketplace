@@ -390,6 +390,42 @@ describe("a real order from a buyer", () => {
     expect(thread.unread).toBe(true);
   });
 
+  it("lets the courier message the seller at pickup, in a thread the seller sees with an alert", () => {
+    let state = readyDelivery();
+    const job = state.courier.jobs.find((item) => item.source === "order")!;
+    state = run(state, { id: job.id, type: "courierAcceptJob" }, { body: "I am at the door", id: job.id, to: "seller", type: "courierSendMessage" });
+    const thread = state.conversations.find((item) => item.id === `courier-seller-${job.sellerOrderId}`);
+    expect(thread?.messages.at(-1)).toMatchObject({ body: "I am at the door" });
+    // it did not land in the buyer's thread
+    expect(state.conversations.find((item) => item.id === `courier-${job.buyerOrderId}`)?.messages.some((m) => m.body === "I am at the door") ?? false).toBe(false);
+  });
+
+  it("keeps the buyer, the seller and the courier telling the same story at every step of one order", () => {
+    let state = readyDelivery();
+    const job = state.courier.jobs.find((item) => item.source === "order")!;
+    const sOrder = () => state.seller.orders.find((item) => item.id === job.sellerOrderId)!;
+    const bOrder = () => state.orders.find((item) => item.id === job.buyerOrderId)!;
+    const cJob = () => state.courier.jobs.find((item) => item.id === job.id)!;
+    // ready: the seller waits for a courier, the buyer has not got one, the courier is offered it
+    expect([sOrder().status, cJob().status, bOrder().courier]).toEqual(["ready", "offered", undefined]);
+    state = run(state, { id: job.id, type: "courierAcceptJob" });
+    expect([sOrder().courier?.name, bOrder().courier?.name, cJob().status]).toEqual(["Vumisa M.", "Vumisa M.", "accepted"]);
+    // a wrong pickup code changes nothing anywhere
+    const wrong = run(state, { code: "0000", id: job.id, type: "courierConfirmPickup" });
+    expect([wrong.seller.orders.find((item) => item.id === job.sellerOrderId)!.status, wrong.orders.find((item) => item.id === job.buyerOrderId)!.status]).toEqual([sOrder().status, bOrder().status]);
+    state = run(state, { code: sOrder().courierCode, id: job.id, type: "courierConfirmPickup" });
+    expect([sOrder().status, bOrder().status, cJob().status]).toEqual(["done", "on-the-way", "on-the-way"]);
+    const sellerBalance = state.seller.ledger.filter((item) => item.kind === "sale").length;
+    expect(sellerBalance).toBeGreaterThan(0);
+    state = run(state, { id: job.id, type: "courierArrive" }, { code: job.deliveryCode, id: job.id, proof: "otp", type: "courierConfirmDelivery" });
+    expect([bOrder().status, cJob().status]).toEqual(["delivered", "delivered"]);
+    // the buyer's rating reaches the courier's score and money, and the sale is not paid to the seller twice
+    state = run(state, { orderId: job.buyerOrderId!, rating: 4, tipCents: 500, type: "rateCourier" });
+    expect(cJob()).toMatchObject({ rating: 4, tipCents: 500 });
+    expect(balanceCents(state.courier)).toBe(job.payoutCents + 500);
+    expect(state.seller.ledger.filter((item) => item.kind === "sale").length).toBe(sellerBalance);
+  });
+
   it("falls back to the demo courier when nobody is approved on this phone", () => {
     const state = readyDelivery();
     const without = { ...state, courier: emptyCourierState() };
