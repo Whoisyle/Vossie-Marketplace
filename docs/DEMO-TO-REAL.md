@@ -85,6 +85,8 @@ Last updated: 2026-10-20.
 - [ ] **Chat with the seller** at pickup writes into a thread the seller sees in Messages (and the seller's reply shows to the courier). It only works for a real job; a demo job has no seller. Messages are not stored on a server yet.
 - [ ] **Referral:** the courier's share button works, but the reward for a friend who delivers is not tracked.
 
+- [ ] **Backend status (2026-10-23):** 15 migrations exist, with 95 passing database tests, including the new courier onboarding migration (`20261022000100`): self sign-up with review, documents, plate, licence and expiry checks, hours, zones and licence renewal. **None are applied to the hosted project `elrqoyiegcnnjmjnjlja` yet.** It still holds the first, older schema (11 empty tables). To apply: run `supabase/scripts/retire-old-schema.sql` once in the Supabase SQL editor (moves the old tables aside, deletes nothing), then `$env:PW='<db password>'; node supabase/scripts/apply-hosted.cjs`. After that run the security advisor. The app still reads and writes its own on-phone demo state; moving each role onto these functions is the next build step, one role at a time.
+
 ## Courier, delivery and maps
 
 - [ ] **Couriers and live tracking are simulated.** No real courier app or positions yet; the courier app is not built.
