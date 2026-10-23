@@ -9,6 +9,6 @@ The root route runs an 8-second, cold-launch-only brand sequence before settling
 - After the 600ms splash handoff, the isolated dot pops in above V and makes five 250ms hops across V → O → S → S → I, landing on the authored i-dot at 2100ms. It then compresses into the existing blue portal preparation. The full intro remains 8 seconds, with skip available at 1500ms.
 - Photos begin with the Welcome transition at 5900ms, stagger by 80ms, and finish by 6730ms.
 - A tap can skip the intro after 1500ms. Reduced Motion uses a 250ms crossfade. Backgrounding does not restart the sequence; a process restart does.
-- The Eduvos action opens the local email sign-in demo; it does not authenticate. QR sign-in was removed on 2026-10-18. Footer links (Vossie Business, Terms, Privacy) remain intentionally unconnected until their screens or URLs are supplied.
+- The Eduvos action opens the local email sign-in demo; it does not authenticate. QR sign-in was removed on 2026-10-18. Footer links: Vossie Business opens the seller welcome (`/seller-setup/welcome`) and Terms opens Terms and Conditions (`/legal/terms`). Privacy remains intentionally unconnected until the owner confirms it.
 - `action-eduvos.png`, `action-scan.png`, `descriptor.png`, `supporting-copy.png`, `welcome-title-canto.png` and the `footer-*.png` slices are no longer referenced.
 - Development web builds accept `?introDebugMs=<0-8000>` to freeze a deterministic review frame. The override is excluded from production builds.

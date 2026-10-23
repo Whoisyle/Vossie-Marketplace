@@ -274,6 +274,7 @@ function FooterLink({
   align = "center",
   height,
   interactive,
+  onPress,
   revealed,
   scale,
   text,
@@ -285,6 +286,7 @@ function FooterLink({
   align?: "left" | "center" | "right";
   height: number;
   interactive: boolean;
+  onPress?: () => void;
   revealed: boolean;
   scale: number;
   text: string;
@@ -295,12 +297,12 @@ function FooterLink({
   return (
     <Pressable
       accessibilityElementsHidden={!revealed}
-      accessibilityHint="The destination will be connected when its approved screen or URL is supplied."
+      accessibilityHint={onPress ? undefined : "The destination will be connected when its approved screen or URL is supplied."}
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="link"
       disabled={!interactive}
       importantForAccessibility={revealed ? "auto" : "no-hide-descendants"}
-      onPress={() => undefined}
+      onPress={onPress}
       style={({ pressed }) => [
         styles.positioned,
         {
@@ -392,8 +394,8 @@ export function AnimatedWelcomeContent({
         ]}
       >
         <View style={styles.fill}>
-          <FooterLink accessibilityLabel="Vossie Business" align="left" height={55} interactive={interactive} revealed={footerAccessibilityRevealed} scale={scale} text="Vossie Business" width={260} x={0} y={6} />
-          <FooterLink accessibilityLabel="Terms" align="right" height={55} interactive={interactive} revealed={footerAccessibilityRevealed} scale={scale} text="Terms" width={86} x={620} y={6} />
+          <FooterLink accessibilityLabel="Vossie Business" align="left" height={55} interactive={interactive} onPress={() => router.push("/seller-setup/welcome")} revealed={footerAccessibilityRevealed} scale={scale} text="Vossie Business" width={260} x={0} y={6} />
+          <FooterLink accessibilityLabel="Terms" align="right" height={55} interactive={interactive} onPress={() => router.push("/legal/terms")} revealed={footerAccessibilityRevealed} scale={scale} text="Terms" width={86} x={620} y={6} />
           <FooterLink accessibilityLabel="Privacy" align="right" height={55} interactive={interactive} revealed={footerAccessibilityRevealed} scale={scale} text="Privacy" width={94} x={712} y={6} />
         </View>
       </Animated.View>
