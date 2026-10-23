@@ -6,6 +6,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AppHeader, Avatar, Button, Icon, Screen, TextField } from "@/components";
 import type { CampusId } from "@/data/types";
 import { formatStudentNumber } from "@/data/studentRecord";
+import { markSetupDone } from "@/lib/deviceFlag";
+import { auth } from "@/services";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, gradient, space } from "@/theme/tokens";
 
@@ -14,7 +16,7 @@ import { CampusPicker } from "./CampusPicker";
 import { formatSouthAfricanPhone, isValidSouthAfricanPhone } from "./phone";
 import { usePickPhoto } from "./usePickPhoto";
 
-type Errors = { name?: string; phone?: string; campus?: string; terms?: string };
+type Errors = { name?: string; phone?: string; campus?: string; terms?: string; student?: string; photo?: string; form?: string };
 
 /** First-time profile setup. Returning users skip straight to Home. */
 export function ProfileSetupScreen() {
@@ -27,19 +29,46 @@ export function ProfileSetupScreen() {
   const [avatarUri, setAvatarUri] = useState<string | undefined>(state.profile?.avatarUri);
   const [campusOpen, setCampusOpen] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
+  const [studentNumber, setStudentNumber] = useState(state.profile?.studentNumber ?? "");
+  const [saving, setSaving] = useState(false);
   const [agreed, setAgreed] = useState(Boolean(state.termsAcceptedAt));
 
   if (!state.profile) return <Redirect href="/sign-in" />;
-  const email = state.profile.email;
+  const profile = state.profile;
+  const email = profile.email;
 
-  const submit = () => {
+  // an account loaded from the backend: the student number is editable, the photo is required, and the details are saved to the account
+  const real = Boolean(profile.real);
+
+  const submit = async () => {
     const next: Errors = {};
     if (fullName.trim().length < 2) next.name = "Enter your full name.";
     if (phone.trim() && !isValidSouthAfricanPhone(phone)) next.phone = "Enter a South African mobile number, like 071 234 5678.";
     if (!campusId) next.campus = "Choose your campus.";
     if (!agreed) next.terms = "Please agree to the Terms and the Privacy Policy to continue.";
+    if (real && !avatarUri) next.photo = "Add a profile photo to continue.";
+    if (real && !auth.isDemoStudentNumber(studentNumber)) next.student = "Enter your student number, like eduv12345.";
     setErrors(next);
     if (Object.keys(next).length > 0 || !campusId) return;
+    if (real) {
+      setSaving(true);
+      try {
+        await auth.updateMyProfile({
+          campusId,
+          displayName: fullName.trim(),
+          phone: phone.trim() ? formatSouthAfricanPhone(phone) : undefined,
+        });
+        if (studentNumber.trim().toLowerCase() !== (profile.studentNumber ?? "").toLowerCase()) {
+          await auth.submitStudentNumber(studentNumber);
+        }
+      } catch {
+        setSaving(false);
+        setErrors({ form: "We couldn’t save your details. Check your connection and try again." });
+        return;
+      }
+      markSetupDone(profile.id);
+      setSaving(false);
+    }
     if (!state.termsAcceptedAt) dispatch({ type: "acceptTerms" });
     dispatch({
       profile: {
@@ -48,6 +77,7 @@ export function ProfileSetupScreen() {
         email,
         fullName: fullName.trim(),
         phone: phone.trim() ? formatSouthAfricanPhone(phone) : "",
+        studentNumber: real ? studentNumber.trim().toLowerCase() : profile.studentNumber,
       },
       type: "completeProfile",
     });
@@ -56,7 +86,7 @@ export function ProfileSetupScreen() {
 
   return (
     <Screen
-      footer={<Button fullWidth label="Continue" onPress={submit} size="lg" testID="profile-setup-continue" />}
+      footer={<Button fullWidth label="Continue" loading={saving} onPress={submit} size="lg" testID="profile-setup-continue" />}
       inTabs={false}
     >
       <LinearGradient colors={["#DCE5EA", "#FFFFFF"]} pointerEvents="none" style={styles.wash} />
@@ -80,7 +110,8 @@ export function ProfileSetupScreen() {
             <Icon name="edit-2" size={12} color={color.heading} />
           </View>
         </Pressable>
-        <Text style={styles.photoLabel}>{avatarUri ? "Change photo" : "Add photo"}</Text>
+        <Text style={styles.photoLabel}>{avatarUri ? "Change photo" : real ? "Add photo (required)" : "Add photo"}</Text>
+        {errors.photo ? <Text style={styles.error}>{errors.photo}</Text> : null}
       </View>
 
       <View style={styles.form}>
@@ -97,15 +128,19 @@ export function ProfileSetupScreen() {
         />
         <TextField label="Email" locked right={<Icon name="lock" size={16} color={color.textMuted} />} value={email} />
         <TextField
+          autoCapitalize="none"
+          autoCorrect={false}
+          error={errors.student}
           label="Student number"
-          locked
+          locked={!real}
+          onChangeText={setStudentNumber}
           right={
             <View style={styles.verified}>
               <Icon color={color.success} name="check-circle" size={16} />
               <Text style={styles.verifiedText}>Verified</Text>
             </View>
           }
-          value={state.profile.studentNumber ? formatStudentNumber(state.profile.studentNumber) : ""}
+          value={real ? studentNumber : state.profile.studentNumber ? formatStudentNumber(state.profile.studentNumber) : ""}
         />
         <TextField
           autoComplete="tel"
@@ -146,6 +181,7 @@ export function ProfileSetupScreen() {
           </Text>
         </Pressable>
         {errors.terms ? <Text style={styles.error}>{errors.terms}</Text> : null}
+        {errors.form ? <Text style={styles.error}>{errors.form}</Text> : null}
       </View>
 
       <CampusPicker

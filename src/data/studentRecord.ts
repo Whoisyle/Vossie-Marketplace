@@ -11,6 +11,8 @@ export const STUDENT_NUMBER_LENGTH = 9;
 
 /** Groups a student number for reading: "202312345" becomes "2023 12345". */
 export function formatStudentNumber(value: string): string {
+  // real student numbers carry the Eduvos prefix, for example "eduv11223": keep them as written
+  if (/[a-z]/i.test(value)) return value.charAt(0).toUpperCase() + value.slice(1);
   const digits = value.replace(/\D/g, "");
   return digits.length > 4 ? `${digits.slice(0, 4)} ${digits.slice(4)}` : digits;
 }

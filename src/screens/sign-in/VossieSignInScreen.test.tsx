@@ -1,11 +1,13 @@
 import { act, fireEvent, screen } from "@testing-library/react-native";
 
+import { hasCompletedSetup } from "@/lib/deviceFlag";
 import { renderWithProviders } from "@/test/renderWithProviders";
 
 import { signInDirect, signInLimited } from "./realLogin";
 import { VossieSignInScreen } from "./VossieSignInScreen";
 import { isValidEmail } from "./validation";
 
+jest.mock("@/lib/deviceFlag", () => ({ hasCompletedSetup: jest.fn(() => false), markSetupDone: jest.fn() }));
 jest.mock("./realLogin", () => ({
   signInDirect: jest.fn().mockResolvedValue(null),
   signInLimited: jest.fn(() => false),
@@ -77,24 +79,37 @@ describe("VossieSignInScreen", () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it("signs a real account straight in from the backend, even if the demo flow would not know it", async () => {
-    jest.mocked(signInDirect).mockResolvedValueOnce({
-      campusId: "potchefstroom",
-      email: "eduv11223@vossie.net",
-      fullName: "Vumisa Malindi",
-      id: "real-user-id",
-      isVerifiedStudent: true,
-      phone: "",
-      role: "buyer",
-      studentNumber: "eduv11223",
-    });
+  const realProfile = {
+    campusId: "potchefstroom" as const,
+    email: "eduv11223@vossie.net",
+    fullName: "Vumisa Malindi",
+    id: "real-user-id",
+    isVerifiedStudent: true,
+    phone: "",
+    real: true,
+    role: "buyer" as const,
+    studentNumber: "eduv11223",
+  };
+
+  it("sends a real account's first login on this device through the verified card", async () => {
+    jest.mocked(signInDirect).mockResolvedValueOnce(realProfile);
     renderWithProviders(<VossieSignInScreen />);
     fireEvent.changeText(screen.getByPlaceholderText("Email, phone or Skype"), "eduv11223@vossie.net");
     fireEvent.press(screen.getByTestId("sign-in-next"));
     await act(async () => { jest.runAllTimers(); });
     expect(signInDirect).toHaveBeenCalledWith("eduv11223@vossie.net");
-    expect(mockReplace).toHaveBeenCalledWith("/home");
+    expect(mockReplace).toHaveBeenCalledWith({ params: { email: "eduv11223@vossie.net", real: "1" }, pathname: "/verified" });
     expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("takes a real account that already finished setup on this device straight to Home", async () => {
+    jest.mocked(signInDirect).mockResolvedValueOnce(realProfile);
+    jest.mocked(hasCompletedSetup).mockReturnValueOnce(true);
+    renderWithProviders(<VossieSignInScreen />);
+    fireEvent.changeText(screen.getByPlaceholderText("Email, phone or Skype"), "eduv11223@vossie.net");
+    fireEvent.press(screen.getByTestId("sign-in-next"));
+    await act(async () => { jest.runAllTimers(); });
+    expect(mockReplace).toHaveBeenCalledWith("/home");
   });
 
   it("has no demo-account shortcuts", () => {

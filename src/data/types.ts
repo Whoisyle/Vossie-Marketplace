@@ -36,6 +36,8 @@ export type Profile = {
   studentNumber?: string;
   avatarUri?: string;
   isVerifiedStudent: boolean;
+  /** True for an account loaded from the real backend rather than the demo store. */
+  real?: boolean;
   role: Role;
 };
 

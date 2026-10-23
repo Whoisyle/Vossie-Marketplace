@@ -23,6 +23,7 @@ export async function signInDirect(email: string): Promise<Profile | null> {
       id: row.id,
       isVerifiedStudent: row.student_status === "verified",
       phone: row.phone ?? "",
+      real: true,
       role: "buyer",
       studentNumber: studentNumber ?? undefined,
     };

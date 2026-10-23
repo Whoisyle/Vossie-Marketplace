@@ -23,6 +23,7 @@ import {
 
 import { Button, Sheet } from "@/components";
 import { useDemoStore } from "@/state/DemoStore";
+import { hasCompletedSetup } from "@/lib/deviceFlag";
 import { haptic } from "@/lib/haptics";
 import { duration, ease, spring } from "@/theme/motion";
 import { color, space } from "@/theme/tokens";
@@ -108,8 +109,11 @@ export function VossieSignInScreen() {
     timer.current = setTimeout(async () => {
       const profile = await direct;
       if (profile) {
-        dispatch({ profile, type: "signInAs" });
-        router.replace("/home");
+        // first time on this device: verified card, then profile setup; otherwise straight to Home
+        const firstTime = !hasCompletedSetup(profile.id);
+        dispatch({ firstTime, profile, type: "signInAs" });
+        if (firstTime) router.replace({ params: { email: profile.email, real: "1" }, pathname: "/verified" });
+        else router.replace("/home");
       } else if (signInLimited()) {
         // against the real backend only approved accounts get in
         burst.set(withTiming(0, { duration: 420, easing: ease.out }));

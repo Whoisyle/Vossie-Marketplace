@@ -46,14 +46,18 @@ type Phase = "scan" | "fill" | "verified" | "flood";
 
 export function VerifiedScreen() {
   const router = useRouter();
-  const { dispatch } = useDemoStore();
+  const { dispatch, state } = useDemoStore();
   const reduced = useReducedMotion();
   const { height, width } = useWindowDimensions();
   // the card is upright and as big as the screen allows, at real card proportions
   const cardWidth = Math.min(width - 88, Math.max(180, Math.round((height - 250) * 0.631)), 250);
   const cardH = cardHeight(cardWidth);
-  const { email = "" } = useLocalSearchParams<{ email?: string }>();
-  const record = lookupStudentRecord(email);
+  const { email = "", real } = useLocalSearchParams<{ email?: string; real?: string }>();
+  // a real account shows its own student number and campus; a demo email gets the mock record
+  const realProfile = real === "1" && state.profile?.real ? state.profile : null;
+  const record = realProfile
+    ? { campusId: realProfile.campusId, studentNumber: realProfile.studentNumber ?? "" }
+    : lookupStudentRecord(email);
   const campusName = getCampusName(record.campusId);
   const [phase, setPhase] = useState<Phase>("scan");
   const [filled, setFilled] = useState(0);
@@ -62,9 +66,9 @@ export function VerifiedScreen() {
   const ripple = useSharedValue(0);
   const flood = useSharedValue(0);
   // timers run once; the latest callbacks are read from here so a re-render never restarts them
-  const latest = useRef({ dispatch, email, reduced, router });
+  const latest = useRef({ dispatch, email, real: Boolean(realProfile), reduced, router });
   useEffect(() => {
-    latest.current = { dispatch, email, reduced, router };
+    latest.current = { dispatch, email, real: Boolean(realProfile), reduced, router };
   });
 
   useEffect(() => {
@@ -99,6 +103,11 @@ export function VerifiedScreen() {
     );
     timers.push(
       setTimeout(() => {
+        if (latest.current.real) {
+          // already signed in from the backend: carry on to profile setup
+          latest.current.router.replace("/profile-setup");
+          return;
+        }
         latest.current.dispatch({ email: latest.current.email, type: "signIn" });
         latest.current.router.replace("/home");
       }, floodAt + FLOOD_MS),
@@ -152,7 +161,7 @@ export function VerifiedScreen() {
         ) : (
           <Animated.View entering={ZoomIn.springify().damping(14)} style={styles.cardWrap}>
             {!reduced ? <Bubbles /> : null}
-            <StudentCard campusName={campusName} name={emailName(email)} studentNumber={record.studentNumber} width={cardWidth} />
+            <StudentCard campusName={campusName} name={realProfile?.fullName || emailName(email)} studentNumber={record.studentNumber} width={cardWidth} />
             <View pointerEvents="none" style={styles.stampSpot}>
               <Animated.View style={[styles.ripple, rippleStyle]} />
               <Animated.View style={[styles.stamp, stampStyle]}>

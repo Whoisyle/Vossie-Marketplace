@@ -1,13 +1,15 @@
 import { act, screen } from "@testing-library/react-native";
 
+import { createInitialState, demoReducer } from "@/state/demoReducer";
 import { renderWithProviders } from "@/test/renderWithProviders";
 
 import { FIELD_COUNT, FILL_STEP_MS, SCAN_MS, TOTAL_MS, VerifiedScreen } from "./VerifiedScreen";
 
 const mockReplace = jest.fn();
+let mockParams: { email: string; real?: string } = { email: "eduv230953@vossie.net" };
 
 jest.mock("expo-router", () => ({
-  useLocalSearchParams: () => ({ email: "eduv230953@vossie.net" }),
+  useLocalSearchParams: () => mockParams,
   useRouter: () => ({ back: jest.fn(), replace: mockReplace }),
 }));
 
@@ -42,5 +44,35 @@ describe("VerifiedScreen", () => {
       jest.advanceTimersByTime(TOTAL_MS);
     });
     expect(mockReplace).toHaveBeenCalledWith("/home");
+  });
+
+  it("shows a real account's own details and carries on to profile setup", () => {
+    mockParams = { email: "eduv11223@vossie.net", real: "1" };
+    const state = demoReducer(createInitialState(), {
+      firstTime: true,
+      profile: {
+        campusId: "potchefstroom",
+        email: "eduv11223@vossie.net",
+        fullName: "Vumisa Malindi",
+        id: "real-user-id",
+        isVerifiedStudent: true,
+        phone: "",
+        real: true,
+        role: "buyer",
+        studentNumber: "eduv11223",
+      },
+      type: "signInAs",
+    });
+    renderWithProviders(<VerifiedScreen />, state);
+    act(() => {
+      jest.advanceTimersByTime(SCAN_MS + FIELD_COUNT * FILL_STEP_MS + 400);
+    });
+    expect(screen.getByText("Vumisa Malindi")).toBeTruthy();
+    expect(screen.getByLabelText(/Student number Eduv11223\. .*Potchefstroom/)).toBeTruthy();
+    act(() => {
+      jest.advanceTimersByTime(TOTAL_MS);
+    });
+    expect(mockReplace).toHaveBeenCalledWith("/profile-setup");
+    mockParams = { email: "eduv230953@vossie.net" };
   });
 });

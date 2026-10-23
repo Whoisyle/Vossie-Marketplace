@@ -28,6 +28,20 @@ describe("demo store", () => {
     expect(state.knownProfiles.some((item) => item.id === "real-user-id")).toBe(true);
   });
 
+  it("marks a real account's first login as new so profile setup is shown", () => {
+    const profile = {
+      campusId: "potchefstroom" as const,
+      email: "eduv11223@vossie.net",
+      fullName: "Vumisa Malindi",
+      id: "real-user-id",
+      isVerifiedStudent: true,
+      phone: "",
+      real: true,
+      role: "buyer" as const,
+    };
+    expect(demoReducer(createInitialState(), { firstTime: true, profile, type: "signInAs" }).isNewUser).toBe(true);
+  });
+
   it("treats an unknown email as a new user until the profile is completed", () => {
     let state = signedIn("newstudent@vossie.net");
     expect(state.isNewUser).toBe(true);
