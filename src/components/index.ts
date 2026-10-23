@@ -4,6 +4,7 @@ export { PageDots } from "./PageDots";
 export { AppHeader, HeaderIconButton } from "./AppHeader";
 export { Backdrop, BandPanel, Bands, ReceiptBand, Rings, Ticket } from "./Decor";
 export { Avatar } from "./Avatar";
+export { StoreLogo } from "./StoreLogo";
 export { Button } from "./Button";
 export { Card, SectionHeader } from "./Card";
 export { Chip, FilterChips, type FilterOption } from "./Chip";

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import Animated, {
   FadeInDown,
@@ -23,12 +23,15 @@ type SearchBarProps = {
   /** When set, the bar is a button that opens a search screen. */
   onPress?: () => void;
   autoFocus?: boolean;
+  /** Changing this value puts the cursor in the field (used when another screen sends the student to search). */
+  focusSignal?: string;
   compact?: boolean;
 };
 
 export function SearchBar({
   autoFocus,
   compact = false,
+  focusSignal,
   onChangeText,
   onPress,
   onSubmit,
@@ -38,7 +41,11 @@ export function SearchBar({
 }: SearchBarProps) {
   const height = compact ? 44 : 52;
   const lift = useSharedValue(0);
+  const input = useRef<TextInput>(null);
   const [hint, setHint] = useState(0);
+  useEffect(() => {
+    if (focusSignal) input.current?.focus();
+  }, [focusSignal]);
   const cycling = Boolean(onPress && placeholders && placeholders.length > 1);
 
   useEffect(() => {
@@ -89,6 +96,7 @@ export function SearchBar({
         autoCorrect={false}
         autoFocus={autoFocus}
         onChangeText={onChangeText}
+        ref={input}
         onSubmitEditing={onSubmit}
         placeholder={placeholder}
         placeholderTextColor={color.textMuted}
@@ -120,7 +128,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
   },
   hintBox: { flex: 1, height: 22, justifyContent: "center", overflow: "hidden" },
-  input: { color: color.text, flex: 1, fontSize: 14, height: "100%" },
+  input: { color: color.text, flex: 1, fontSize: 14, height: "100%", outlineWidth: 0 },
   placeholder: { color: color.textMuted, fontSize: 14 },
 });
 

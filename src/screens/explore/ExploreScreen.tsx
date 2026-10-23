@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Fragment, type ReactNode, useMemo, useState } from "react";
+import { Fragment, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import Animated, { FadeInDown, FadeOutUp } from "react-native-reanimated";
 
@@ -42,7 +42,7 @@ export function ExploreScreen() {
   const { width } = useWindowDimensions();
   const { dispatch, state } = useDemoStore();
   // a saved search opens Explore with its words already searched
-  const { q } = useLocalSearchParams<{ q?: string }>();
+  const { focus, q, qt } = useLocalSearchParams<{ focus?: string; q?: string; qt?: string }>();
   const [query, setQuery] = useState(q ?? "");
   const [submitted, setSubmitted] = useState<string | null>(q ?? null);
   const [category, setCategory] = useState<CategoryId | null>(null);
@@ -83,11 +83,28 @@ export function ExploreScreen() {
     setCategory(null);
     dispatch({ query: clean, type: "addSearch" });
   };
+  // Home sends typed words here: search them when they change after this screen is already open
+  const searchKey = q ? `${q}|${qt ?? ""}` : "";
+  const handledQuery = useRef(searchKey);
+  useEffect(() => {
+    if (q && searchKey !== handledQuery.current) {
+      handledQuery.current = searchKey;
+      run(q);
+    }
+  });
   const reset = () => {
     setQuery("");
     setSubmitted(null);
     setCategory(null);
   };
+  // Home sent the student here to start a new search: begin with an empty box
+  const handledFocus = useRef(focus);
+  useEffect(() => {
+    if (focus && focus !== handledFocus.current) {
+      handledFocus.current = focus;
+      reset();
+    }
+  });
   const choose = (item: Suggestion) => {
     haptic.tap();
     if (item.kind === "listing") {
@@ -153,6 +170,7 @@ export function ExploreScreen() {
               if (category) setCategory(null);
             }}
             onSubmit={() => run(query)}
+            focusSignal={focus}
             placeholder="Search products, stores and categories"
             value={query}
           />

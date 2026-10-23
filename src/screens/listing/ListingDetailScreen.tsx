@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import {
   AppHeader,
-  Avatar,
+  StoreLogo,
   Button,
   Card,
   EmptyState,
@@ -199,7 +199,7 @@ export function ListingDetailScreen() {
 
       {seller ? (
         <Card onPress={() => router.push(open("store", seller.id))} style={styles.sellerCard} variant="soft">
-          <Avatar name={seller.name} size={48} />
+          <StoreLogo name={seller.name} sellerId={seller.id} size={48} />
           <View style={styles.flex}>
             <View style={styles.nameRow}>
               <Text numberOfLines={1} style={[text.cardTitle, styles.nameText]}>

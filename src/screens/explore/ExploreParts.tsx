@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -18,14 +19,15 @@ import Animated, {
 } from "react-native-reanimated";
 
 import {
-  Avatar,
   HeartButton,
   Icon,
   Media,
   PageDots,
   StarRating,
+  StoreLogo,
 } from "@/components";
 import { dealFor, effectivePrice } from "@/data/deals";
+import { storeBanner } from "@/data/mock/storePhotos";
 import { formatRand } from "@/data/format";
 import { getCampusName } from "@/data/repository";
 import type { Listing, Seller } from "@/data/types";
@@ -235,8 +237,13 @@ export function StoreCard({
         onPressOut={() => press.set(withTiming(0, { duration: duration.base }))}
         style={StyleSheet.absoluteFill}
       />
-      <View pointerEvents="none" style={styles.storeBody}>
-        <Avatar name={seller.name} size={52} />
+      {storeBanner(seller.id) ? (
+        <Image contentFit="cover" pointerEvents="none" source={storeBanner(seller.id)} style={styles.storeBanner} />
+      ) : null}
+      <View pointerEvents="none" style={[styles.storeBody, storeBanner(seller.id) ? styles.storeBodyBanner : null]}>
+        <View style={styles.storeLogoRing}>
+          <StoreLogo name={seller.name} sellerId={seller.id} size={52} />
+        </View>
         <Text numberOfLines={1} style={styles.storeName}>
           {seller.name}
         </Text>
@@ -347,7 +354,10 @@ const styles = StyleSheet.create({
     padding: space.sm,
     width: 140,
   },
+  storeBanner: { height: 54, left: 0, position: "absolute", right: 0, top: 0 },
   storeBody: { alignItems: "center", gap: 3 },
+  storeBodyBanner: { marginTop: 22 },
+  storeLogoRing: { backgroundColor: color.onPrimary, borderRadius: 30, padding: 2 },
   storeLocation: { color: color.textMuted, fontSize: 11, maxWidth: 120 },
   storeMeta: { alignItems: "center", flexDirection: "row", gap: 3 },
   storeMetaText: { color: color.textSecondary, fontSize: 12 },

@@ -7,7 +7,6 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 
 import {
   AppHeader,
-  Avatar,
   Button,
   Card,
   EmptyState,
@@ -17,8 +16,10 @@ import {
   SegmentedTabs,
   Sheet,
   StarRating,
+  StoreLogo,
   useToast,
 } from "@/components";
+import { storeBanner } from "@/data/mock/storePhotos";
 import { VossieMap } from "@/components/map/VossieMap";
 import { shortDate, formatRand } from "@/data/format";
 import { dealFor } from "@/data/deals";
@@ -156,6 +157,11 @@ export function StorefrontScreen() {
             <Image contentFit="cover" source={{ uri: mineProfile.bannerUri }} style={StyleSheet.absoluteFill} testID="store-banner" />
             <LinearGradient colors={["rgba(20,31,41,0.1)", "rgba(20,31,41,0.85)"]} style={StyleSheet.absoluteFill} />
           </>
+        ) : storeBanner(seller.id) ? (
+          <>
+            <Image contentFit="cover" source={storeBanner(seller.id)} style={StyleSheet.absoluteFill} testID="store-banner-photo" />
+            <LinearGradient colors={["rgba(20,31,41,0.1)", "rgba(20,31,41,0.85)"]} style={StyleSheet.absoluteFill} />
+          </>
         ) : (
           <>
             <View style={styles.coverBubbleA} />
@@ -164,7 +170,7 @@ export function StorefrontScreen() {
         )}
         <View style={styles.coverRow}>
           <View style={styles.avatarRing}>
-            {own && mineProfile.logoUri ? <Image contentFit="cover" source={{ uri: mineProfile.logoUri }} style={styles.logo} /> : <Avatar name={seller.name} size={64} />}
+            {own && mineProfile.logoUri ? <Image contentFit="cover" source={{ uri: mineProfile.logoUri }} style={styles.logo} /> : <StoreLogo name={seller.name} sellerId={seller.id} size={64} />}
           </View>
           <View style={styles.flex}>
             <View style={styles.nameRow}>

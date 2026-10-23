@@ -94,20 +94,22 @@ export function HomeScreen() {
     if (state.profile?.real) void auth.updateMyProfile({ campusId: next }).catch(() => undefined);
   };
 
+  // typed words are searched on Explore; submitting nothing opens Explore ready to type
+  const search = (query: string) => {
+    router.navigate({ pathname: "/explore", params: query ? { q: query, qt: String(Date.now()) } : { focus: String(Date.now()) } } as Href);
+  };
+
   const header = (
     <HomeHeader
-      avatarUri={state.profile?.avatarUri}
       campusName={campusId ? getCampusName(campusId) : "Choose a campus"}
       filterCount={filterCount}
       greeting={`${greeting()}${state.profile ? `, ${firstName(state.profile.fullName)}` : ""}`}
       hasUnread={hasUnread}
       hints={HINTS}
-      name={state.profile?.fullName ?? ""}
-      onAvatar={() => router.navigate("/account" as Href)}
       onBell={() => router.push("/home/notifications" as Href)}
       onCampus={() => setCampusOpen(true)}
       onFilters={() => setFiltersOpen(true)}
-      onSearch={() => router.navigate("/explore")}
+      onSearch={search}
     >
       <HomeHero onPress={(promo) => router.push(detail("promo", promo.id))} />
     </HomeHeader>

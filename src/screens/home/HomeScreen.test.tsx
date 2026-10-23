@@ -34,6 +34,22 @@ describe("Home", () => {
     expect(screen.getByText(PROMOS[0]!.title)).toBeTruthy();
   });
 
+  it("has no profile tile in the header and the bell is only an icon", () => {
+    renderWithProviders(<HomeScreen />, signedIn());
+    expect(screen.queryByLabelText("Your profile")).toBeNull();
+    expect(screen.getByLabelText(/^Notifications/)).toBeTruthy();
+  });
+
+  it("searches what is typed on Explore, and opens Explore ready to type when nothing is typed", () => {
+    renderWithProviders(<HomeScreen />, signedIn());
+    const field = screen.getByTestId("home-search");
+    fireEvent.changeText(field, "burger");
+    fireEvent(field, "submitEditing");
+    expect(mockNavigate).toHaveBeenCalledWith(expect.objectContaining({ params: expect.objectContaining({ q: "burger" }), pathname: "/explore" }));
+    fireEvent(screen.getByTestId("home-search"), "submitEditing");
+    expect(mockNavigate).toHaveBeenLastCalledWith(expect.objectContaining({ params: expect.objectContaining({ focus: expect.any(String) }), pathname: "/explore" }));
+  });
+
   it("fades to the next promo on its own, and tapping a promo opens it", () => {
     jest.useFakeTimers();
     renderWithProviders(<HomeScreen />, signedIn());

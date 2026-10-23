@@ -1,4 +1,5 @@
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn, FadeOut, useReducedMotion } from "react-native-reanimated";
@@ -7,8 +8,9 @@ import { Icon } from "@/components";
 import { ProductArt } from "@/components/art/ProductArt";
 import { formatRand } from "@/data/format";
 import { promoPhotoFlip, promoPhotoFocus, promoPhotos } from "@/data/mock/promoPhotos";
-import { color, corner, space } from "@/theme/tokens";
+import { color, corner, size, space } from "@/theme/tokens";
 
+import { HEADER_FADE } from "./HomeHeader";
 import { PROMOS, type Promo } from "./PromoCarousel";
 
 export const HERO_HEIGHT = 172;
@@ -16,9 +18,12 @@ export const HERO_HEIGHT = 172;
 export const HERO_HOLD_MS = 5_500;
 const FADE_MS = 650;
 
+const CLEAR = "rgba(52,94,108,0)";
+
 /**
- * The banner on the teal Home header: one promo at a time that fades away while the next fades in. Tapping it
- * opens the promo. Reduce Motion keeps the swap but drops the fade, and the dots jump to a promo.
+ * The banner on the teal Home header: one promo at a time that fades away while the next fades in. The promo
+ * photo is part of the banner itself: it runs off the right edge and dissolves into the teal on its other
+ * sides, with no frame. Tapping the banner opens the promo. Reduce Motion keeps the swap but drops the fade.
  */
 export function HomeHero({ onPress, promos = PROMOS }: { onPress: (promo: Promo) => void; promos?: Promo[] }) {
   const reduced = useReducedMotion();
@@ -44,6 +49,32 @@ export function HomeHero({ onPress, promos = PROMOS }: { onPress: (promo: Promo)
           key={promo.id}
           style={StyleSheet.absoluteFill}
         >
+          {photo ? (
+            <View pointerEvents="none" style={styles.photoLayer} testID="home-hero-photo">
+              <View style={[StyleSheet.absoluteFill, product && promoPhotoFlip[product.id] ? styles.flipped : null]}>
+                <Image
+                  accessibilityLabel={product?.name}
+                  contentFit="cover"
+                  contentPosition={product ? promoPhotoFocus[product.id] : undefined}
+                  source={photo}
+                  style={StyleSheet.absoluteFill}
+                />
+              </View>
+              <LinearGradient colors={[HEADER_FADE, "rgba(52,94,108,0.6)", CLEAR]} end={{ x: 1, y: 0.5 }} locations={[0, 0.2, 0.5]} start={{ x: 0, y: 0.5 }} style={StyleSheet.absoluteFill} />
+              <LinearGradient colors={[HEADER_FADE, CLEAR]} end={{ x: 0.5, y: 1 }} locations={[0, 0.3]} start={{ x: 0.5, y: 0 }} style={StyleSheet.absoluteFill} />
+              <LinearGradient colors={[CLEAR, HEADER_FADE]} end={{ x: 0.5, y: 1 }} locations={[0.84, 1]} start={{ x: 0.5, y: 0 }} style={StyleSheet.absoluteFill} />
+            </View>
+          ) : product ? (
+            <View pointerEvents="none" style={styles.artSpot}>
+              <ProductArt id={product.id} size={150} />
+            </View>
+          ) : (
+            <View pointerEvents="none" style={styles.artSpot}>
+              <View style={styles.iconBadge}>
+                <Icon color={color.onPrimary} name={promo.icon} size={40} />
+              </View>
+            </View>
+          )}
           <Pressable
             accessibilityLabel={`${promo.title}. ${product ? `${product.name}, ${formatRand(product.priceCents)}. ` : ""}${promo.subtitle}`}
             accessibilityRole="button"
@@ -61,30 +92,11 @@ export function HomeHero({ onPress, promos = PROMOS }: { onPress: (promo: Promo)
                 <Text style={styles.ctaText}>{promo.cta}</Text>
               </View>
             </View>
-            <View style={styles.art}>
-              {photo ? (
-                <View style={[styles.photoFrame, product && promoPhotoFlip[product.id] ? styles.flipped : null]}>
-                  <Image
-                    accessibilityLabel={product?.name}
-                    contentFit="cover"
-                    contentPosition={product ? promoPhotoFocus[product.id] : undefined}
-                    source={photo}
-                    style={StyleSheet.absoluteFill}
-                  />
-                </View>
-              ) : product ? (
-                <ProductArt id={product.id} size={150} />
-              ) : (
-                <View style={styles.iconBadge}>
-                  <Icon color={color.onPrimary} name={promo.icon} size={40} />
-                </View>
-              )}
-              {product && product.percent > 0 ? (
-                <View style={styles.discount}>
-                  <Text style={styles.discountValue}>-{product.percent}%</Text>
-                </View>
-              ) : null}
-            </View>
+            {product && product.percent > 0 ? (
+              <View style={styles.discount}>
+                <Text style={styles.discountValue}>-{product.percent}%</Text>
+              </View>
+            ) : null}
           </Pressable>
         </Animated.View>
       </View>
@@ -107,8 +119,10 @@ export function HomeHero({ onPress, promos = PROMOS }: { onPress: (promo: Promo)
   );
 }
 
+const STAGE = HERO_HEIGHT - 8;
+
 const styles = StyleSheet.create({
-  art: { alignItems: "center", height: HERO_HEIGHT - 8, justifyContent: "center", width: "42%" },
+  artSpot: { alignItems: "center", bottom: 0, justifyContent: "center", position: "absolute", right: 0, top: 0, width: "42%" },
   cta: { alignSelf: "flex-start", backgroundColor: color.onPrimary, borderRadius: corner.pill, marginTop: space.xxs, paddingHorizontal: 18, paddingVertical: 9 },
   ctaText: { color: color.accent, fontSize: 14, fontWeight: "700" },
   discount: {
@@ -119,8 +133,8 @@ const styles = StyleSheet.create({
     height: 52,
     justifyContent: "center",
     position: "absolute",
-    right: -4,
-    top: 2,
+    right: 4,
+    top: 4,
     width: 52,
   },
   discountValue: { color: "#1F2F39", fontSize: 15, fontWeight: "900" },
@@ -129,10 +143,11 @@ const styles = StyleSheet.create({
   dots: { alignItems: "center", flexDirection: "row", gap: 6, justifyContent: "center", marginTop: space.xs },
   flipped: { transform: [{ scaleX: -1 }] },
   iconBadge: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 48, height: 96, justifyContent: "center", width: 96 },
-  photoFrame: { borderRadius: 22, height: "100%", overflow: "hidden", width: "100%" },
-  slide: { alignItems: "center", flexDirection: "row", gap: space.sm, height: HERO_HEIGHT - 8 },
-  stage: { height: HERO_HEIGHT - 8 },
-  subtitle: { color: "rgba(255,255,255,0.88)", fontSize: 12.5, lineHeight: 17 },
-  texts: { flex: 1, gap: 6 },
+  // the photo reaches the right edge of the header and the bottom of the header, past the side gutter
+  photoLayer: { bottom: -(space.xs + 8 + space.md), overflow: "hidden", position: "absolute", right: -size.screenGutter, top: -space.xs, width: "62%" },
+  slide: { height: STAGE },
+  stage: { height: STAGE },
+  subtitle: { color: "rgba(255,255,255,0.9)", fontSize: 12.5, lineHeight: 17 },
+  texts: { flex: 1, gap: 6, justifyContent: "center", maxWidth: "56%" },
   title: { color: color.onPrimary, fontSize: 24, fontWeight: "900", letterSpacing: -0.4, lineHeight: 28 },
 });
