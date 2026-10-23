@@ -4,19 +4,14 @@ import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-na
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import {
-  AppHeader,
   EmptyState,
-  FilterButton,
-  HeaderIconButton,
-  Icon,
+  type IconName,
   ListingCard,
   ListingsSkeleton,
   Media,
   Screen,
-  SearchBar,
   SectionHeader,
   useFirstLoad,
-  type FilterOption,
 } from "@/components";
 import { withDeals } from "@/data/deals";
 import { hideBlocked } from "@/data/phase4";
@@ -25,21 +20,29 @@ import { firstName, forYou, greeting, recentListings } from "@/data/personalise"
 import { getCampusName, getCategories, getListings } from "@/data/repository";
 import type { CategoryId, Listing } from "@/data/types";
 import { useDetail } from "@/lib/paths";
+import { auth } from "@/services";
 import { useDemoStore } from "@/state/DemoStore";
-import { color, corner, size, space, text } from "@/theme/tokens";
+import { color, corner, size, space } from "@/theme/tokens";
 
 import { FeaturedCarousel } from "@/screens/explore/ExploreParts";
+import { CampusPicker } from "@/screens/profile/CampusPicker";
 
-import { CategoryPager } from "./CategoryPager";
+import { CategoryCards, type CategoryCardItem } from "./CategoryCards";
 import { FiltersSheet } from "./FiltersSheet";
 import { activeFilterCount, applyFilters, NO_FILTERS, type Filters } from "./filters";
-import { PromoCarousel } from "./PromoCarousel";
+import { HomeHeader } from "./HomeHeader";
+import { HomeHero } from "./HomeHero";
 
 type CategoryFilter = "all" | CategoryId;
 
 const HINTS = ["Search burgers and coffee", "Search tutors and study rooms", "Search second-hand books", "Search stores near you"];
+const CARD_WIDTH = 168;
+const CARD_HEIGHT = 196;
 
-/** Home tab: greeting, search with filters, promos, your recents and picks, and swipeable category pages. */
+/**
+ * Home tab: the teal header with campus, search and the fading promo banner, category cards that filter the
+ * Popular row, then deals, your recents and picks.
+ */
 export function HomeScreen() {
   const router = useRouter();
   const detail = useDetail();
@@ -48,14 +51,18 @@ export function HomeScreen() {
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [campusOpen, setCampusOpen] = useState(false);
 
   const campusId = state.profile?.campusId ?? null;
   const pageWidth = Math.min(width, size.contentMax + space.xl * 2);
   const hasUnread = state.notifications.some((item) => !item.read);
   const filterCount = activeFilterCount(filters);
 
-  const options = useMemo<FilterOption<CategoryFilter>[]>(
-    () => [{ key: "all", label: "All" }, ...getCategories().map((item) => ({ key: item.id, label: item.name }))],
+  const categoryItems = useMemo<CategoryCardItem<CategoryFilter>[]>(
+    () => [
+      { icon: "grid", key: "all", label: "All" },
+      ...getCategories().map((item) => ({ icon: item.icon as IconName, key: item.id, label: item.name })),
+    ],
     [],
   );
   const everything = useMemo(() => hideBlocked(getListings({ campusId }), state.blocked), [campusId, state.blocked]);
@@ -73,92 +80,94 @@ export function HomeScreen() {
   );
   const hotDeals = useMemo(() => withDeals(everything).slice(0, 6), [everything]);
   const recents = useMemo(() => recentListings(everything, state.recentViews), [everything, state.recentViews]);
+  const popular = useMemo(
+    () => applyFilters(getListings({ campusId, categoryId: category === "all" ? null : category, popularOnly: true }), filters),
+    [campusId, category, filters],
+  );
 
   const open = (listing: Listing) => router.push(detail("listing", listing.id));
   const resetFilters = () => setFilters(NO_FILTERS);
 
-  const renderPage = (key: CategoryFilter) => {
-    const popular = applyFilters(
-      getListings({ campusId, categoryId: key === "all" ? null : key, popularOnly: true }),
-      filters,
-    );
-    if (popular.length === 0) {
-      return (
-        <EmptyState
-          actionLabel={filterCount > 0 ? "Reset filters" : "Show everything"}
-          icon="search"
-          message={filterCount > 0 ? "Nothing matches these filters." : "Nothing popular in this category on your campus yet."}
-          onAction={filterCount > 0 ? resetFilters : () => setCategory("all")}
-          title="No listings yet"
-        />
-      );
-    }
-    const rows: Listing[][] = [];
-    for (let i = 0; i < popular.length; i += 2) rows.push(popular.slice(i, i + 2));
-    return (
-      <View style={styles.grid}>
-        {rows.map((pair, rowIndex) => (
-          <Animated.View entering={FadeInDown.delay(rowIndex * 60).duration(320)} key={pair.map((l) => l.id).join("-")} style={styles.row}>
-            {pair.map((listing) => (
-              <ListingCard
-                favourite={state.favourites.includes(listing.id)}
-                key={listing.id}
-                listing={listing}
-                onPress={() => open(listing)}
-                onToggleFavourite={() => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
-              />
-            ))}
-            {pair.length === 1 ? <View style={styles.spacer} /> : null}
-          </Animated.View>
-        ))}
-      </View>
-    );
+  const changeCampus = (next: NonNullable<typeof campusId>) => {
+    dispatch({ patch: { campusId: next }, type: "updateProfile" });
+    // a real account keeps its campus on the server as well
+    if (state.profile?.real) void auth.updateMyProfile({ campusId: next }).catch(() => undefined);
   };
+
+  const header = (
+    <HomeHeader
+      avatarUri={state.profile?.avatarUri}
+      campusName={campusId ? getCampusName(campusId) : "Choose a campus"}
+      filterCount={filterCount}
+      greeting={`${greeting()}${state.profile ? `, ${firstName(state.profile.fullName)}` : ""}`}
+      hasUnread={hasUnread}
+      hints={HINTS}
+      name={state.profile?.fullName ?? ""}
+      onAvatar={() => router.navigate("/account" as Href)}
+      onBell={() => router.push("/home/notifications" as Href)}
+      onCampus={() => setCampusOpen(true)}
+      onFilters={() => setFiltersOpen(true)}
+      onSearch={() => router.navigate("/explore")}
+    >
+      <HomeHero onPress={(promo) => router.push(detail("promo", promo.id))} />
+    </HomeHeader>
+  );
 
   if (loading) {
     return (
-      <Screen testID="home-screen">
-        <AppHeader large />
+      <Screen bleedTop testID="home-screen">
+        {header}
         <ListingsSkeleton testID="home-skeleton" />
       </Screen>
     );
   }
 
   return (
-    <Screen testID="home-screen">
-      <AppHeader
-        large
-        right={
-          <HeaderIconButton
-            badge={hasUnread}
-            icon="bell"
-            label={hasUnread ? "Notifications, unread" : "Notifications"}
-            onPress={() => router.push("/home/notifications" as Href)}
+    <Screen bleedTop testID="home-screen">
+      {header}
+
+      <Animated.View entering={FadeInDown.duration(380)} style={styles.section}>
+        <SectionHeader onAction={() => router.navigate("/explore")} title="Categories" />
+        <CategoryCards
+          items={categoryItems}
+          onSelect={(key) => setCategory((current) => (current === key ? "all" : key))}
+          value={category}
+        />
+      </Animated.View>
+
+      <View style={styles.section}>
+        <SectionHeader onAction={() => router.navigate("/explore")} title="Popular Near You" />
+        {popular.length === 0 ? (
+          <EmptyState
+            actionLabel={filterCount > 0 ? "Reset filters" : "Show everything"}
+            icon="search"
+            message={filterCount > 0 ? "Nothing matches these filters." : "Nothing popular in this category on your campus yet."}
+            onAction={filterCount > 0 ? resetFilters : () => setCategory("all")}
+            title="No listings yet"
           />
-        }
-      />
-
-      <Animated.View entering={FadeInDown.duration(380)} style={styles.greeting}>
-        <Text style={styles.hello}>
-          {greeting()}
-          {state.profile ? `, ${firstName(state.profile.fullName)}` : ""}
-        </Text>
-        <View style={styles.campusRow}>
-          <Icon color={color.accent} name="map-pin" size={13} />
-          <Text style={styles.campus}>{campusId ? getCampusName(campusId) : "Choose a campus"}</Text>
-        </View>
-      </Animated.View>
-
-      <Animated.View entering={FadeInDown.delay(60).duration(380)} style={styles.searchRow}>
-        <View style={styles.flex}>
-          <SearchBar onPress={() => router.navigate("/explore")} placeholders={HINTS} />
-        </View>
-        <FilterButton count={filterCount} onPress={() => setFiltersOpen(true)} />
-      </Animated.View>
-
-      <Animated.View entering={FadeInDown.delay(120).duration(380)} style={styles.section}>
-        <PromoCarousel onPress={(promo) => router.push(detail("promo", promo.id))} width={pageWidth} />
-      </Animated.View>
+        ) : (
+          <View style={styles.rowWrap}>
+            <Animated.ScrollView
+              contentContainerStyle={styles.popularRow}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              testID="popular-row"
+            >
+              {popular.map((listing, index) => (
+                <Animated.View entering={FadeInDown.delay(index * 50).duration(320)} key={listing.id} style={{ height: CARD_HEIGHT, width: CARD_WIDTH }}>
+                  <ListingCard
+                    favourite={state.favourites.includes(listing.id)}
+                    height={CARD_HEIGHT}
+                    listing={listing}
+                    onPress={() => open(listing)}
+                    onToggleFavourite={() => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
+                  />
+                </Animated.View>
+              ))}
+            </Animated.ScrollView>
+          </View>
+        )}
+      </View>
 
       {hotDeals.length > 0 ? (
         <Animated.View entering={FadeInDown.delay(160).duration(380)} style={styles.section}>
@@ -187,17 +196,18 @@ export function HomeScreen() {
         </Animated.View>
       ) : null}
 
-      <View style={styles.section}>
-        <SectionHeader onAction={() => router.navigate("/explore")} title="Popular Near You" />
-        <CategoryPager onChange={setCategory} options={options} pageWidth={pageWidth} renderPage={renderPage} value={category} />
-      </View>
-
       <FiltersSheet
         filters={filters}
         listings={everything}
         onApply={setFilters}
         onClose={() => setFiltersOpen(false)}
         visible={filtersOpen}
+      />
+      <CampusPicker
+        onClose={() => setCampusOpen(false)}
+        onSelect={changeCampus}
+        selected={campusId}
+        visible={campusOpen}
       />
     </Screen>
   );
@@ -229,12 +239,6 @@ function MiniRow({ listings, onPress }: { listings: Listing[]; onPress: (listing
 }
 
 const styles = StyleSheet.create({
-  campus: { color: color.accent, fontSize: 12, fontWeight: "600" },
-  campusRow: { alignItems: "center", flexDirection: "row", gap: 4 },
-  flex: { flex: 1 },
-  greeting: { gap: 2, marginBottom: space.sm },
-  grid: { gap: space.xs, paddingTop: space.xs },
-  hello: { ...text.pageTitle, fontSize: 22 },
   mini: { borderRadius: corner.md, gap: 4, width: 124 },
   miniImage: { height: 92, width: 124 },
   miniPressed: { opacity: 0.8 },
@@ -242,8 +246,7 @@ const styles = StyleSheet.create({
   miniRow: { gap: space.xs, paddingHorizontal: space.lg },
   miniTitle: { color: color.text, fontSize: 12, fontWeight: "600" },
   miniWrap: { marginHorizontal: -space.lg },
-  row: { flexDirection: "row", gap: space.xs },
-  searchRow: { alignItems: "center", flexDirection: "row", gap: space.xs },
-  section: { marginTop: space.md },
-  spacer: { flex: 1 },
+  popularRow: { gap: space.xs, paddingHorizontal: size.screenGutter },
+  rowWrap: { marginHorizontal: -size.screenGutter, paddingTop: space.xs },
+  section: { marginTop: space.lg },
 });

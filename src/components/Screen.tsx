@@ -37,12 +37,15 @@ type ScreenProps = {
   /** Soft drifting shapes behind the page. Each area of the app has its own tone; "none" turns them off. */
   backdrop?: BackdropTone | "none";
   contentStyle?: StyleProp<ViewStyle>;
+  /** Let the first block draw under the status bar; that block must add the top inset itself. */
+  bleedTop?: boolean;
   testID?: string;
 };
 
 export function Screen({
   background = color.background,
   backdrop,
+  bleedTop = false,
   children,
   contentStyle,
   footer,
@@ -52,7 +55,9 @@ export function Screen({
 }: ScreenProps) {
   const path = useRoutePath();
   const tone = backdrop ?? toneForPath(path);
-  const edges: Edge[] = inTabs ? ["top", "left", "right"] : ["top", "left", "right", "bottom"];
+  const edges: Edge[] = (inTabs ? ["top", "left", "right"] : ["top", "left", "right", "bottom"]).filter(
+    (edge) => !(bleedTop && edge === "top"),
+  ) as Edge[];
   const chrome = useTabChrome();
   const insets = useSafeAreaInsets();
   // the floating bar sits over the page, so tab screens leave room for it
