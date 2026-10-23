@@ -45,12 +45,6 @@ function MicrosoftLogo() {
   );
 }
 
-/** The two demo accounts: one who has used Vossie before, one who is new. */
-export const DEMO_ACCOUNTS = [
-  { email: "eduv230953@vossie.net", hint: "Signs in and goes straight to Home", label: "Returning student", name: "Vumisa" },
-  { email: "eduv240111@vossie.net", hint: "Verifies, sets up a profile, then picks what they like", label: "New student", name: "Kamo" },
-] as const;
-
 export function VossieSignInScreen() {
   const router = useRouter();
   const { dispatch, state } = useDemoStore();
@@ -88,10 +82,9 @@ export function VossieSignInScreen() {
     ),
   );
 
-  const submit = (override?: string) => {
+  const submit = () => {
     Keyboard.dismiss();
-    const value = override ?? email;
-    if (override) setEmail(override);
+    const value = email;
     if (!value.trim()) {
       setError("Enter your email, phone or Skype name.");
       haptic.error();
@@ -122,6 +115,9 @@ export function VossieSignInScreen() {
   return (
     <SafeAreaView
       edges={["left", "right"]}
+      onPointerCancel={Platform.OS === "web" ? releaseFinger : undefined}
+      onPointerLeave={Platform.OS === "web" ? releaseFinger : undefined}
+      onPointerMove={Platform.OS === "web" ? followFinger : undefined}
       onTouchCancel={releaseFinger}
       onTouchEnd={releaseFinger}
       onTouchMove={followFinger}
@@ -216,32 +212,6 @@ export function VossieSignInScreen() {
             </View>
             <Text style={styles.demoNote}>Vossie demo · no password is requested</Text>
           </View>
-
-          <View style={[styles.demoBox, { width: cardWidth }]} testID="demo-accounts">
-            <Text style={styles.demoTitle}>Try a demo account</Text>
-            {DEMO_ACCOUNTS.map((account) => (
-              <Pressable
-                accessibilityHint={account.hint}
-                accessibilityLabel={`${account.label}, ${account.name}`}
-                accessibilityRole="button"
-                disabled={submitting}
-                key={account.email}
-                onPress={() => submit(account.email)}
-                style={({ pressed }) => [styles.demoRow, pressed && styles.pressed]}
-                testID={`demo-${account.name.toLowerCase()}`}
-              >
-                <View style={styles.demoAvatar}>
-                  <Text style={styles.demoInitial}>{account.name[0]}</Text>
-                </View>
-                <View style={styles.flex}>
-                  <Text style={styles.demoName}>
-                    {account.label} · {account.name}
-                  </Text>
-                  <Text style={styles.demoHint}>{account.hint}</Text>
-                </View>
-              </Pressable>
-            ))}
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -271,13 +241,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingVertical: 30,
   },
-  demoAvatar: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.85)", borderRadius: 18, height: 36, justifyContent: "center", width: 36 },
-  demoBox: { alignSelf: "center", backgroundColor: "rgba(255,255,255,0.7)", borderRadius: 16, gap: 6, marginTop: space.md, padding: space.sm },
-  demoHint: { color: "#5C6469", fontSize: 11 },
-  demoInitial: { color: "#1B1B1B", fontSize: 16, fontWeight: "700" },
-  demoName: { color: "#1B1B1B", fontSize: 13, fontWeight: "700" },
-  demoRow: { alignItems: "center", flexDirection: "row", gap: space.sm, minHeight: 48 },
-  demoTitle: { color: "#5C6469", fontSize: 11, fontWeight: "700", letterSpacing: 1 },
   demoNote: { color: "#9AA1A6", fontSize: 11, marginTop: space.md },
   error: { color: "#C42B1C", fontSize: 13, marginTop: space.xs },
   flex: { flex: 1 },

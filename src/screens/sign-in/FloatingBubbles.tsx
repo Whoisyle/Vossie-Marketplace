@@ -1,27 +1,25 @@
-import { memo, useEffect } from "react";
+import { memo, useMemo } from "react";
 import { StyleSheet } from "react-native";
 import Animated, {
   type SharedValue,
-  cancelAnimation,
-  interpolate,
   useAnimatedStyle,
+  useFrameCallback,
   useReducedMotion,
   useSharedValue,
-  withDelay,
-  withRepeat,
-  withTiming,
 } from "react-native-reanimated";
 
 import { useTilt } from "@/lib/useTilt";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { gradient } from "@/theme/tokens";
-import { duration, ease, seeded } from "@/theme/motion";
+import { seeded } from "@/theme/motion";
 
 /**
- * The sign-in bubbles: soft, slow, alive.
- *  - they drift on their own at different speeds (nothing loops in sync)
- *  - they lean toward a finger that touches the screen
+ * The sign-in bubbles: soft, alive, and they push each other around.
+ *  - every bubble is a real circle with weight (heavier when bigger): they drift on their own,
+ *    bump into one another and bounce off, then ease back toward their place in the design
+ *  - a finger (or a mouse pointer on the web) is a solid circle too: touching or dragging
+ *    shoves the bubbles away and flings them into their neighbours
  *  - `pulse` makes them swell gently (focusing the email field)
  *  - `burst` sends them outward and fades them (pressing Next)
  *  - they shift with the phone's tilt for depth, big ones less than small ones
@@ -47,6 +45,16 @@ const TONES = {
   mist: { colors: gradient.mist, opacity: 0.85 },
 } as const;
 
+// Physics, in screen points and seconds. Speeds are scaled by the screen width.
+const HOME_PULL = 0.22; // how firmly a bubble drifts back to its place in the design
+const DRAG = 0.12; // slow loss of speed
+const BOUNCE = 0.92; // 1 = perfectly bouncy
+const MIN_SPEED = 14;
+const MAX_SPEED = 320;
+const FINGER_RADIUS = 34;
+
+type Sim = { fx: number; fy: number; t: number; vx: number[]; vy: number[]; x: number[]; y: number[] };
+
 type Props = {
   width: number;
   height: number;
@@ -61,12 +69,130 @@ type Props = {
 };
 
 export function FloatingBubbles(props: Props) {
+  const { height, touchActive, touchX, touchY, width } = props;
   const reduced = useReducedMotion();
   const tilt = useTilt(!reduced);
+
+  const layout = useMemo(
+    () => ({
+      homeX: BUBBLES.map((bubble) => (bubble.x / 560) * width),
+      homeY: BUBBLES.map((bubble) => (bubble.y / 1205) * height),
+      // a touch smaller than drawn, so bubbles meet at their soft edges
+      hit: BUBBLES.map((bubble) => (bubble.r / 560) * width * 0.94),
+      unit: width / 390,
+    }),
+    [height, width],
+  );
+
+  const sim = useSharedValue<Sim>({
+    fx: layout.homeX[0] ?? 0,
+    fy: layout.homeY[0] ?? 0,
+    t: 0,
+    vx: BUBBLES.map((_, i) => (seeded(i * 3 + 1) - 0.5) * 2 * 30 * layout.unit),
+    vy: BUBBLES.map((_, i) => (seeded(i * 3 + 2) - 0.5) * 2 * 30 * layout.unit),
+    x: layout.homeX.slice(),
+    y: layout.homeY.slice(),
+  });
+
+  useFrameCallback((frame) => {
+    "worklet";
+    const dt = Math.min((frame.timeSincePreviousFrame ?? 16) / 1000, 0.032);
+    if (dt <= 0) return;
+    const { hit, homeX, homeY, unit } = layout;
+    const count = hit.length;
+    const fingerDown = touchActive.get() > 0.4;
+    const tx = touchX.get();
+    const ty = touchY.get();
+
+    sim.modify((s) => {
+      "worklet";
+      s.t += dt;
+      const fvx = (tx - s.fx) / dt;
+      const fvy = (ty - s.fy) / dt;
+      s.fx = tx;
+      s.fy = ty;
+      const drag = Math.exp(-DRAG * dt);
+      const minSpeed = MIN_SPEED * unit;
+      const maxSpeed = MAX_SPEED * unit;
+
+      for (let i = 0; i < count; i++) {
+        s.vx[i] = (s.vx[i]! + (homeX[i]! - s.x[i]!) * HOME_PULL * dt) * drag;
+        s.vy[i] = (s.vy[i]! + (homeY[i]! - s.y[i]!) * HOME_PULL * dt) * drag;
+        const speed = Math.hypot(s.vx[i]!, s.vy[i]!);
+        if (speed > maxSpeed) {
+          const f = 1 - Math.min(1, 3 * dt) * (1 - maxSpeed / speed);
+          s.vx[i] = s.vx[i]! * f;
+          s.vy[i] = s.vy[i]! * f;
+        } else if (speed < minSpeed) {
+          // never go still: nudge along the current heading, or a slowly turning one
+          const angle = speed > 0.5 ? Math.atan2(s.vy[i]!, s.vx[i]!) : s.t * 0.7 + i;
+          s.vx[i] = s.vx[i]! + Math.cos(angle) * minSpeed * 1.5 * dt;
+          s.vy[i] = s.vy[i]! + Math.sin(angle) * minSpeed * 1.5 * dt;
+        }
+        s.x[i] = s.x[i]! + s.vx[i]! * dt;
+        s.y[i] = s.y[i]! + s.vy[i]! * dt;
+      }
+
+      // bubble against bubble: equal-and-opposite bounce, weight = area
+      for (let i = 0; i < count; i++) {
+        for (let j = i + 1; j < count; j++) {
+          const dx = s.x[j]! - s.x[i]!;
+          const dy = s.y[j]! - s.y[i]!;
+          const minDist = hit[i]! + hit[j]!;
+          const distSq = dx * dx + dy * dy;
+          if (distSq >= minDist * minDist || distSq === 0) continue;
+          const dist = Math.sqrt(distSq);
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const invI = 1 / (hit[i]! * hit[i]!);
+          const invJ = 1 / (hit[j]! * hit[j]!);
+          const closing = (s.vx[j]! - s.vx[i]!) * nx + (s.vy[j]! - s.vy[i]!) * ny;
+          if (closing < 0) {
+            const impulse = (-(1 + BOUNCE) * closing) / (invI + invJ);
+            s.vx[i] = s.vx[i]! - impulse * invI * nx;
+            s.vy[i] = s.vy[i]! - impulse * invI * ny;
+            s.vx[j] = s.vx[j]! + impulse * invJ * nx;
+            s.vy[j] = s.vy[j]! + impulse * invJ * ny;
+          }
+          // ease overlapping bubbles apart, the lighter one giving way more
+          const overlap = (minDist - dist) * 0.14;
+          const shareI = invI / (invI + invJ);
+          s.x[i] = s.x[i]! - nx * overlap * shareI;
+          s.y[i] = s.y[i]! - ny * overlap * shareI;
+          s.x[j] = s.x[j]! + nx * overlap * (1 - shareI);
+          s.y[j] = s.y[j]! + ny * overlap * (1 - shareI);
+        }
+      }
+
+      // the finger is a solid circle that bubbles cannot overlap
+      if (fingerDown) {
+        const fingerRadius = FINGER_RADIUS * unit;
+        for (let i = 0; i < count; i++) {
+          const dx = s.x[i]! - tx;
+          const dy = s.y[i]! - ty;
+          const minDist = hit[i]! + fingerRadius;
+          const distSq = dx * dx + dy * dy;
+          if (distSq >= minDist * minDist || distSq === 0) continue;
+          const dist = Math.sqrt(distSq);
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const closing = (s.vx[i]! - fvx) * nx + (s.vy[i]! - fvy) * ny;
+          if (closing < 0) {
+            s.vx[i] = s.vx[i]! - (1 + BOUNCE) * closing * nx;
+            s.vy[i] = s.vy[i]! - (1 + BOUNCE) * closing * ny;
+          }
+          s.x[i] = s.x[i]! + nx * (minDist - dist) * 0.35;
+          s.y[i] = s.y[i]! + ny * (minDist - dist) * 0.35;
+        }
+      }
+      return s;
+    });
+  }, !reduced);
+
   return (
     <>
       {BUBBLES.map((bubble, index) => (
-        <Bubble {...props} bubble={bubble} index={index} key={index} reduced={reduced} tilt={tilt} />
+        <Bubble {...props} bubble={bubble} homeX={layout.homeX[index]!} homeY={layout.homeY[index]!} index={index} key={index} reduced={reduced} sim={sim} tilt={tilt} />
       ))}
     </>
   );
@@ -76,72 +202,42 @@ const Bubble = memo(function Bubble({
   bubble,
   burst,
   height,
+  homeX,
+  homeY,
   index,
   pulse,
   reduced,
+  sim,
   tilt,
-  touchActive,
-  touchX,
-  touchY,
   width,
 }: Props & {
   bubble: (typeof BUBBLES)[number];
+  homeX: number;
+  homeY: number;
   index: number;
   reduced: boolean;
+  sim: SharedValue<Sim>;
   tilt: { x: SharedValue<number>; y: SharedValue<number> };
 }) {
   const radius = (bubble.r / 560) * width;
-  const centerX = (bubble.x / 560) * width;
-  const centerY = (bubble.y / 1205) * height;
-  const driftX = useSharedValue(seeded(index + 1));
-  const driftY = useSharedValue(seeded(index + 11));
-
-  useEffect(() => {
-    if (reduced) return;
-    const span = duration.ambientMax - duration.ambientMin;
-    const loop = (value: SharedValue<number>, seed: number) => {
-      const from = value.get();
-      value.set(
-        withDelay(
-          Math.round(seeded(seed) * 1_500),
-          withRepeat(withTiming(from > 0.5 ? 0 : 1, { duration: duration.ambientMin + seeded(seed + 3) * span, easing: ease.sine }), -1, true),
-        ),
-      );
-    };
-    loop(driftX, index * 2 + 1);
-    loop(driftY, index * 2 + 2);
-    return () => {
-      cancelAnimation(driftX);
-      cancelAnimation(driftY);
-    };
-  }, [driftX, driftY, index, reduced]);
 
   const style = useAnimatedStyle(() => {
     if (reduced) return { opacity: TONES[bubble.tone].opacity };
-    // slow wander, a bit larger for small bubbles
-    const wander = 6 + 16 * bubble.depth;
-    let dx = interpolate(driftX.get(), [0, 1], [-wander, wander]);
-    let dy = interpolate(driftY.get(), [0, 1], [-wander * 0.8, wander * 0.8]);
+    const s = sim.get();
+    // where physics has moved it from its place in the design
+    let dx = (s.x[index] ?? homeX) - homeX;
+    let dy = (s.y[index] ?? homeY) - homeY;
 
     // depth from tilt
     dx += tilt.x.get() * 22 * bubble.depth;
     dy += tilt.y.get() * 22 * bubble.depth;
 
-    // lean toward a finger that is close
-    const toX = touchX.get() - (centerX + dx);
-    const toY = touchY.get() - (centerY + dy);
-    const reach = 260;
-    const near = Math.max(0, 1 - Math.hypot(toX, toY) / reach);
-    const pull = touchActive.get() * near * 0.16;
-    dx += toX * pull;
-    dy += toY * pull;
-
     // burst: leave the centre of the screen
     const b = burst.get();
-    dx += (centerX - width / 2) * b * 0.7;
-    dy += (centerY - height / 2) * b * 0.7;
+    dx += (homeX - width / 2) * b * 0.7;
+    dy += (homeY - height / 2) * b * 0.7;
 
-    const breathe = 1 + 0.025 * Math.sin(driftX.get() * Math.PI);
+    const breathe = 1 + 0.025 * Math.sin(s.t * 0.6 + index);
     const scale = breathe + pulse.get() * (0.04 + 0.05 * bubble.depth) + b * 0.35;
     return {
       opacity: TONES[bubble.tone].opacity * (1 - b),
@@ -157,8 +253,8 @@ const Bubble = memo(function Bubble({
         {
           borderRadius: radius,
           height: radius * 2,
-          left: centerX - radius,
-          top: centerY - radius,
+          left: homeX - radius,
+          top: homeY - radius,
           width: radius * 2,
         },
         style,

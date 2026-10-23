@@ -25,6 +25,7 @@ jest.mock("react-native-reanimated", () => {
       set value(next) { ref.current = next; },
       get: () => ref.current,
       set: (next) => { ref.current = typeof next === "function" ? next(ref.current) : next; },
+      modify: (fn) => { ref.current = fn ? fn(ref.current) : ref.current; },
     };
   };
   // entering/exiting/layout animations are chainable builders: FadeInDown.delay(80).springify()
@@ -78,6 +79,7 @@ jest.mock("react-native-reanimated", () => {
     useAnimatedReaction: () => undefined,
     useAnimatedScrollHandler: () => () => undefined,
     useReducedMotion: () => false,
+    useFrameCallback: () => undefined,
     useAnimatedRef: () => React.useRef(null),
     withTiming: (to) => to,
     withSpring: (to) => to,

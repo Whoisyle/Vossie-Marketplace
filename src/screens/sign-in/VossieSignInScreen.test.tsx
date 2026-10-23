@@ -71,19 +71,10 @@ describe("VossieSignInScreen", () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it("offers the two demo accounts, one tap each", () => {
+  it("has no demo-account shortcuts", () => {
     renderWithProviders(<VossieSignInScreen />);
-    expect(screen.getByTestId("demo-accounts")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("demo-vumisa"));
-    act(() => jest.runAllTimers());
-    expect(mockReplace).toHaveBeenCalledWith("/home");
-  });
-
-  it("starts the new demo account on the verification path", () => {
-    renderWithProviders(<VossieSignInScreen />);
-    fireEvent.press(screen.getByTestId("demo-kamo"));
-    act(() => jest.runAllTimers());
-    expect(mockPush).toHaveBeenCalledWith({ params: { email: "eduv240111@vossie.net" }, pathname: "/verified" });
+    expect(screen.queryByTestId("demo-accounts")).toBeNull();
+    expect(screen.queryByText("Try a demo account")).toBeNull();
   });
 
   it("opens account help", () => {

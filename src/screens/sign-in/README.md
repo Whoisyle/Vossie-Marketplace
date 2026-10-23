@@ -7,3 +7,5 @@ The composition uses the white Vossie wordmark in the upper teal bubble, a secon
 The email field validates address format only; it does not verify a student, account, or institution membership. A valid address advances to an explicit connection status: Eduvos sign-in is not connected and no one has been signed in. No password is requested, no network request is made, and no session or persisted credential is created. The entered address exists only in screen memory and is cleared when this route loses focus.
 
 Account help directs people to Eduvos’s official identity provider for recovery. No recovery URL or support contact is configured. A production sign-in requires institution-approved identity-provider configuration and a separately reviewed integration before this local flow can be replaced.
+
+The background bubbles are a small physics simulation (`FloatingBubbles.tsx`): they drift, bounce off each other by weight, return toward their place in the design, and are shoved away by a finger or mouse pointer. Reduced Motion keeps them still. The earlier "Try a demo account" shortcuts were removed on 2026-10-23; the two demo emails still work if typed.
