@@ -11,6 +11,23 @@ describe("demo store", () => {
     expect(state.isNewUser).toBe(false);
   });
 
+  it("signs in a real account loaded from the backend and skips profile setup", () => {
+    const profile = {
+      campusId: "potchefstroom" as const,
+      email: "eduv11223@vossie.net",
+      fullName: "Vumisa Malindi",
+      id: "real-user-id",
+      isVerifiedStudent: true,
+      phone: "",
+      role: "buyer" as const,
+      studentNumber: "eduv11223",
+    };
+    const state = demoReducer(createInitialState(), { profile, type: "signInAs" });
+    expect(state.profile).toEqual(profile);
+    expect(state.isNewUser).toBe(false);
+    expect(state.knownProfiles.some((item) => item.id === "real-user-id")).toBe(true);
+  });
+
   it("treats an unknown email as a new user until the profile is completed", () => {
     let state = signedIn("newstudent@vossie.net");
     expect(state.isNewUser).toBe(true);

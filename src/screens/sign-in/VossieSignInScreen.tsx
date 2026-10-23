@@ -28,6 +28,7 @@ import { duration, ease, spring } from "@/theme/motion";
 import { color, space } from "@/theme/tokens";
 
 import { FloatingBubbles } from "./FloatingBubbles";
+import { signInDirect, signInLimited } from "./realLogin";
 import { isValidEmail } from "./validation";
 
 const MICROSOFT_SQUARES = ["#F25022", "#7FBA00", "#00A4EF", "#FFB900"] as const;
@@ -102,8 +103,20 @@ export function VossieSignInScreen() {
     const clean = value.trim().toLowerCase();
     // someone who already has a Vossie profile signs straight in; a new student is verified and set up first
     const returning = state.knownProfiles.some((profile) => profile.email.toLowerCase() === clean);
-    timer.current = setTimeout(() => {
-      if (returning) {
+    // a real account on the server's direct-login list is signed in from the database
+    const direct = signInDirect(clean);
+    timer.current = setTimeout(async () => {
+      const profile = await direct;
+      if (profile) {
+        dispatch({ profile, type: "signInAs" });
+        router.replace("/home");
+      } else if (signInLimited()) {
+        // against the real backend only approved accounts get in
+        burst.set(withTiming(0, { duration: 420, easing: ease.out }));
+        setSubmitting(false);
+        setError("This account doesn’t have access to Vossie yet.");
+        haptic.error();
+      } else if (returning) {
         dispatch({ email: clean, type: "signIn" });
         router.replace("/home");
       } else {

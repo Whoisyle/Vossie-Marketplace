@@ -225,6 +225,7 @@ export type DemoAction =
   | CourierAction
   | { type: "setLeaveAtDoor"; orderId: string; on: boolean }
   | { type: "signIn"; email: string }
+  | { type: "signInAs"; profile: Profile }
   | { type: "completeProfile"; profile: Omit<Profile, "id" | "isVerifiedStudent" | "role"> }
   | { type: "updateProfile"; patch: Partial<Pick<Profile, "fullName" | "phone" | "campusId" | "avatarUri">> }
   | { type: "signOut" }
@@ -465,6 +466,14 @@ function baseDemoReducer(state: DemoState, action: DemoAction): DemoState {
         },
       };
     }
+    case "signInAs":
+      // a real account loaded from the backend: skip profile setup
+      return {
+        ...state,
+        isNewUser: false,
+        knownProfiles: [...state.knownProfiles.filter((item) => item.id !== action.profile.id), action.profile],
+        profile: action.profile,
+      };
     case "completeProfile": {
       if (!state.profile) return state;
       const profile: Profile = { ...state.profile, ...action.profile };

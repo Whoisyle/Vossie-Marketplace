@@ -101,3 +101,7 @@ Last updated: 2026-10-20.
 - [ ] **Bank and card artwork** is drawn from owner references; official brand artwork must replace it before release.
 - [ ] **Biometrics** (Face ID) is the device's own check; two-factor setup is a demo.
 - [ ] **Safety reports and emergency features** are not routed to anyone.
+
+## Direct login for the one real account (2026-10-23)
+
+The owner asked for a real buyer, Vumisa Malindi (`eduv11223@vossie.net`, student number `eduv11223`), who signs in on the Microsoft-style page with no emailed code, and for every other account to be denied. The hosted project holds the user (verified, onboarded, Potchefstroom). The Edge Function `real-login` signs in any address listed in `app_settings.direct_login_emails` (migration `20261023000200_direct_login_allowlist.sql`). When the app is connected to the backend, any other address sees an access-denied message and the demo flow is skipped. **The owner accepted that anyone who types the listed address gets in with no proof of identity.** Remove the address from the list before real students or money are involved. The screen only hides other accounts: the hosted project still allows sign-ups through its API until "Allow new users to sign up" is turned off in the Supabase dashboard. The rest of the app still runs on the demo store with the real profile loaded into it.

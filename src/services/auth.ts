@@ -98,3 +98,29 @@ export async function acceptInvitation(token: string, fullName?: string, phone?:
 export async function getMyRoles(): Promise<{ role: string; campus_id: string | null; state: string }[]> {
   return unwrap(await supabase.from("memberships").select("role, campus_id, state").eq("state", "active"));
 }
+
+/**
+ * Signs in an account on the server's direct-login list without an emailed code (the `real-login`
+ * Edge Function). Returns null when the address is not on that list, so the normal flow carries on.
+ */
+export async function directLogin(email: string): Promise<Session | null> {
+  const { data, error } = await supabase.functions.invoke<{ token_hash?: string }>("real-login", {
+    body: { email: normaliseEmail(email) },
+  });
+  if (error) {
+    if ((error as { context?: { status?: number } }).context?.status === 404) return null;
+    throw toServiceError(error);
+  }
+  if (!data?.token_hash) return null;
+  const verified = await supabase.auth.verifyOtp({ token_hash: data.token_hash, type: "magiclink" });
+  if (verified.error || !verified.data.session) throw toServiceError(verified.error ?? "not_authenticated");
+  return verified.data.session;
+}
+
+/** The signed-in student's own student number (only the owner can read it). */
+export async function getMyStudentNumber(): Promise<string | null> {
+  const session = await getSession();
+  if (!session) return null;
+  const result = await supabase.from("profile_private").select("student_number").eq("user_id", session.user.id).maybeSingle();
+  return unwrap(result)?.student_number ?? null;
+}

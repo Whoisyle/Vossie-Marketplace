@@ -1,7 +1,8 @@
-import { createContext, use, useEffect, useReducer, type Dispatch, type ReactNode } from "react";
+import { createContext, use, useEffect, useReducer, useRef, type Dispatch, type ReactNode } from "react";
 
 import { setHapticsEnabled } from "@/lib/haptics";
 import { setSoundsEnabled } from "@/lib/sounds";
+import { auth, backendEnabled } from "@/services";
 
 import {
   cartTotals,
@@ -36,6 +37,13 @@ export function DemoStoreProvider({
   );
   useEffect(() => setHapticsEnabled(state.settings.haptics), [state.settings.haptics]);
   useEffect(() => setSoundsEnabled(state.settings.sounds), [state.settings.sounds]);
+  // signing out of the app also ends a real backend session, if one was started at sign-in
+  const wasSignedIn = useRef(false);
+  useEffect(() => {
+    const signedIn = state.profile !== null;
+    if (wasSignedIn.current && !signedIn && backendEnabled) void auth.signOut().catch(() => undefined);
+    wasSignedIn.current = signedIn;
+  }, [state.profile]);
   return <DemoStoreContext value={{ state, dispatch }}>{children}</DemoStoreContext>;
 }
 
