@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vossie Launch Film</title>
+<style>
+:root{--navy:#29475B;--teal:#376371;--sky:#DFEAF1;--mist:#b7c4cc;--ivory:#F5EFE6;--a:#0b1a22;--b:#122b36;--glow:#376371}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:"SF Pro Display","Segoe UI Variable Display","Segoe UI","Helvetica Neue",Arial,sans-serif;color:var(--ivory)}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;background:#05090c}
+#bg{position:absolute;inset:0;background:radial-gradient(1400px 900px at var(--gx,60%) var(--gy,45%),var(--b),var(--a) 70%)}
+#bg2{position:absolute;inset:0;background:radial-gradient(700px 500px at var(--hx,25%) var(--hy,95%),color-mix(in srgb,var(--glow) 55%,transparent),transparent 70%);opacity:.7}
+#grain{position:absolute;inset:-50px;opacity:.07;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>")}
+#vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55));pointer-events:none;z-index:50}
+#dots{position:absolute;inset:0}
+#dots i{position:absolute;border-radius:50%;background:var(--sky);opacity:.25}
+#world{position:absolute;inset:0;perspective:2600px;perspective-origin:50% 50%}
+.layer3d{position:absolute;inset:0;transform-style:preserve-3d}
+/* ---------- phone ---------- */
+.bob{position:absolute;left:0;top:0;width:0;height:0}
+.pos{position:absolute;left:-210px;top:-440px;width:421px;height:880px;transform-style:preserve-3d;will-change:transform}
+.body{position:absolute;inset:0;transform-style:preserve-3d}
+.slab{position:absolute;inset:0;border-radius:68px;background:linear-gradient(135deg,#3b4a55,#15202a 45%,#2b3943);}
+.front{position:absolute;inset:0;border-radius:68px;background:#05080a;padding:14px;box-shadow:0 0 0 2px #46586a inset,0 0 0 4px #0a0f13 inset;backface-visibility:hidden;transform:translateZ(1px)}
+.screen{position:relative;width:393px;height:852px;border-radius:54px;overflow:hidden;background:#fff}
+.screen .vids{position:absolute;inset:0}.screen video{position:absolute;left:0;top:0;width:393px;height:852px;display:block;background:#fff}
+.screen .glare{position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 28%,rgba(255,255,255,0) 70%,rgba(255,255,255,.08) 100%);mix-blend-mode:screen;pointer-events:none}
+.island{position:absolute;left:50%;top:10px;width:122px;height:34px;margin-left:-61px;background:#000;border-radius:20px;z-index:4}
+.back{position:absolute;inset:0;border-radius:68px;transform:rotateY(180deg) translateZ(14px);backface-visibility:hidden;background:linear-gradient(150deg,#3d6577 0%,#29475B 45%,#1b3342 100%);box-shadow:0 0 0 2px #5d7f90 inset}
+.back .cam{position:absolute;left:34px;top:34px;width:146px;height:146px;border-radius:38px;background:linear-gradient(145deg,#233843,#12212a);box-shadow:0 0 0 2px #6a8a99 inset}
+.back .cam b{position:absolute;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4a6a7a,#0a1217 60%);box-shadow:0 0 0 4px #1b2c36,0 0 0 6px #5d7f90}
+.back .mark{position:absolute;left:50%;top:56%;width:150px;margin-left:-75px;opacity:.9;filter:brightness(0) invert(.92)}
+.shadow{position:absolute;left:50px;right:50px;bottom:-60px;height:60px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%);transform:rotateX(90deg) translateZ(-30px);filter:blur(10px)}
+/* ---------- type ---------- */
+.title{position:absolute;overflow:hidden;line-height:1.02;padding:0 10px 24px 0}
+.title span{display:block;font-size:230px;font-weight:800;letter-spacing:-9px;background:linear-gradient(180deg,#fff 25%,#9fbccb);-webkit-background-clip:text;color:transparent;transform:translateY(115%)}
+.title.sm span{font-size:170px;letter-spacing:-6px}
+.title.xl span{font-size:300px;letter-spacing:-12px}
+/* ---------- misc fx ---------- */
+.ring{position:absolute;border-radius:50%;border:3px solid var(--sky);opacity:0}
+.flare{position:absolute;width:1400px;height:6px;margin:-3px 0 0 -700px;background:linear-gradient(90deg,transparent,rgba(223,234,241,.9),transparent);opacity:0;filter:blur(2px)}
+.big{position:absolute;display:flex;align-items:center;justify-content:center;font-weight:800}
+#map{position:absolute;inset:-300px;opacity:0;transform-style:preserve-3d}
+#mapwrap{position:absolute;left:50%;top:50%;width:2400px;height:1500px;margin:-750px 0 0 -1200px;transform-style:preserve-3d}
+#fade{position:absolute;inset:0;background:#000;opacity:1;z-index:60;pointer-events:none}
+#wm{position:absolute;left:50%;top:50%;width:1040px;margin-left:-520px;margin-top:-190px;opacity:0}
+#wm img{width:100%;display:block;filter:brightness(0) invert(.95)}
+#wm i{position:absolute;left:70.72%;top:4.2%;width:6.34%;aspect-ratio:1.05;border-radius:50%;background:var(--sky);box-shadow:0 0 60px rgba(223,234,241,.7)}
+#qr{position:absolute;width:300px;height:300px;opacity:0}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg"></div><div id="bg2"></div><div id="dots"></div>
+  <div id="world"><div class="layer3d" id="L3"></div></div>
+  <div id="map"><div id="mapwrap"></div></div>
+  <div id="qr"></div>
+  <div id="titles"></div>
+  <div id="fx"></div>
+  <div id="wm"><img src="wordmark-nodot.svg"><i id="wmdot"></i></div>
+  <div id="grain"></div><div id="vig"></div>
+  <div id="fade"></div>
+</div>
+<script src="gsap.min.js"></script>
+<script type="module" src="engine.js"></script>
+</body>
+</html>
