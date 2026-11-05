@@ -1,0 +1,16 @@
+import { open, signIn, visible } from './lib.mjs';
+const { b, p } = await open(); await signIn(p);
+await p.getByText('Burger & Chips').first().click(); await p.waitForTimeout(2000);
+await p.getByText(/Add to Cart/i).locator('visible=true').first().click(); await p.waitForTimeout(1500);
+await p.getByText('Cart',{exact:true}).locator('visible=true').last().click(); await p.waitForTimeout(2500);
+await p.getByText(/Checkout · R/).locator('visible=true').first().click(); await p.waitForTimeout(3000);
+await p.getByText(/Pay Now/).locator('visible=true').first().click(); await p.waitForTimeout(2500);
+console.log(JSON.stringify(await visible(p)));
+await p.screenshot({path:'shots/pay1.png'});
+const l = p.getByText(/Tap anywhere to simulate|double-click/).locator('visible=true').first();
+console.log('label', await l.innerText().catch(e=>'none'));
+const bx = await l.boundingBox(); console.log(JSON.stringify(bx));
+await p.mouse.move(196, 420); await p.mouse.down(); await p.waitForTimeout(1800); await p.mouse.up(); await p.waitForTimeout(4000);
+console.log(JSON.stringify((await visible(p)).slice(0,14)));
+await p.screenshot({path:'shots/pay2.png'});
+await b.close();

@@ -1,0 +1,15 @@
+import { open, signIn, visible } from './lib.mjs';
+const { b, p } = await open(); await signIn(p);
+const log = async n => { console.log('##', n, p.url().replace('http://localhost:8092',''), JSON.stringify((await visible(p)).slice(0,22))); await p.screenshot({ path: `shots/w_${n}.png` }); };
+await p.getByText('Account',{exact:true}).last().click(); await p.waitForTimeout(1500);
+await p.getByText('Switch role').first().click(); await p.waitForTimeout(1200);
+await p.getByText(/^Seller$/).first().click(); await p.waitForTimeout(5000);
+await p.getByText('Set up my shop').click(); await p.waitForTimeout(3500);
+await p.getByText('Student seller').first().click();
+const ins = p.locator('input:visible'); await ins.nth(0).fill('Vumisa Threads'); await ins.nth(1).fill('0821234567');
+await p.getByText('Continue',{exact:true}).click(); await p.waitForTimeout(3500);
+await p.getByText('ID document').click(); await p.waitForTimeout(1500); await log('afterID');
+await p.getByText('Proof of address').click(); await p.waitForTimeout(1500); await log('afterPOA');
+await p.getByText('Submit for review').click(); await p.waitForTimeout(4500); await log('submitted');
+await p.getByText(/Go to|Continue|Open|Done|start/i).first().click().catch(()=>{}); await p.waitForTimeout(3500); await log('after');
+await b.close();

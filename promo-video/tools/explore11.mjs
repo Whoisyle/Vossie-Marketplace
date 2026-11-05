@@ -1,0 +1,11 @@
+import { open, signIn, visible } from './lib.mjs';
+const { b, p } = await open(); await signIn(p);
+await p.getByText('Burger & Chips').first().click(); await p.waitForTimeout(2000);
+await p.getByText(/Add to Cart/i).locator('visible=true').first().click(); await p.waitForTimeout(1500);
+await p.getByText('Cart',{exact:true}).locator('visible=true').last().click(); await p.waitForTimeout(2500);
+const co = p.getByText(/Checkout · R/).locator('visible=true').first();
+console.log('count', await p.getByText(/Checkout/).count(), JSON.stringify(await co.boundingBox()));
+await co.click(); await p.waitForTimeout(3500);
+console.log(p.url(), JSON.stringify((await visible(p)).slice(0,25)));
+await p.screenshot({path:'shots/k1.png'});
+await b.close();
