@@ -198,6 +198,7 @@ export const CHECK_INFO: Record<CourierDocKind, { icon: IconName; title: string;
   id: { icon: "file-text", sub: "South African ID or passport", title: "ID document" },
   licence: { icon: "truck", sub: "Required for a car or scooter", title: "Driving licence" },
   selfie: { icon: "camera", sub: "Match your ID photo", title: "Selfie check" },
+  vehicle: { icon: "truck", sub: "Buyers see it when you are on the way", title: "Car photo" },
 };
 
 /** Step 2: the ID, the selfie, the driving licence with its expiry date for a car or scooter, and the check Vossie Operations runs. */
@@ -210,14 +211,14 @@ export function CourierVerifyScreen() {
   const [tried, setTried] = useState(false);
   const doc = (kind: CourierDocKind) => courier.documents.find((item) => item.kind === kind)!;
   const motor = needsLicence(courier.profile.vehicle);
-  const checks = (["id", "selfie", "licence", "background"] as CourierDocKind[]).filter((kind) => kind !== "licence" || motor);
+  const checks = (["id", "selfie", "vehicle", "licence", "background"] as CourierDocKind[]).filter((kind) => (kind !== "licence" && kind !== "vehicle") || motor);
   const needed = checks.length;
   const done = checks.filter((kind) => ["uploaded", "verified", "in-review"].includes(doc(kind).status) && kind !== "background").length;
   const iso = dateToIso(expiry);
   const left = iso ? daysLeft(iso, now) : null;
   const dateProblem = iso ? expiryProblem(iso, now) : null;
   const expiryError = !motor ? undefined : expiry.trim() === "" ? "Enter the date your licence expires" : !iso ? "Use the date as 25/12/2027" : dateProblem === "past" ? "That licence has already expired" : dateProblem === "far" ? "A licence lasts five years, so that date is too far away" : undefined;
-  const problem = doc("id").status === "missing" || doc("selfie").status === "missing" ? "Add your ID and a selfie to go on." : motor && doc("licence").status === "missing" ? "Add your driving licence to go on." : (expiryError ?? setupProblem(courier, now));
+  const problem = doc("id").status === "missing" || doc("selfie").status === "missing" ? "Add your ID and a selfie to go on." : motor && doc("vehicle").status === "missing" ? "Add a photo of your car to go on." : motor && doc("licence").status === "missing" ? "Add your driving licence to go on." : (expiryError ?? setupProblem(courier, now));
   const ready = problem === null;
 
   const setExpiryText = (value: string) => {
@@ -282,8 +283,8 @@ export function CourierVerifyScreen() {
           if (adding) dispatch({ fileName: file.name, kind: adding, type: "courierUploadDocument", uri: file.uri });
           setAdding(null);
         }}
-        sources={adding === "selfie" ? ["camera", "library"] : ["library", "camera", "files"]}
-        title={adding === "selfie" ? "Take a selfie" : adding === "licence" ? "Add your driving licence" : "Add your document"}
+        sources={adding === "selfie" || adding === "vehicle" ? ["camera", "library"] : ["library", "camera", "files"]}
+        title={adding === "selfie" ? "Take a selfie" : adding === "vehicle" ? "Add a photo of your car" : adding === "licence" ? "Add your driving licence" : "Add your document"}
         visible={adding !== null}
       />
     </SetupPage>

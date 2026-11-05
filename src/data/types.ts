@@ -132,7 +132,7 @@ export type Order = {
   /** How it gets to the student; older orders without one are treated as campus courier or collection. */
   deliveryMode?: import("./delivery").DeliveryMode;
   /** phone is the number the Call button dials; empty until couriers are set up with real numbers. */
-  courier?: { name: string; vehicle: string; rating: number; phone?: string };
+  courier?: { name: string; vehicle: string; rating: number; phone?: string; photoUri?: string; vehiclePhotoUri?: string };
   /** The student allows the courier to leave the parcel at the door, which lets the courier use a photo as proof. */
   leaveAtDoor?: boolean;
 };

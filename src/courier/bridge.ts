@@ -60,7 +60,7 @@ export function applyCourierAction(state: DemoState, action: CourierAction, redu
     case "courierAcceptJob": {
       const rating = courierRating(courier.jobs);
       next = applySellerAction(next, { courier: { arrivesInMin: Math.max(2, Math.round(job.minutes / 2)), name: shortName(courier.profile.fullName), rating, vehicle: vehicleLabel(courier.profile) }, id: job.sellerOrderId!, type: "sellerCourierTaken" }, reduce);
-      next = { ...next, orders: next.orders.map((order) => (order.id === job.buyerOrderId ? { ...order, courier: { name: shortName(courier.profile.fullName), phone: courier.profile.phone, rating, vehicle: vehicleLabel(courier.profile) } } : order)) };
+      next = { ...next, orders: next.orders.map((order) => (order.id === job.buyerOrderId ? { ...order, courier: { name: shortName(courier.profile.fullName), phone: courier.profile.phone, photoUri: courier.documents.find((doc) => doc.kind === "selfie")?.uri, rating, vehicle: vehicleLabel(courier.profile), vehiclePhotoUri: courier.documents.find((doc) => doc.kind === "vehicle")?.uri } } : order)) };
       next = { ...next, notifications: [note("A courier has your order", `${shortName(courier.profile.fullName)} is on the way to collect ${job.number} from the seller.`, job.buyerOrderId!), ...next.notifications] };
       break;
     }

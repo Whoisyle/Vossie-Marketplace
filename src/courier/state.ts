@@ -30,7 +30,7 @@ export function courierId(prefix: string): string {
 /** Four digits that are the same for the same seed, so a code can be shown in two places. */
 export const fourDigits = codeDigits;
 
-const DOC_ORDER: CourierDocKind[] = ["id", "selfie", "licence", "background"];
+const DOC_ORDER: CourierDocKind[] = ["id", "selfie", "vehicle", "licence", "background"];
 
 export function emptyDocuments(): CourierDoc[] {
   return DOC_ORDER.map((kind) => ({ kind, status: "missing" as const }));
@@ -103,6 +103,8 @@ export type LicenceProblem = "missing" | "details" | "expired";
 export function setupProblem(state: Pick<CourierState, "documents" | "profile">, now: number): string | null {
   if (needsLicence(state.profile.vehicle)) {
     if (!vehicleComplete(state.profile.vehicleInfo, state.profile.vehicle)) return "Choose the make, model and colour and enter a South African number plate.";
+    const carPhoto = state.documents.find((doc) => doc.kind === "vehicle");
+    if (!carPhoto || carPhoto.status === "missing") return "Add a clear photo of your car.";
     if (!validLicenceNumber(state.profile.licenceNumber)) return "Enter your driving licence number as printed on the card.";
     const licence = state.documents.find((doc) => doc.kind === "licence");
     if (!licence || licence.status === "missing") return "Add your driving licence.";

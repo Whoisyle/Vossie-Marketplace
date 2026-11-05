@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Linking, Pressable, Share, StyleSheet, Text, View } from "react-native";
+import { Image, Linking, Pressable, Share, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, EmptyState, Icon, ProgressTrack, Screen, AppHeader, StatusBadge, useToast } from "@/components";
@@ -171,7 +171,7 @@ export function TrackOrderScreen() {
         {order.courier ? (
           <View style={styles.courier}>
             <View style={styles.courierIcon}>
-              <Icon color={color.onPrimary} name="user" size={18} />
+              {order.courier.photoUri ? <Image accessibilityLabel={`Photo of ${order.courier.name}`} source={{ uri: order.courier.photoUri }} style={styles.courierPhoto} /> : <Icon color={color.onPrimary} name="user" size={18} />}
             </View>
             <View style={styles.flex}>
               <Text style={text.cardTitle}>{order.courier.name}</Text>
@@ -179,6 +179,7 @@ export function TrackOrderScreen() {
                 {order.courier.vehicle} · {order.courier.rating.toFixed(1)}★
               </Text>
             </View>
+            {order.courier.vehiclePhotoUri ? <Image accessibilityLabel="Photo of the courier's car" source={{ uri: order.courier.vehiclePhotoUri }} style={styles.carPhoto} /> : null}
             <Button icon="phone" label="Call" onPress={call} size="sm" variant="soft" />
             <Button icon="message-circle" label="Chat" onPress={chat} size="sm" />
           </View>
@@ -254,6 +255,8 @@ const styles = StyleSheet.create({
   codeCard: { alignItems: "center", backgroundColor: color.surfaceSoft, borderRadius: corner.md, gap: 2, padding: space.sm },
   courier: { alignItems: "center", flexDirection: "row", gap: space.xs },
   leave: { alignItems: "center", backgroundColor: color.surfaceRow, borderRadius: corner.md, flexDirection: "row", gap: space.xs, padding: space.sm },
+  courierPhoto: { borderRadius: 20, height: 40, width: 40 },
+  carPhoto: { borderRadius: 10, height: 40, width: 56 },
   courierIcon: { alignItems: "center", backgroundColor: color.primary, borderRadius: 20, height: 40, justifyContent: "center", width: 40 },
   demo: { color: color.textMuted, fontSize: 11, textAlign: "center" },
   flex: { flex: 1 },

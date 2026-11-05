@@ -8,7 +8,7 @@ export type CourierStatus = "none" | "setup" | "pending" | "approved" | "rejecte
 
 export type Vehicle = "walking" | "bicycle" | "scooter" | "car";
 
-export type CourierDocKind = "id" | "selfie" | "licence" | "background";
+export type CourierDocKind = "id" | "selfie" | "vehicle" | "licence" | "background";
 
 export type CourierDocStatus = "missing" | "uploaded" | "in-review" | "verified" | "rejected";
 

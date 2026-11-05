@@ -74,7 +74,7 @@ describe("becoming a courier", () => {
     courier = courierReduce(courier, { fileName: "me.jpg", kind: "selfie", type: "courierUploadDocument" });
     courier = courierReduce(courier, { type: "courierSubmitVerification" });
     expect(courier.status).toBe("pending");
-    expect(courier.documents.map((doc) => doc.status)).toEqual(["in-review", "in-review", "missing", "in-review"]);
+    expect(courier.documents.map((doc) => doc.status)).toEqual(["in-review", "in-review", "missing", "missing", "in-review"]);
     for (let n = 0; n < 2; n += 1) courier = courierReduce(courier, { type: "courierReviewTick" });
     expect(courier.status).toBe("pending");
     courier = courierReduce(courier, { type: "courierReviewTick" });
@@ -173,7 +173,7 @@ describe("a demo job from offer to cash", () => {
 describe("a car or a scooter", () => {
   function motor(vehicle: "car" | "scooter") {
     let state = run(createInitialState(), { email: "eduv230953@vossie.net", type: "signIn" }, { role: "courier", type: "switchRole" }, { type: "courierStart" }, { patch: { fullName: "Vumisa Malindi", phone: "0825735164", vehicle }, type: "courierSetProfile" });
-    state = run(state, { fileName: "id.jpg", kind: "id", type: "courierUploadDocument" }, { fileName: "me.jpg", kind: "selfie", type: "courierUploadDocument" });
+    state = run(state, { fileName: "id.jpg", kind: "id", type: "courierUploadDocument" }, { fileName: "me.jpg", kind: "selfie", type: "courierUploadDocument" }, { fileName: "car.jpg", kind: "vehicle", type: "courierUploadDocument" });
     return state;
   }
 

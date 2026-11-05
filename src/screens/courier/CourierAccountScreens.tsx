@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useState } from "react";
-import { Linking, Pressable, Share, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
+import { Image, Linking, Pressable, Share, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withTiming } from "react-native-reanimated";
 
 import { Icon, RadioRow, Sheet, StarRating, useToast, type IconName } from "@/components";
@@ -94,6 +94,8 @@ export function CourierAccountScreen() {
   const unread = courier.alerts.filter((alert) => !alert.read).length;
   const to = (path: string) => router.push(path as Href);
   const motor = needsLicence(courier.profile.vehicle);
+  const driverPhoto = courier.documents.find((doc) => doc.kind === "selfie")?.uri;
+  const carPhoto = courier.documents.find((doc) => doc.kind === "vehicle")?.uri;
   const licence = courier.documents.find((doc) => doc.kind === "licence");
   const now = useNow(60_000);
   const left = daysLeft(licence?.expiresAt, now);
@@ -124,7 +126,7 @@ export function CourierAccountScreen() {
       <Rise index={1}>
         <Card style={styles.profile} testID="courier-profile">
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials(courier.profile.fullName)}</Text>
+            {driverPhoto ? <Image accessibilityLabel="Your photo" source={{ uri: driverPhoto }} style={styles.avatarPhoto} /> : <Text style={styles.avatarText}>{initials(courier.profile.fullName)}</Text>}
           </View>
           <View style={styles.flex}>
             <Text style={type.card}>{courier.profile.fullName}</Text>
@@ -142,7 +144,7 @@ export function CourierAccountScreen() {
         <Rise index={3}>
           <Card onPress={() => to("/courier/account/documents")} style={styles.vehicle} testID="vehicle-card">
             <View style={styles.vehicleIcon}>
-              <Icon color={COURIER.solid} name={courier.profile.vehicle === "car" ? "truck" : "navigation"} size={22} />
+              {carPhoto ? <Image accessibilityLabel="Your car" source={{ uri: carPhoto }} style={styles.vehiclePhoto} /> : <Icon color={COURIER.solid} name={courier.profile.vehicle === "car" ? "truck" : "navigation"} size={22} />}
             </View>
             <View style={styles.flex}>
               <Text style={type.card}>{vehicleComplete(courier.profile.vehicleInfo) ? vehicleLabel(courier.profile) : "Add your vehicle details"}</Text>
@@ -197,6 +199,7 @@ const DOC_INFO: Record<CourierDocKind, { icon: IconName; title: string; sub: str
   id: { icon: "file-text", sub: "South African ID or passport", title: "ID document" },
   licence: { icon: "truck", sub: "Required for a car or scooter", title: "Driving licence" },
   selfie: { icon: "camera", sub: "Matches your ID photo", title: "Selfie check" },
+  vehicle: { icon: "truck", sub: "Buyers see it when you are on the way", title: "Car photo" },
 };
 
 /** Your documents: what was checked, what is still being checked, the licence's expiry date and the vehicle's details, and a way to send a new file. */
@@ -209,7 +212,7 @@ export function CourierDocumentsScreen() {
   const [expiry, setExpiry] = useState(isoToDate(licence?.expiresAt));
   const [info, setInfo] = useState(courier.profile.vehicleInfo);
   const [licenceNumber, setLicenceNumber] = useState(courier.profile.licenceNumber);
-  const docs = courier.documents.filter((doc) => doc.kind !== "licence" || motor);
+  const docs = courier.documents.filter((doc) => (doc.kind !== "licence" && doc.kind !== "vehicle") || motor);
   const now = useNow(60_000);
   const left = daysLeft(licence?.expiresAt, now);
   const iso = dateToIso(expiry);
@@ -264,7 +267,7 @@ export function CourierDocumentsScreen() {
           }
           setReplacing(null);
         }}
-        sources={replacing === "selfie" ? ["camera", "library"] : ["library", "camera", "files"]}
+        sources={replacing === "selfie" || replacing === "vehicle" ? ["camera", "library"] : ["library", "camera", "files"]}
         title="Send a new document"
         visible={replacing !== null}
       />
@@ -518,6 +521,8 @@ const styles = StyleSheet.create({
   vehicleIcon: { alignItems: "center", backgroundColor: "#DDE8EC", borderRadius: 14, height: 44, justifyContent: "center", width: 44 },
   avatar: { alignItems: "center", backgroundColor: COURIER.solid, borderRadius: 26, height: 52, justifyContent: "center", width: 52 },
   avatarText: { color: "#FFFFFF", fontSize: 17, fontWeight: "800" },
+  avatarPhoto: { borderRadius: 26, height: 52, width: 52 },
+  vehiclePhoto: { borderRadius: 14, height: 44, width: 44 },
   case: { alignItems: "center", flexDirection: "row", gap: 10, marginBottom: 8 },
   doc: { alignItems: "center", flexDirection: "row", gap: 12, marginBottom: 10 },
   docIcon: { alignItems: "center", backgroundColor: "#E3EDF0", borderRadius: 14, height: 44, justifyContent: "center", width: 44 },

@@ -139,7 +139,18 @@ describe("becoming a courier", () => {
     state = run(state, { fileName: "id.jpg", kind: "id", type: "courierUploadDocument" }, { fileName: "me.jpg", kind: "selfie", type: "courierUploadDocument" });
     renderWithProviders(<CourierVerifyScreen />, state);
     expect(screen.getByText("Driving licence")).toBeTruthy();
+    expect(screen.getByText("Car photo")).toBeTruthy();
     expect(screen.getByTestId("licence-expiry-card")).toBeTruthy();
+    // the car needs a photo before anything else
+    fireEvent.press(screen.getByTestId("courier-submit"));
+    expect(screen.getByText("Add a photo of your car to go on.")).toBeTruthy();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("asks a scooter courier for the licence and its date once the car photo is in", () => {
+    let state = run(signedIn(), { role: "courier", type: "switchRole" }, { type: "courierStart" }, { patch: { vehicle: "scooter", vehicleInfo: { colour: "Red", make: "Vespa", model: "Primavera", plate: "ABC 123 GP" } }, type: "courierSetProfile" });
+    state = run(state, { fileName: "id.jpg", kind: "id", type: "courierUploadDocument" }, { fileName: "me.jpg", kind: "selfie", type: "courierUploadDocument" }, { fileName: "car.jpg", kind: "vehicle", type: "courierUploadDocument" });
+    renderWithProviders(<CourierVerifyScreen />, state);
     fireEvent.press(screen.getByTestId("courier-submit"));
     expect(screen.getByText("Add your driving licence to go on.")).toBeTruthy();
     expect(mockPush).not.toHaveBeenCalled();
