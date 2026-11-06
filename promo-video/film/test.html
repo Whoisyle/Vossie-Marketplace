@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#06090c}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script></head>
+<body><script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { makePhone } from './phone.js';
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); r.setSize(1920, 1080); r.setPixelRatio(1);
+r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05; r.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x070d12);
+const pm = new THREE.PMREMGenerator(r); scene.environment = pm.fromScene(new RoomEnvironment(), .03).texture;
+const cam = new THREE.PerspectiveCamera(24, 1920 / 1080, 1, 2000);
+const img = new Image(); img.src = '/shots/s_1acct.png';
+await new Promise(r => img.onload = r);
+const cv = document.createElement('canvas'); cv.width = 786; cv.height = 1704; cv.getContext('2d').drawImage(img, 0, 0, 786, 1704);
+const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+const ph = makePhone({ canvasTex: tex }); scene.add(ph);
+const key = new THREE.DirectionalLight(0xffffff, 1.2); key.position.set(-200, 250, 300); scene.add(key);
+const q = new URLSearchParams(location.search); const ry = +(q.get('ry') || 0.5), rx = +(q.get('rx') || .1);
+ph.rotation.set(rx, ry, 0); cam.position.set(0, 0, 520); cam.lookAt(0, 0, 0);
+r.render(scene, cam); window.done = true;
+</script></body></html>
