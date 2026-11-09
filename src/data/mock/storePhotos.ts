@@ -17,6 +17,8 @@ const STORE_PHOTO_KEYS: Record<string, { banner: string; logo: string }> = {
   "roast-republic": { banner: "flat-white#2", logo: "iced-latte" },
   "study-space": { banner: "study-room#2", logo: "study-room" },
   "sweet-tooth": { banner: "almond-croissant#2", logo: "choc-strawberries" },
+  "kabelo-notes": { banner: "textbook-econ#2", logo: "textbook-econ" },
+  "zinhle-notes": { banner: "textbook-prog#2", logo: "textbook-prog" },
   "wrap-lab": { banner: "chicken-wrap#3", logo: "chicken-wrap" },
   techswap: { banner: "tablet-desk", logo: "mint-laptop" },
   "thabos-books": { banner: "textbook-prog#2", logo: "textbook-econ" },

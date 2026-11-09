@@ -45,3 +45,14 @@ Chrome web export was checked against the references. The physical iPhone (Expo 
 | Reels | `/reels` | Double tap likes with a heart burst, tap pauses, store and campus overlay, navbar hidden, edge swipe brings it back. |
 
 Promo banners are placeholders. Review rules match the database (`leave_review`).
+
+## Study notes (2026-11-10)
+
+| Screen | Route | Notes |
+| --- | --- | --- |
+| Study notes | `/home/notes` | Search by module name or code, filter by campus. Linked from the Home banner under Books. |
+| Notes listing | `/home/listing/[id]` | Module facts, free preview, "Buy and download" pay sheet. No delivery, no quantity. |
+| Reader | `/home/notes-read/[id]`, `/account/notes-read/[id]` | Six sample pages; pages after the preview lock until bought. |
+| My study notes | `/account/my-notes` | Packs this student has bought. |
+| Seller upload | Seller product form, Books category | "Digital study notes (PDF)" switch with module name, code, campus and a PDF. |
+

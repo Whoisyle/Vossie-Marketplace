@@ -108,3 +108,13 @@ Last updated: 2026-10-20.
 The owner asked for a real buyer, Vumisa Malindi (`eduv11223@vossie.net`, student number `eduv11223`), who signs in on the Microsoft-style page with no emailed code, and for every other account to be denied. The hosted project holds the user (verified, onboarded, Potchefstroom). The Edge Function `real-login` signs in any address listed in `app_settings.direct_login_emails` (migration `20261023000200_direct_login_allowlist.sql`). When the app is connected to the backend, any other address sees an access-denied message and the demo flow is skipped. **The owner accepted that anyone who types the listed address gets in with no proof of identity.** Remove the address from the list before real students or money are involved. The screen only hides other accounts: the hosted project still allows sign-ups through its API until "Allow new users to sign up" is turned off in the Supabase dashboard. The rest of the app still runs on the demo store with the real profile loaded into it.
 
 - [ ] **Real account profile photo** is kept on the device only; uploading it to the avatars bucket is still to do. The first-login flow repeats on every new device by design while the shared test account is in use.
+
+## Study notes (added 2026-11-10)
+
+- [ ] **Notes are made-up packs.** The six packs, two sellers, module codes, lecturers and page counts in `src/data/notes.ts` are fictional. Real packs come from sellers.
+- [ ] **No real files.** The reader shows six generated sample pages. Real notes need a private storage bucket, a signed download link per buyer, a PDF viewer and a size and virus check on upload.
+- [ ] **Payment is the demo pay sheet.** Buying notes does not move money; it adds the pack to `notesLibrary` and a delivered order. The real flow uses the payment provider and settles the seller after payment.
+- [ ] **Seller upload keeps only the file name.** The module fields, campus and file name live on the phone (`SellerListing.notes`); the database has no notes columns or table yet, and the live seller save ignores them.
+- [ ] **Quality and rights.** There is no check that a seller owns the notes they sell, no refund rule for bad notes and no takedown path. These need a policy before real sellers upload.
+- [ ] **Price comparison with other note sites** is not in the app. Any figure shown in the launch film must be a verified, dated and cited price.
+

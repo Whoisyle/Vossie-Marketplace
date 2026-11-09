@@ -9,16 +9,17 @@ import type { SellerState } from "./types";
 export function asListing(item: SellerState["listings"][number], storeId: string, campusId: Listing["campusId"] = "potchefstroom"): Listing {
   const category = item.category === "services" ? "services" : item.category === "food" ? "food" : item.category === "books" ? "books" : item.category === "fashion" ? "fashion" : "electronics";
   return {
-    campusId,
+    campusId: item.notes?.campusId ?? campusId,
     categoryId: category as Listing["categoryId"],
     createdDaysAgo: Math.max(0, Math.round((Date.now() - new Date(item.updatedAt).getTime()) / 86_400_000)),
     description: item.description,
     id: item.id,
     images: item.photos.length > 0 ? item.photos : item.artId ? galleryOf(item.artId) : [],
-    location: "",
+    location: item.notes ? "Digital download" : "",
+    notes: item.notes,
     openHours: "",
     options: item.variants.map((label, index) => ({ id: `${item.id}-v${index}`, label, priceCents: item.priceCents })),
-    pickupTime: "Today",
+    pickupTime: item.notes ? "Instant" : "Today",
     popular: item.onHand > 0 && item.onHand <= 5,
     priceCents: item.priceCents,
     rating: 4.8,

@@ -105,6 +105,7 @@ export function AccountScreen() {
         <MenuRow icon="truck" label="Delivery preferences" onPress={() => setDeliveryOpen(true)} value={state.preferredDelivery ? deliveryLabels[state.preferredDelivery] : "Auto-pick"} />
         <MenuRow icon="edit-2" label="Edit Profile" onPress={() => go("/account/edit-profile")} />
         <MenuRow icon="credit-card" label="Wallet" onPress={() => go("/account/wallet")} />
+        <MenuRow icon="book-open" label="My study notes" onPress={() => go("/account/my-notes")} value={`${state.notesLibrary.length} ${state.notesLibrary.length === 1 ? "pack" : "packs"}`} />
         <MenuRow icon="award" label="Vossie Points" onPress={() => go("/account/points")} value={`${points.toLocaleString("en-ZA")} pts`} />
         <MenuRow icon="tag" label="Coupons and offers" onPress={() => go("/account/vouchers")} value={`${state.userVouchers.filter((item) => new Date(item.expiresAt).getTime() >= now).length} active`} />
         <MenuRow icon="gift" label="Refer friends" onPress={() => go("/account/referral")} value="Earn 200 pts" />

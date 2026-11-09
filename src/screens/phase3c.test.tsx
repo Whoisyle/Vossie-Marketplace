@@ -229,7 +229,8 @@ describe("Messages screens", () => {
 describe("Product drawings and the notification bell", () => {
   it("gives every listing its own drawing instead of a photo", () => {
     expect(ART_IDS.length).toBeGreaterThanOrEqual(32);
-    for (const listing of listings) {
+    // digital study notes have no product to draw: they share a book cover
+    for (const listing of listings.filter((item) => !item.notes)) {
       expect(hasArt(listing.id)).toBe(true);
       expect(listing.images[0]).toBe(`art:${listing.id}`);
     }

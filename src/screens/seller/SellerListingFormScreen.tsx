@@ -5,13 +5,15 @@ import { Pressable, StyleSheet, Switch, View } from "react-native";
 
 import { Icon, useToast } from "@/components";
 import { formatRand } from "@/data/format";
+import { NOTES_CAMPUSES } from "@/data/notes";
+import type { CampusId } from "@/data/types";
 import { parseRandToCents } from "@/screens/account/walletAmount";
 import { LIMITS } from "@/seller/plan";
 import { productCount } from "@/seller/selectors";
 import { sellerId } from "@/seller/state";
 import type { SellerListing } from "@/seller/types";
 
-import { AttachSheet } from "./attach";
+import { AttachSheet, type Picked } from "./attach";
 import { SellerField } from "./fields";
 import { useSeller } from "./hooks";
 import { UpgradeSheet } from "./SellerReelsScreens";
@@ -41,8 +43,15 @@ export function SellerListingFormScreen() {
   const [variants, setVariants] = useState((existing?.variants ?? []).join(", "));
   const [photos, setPhotos] = useState<string[]>(existing?.photos ?? []);
   const [attaching, setAttaching] = useState(false);
+  const [notesOn, setNotesOn] = useState(Boolean(existing?.notes));
+  const [moduleName, setModuleName] = useState(existing?.notes?.moduleName ?? "");
+  const [moduleCode, setModuleCode] = useState(existing?.notes?.moduleCode ?? "");
+  const [notesCampus, setNotesCampus] = useState<CampusId>(existing?.notes?.campusId ?? "potchefstroom");
+  const [pdf, setPdf] = useState<string>(existing?.notes?.fileName ?? "");
+  const [pickingPdf, setPickingPdf] = useState(false);
   const [upgrade, setUpgrade] = useState(false);
-  const [errors, setErrors] = useState<{ title?: string; price?: string; stock?: string }>({});
+  const [errors, setErrors] = useState<{ title?: string; price?: string; stock?: string; module?: string; code?: string; file?: string }>({});
+  const isNotes = category === "books" && notesOn;
 
   const save = (publish: boolean) => {
     const found: typeof errors = {};
@@ -50,7 +59,10 @@ export function SellerListingFormScreen() {
     if (title.trim().length < 2) found.title = "Give the listing a name.";
     if (cents === null || cents <= 0) found.price = "Enter a price like 45 or 45.50.";
     const stock = Number.parseInt(onHand, 10);
-    if (!unlimited && (!Number.isInteger(stock) || stock < 0)) found.stock = "Enter how many you have, like 10.";
+    if (isNotes && moduleName.trim().length < 2) found.module = "Enter the module name, like Business Law.";
+    if (isNotes && !/^[A-Za-z]{2,6}\s?\d{2,4}$/.test(moduleCode.trim())) found.code = "Enter the module code, like BLAW101.";
+    if (isNotes && !pdf) found.file = "Add the PDF of your notes.";
+    if (!isNotes && !unlimited && (!Number.isInteger(stock) || stock < 0)) found.stock = "Enter how many you have, like 10.";
     setErrors(found);
     if (Object.keys(found).length > 0 || cents === null) return;
     if (!existing && productCount(view.seller.listings) >= LIMITS[view.plan].products) return setUpgrade(true);
@@ -60,13 +72,16 @@ export function SellerListingFormScreen() {
       category,
       description: description.trim(),
       id: existing?.id ?? sellerId("sl"),
-      onHand: unlimited ? 0 : stock,
+      notes: isNotes
+        ? { campusId: notesCampus, fileName: pdf, lecturer: existing?.notes?.lecturer, moduleCode: moduleCode.trim().toUpperCase().replace(/\s/g, ""), moduleName: moduleName.trim(), pages: existing?.notes?.pages ?? 24, previewPages: 2, year: existing?.notes?.year ?? 1 }
+        : undefined,
+      onHand: unlimited || isNotes ? 0 : stock,
       photos,
       priceCents: cents,
       sku: existing?.sku ?? `VM-${String(Math.floor(Math.random() * 9000) + 1000)}`,
       status: goLive ? (existing?.status === "paused" ? "paused" : "published") : publish ? "under-review" : "draft",
       title: title.trim(),
-      unlimited,
+      unlimited: unlimited || isNotes,
       updatedAt: "",
       variants: variants.split(",").map((item) => item.trim()).filter(Boolean),
     };
@@ -127,6 +142,40 @@ export function SellerListingFormScreen() {
           </View>
         </View>
 
+        {category === "books" ? (
+          <View style={styles.stockRow}>
+            <View style={styles.flex}>
+              <Text style={styles.label}>Digital study notes (PDF)</Text>
+              <Text style={styles.hint}>Sell notes for one module. Buyers get the file straight away.</Text>
+            </View>
+            <Switch accessibilityLabel="Digital study notes" onValueChange={setNotesOn} thumbColor="#FFFFFF" trackColor={{ false: "rgba(255,255,255,0.3)", true: "#8FD9B8" }} value={notesOn} />
+          </View>
+        ) : null}
+        {isNotes ? (
+          <View style={styles.fields} testID="notes-fields">
+            <SellerField error={errors.module} icon="book-open" label="Module name" onChangeText={setModuleName} placeholder="Business Law" testID="notes-module" value={moduleName} />
+            <SellerField error={errors.code} icon="hash" label="Module code" onChangeText={setModuleCode} placeholder="BLAW101" testID="notes-code" value={moduleCode} />
+            <View style={styles.block}>
+              <Text style={styles.label}>Campus</Text>
+              <View style={styles.row}>
+                {NOTES_CAMPUSES.map((item) => (
+                  <Pressable accessibilityRole="radio" accessibilityState={{ checked: notesCampus === item.id }} key={item.id} onPress={() => setNotesCampus(item.id)} style={[styles.chip, notesCampus === item.id && styles.chipOn]} testID={`notes-campus-${item.id}`}>
+                    <Text style={[styles.chipText, notesCampus === item.id && styles.chipTextOn]}>{item.name}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+            <View style={styles.block}>
+              <Text style={styles.label}>Your notes (PDF)</Text>
+              <Pressable accessibilityLabel="Add the PDF of your notes" accessibilityRole="button" onPress={() => setPickingPdf(true)} style={[styles.photo, styles.photoAdd, styles.pdfBox]} testID="notes-pdf">
+                <Icon color={SELLER.solid} name={pdf ? "file-text" : "upload"} size={22} />
+                <Text numberOfLines={1} style={styles.pdfText}>{pdf || "Choose a PDF"}</Text>
+              </Pressable>
+              {errors.file ? <Text style={styles.hint}>{errors.file}</Text> : null}
+            </View>
+          </View>
+        ) : null}
+
         <View style={styles.stockRow}>
           <View style={styles.flex}>
             <Text style={styles.label}>No stock limit</Text>
@@ -165,6 +214,7 @@ export function SellerListingFormScreen() {
         ) : null}
       </View>
       <AttachSheet onClose={() => setAttaching(false)} onPicked={(file) => setPhotos((current) => (current.length < 6 ? [...current, file.uri] : current))} sources={["library", "camera"]} title="Add a product photo" visible={attaching} />
+      <AttachSheet onClose={() => setPickingPdf(false)} onPicked={(file: Picked) => setPdf(file.name)} sources={["files"]} title="Add your notes" visible={pickingPdf} />
       <UpgradeSheet kind="products" onClose={() => setUpgrade(false)} visible={upgrade} />
     </SellerScreen>
   );
@@ -187,6 +237,8 @@ const styles = StyleSheet.create({
   remove: { alignItems: "center", backgroundColor: "rgba(20,35,44,0.75)", borderRadius: 9, height: 18, justifyContent: "center", position: "absolute", right: 3, top: 3, width: 18 },
   photo: { alignItems: "center", backgroundColor: "#DCE6EA", borderRadius: 14, height: 64, justifyContent: "center", overflow: "hidden", width: 64 },
   photoAdd: { borderColor: "#B5C4CB", borderStyle: "dashed", borderWidth: 1.5 },
+  pdfBox: { flexDirection: "row", gap: 8, height: 56, justifyContent: "flex-start", paddingHorizontal: 14, width: "100%" },
+  pdfText: { color: SELLER.solid, flex: 1, fontSize: 14, fontWeight: "700" },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   stockRow: { alignItems: "center", flexDirection: "row", gap: 12 },
 });

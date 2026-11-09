@@ -54,6 +54,20 @@ export type Seller = {
 
 export type ListingOption = { id: string; label: string; priceCents: number };
 
+/** What makes a listing a pack of digital study notes: the module it covers and the file the buyer gets. */
+export type NotesMeta = {
+  moduleName: string;
+  moduleCode: string;
+  campusId: CampusId;
+  lecturer?: string;
+  /** Year of study, 1 to 3. */
+  year: 1 | 2 | 3;
+  pages: number;
+  /** How many pages anyone can read before buying. */
+  previewPages: number;
+  fileName: string;
+};
+
 export type Listing = {
   id: string;
   title: string;
@@ -72,6 +86,8 @@ export type Listing = {
   location: string;
   popular: boolean;
   createdDaysAgo: number;
+  /** Set when this is a pack of digital study notes: no delivery, the buyer downloads it straight away. */
+  notes?: NotesMeta;
 };
 
 export type CartLine = {

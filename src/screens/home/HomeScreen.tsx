@@ -5,6 +5,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 
 import {
   EmptyState,
+  Icon,
   type IconName,
   ListingCard,
   ListingsSkeleton,
@@ -137,6 +138,20 @@ export function HomeScreen() {
         />
       </Animated.View>
 
+      {category === "books" || category === "all" ? (
+        <Animated.View entering={FadeInDown.duration(380)} style={styles.section}>
+          <Pressable accessibilityHint="Opens study notes sold by students" accessibilityLabel="Study notes by module, instant PDF, from R15" accessibilityRole="button" onPress={() => router.push("/home/notes" as Href)} style={styles.notesBanner} testID="notes-banner">
+            <View style={styles.notesIcon}>
+              <Icon color={color.onPrimary} name="book-open" size={22} />
+            </View>
+            <View style={styles.notesText}>
+              <Text style={styles.notesTitle}>Study notes by module</Text>
+              <Text style={styles.notesSub}>Search by module code and campus. Instant PDF, from R15.</Text>
+            </View>
+          </Pressable>
+        </Animated.View>
+      ) : null}
+
       <View style={styles.section}>
         <SectionHeader onAction={() => router.navigate("/explore")} title="Popular Near You" />
         {popular.length === 0 ? (
@@ -241,6 +256,11 @@ function MiniRow({ listings, onPress }: { listings: Listing[]; onPress: (listing
 }
 
 const styles = StyleSheet.create({
+  notesBanner: { alignItems: "center", backgroundColor: color.surfaceSoft, borderRadius: corner.lg, flexDirection: "row", gap: space.sm, marginHorizontal: space.md, padding: space.md },
+  notesIcon: { alignItems: "center", backgroundColor: color.accent, borderRadius: corner.md, height: 48, justifyContent: "center", width: 48 },
+  notesSub: { color: color.textSecondary, fontSize: 13, lineHeight: 18 },
+  notesText: { flex: 1, gap: 2 },
+  notesTitle: { color: color.heading, fontSize: 16, fontWeight: "800" },
   mini: { borderRadius: corner.md, gap: 4, width: 124 },
   miniImage: { height: 92, width: 124 },
   miniPressed: { opacity: 0.8 },

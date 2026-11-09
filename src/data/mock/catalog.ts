@@ -1,3 +1,4 @@
+import { noteListings, noteSellers } from "../notes";
 import type { Campus, Category, Listing, Seller } from "../types";
 
 import { moreListings, moreSellers } from "./moreCatalog";
@@ -375,5 +376,5 @@ const baseListings: Listing[] = [
   },
 ];
 
-export const sellers: Seller[] = [...baseSellers, ...moreSellers];
-export const listings: Listing[] = [...baseListings, ...moreListings].map((listing) => (hasArt(listing.id) ? { ...listing, images: galleryOf(listing.id) } : listing));
+export const sellers: Seller[] = [...baseSellers, ...moreSellers, ...noteSellers];
+export const listings: Listing[] = [...baseListings, ...moreListings, ...noteListings].map((listing) => (hasArt(listing.id) ? { ...listing, images: galleryOf(listing.id) } : listing));

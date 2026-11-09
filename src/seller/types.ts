@@ -117,6 +117,8 @@ export type SellerListing = {
   /** Pictures the seller added, up to six. */
   photos: string[];
   updatedAt: string;
+  /** Digital study notes: the module, campus and file. Such a listing needs no stock and no delivery. */
+  notes?: import("@/data/types").NotesMeta;
 };
 
 export type LedgerKind = "sale" | "payout" | "refund";

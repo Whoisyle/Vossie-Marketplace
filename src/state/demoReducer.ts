@@ -91,6 +91,8 @@ export type DemoState = {
   /** Returns and problems the student has reported on delivered orders. */
   returns: ReturnRequest[];
   cart: CartLine[];
+  /** Listing ids of the digital study notes this student has bought: they open from My study notes. */
+  notesLibrary: string[];
   checkout: {
     fulfilment: Fulfilment;
     address: string;
@@ -166,6 +168,7 @@ export function createInitialState(): DemoState {
     promoUses: {},
     returns: [],
     cart: [],
+    notesLibrary: [],
     checkout: {
       fulfilment: "delivery",
       address: "123 Campus Drive, Eduvos Potchefstroom, Meyer Street, 2531",
@@ -251,6 +254,7 @@ export type DemoAction =
   | { type: "setPayment"; payment: PaymentMethod; cardId?: string | null; bank?: string | null }
   | { type: "applyVoucher"; code: string | null }
   | { type: "placeOrder" }
+  | { type: "buyNotes"; listingId: string }
   | { type: "addCard"; card: Omit<SavedCard, "id" | "isDefault">; makeDefault: boolean }
   | { type: "removeCard"; cardId: string }
   | { type: "updateCard"; cardId: string; patch: Partial<Pick<SavedCard, "brand" | "last4" | "expiry" | "holder" | "issuer">>; makeDefault?: boolean }
@@ -636,6 +640,51 @@ function baseDemoReducer(state: DemoState, action: DemoAction): DemoState {
     }
     case "setScheduledFor":
       return { ...state, checkout: { ...state.checkout, scheduledFor: action.iso } };
+    case "buyNotes": {
+      const listing = getListing(action.listingId);
+      if (!listing?.notes || state.notesLibrary.includes(listing.id)) return state;
+      const paidFromWallet = state.checkout.payment === "wallet";
+      if (paidFromWallet && state.wallet.balanceCents < listing.priceCents) return state;
+      const placedAt = new Date().toISOString();
+      const number = orderNumber();
+      const order: Order = {
+        address: "Digital download",
+        deliveredAt: placedAt,
+        deliveryFeeCents: 0,
+        discountCents: 0,
+        fulfilment: "collection",
+        id: nextId("order"),
+        lines: [{ listingId: listing.id, quantity: 1, title: listing.title, unitPriceCents: listing.priceCents }],
+        number,
+        paymentMethod: state.checkout.payment,
+        placedAt,
+        pointsMultiplier: 1,
+        sellerId: listing.sellerId,
+        status: "delivered",
+        subtotalCents: listing.priceCents,
+        totalCents: listing.priceCents,
+      };
+      const notification: NotificationItem = {
+        body: `${listing.notes.moduleCode} notes are ready. Open them any time from My study notes.`,
+        createdAt: placedAt,
+        href: `/account/my-notes`,
+        id: nextId("n"),
+        read: false,
+        title: "Your notes are ready",
+      };
+      return {
+        ...state,
+        notesLibrary: [listing.id, ...state.notesLibrary],
+        notifications: [notification, ...state.notifications],
+        orders: [order, ...state.orders],
+        wallet: paidFromWallet
+          ? {
+              balanceCents: state.wallet.balanceCents - listing.priceCents,
+              transactions: [{ amountCents: -listing.priceCents, createdAt: placedAt, id: nextId("tx"), kind: "purchase" as const, label: `Notes ${number}`, orderId: order.id }, ...state.wallet.transactions],
+            }
+          : state.wallet,
+      };
+    }
     case "placeOrder": {
       if (state.cart.length === 0) return state;
       const totals = cartTotals(state);
