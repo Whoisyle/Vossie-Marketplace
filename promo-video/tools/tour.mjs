@@ -2,18 +2,19 @@
 // usage: node tools/record-walk.mjs [--nostage]   (nostage = debug run on a bare phone viewport, no video)
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
+import path from 'node:path';
 
 const DEBUG = process.argv.includes('--debug');
 const APP = 'http://localhost:8092/';
 const OUT = process.env.OUT || 'out/tour';
 
-const IMG = 'C:/Users/PABAL/Vossie Marketplace Build/projects/Vossie-Marketplace-1/promo-video/shots/s_1acct.png';
+const IMG = path.resolve('shots/s_1acct.png');
 let t0 = Date.now();
 const now = () => ((Date.now() - t0) / 1000).toFixed(1);
 const K = Number(process.env.K || 1.8);
 const sleep = ms => new Promise(r => setTimeout(r, ms * K));
 
-const b = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
+const b = await chromium.launch({ executablePath: process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
 const ctx = await b.newContext({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 2 });
 await ctx.addInitScript(() => { if (window.__fk) return; window.__fk = 1; const R = Date; const n = new R(); const off = new R(n.getFullYear(), n.getMonth(), n.getDate(), 14, 5, 0) - n; if (n.getHours() >= 7 && n.getHours() < 21) return; window.Date = class extends R { constructor(...a) { if (a.length === 0) super(R.now() + off); else super(...a); } static now() { return R.now() + off; } }; });
 await ctx.addInitScript(() => { window.full = window.hideCap = window.phone = window.cap = window.dotTo = window.chips = window.fadeBlack = () => {}; });
@@ -122,7 +123,7 @@ async function section(name, fn) { if (process.env.ONLY && !(name === 'signin' |
 
 
 // ================= extra helpers =================
-const SMP = 'C:/Users/PABAL/Vossie Marketplace Build/projects/Vossie-Marketplace-1/promo-video/samples/';
+const SMP = path.resolve('samples') + '/';
 async function upload(label, via = 'Files', file = IMG) {
   // a button that opens the file picker straight away (profile photo, logo), or one that shows a sheet of sources first
   const loc = typeof label === 'string' ? T(label, { exact: true }).first() : label;
@@ -708,7 +709,7 @@ await section('x-ops', async () => {
 });
 
 
-const PDF = 'C:/Users/PABAL/Vossie Marketplace Build/projects/Vossie-Marketplace-1/promo-video/samples/BLAW101-notes.pdf';
+const PDF = path.resolve('samples/BLAW101-notes.pdf');
 async function typeInto(testId, value) {
   const el = fr().getByTestId(testId).locator('visible=true').first();
   await el.waitFor({ state: 'visible', timeout: 8000 });
