@@ -89,6 +89,31 @@ def seg_clip(out, clip, ss, dur, fade=0.6, speed=1.0):
     vf = (f"setpts=PTS/{speed},{den}{up}fps={FPS},{GRADE},{bloom}fade=t=in:st=0:d={fade},fade=t=out:st={max(dur-fade,0):.2f}:d={fade},format=yuv420p")
     run(["-ss", ss, "-t", dur * speed, "-i", f"out/stock/{clip}.mp4", "-vf", vf] + ENC + [out])
 
+
+PHOTOS = pathlib.Path("out/eduvos")
+def plate(name, kind):
+    """A 2x-size 16:9 plate: the photo cropped to fill ('full'), or as a rounded card on a blurred copy ('card')."""
+    p = WORK / f"plate_{name}_{kind}.png"
+    if p.exists(): return p
+    im = Image.open(next(PHOTOS.glob(name + ".*"))).convert("RGB"); PW, PH = W * 2, H * 2
+    def cover(img, w, h):
+        r = max(w / img.width, h / img.height); img = img.resize((int(img.width * r) + 1, int(img.height * r) + 1), Image.LANCZOS)
+        l, t = (img.width - w) // 2, (img.height - h) // 2; return img.crop((l, t, l + w, t + h))
+    if kind == "full": out = cover(im, PW, PH)
+    else:
+        out = cover(im, PW, PH).filter(ImageFilter.GaussianBlur(PH // 30)); out = Image.eval(out, lambda v: int(v * 0.45))
+        ch = int(PH * 0.72); cw = int(im.width * ch / im.height); card = im.resize((cw, ch), Image.LANCZOS)
+        m = Image.new("L", card.size, 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, cw - 1, ch - 1), radius=PH // 45, fill=255)
+        sh = Image.new("RGBA", (PW, PH), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle(((PW - cw) // 2 + 10, (PH - ch) // 2 + 40, (PW + cw) // 2 + 10, (PH + ch) // 2 + 60), radius=PH // 45, fill=(0, 0, 0, 170))
+        out = out.convert("RGBA"); out.alpha_composite(sh.filter(ImageFilter.GaussianBlur(PH // 40))); out = out.convert("RGB"); out.paste(card, ((PW - cw) // 2, (PH - ch) // 2), m)
+    out.save(p); return p
+
+def seg_photo(out, name, dur, kind="full", zoom=1.12, fade=0.7):
+    dz = (zoom - 1) / (dur * FPS)
+    vf = (f"zoompan=z='min(zoom+{dz:.6f},{zoom})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s={W}x{H}:fps={FPS},"
+          f"eq=contrast=1.07:saturation=1.14:gamma=1.03,vignette=PI/6,fade=t=in:st=0:d={fade},fade=t=out:st={max(dur-fade,0):.2f}:d={fade},format=yuv420p")
+    run(["-loop", 1, "-framerate", FPS, "-i", plate(name, kind), "-t", dur, "-vf", vf] + ENC + [out])
+
 def concat(parts, out):
     lst = out.with_suffix(".txt"); lst.write_text("".join(f"file '{pathlib.Path(p).resolve()}'\n" for p in parts))
     run(["-f", "concat", "-safe", 0, "-i", lst, "-c", "copy", out])
@@ -143,22 +168,22 @@ SCENES = {}
 def scene(n, window, kind, **kw): SCENES[n] = (window, kind, kw)
 
 # 01 opening: black, campus, hands and phones, buyer/seller/courier flashes, logo reveal  (music: Cinematic_Build)
-scene(1, 75, "story", parts=[("black", 6), ("clip", "4503", 2, 7), ("clip", "4519", 4, 6.8), ("wm", 6.2), ("clip", "39774", 1, 5), ("clip", "4915", 2, 5),
-                              ("clip", "31999", 0.5, 5), ("clip", "4520", 2, 5), ("clip", "4560", 2, 4.6), ("wm", 24.4)],
+scene(1, 75, "story", parts=[("black", 6), ("photo", "potchefstroom-carousel-01", 7), ("photo", "potchefstroom-carousel-03", 6.8), ("wm", 6.2), ("clip", "39774", 1, 5), ("photo", "potchefstroom-Feature-02", 5, "card"),
+                              ("clip", "31999", 0.5, 5), ("photo", "potchefstroom-carousel-02", 5), ("photo", "potchefstroom-carousel-01", 4.6), ("wm", 24.4)],
       texts=lambda n: [tx(n, "a", 0, ["Every campus", "has an economy."]), tx(n, "b", 1, ["People looking for something.", "Students building something."], size=70),
                        tx(n, "c", 2, ["What happens when", "all of it is connected?"]),
                        (text_png("1_d", "INTRODUCING", 40, "upper"), 19.6, 24.6),
                        (text_png("1_buy", "BUY.", 150), 27.0, 29.2), (text_png("1_sell", "SELL.", 150), 32.0, 34.2), (text_png("1_del", "DELIVER.", 150), 37.0, 39.6),
                        (text_png("1_tag", ["One campus. Multiple opportunities.", "One connected marketplace."], 54, "lower"), 56.0, 73.5)])
-scene(2, 75, "story", parts=[("clip", "4520", 0, 7), ("clip", "4560", 1, 8), ("clip", "5900", 1, 8), ("clip", "4566", 0, 5.2), ("bg", 8, (0.5, 0.5)), ("app", [(1016.9, 1070.5, 38.8)])],
+scene(2, 75, "story", parts=[("photo", "potchefstroom-carousel-03", 7), ("photo", "potchefstroom-Feature-01", 8, "card"), ("photo", "potchefstroom-carousel-02", 8), ("photo", "potchefstroom-Feature-02", 5.2, "card"), ("bg", 8, (0.5, 0.5)), ("app", [(1016.9, 1070.5, 38.8)])],
       texts=lambda n: [tx(n, "a", 0, "Welcome."), (text_png("2_b", "BUY.", 150), L(n, 1) + 0.2, L(n, 1) + 3.0), (text_png("2_s", "SELL.", 150), L(n, 1) + 3.2, L(n, 1) + 6.0),
                        (text_png("2_d", "DISCOVER.", 150), L(n, 1) + 6.2, L(n, 1) + 9.4), tx(n, "c", 2, "It works, but it is scattered.", size=84),
                        tx(n, "d", 3, ["We think those moments", "belong together."], size=84), tx(n, "e", 4, "That is Vossie.", size=120)])
-scene(3, 90, "story", parts=[("clip", "42123", 2, 8), ("clip", "4915", 4, 6), ("clip", "31155", 1, 6.2), ("clip", "31136", 1, 5.2), ("bg", 8, (0.5, 0.5)), ("app", [(990.9, 1092.5, 56.6)])],
+scene(3, 90, "story", parts=[("clip", "42123", 2, 8), ("clip", "4915", 4, 6), ("clip", "31999", 1, 6.2), ("photo", "potchefstroom-carousel-01", 5.2), ("bg", 8, (0.5, 0.5)), ("app", [(990.9, 1092.5, 56.6)])],
       texts=lambda n: [tx(n, "a", 0, "Picture an ordinary day.", size=84), tx(n, "b", 1, "DISCOVERY", sub="A student needs something."), tx(n, "c", 2, "COMMERCE", sub="A student entrepreneur has something to sell."),
                        tx(n, "d", 3, "FULFILMENT", sub="How does it get from one person to the other?"), tx(n, "e", 4, ["One story, told in", "three disconnected places."], size=80),
                        tx(n, "f", 5, "Vossie connects them.", size=100)])
-scene(4, 90, "story", parts=[("bg", 12, (0.5, 0.5)), ("clip", "4503", 6, 7), ("bg", 8, (0.5, 0.5)), ("app", [(1329, 1371.6, 25), (1730.5, 1762.8, 19), (1016.9, 1056.5, 19)])],
+scene(4, 90, "story", parts=[("bg", 12, (0.5, 0.5)), ("photo", "potchefstroom-carousel-01", 7), ("bg", 8, (0.5, 0.5)), ("app", [(1329, 1371.6, 25), (1730.5, 1762.8, 19), (1016.9, 1056.5, 19)])],
       texts=lambda n: [tx(n, "a", 0, ["At the centre of Vossie", "is a simple idea."], size=84), tx(n, "b", 1, ["Different people.", "One marketplace."], size=84, sub="Each with different tools."),
                        (text_png("4_buyer", "BUYER", 150), L(n, 2) + 0.3, L(n, 2) + 3.2), (text_png("4_seller", "SELLER", 150), L(n, 2) + 3.4, L(n, 2) + 6.4), (text_png("4_courier", "COURIER", 150), L(n, 2) + 6.6, L(n, 2) + 9.3),
                        tx(n, "c", 3, ["One app. Three roles.", "One connected marketplace."], size=84), tx(n, "d", 4, "Let me show you.", size=100)])
@@ -179,7 +204,7 @@ prod(8, 60, "OPERATIONS", [(1919.1, 2002.4, 60)],
 prod(9, 75, "TRUST", [(15.4, 39.9, 12), (371.3, 394.2, 14), (621.1, 659.7, 20), (1115.8, 1181.8, 29)],
      [(1, ["Your Eduvos account.", "Your role."], "One clear design for buyers, sellers and couriers"), (2, ["Easy to use."], None)])
 
-scene(10, 75, "story", parts=[("clip", "4503", 7, 6), ("clip", "4520", 5, 6), ("clip", "4560", 4, 7), ("clip", "4566", 0, 5.3), ("clip", "5900", 3, 7), ("bg", 9, (0.5, 0.5)), ("clip", "4519", 9, 7), ("bg", 27.7, (0.5, 0.5))],
+scene(10, 75, "story", parts=[("photo", "potchefstroom-carousel-03", 6), ("photo", "potchefstroom-Feature-01", 7, "card"), ("photo", "potchefstroom-carousel-01", 6), ("photo", "potchefstroom-Feature-02", 5.3, "card"), ("photo", "potchefstroom-carousel-02", 7), ("bg", 9, (0.5, 0.5)), ("photo", "potchefstroom-carousel-01", 7), ("bg", 27.7, (0.5, 0.5))],
       texts=lambda n: [tx(n, "a", 0, ["What sits around", "a single sale."], size=84), tx(n, "b", 1, ["Buyers. Sellers.", "Delivery. Campus operations."], size=70, sub="Working as one."),
                        (text_png("10_s", ["For students,", "a place made for campus life."], 70), L(n, 2), L(n, 2) + 4.5), (text_png("10_e", ["For student entrepreneurs,", "a way to reach customers."], 70), L(n, 2) + 4.7, L(n, 2) + 8.2),
                        (text_png("10_c", ["For campuses and partners,", "a more connected way to bring commerce on campus."], 56), L(n, 2) + 8.4, L(n, 2) + 11.5),
@@ -190,7 +215,7 @@ scene(11, 45, "story", parts=[("bg", 45, (0.5, 0.5))],
       texts=lambda n: [tx(n, "a", 0, ["Today is an introduction,", "and a starting point."], size=80), (text_png("11_b", "BUILD", 140, sub=["Refine the product", "(proposed)"]), L(n, 1) + 0.3, L(n, 1) + 3.4),
                        (text_png("11_v", "VALIDATE", 140, sub=["Test with real students", "(proposed)"]), L(n, 1) + 3.6, L(n, 1) + 6.8), (text_png("11_s", "SCALE", 140, sub=["Grow carefully, campus by campus", "(proposed)"]), L(n, 1) + 7.0, L(n, 1) + 10.3),
                        tx(n, "c", 2, ["Everything on this roadmap is proposed.", "We will earn each step."], size=64), tx(n, "d", 3, "That is what we are building with Vossie.", size=64, tail=5)])
-scene(12, 30, "story", parts=[("clip", "4520", 1, 12), ("bg", 4, (0.5, 0.5)), ("wm", 6), ("bg", 8, (0.5, 0.5))],
+scene(12, 30, "story", parts=[("photo", "potchefstroom-carousel-01", 12, "full"), ("bg", 4, (0.5, 0.5)), ("wm", 6), ("bg", 8, (0.5, 0.5))],
       texts=lambda n: [tx(n, "a", 0, ["One campus.", "Multiple opportunities.", "One connected marketplace."], size=76),
                        (text_png("12_t", "THIS IS VOSSIE MARKETPLACE", 36, "lower"), 14.0, 18.5), (text_png("12_e", "DISCOVER.  CONNECT.  TRADE.", 92), 19.5, 29.2)])
 
@@ -212,6 +237,7 @@ def build_scene(n):
             elif p[0] == "wm":
                 tmp = WORK / f"scene{n:02d}_p{k}_b.mp4"; seg_bg(tmp, p[1], (0.5, 0.5)); overlay_texts(tmp, [(wordmark_png(), 0.4, p[1] - 0.2)], p[1], o)
             elif p[0] == "clip": seg_clip(o, p[1], p[2], p[3])
+            elif p[0] == "photo": seg_photo(o, p[1], p[2], p[3] if len(p) > 3 else "full")
             elif p[0] == "app":
                 app_base(o, p[1], sum(s[2] for s in p[1]), f"s{n}k{k}")
             parts.append(o)
