@@ -45,8 +45,9 @@ describe("study notes screens", () => {
   it("shows the notes facts instead of delivery details on a pack's page", () => {
     renderWithProviders(<ListingDetailScreen />, signedIn());
     expect(screen.getByTestId("notes-facts")).toBeTruthy();
-    expect(screen.getByText("ITMA101")).toBeTruthy();
-    expect(screen.getByText("Potchefstroom")).toBeTruthy();
+    expect(screen.getAllByText("ITMA101").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Potchefstroom/).length).toBeGreaterThan(0);
+    expect(screen.getByText("Delivery")).toBeTruthy();
     expect(screen.queryByTestId("add-to-cart")).toBeNull();
     expect(screen.getByTestId("notes-buy")).toBeTruthy();
   });

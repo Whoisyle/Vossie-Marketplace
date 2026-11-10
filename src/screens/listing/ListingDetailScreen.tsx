@@ -22,6 +22,7 @@ import { formatRand } from "@/data/format";
 import { getListing, getListings, getSeller } from "@/data/repository";
 import { detailFor } from "@/data/mock/productDetails";
 import { useDetail } from "@/lib/paths";
+import { notesDetailFor } from "@/data/notes";
 import { NotesBuySheet, NotesFacts } from "@/screens/notes/NotesScreens";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, corner, space, text } from "@/theme/tokens";
@@ -71,7 +72,7 @@ export function ListingDetailScreen() {
   const soldOut = isSoldOut(listing.id);
   const hasAlert = (kind: "price-drop" | "back-in-stock") => state.alerts.some((item) => item.listingId === listing.id && item.kind === kind);
   const following = seller ? state.following.includes(seller.id) : false;
-  const detail = detailFor(listing.id, listing.description, listing.categoryId);
+  const detail = listing.notes ? notesDetailFor(listing) : detailFor(listing.id, listing.description, listing.categoryId);
   const reviews = state.reviews.filter((review) => review.listingId === listing.id);
   const fromStore = getListings({ sellerId: listing.sellerId }).filter((item) => item.id !== listing.id).slice(0, 6);
   const alike = getListings({ categoryId: listing.categoryId }).filter((item) => item.id !== listing.id && item.sellerId !== listing.sellerId).slice(0, 6);
@@ -199,13 +200,11 @@ export function ListingDetailScreen() {
         </Pressable>
       </View>
 
-      {listing.notes ? null : (
-        <View style={styles.pills}>
-          <Info icon="clock" label={listing.openHours} />
-          <Info icon="package" label={`Ready in ${listing.pickupTime}`} />
-          <Info icon="map-pin" label={listing.location} />
-        </View>
-      )}
+      <View style={styles.pills}>
+        <Info icon="clock" label={listing.openHours} />
+        <Info icon="package" label={listing.notes ? "Instant download" : `Ready in ${listing.pickupTime}`} />
+        <Info icon="map-pin" label={listing.location} />
+      </View>
 
       {seller ? (
         <Card onPress={() => router.push(open("store", seller.id))} style={styles.sellerCard} variant="soft">
@@ -266,7 +265,7 @@ export function ListingDetailScreen() {
         </>
       ) : null}
       {listing.notes ? <NotesFacts listing={listing} onPreview={() => router.push(`/home/notes-read/${listing.id}` as Href)} /> : null}
-      {listing.notes ? null : <ListingFacts detail={detail} />}
+      <ListingFacts detail={detail} />
       <ReviewPreview listing={listing} onAll={() => router.push(open("review", listing.id))} reviews={reviews} />
       <ListingRow favourites={state.favourites} items={fromStore} onOpen={(next) => router.push(open("listing", next))} onToggle={(next) => dispatch({ listingId: next, type: "toggleFavourite" })} title="More from this store" />
       <ListingRow favourites={state.favourites} items={alike} onOpen={(next) => router.push(open("listing", next))} onToggle={(next) => dispatch({ listingId: next, type: "toggleFavourite" })} title="You may also like" />

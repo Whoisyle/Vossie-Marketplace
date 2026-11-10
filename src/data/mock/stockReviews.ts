@@ -28,6 +28,12 @@ const SAY: Record<CategoryId, { five: string[]; four: string[] }> = {
   },
 };
 
+/** What students say about a pack of digital study notes. */
+const NOTES_SAY = {
+  five: ["Followed my study guide exactly and the exam checklist was spot on.", "Clear, short and easy to revise from. Passed the test with it.", "Worth every rand. The worked examples made it click."],
+  four: ["Really useful summaries, I would just like a few more practice questions.", "Good notes for the price and the download was instant."],
+};
+
 function pick<T>(list: T[], seed: number): T {
   return list[seed % list.length]!;
 }
@@ -38,7 +44,7 @@ export function stockReviews(listings: Listing[], existing: Review[]): Review[] 
   const out: Review[] = [];
   listings.forEach((listing, index) => {
     if (have.has(listing.id)) return;
-    const say = SAY[listing.categoryId];
+    const say = listing.notes ? NOTES_SAY : SAY[listing.categoryId];
     const count = 2 + (index % 2);
     for (let n = 0; n < count; n += 1) {
       const seed = index * 7 + n * 3;

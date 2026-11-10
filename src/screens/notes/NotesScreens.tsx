@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { AppHeader, Button, Card, Chip, EmptyState, Icon, RadioRow, Screen, SearchBar, Sheet, useToast } from "@/components";
+import { AppHeader, Button, Card, Chip, EmptyState, Icon, Media, RadioRow, Screen, SearchBar, Sheet, useToast } from "@/components";
 import { formatRand } from "@/data/format";
 import { NOTES_CAMPUSES, notesCampusName, notesOutline, searchNotes } from "@/data/notes";
 import { getListing, getListings, getSeller } from "@/data/repository";
@@ -18,10 +18,11 @@ export function NotesRow({ listing, onPress }: { listing: Listing; onPress: () =
   return (
     <Card onPress={onPress} testID={`notes-row-${listing.id}`} variant="soft">
       <View style={styles.rowTop}>
-        <View style={styles.code}>
-          <Text style={styles.codeText}>{notes.moduleCode}</Text>
+        <View style={styles.thumb}>
+          <Media radius={corner.sm} source={listing.images[0]} style={styles.thumbImage} />
         </View>
         <View style={styles.flex}>
+          <Text style={styles.rowCode}>{notes.moduleCode}</Text>
           <Text numberOfLines={2} style={text.cardTitle}>{notes.moduleName}</Text>
           <Text numberOfLines={1} style={text.caption}>{notesCampusName(notes.campusId)} · Year {notes.year} · {notes.pages} pages</Text>
         </View>
@@ -193,26 +194,20 @@ export function MyNotesScreen() {
   );
 }
 
-/** The notes block of a listing page: module, code, campus, lecturer, pages and a free preview. */
+/** The try-before-you-buy block of a notes page: the module in one line and the free preview. The facts sit in the normal details below. */
 export function NotesFacts({ listing, onPreview }: { listing: Listing; onPreview: () => void }) {
   const notes = listing.notes!;
-  const facts: [string, string][] = [
-    ["Module", notes.moduleName],
-    ["Module code", notes.moduleCode],
-    ["Campus", notesCampusName(notes.campusId)],
-    ["Year of study", `Year ${notes.year}`],
-    ["Lecturer", notes.lecturer ?? "Not listed"],
-    ["Pages", `${notes.pages} (PDF)`],
-  ];
   return (
     <View style={styles.facts} testID="notes-facts">
-      <Text style={text.sectionTitle}>About these notes</Text>
-      {facts.map(([label, value]) => (
-        <View key={label} style={styles.fact}>
-          <Text style={text.bodySmall}>{label}</Text>
-          <Text style={styles.factValue}>{value}</Text>
+      <View style={styles.instantRow}>
+        <View style={styles.code}>
+          <Text style={styles.codeText}>{notes.moduleCode}</Text>
         </View>
-      ))}
+        <View style={styles.flex}>
+          <Text style={text.cardTitle}>{notes.moduleName}</Text>
+          <Text style={text.caption}>{notesCampusName(notes.campusId)} · Year {notes.year} · {notes.pages} pages</Text>
+        </View>
+      </View>
       <View style={styles.instantRow}>
         <Icon color={color.accent} name="zap" size={16} />
         <Text style={[text.bodySmall, styles.flex]}>Instant download. No delivery, no waiting.</Text>
@@ -246,6 +241,9 @@ const styles = StyleSheet.create({
   paperMeta: { color: color.textMuted, fontSize: 12 },
   point: { flexDirection: "row", gap: space.xs },
   price: { color: color.heading, fontSize: 17, fontWeight: "800" },
+  rowCode: { color: color.accent, fontSize: 12, fontWeight: "800", letterSpacing: 0.4 },
+  thumb: { borderRadius: corner.sm, height: 76, overflow: "hidden", width: 76 },
+  thumbImage: { height: 76, width: 76 },
   rowBottom: { alignItems: "center", flexDirection: "row", gap: space.xs, marginTop: space.xs },
   rowTop: { alignItems: "center", flexDirection: "row", gap: space.sm },
   sheet: { gap: space.sm },

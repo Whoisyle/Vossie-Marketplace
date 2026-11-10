@@ -116,5 +116,5 @@ The owner asked for a real buyer, Vumisa Malindi (`eduv11223@vossie.net`, studen
 - [ ] **Payment is the demo pay sheet.** Buying notes does not move money; it adds the pack to `notesLibrary` and a delivered order. The real flow uses the payment provider and settles the seller after payment.
 - [ ] **Seller upload keeps only the file name.** The module fields, campus and file name live on the phone (`SellerListing.notes`); the database has no notes columns or table yet, and the live seller save ignores them.
 - [ ] **Quality and rights.** There is no check that a seller owns the notes they sell, no refund rule for bad notes and no takedown path. These need a policy before real sellers upload.
-- [ ] **Price comparison with other note sites** is not in the app. Any figure shown in the launch film must be a verified, dated and cited price.
+- [ ] **Pictures are generated.** The three pictures per pack (cover, sample page, contents) are rendered by `scripts/render-notes-photos.mjs`, not photographs. A real pack gets its pictures from the seller.
 

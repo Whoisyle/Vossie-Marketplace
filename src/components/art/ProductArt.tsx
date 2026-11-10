@@ -53,7 +53,9 @@ export const ART_PREFIX = "art:";
 
 /** `burger-chips` or an extra angle such as `burger-chips#2`. */
 export function hasArt(id: string): boolean {
-  return id.split("#")[0]! in ART;
+  const base = id.split("#")[0]!;
+  // a product with a drawing, or one that only has photographs (such as a pack of study notes)
+  return base in ART || base in PRODUCT_PHOTOS;
 }
 
 /** The two colours a product is tinted in, for its tile and its banner. */

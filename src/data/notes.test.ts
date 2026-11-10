@@ -1,6 +1,7 @@
 import { createInitialState, demoReducer, type DemoState } from "@/state/demoReducer";
 
-import { NOTES_CAMPUSES, noteListings, notesOutline, searchNotes } from "./notes";
+import { NOTES_CAMPUSES, noteListings, notesDetailFor, notesOutline, searchNotes } from "./notes";
+import { stockReviews } from "./mock/stockReviews";
 import { getListing, getListings, getSeller } from "./repository";
 
 const signedIn = (): DemoState => demoReducer(createInitialState(), { email: "eduv230953@vossie.net", type: "signIn" });
@@ -40,6 +41,27 @@ describe("study notes catalogue", () => {
 
   it("has an outline for every pack", () => {
     for (const item of noteListings) expect(notesOutline(item.notes!.moduleCode).length).toBeGreaterThanOrEqual(6);
+  });
+});
+
+describe("notes are listings like any other", () => {
+  it("has three pictures each: cover, a sample page and what is inside", () => {
+    for (const item of noteListings) {
+      expect(item.images).toEqual([`art:${item.id}`, `art:${item.id}#2`, `art:${item.id}#3`]);
+    }
+  });
+
+  it("has a full details block with about, highlights and specs", () => {
+    const detail = notesDetailFor(noteListings[0]!);
+    expect(detail.about).toHaveLength(2);
+    expect(detail.highlights).toHaveLength(4);
+    expect(detail.specs.map(([label]) => label)).toEqual(expect.arrayContaining(["Module", "Module code", "Campus", "Lecturer", "Format", "Delivery"]));
+  });
+
+  it("gets reviews that talk about notes, not delivery", () => {
+    const reviews = stockReviews(noteListings, []);
+    expect(reviews.length).toBeGreaterThanOrEqual(noteListings.length * 2);
+    expect(reviews.every((review) => !/library|seller met me|edition/i.test(review.body))).toBe(true);
   });
 });
 

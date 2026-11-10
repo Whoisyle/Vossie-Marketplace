@@ -1,5 +1,6 @@
 import { galleryOf } from "@/components/art/photos";
 
+import type { ProductDetail } from "./mock/productDetails";
 import type { CampusId, Listing, NotesMeta, Seller } from "./types";
 
 /**
@@ -19,15 +20,15 @@ export const noteSellers: Seller[] = [
   { id: "kabelo-notes", name: "Kabelo Notes", campusId: "cape-town-mowbray", location: "Online, instant download", bio: "Business and accounting notes that follow the study guide.", rating: 4.8, ratingCount: 41, followers: 188 },
 ];
 
-type Seed = { code: string; module: string; sellerId: string; campusId: CampusId; year: 1 | 2 | 3; pages: number; priceCents: number; rating: number; ratingCount: number; lecturer: string; cover: string; blurb: string };
+type Seed = { code: string; module: string; sellerId: string; campusId: CampusId; year: 1 | 2 | 3; pages: number; priceCents: number; rating: number; ratingCount: number; lecturer: string; blurb: string };
 
 const SEEDS: Seed[] = [
-  { blurb: "Sets, functions, matrices and logic with worked examples from past tests.", campusId: "potchefstroom", code: "ITMA101", cover: "textbook-prog", lecturer: "Mr. Naidoo", module: "Mathematics for IT", pages: 42, priceCents: 3000, rating: 4.9, ratingCount: 58, sellerId: "zinhle-notes", year: 1 },
-  { blurb: "Contracts, delict and company law in plain language, with case summaries.", campusId: "potchefstroom", code: "BLAW101", cover: "textbook-econ", lecturer: "Ms. Dlamini", module: "Business Law", pages: 36, priceCents: 1500, rating: 4.7, ratingCount: 34, sellerId: "zinhle-notes", year: 1 },
-  { blurb: "Variables to loops to functions, with every exercise explained step by step.", campusId: "pretoria", code: "ITPR101", cover: "textbook-prog", lecturer: "Mr. Botha", module: "Programming Fundamentals", pages: 56, priceCents: 4500, rating: 4.9, ratingCount: 77, sellerId: "zinhle-notes", year: 1 },
-  { blurb: "The accounting equation, journals, ledgers and the trial balance made simple.", campusId: "cape-town-mowbray", code: "FACC101", cover: "textbook-econ", lecturer: "Mrs. Adams", module: "Financial Accounting 1", pages: 48, priceCents: 3500, rating: 4.8, ratingCount: 29, sellerId: "kabelo-notes", year: 1 },
-  { blurb: "The marketing mix, segmentation and consumer behaviour, plus exam question practice.", campusId: "cape-town-mowbray", code: "MKTG101", cover: "planner-notebooks", lecturer: "Mr. Jacobs", module: "Marketing Principles", pages: 30, priceCents: 2500, rating: 4.6, ratingCount: 18, sellerId: "kabelo-notes", year: 1 },
-  { blurb: "Entities, keys, normalisation and SQL queries with an exam cheat-sheet.", campusId: "pretoria", code: "ITDB201", cover: "textbook-prog", lecturer: "Ms. Khumalo", module: "Database Design", pages: 64, priceCents: 6000, rating: 4.9, ratingCount: 45, sellerId: "kabelo-notes", year: 2 },
+  { blurb: "Sets, functions, matrices and logic with worked examples from past tests.", campusId: "potchefstroom", code: "ITMA101", lecturer: "Mr. Naidoo", module: "Mathematics for IT", pages: 42, priceCents: 3000, rating: 4.9, ratingCount: 58, sellerId: "zinhle-notes", year: 1 },
+  { blurb: "Contracts, delict and company law in plain language, with case summaries.", campusId: "potchefstroom", code: "BLAW101", lecturer: "Ms. Dlamini", module: "Business Law", pages: 36, priceCents: 1500, rating: 4.7, ratingCount: 34, sellerId: "zinhle-notes", year: 1 },
+  { blurb: "Variables to loops to functions, with every exercise explained step by step.", campusId: "pretoria", code: "ITPR101", lecturer: "Mr. Botha", module: "Programming Fundamentals", pages: 56, priceCents: 4500, rating: 4.9, ratingCount: 77, sellerId: "zinhle-notes", year: 1 },
+  { blurb: "The accounting equation, journals, ledgers and the trial balance made simple.", campusId: "cape-town-mowbray", code: "FACC101", lecturer: "Mrs. Adams", module: "Financial Accounting 1", pages: 48, priceCents: 3500, rating: 4.8, ratingCount: 29, sellerId: "kabelo-notes", year: 1 },
+  { blurb: "The marketing mix, segmentation and consumer behaviour, plus exam question practice.", campusId: "cape-town-mowbray", code: "MKTG101", lecturer: "Mr. Jacobs", module: "Marketing Principles", pages: 30, priceCents: 2500, rating: 4.6, ratingCount: 18, sellerId: "kabelo-notes", year: 1 },
+  { blurb: "Entities, keys, normalisation and SQL queries with an exam cheat-sheet.", campusId: "pretoria", code: "ITDB201", lecturer: "Ms. Khumalo", module: "Database Design", pages: 64, priceCents: 6000, rating: 4.9, ratingCount: 45, sellerId: "kabelo-notes", year: 2 },
 ];
 
 const metaOf = (seed: Seed): NotesMeta => ({
@@ -47,7 +48,7 @@ export const noteListings: Listing[] = SEEDS.map((seed, index) => ({
   createdDaysAgo: 2 + index,
   description: `${seed.blurb} ${seed.pages} pages, PDF, yours to keep. Written for ${seed.module} (${seed.code}).`,
   id: `notes-${seed.code.toLowerCase()}`,
-  images: galleryOf(seed.cover).slice(0, 1),
+  images: galleryOf(`notes-${seed.code.toLowerCase()}`),
   location: "Digital download",
   notes: metaOf(seed),
   openHours: "Always open",
@@ -102,4 +103,31 @@ const OUTLINES: Record<string, NotesPage[]> = {
 /** The pages of a pack as the demo reader shows them: six sample pages, each with a heading and three points. */
 export function notesOutline(code: string): NotesPage[] {
   return OUTLINES[code] ?? OUTLINES.default!;
+}
+
+/** The long-form facts of a notes pack, built from its module details so a pack a student uploads gets the same page as the demo ones. */
+export function notesDetailFor(listing: Listing): ProductDetail {
+  const notes = listing.notes!;
+  return {
+    about: [
+      listing.description,
+      `Written by a student who has passed ${notes.moduleName} (${notes.moduleCode}). It follows the study guide in order, so you can read it alongside your lectures or use it for last-minute revision.`,
+    ],
+    highlights: [
+      `Made for ${notes.moduleCode} at ${notesCampusName(notes.campusId)}`,
+      "Instant download, no delivery and no waiting",
+      "Worked examples and an exam checklist",
+      `Read the first ${notes.previewPages} pages free before you buy`,
+    ],
+    specs: [
+      ["Module", notes.moduleName],
+      ["Module code", notes.moduleCode],
+      ["Campus", notesCampusName(notes.campusId)],
+      ["Year of study", `Year ${notes.year}`],
+      ["Lecturer", notes.lecturer ?? "Not listed"],
+      ["Format", `PDF, ${notes.pages} pages`],
+      ["Delivery", "Instant digital download"],
+      ["Yours to keep", "Opens any time from My study notes"],
+    ],
+  };
 }
