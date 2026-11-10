@@ -22,9 +22,8 @@ SEMI = "/usr/share/fonts/opentype/inter/InterDisplay-SemiBold.otf"
 IVORY, MIST, TEAL, SKY = (245, 239, 230), (183, 196, 204), (55, 99, 113), (223, 234, 241)
 f = lambda v: int(round(v * S))
 ENC = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "18" if MODE != "draft" else "26", "-pix_fmt", "yuv420p", "-r", str(FPS), "-an"]
-GRADE = ("eq=contrast=1.13:saturation=1.28:brightness=0.012:gamma=1.05,"
-         "colorbalance=rs=-0.04:gs=0.0:bs=0.07:rm=0.01:bm=0.04:rh=0.06:gh=0.01:bh=-0.04,"
-         "curves=preset=medium_contrast,vignette=PI/6")
+GRADE = ("eq=contrast=1.12:saturation=1.30:brightness=0.015:gamma=1.05,"
+         "colorbalance=rs=-0.03:bs=0.05:gm=0.01:rh=0.02:bh=-0.01,vignette=PI/6")
 
 def run(cmd): subprocess.run(["nice", "-n", "5", "ffmpeg", "-loglevel", "error", "-y"] + [str(c) for c in cmd], check=True)
 def font(p, size): return ImageFont.truetype(p, f(size))
@@ -50,7 +49,7 @@ def text_png(key, lines, size=96, pos="center", sub=None, subsize=40, color=IVOR
     F, FS = font(BOLD, size), font(SEMI, subsize)
     lh, sh = int(f(size) * 1.14), int(f(subsize) * 1.45)
     total = lh * len(lines) + (f(26) + sh * len(subl) if subl else 0)
-    y = (H - total) // 2 if pos == "center" else (f(380) if pos == "left" else H - total - f(150))
+    y = (H - total) // 2 if pos == "center" else (f(380) if pos == "left" else (f(170) if pos == "upper" else H - total - f(150)))
     items = [(l, F, color, lh) for l in lines] + [(l, FS, MIST, sh) for l in subl]
     for i, (l, fo, col, step) in enumerate(items):
         if i == len(lines) and subl: y += f(26)
@@ -60,9 +59,9 @@ def text_png(key, lines, size=96, pos="center", sub=None, subsize=40, color=IVOR
     # soft dark band behind the text so it reads over bright footage
     ys = np.where(np.array(layer)[..., 3].max(axis=1) > 0)[0]
     if len(ys):
-        y0, y1 = max(ys.min() - f(70), 0), min(ys.max() + f(70), H)
+        y0, y1 = max(ys.min() - f(150), 0), min(ys.max() + f(150), H)
         band = np.zeros((H, W, 4), dtype="uint8"); prof = np.zeros(H)
-        n_ = y1 - y0; prof[y0:y1] = np.sin(np.linspace(0, np.pi, n_)) ** 0.8 * 150
+        n_ = y1 - y0; prof[y0:y1] = np.sin(np.linspace(0, np.pi, n_)) ** 1.6 * 85
         band[..., 3] = prof[:, None].astype("uint8")
         if pos != "left": layer = Image.alpha_composite(Image.fromarray(band), layer)
     sh_ = layer.filter(ImageFilter.GaussianBlur(f(14))); a = np.array(sh_); a[..., :3] = 0; a[..., 3] = (a[..., 3] * .55).astype("uint8")
@@ -86,7 +85,7 @@ def seg_black(out, dur):
 def seg_clip(out, clip, ss, dur, fade=0.6, speed=1.0):
     den = "hqdn3d=1.2:1.2:3:3," if S > 1 else ""
     up = f"scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos,crop={W}:{H},unsharp=5:5:0.9:5:5:0.0,"
-    bloom = f"split[a][b];[b]gblur=sigma={f(16)},eq=brightness=-0.10:saturation=1.2[bl];[a][bl]blend=all_mode=screen:all_opacity=0.24,"
+    bloom = f"split[a][b];[b]gblur=sigma={f(16)},eq=brightness=-0.10[bl];[a][bl]blend=all_mode=screen:all_opacity=0.13,"
     vf = (f"setpts=PTS/{speed},{den}{up}fps={FPS},{GRADE},{bloom}fade=t=in:st=0:d={fade},fade=t=out:st={max(dur-fade,0):.2f}:d={fade},format=yuv420p")
     run(["-ss", ss, "-t", dur * speed, "-i", f"out/stock/{clip}.mp4", "-vf", vf] + ENC + [out])
 
@@ -148,7 +147,7 @@ scene(1, 75, "story", parts=[("black", 6), ("clip", "4503", 2, 7), ("clip", "451
                               ("clip", "31999", 0.5, 5), ("clip", "4520", 2, 5), ("clip", "4560", 2, 4.6), ("wm", 24.4)],
       texts=lambda n: [tx(n, "a", 0, ["Every campus", "has an economy."]), tx(n, "b", 1, ["People looking for something.", "Students building something."], size=70),
                        tx(n, "c", 2, ["What happens when", "all of it is connected?"]),
-                       (text_png("1_d", "INTRODUCING", 36, "lower"), 19.6, 24.6),
+                       (text_png("1_d", "INTRODUCING", 40, "upper"), 19.6, 24.6),
                        (text_png("1_buy", "BUY.", 150), 27.0, 29.2), (text_png("1_sell", "SELL.", 150), 32.0, 34.2), (text_png("1_del", "DELIVER.", 150), 37.0, 39.6),
                        (text_png("1_tag", ["One campus. Multiple opportunities.", "One connected marketplace."], 54, "lower"), 56.0, 73.5)])
 scene(2, 75, "story", parts=[("clip", "4520", 0, 7), ("clip", "4560", 1, 8), ("clip", "5900", 1, 8), ("clip", "4566", 0, 5.2), ("bg", 8, (0.5, 0.5)), ("app", [(1016.9, 1070.5, 38.8)])],
