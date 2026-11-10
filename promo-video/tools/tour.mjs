@@ -210,11 +210,13 @@ async function switchRoleOnce(to) {
   const row = /Switch role|Switch to buy|Back to buy|Buying mode/i;
   await accountRoot();
   await scrollTo(row, 8, 500);
+  await scroll(320, 700);   // lift the row clear of the floating tab bar before tapping it
   await tap(row, { exact: false, wait: 2200, mouse: true });
   for (let w = 0; w < 8 && !(await has(new RegExp('^' + to + '$'))); w++) await sleep(500);
   if (!(await has(new RegExp('^' + to + '$')))) {
     await accountRoot();
     await scrollTo(/Switch role/, 8, 500);
+    await scroll(320, 700);
     await tap(/Switch role/, { exact: false, wait: 1800, mouse: true });
   }
   await tap(to, { wait: 4500, mouse: true, last: true });
