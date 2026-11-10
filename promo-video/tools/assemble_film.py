@@ -22,7 +22,9 @@ SEMI = "/usr/share/fonts/opentype/inter/InterDisplay-SemiBold.otf"
 IVORY, MIST, TEAL, SKY = (245, 239, 230), (183, 196, 204), (55, 99, 113), (223, 234, 241)
 f = lambda v: int(round(v * S))
 ENC = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "18" if MODE != "draft" else "26", "-pix_fmt", "yuv420p", "-r", str(FPS), "-an"]
-GRADE = ("eq=contrast=1.07:saturation=0.78:brightness=-0.05,colorbalance=rs=-0.05:bs=0.11:rm=-0.03:bm=0.07,vignette=PI/5")
+GRADE = ("eq=contrast=1.13:saturation=1.28:brightness=0.012:gamma=1.05,"
+         "colorbalance=rs=-0.04:gs=0.0:bs=0.07:rm=0.01:bm=0.04:rh=0.06:gh=0.01:bh=-0.04,"
+         "curves=preset=medium_contrast,vignette=PI/6")
 
 def run(cmd): subprocess.run(["nice", "-n", "5", "ffmpeg", "-loglevel", "error", "-y"] + [str(c) for c in cmd], check=True)
 def font(p, size): return ImageFont.truetype(p, f(size))
@@ -34,9 +36,9 @@ def background(glow=(0.62, 0.45)):
     y, x = np.mgrid[0:H, 0:W]
     d = np.sqrt(((x - glow[0] * W) / (1500 * S)) ** 2 + ((y - glow[1] * H) / (950 * S)) ** 2)
     t = np.clip(d / 0.72, 0, 1)[..., None]
-    img = np.array([14, 34, 48]) * (1 - t) + np.array([5, 11, 16]) * t
+    img = np.array([26, 66, 92]) * (1 - t) + np.array([6, 16, 24]) * t
     g = np.sqrt(((x - 0.22 * W) / (800 * S)) ** 2 + ((y - 1.0 * H) / (560 * S)) ** 2)
-    img += (np.clip(1 - g, 0, 1)[..., None] ** 2) * np.array(TEAL) * 0.45
+    img += (np.clip(1 - g, 0, 1)[..., None] ** 2) * np.array((70, 140, 165)) * 0.55
     Image.fromarray(np.clip(img, 0, 255).astype("uint8")).save(p); return p
 
 def text_png(key, lines, size=96, pos="center", sub=None, subsize=40, color=IVORY, track=0):
@@ -55,19 +57,21 @@ def text_png(key, lines, size=96, pos="center", sub=None, subsize=40, color=IVOR
         w = d.textlength(l, font=fo)
         x = (W - w) / 2 if pos != "left" else f(140)
         d.text((x, y), l, font=fo, fill=col + (255,)); y += step
+    # soft dark band behind the text so it reads over bright footage
+    ys = np.where(np.array(layer)[..., 3].max(axis=1) > 0)[0]
+    if len(ys):
+        y0, y1 = max(ys.min() - f(70), 0), min(ys.max() + f(70), H)
+        band = np.zeros((H, W, 4), dtype="uint8"); prof = np.zeros(H)
+        n_ = y1 - y0; prof[y0:y1] = np.sin(np.linspace(0, np.pi, n_)) ** 0.8 * 150
+        band[..., 3] = prof[:, None].astype("uint8")
+        if pos != "left": layer = Image.alpha_composite(Image.fromarray(band), layer)
     sh_ = layer.filter(ImageFilter.GaussianBlur(f(14))); a = np.array(sh_); a[..., :3] = 0; a[..., 3] = (a[..., 3] * .55).astype("uint8")
     out = Image.alpha_composite(Image.fromarray(a), layer); out.save(p); return p
 
 def wordmark_png(width=1100):
     p = WORK / "wordmark.png"
     if not p.exists():
-        from playwright.sync_api import sync_playwright
-        svg = pathlib.Path("film/wordmark.svg").resolve().as_uri(); w = f(width)
-        with sync_playwright() as pw:
-            b = pw.chromium.launch(executable_path=os.environ.get("CHROME", "/opt/pw-browsers/chromium"))
-            pg = b.new_page(viewport={"width": w, "height": int(w * 0.36)})
-            pg.set_content(f'<body style="margin:0"><img src="{svg}" style="width:{w}px;filter:brightness(0) invert(.95)"></body>')
-            pg.wait_for_timeout(600); pg.screenshot(path=str(WORK / "wm_raw.png"), omit_background=True); b.close()
+        subprocess.run(["node", "tools/wordmark.mjs", str(WORK / "wm_raw.png"), str(f(width))], check=True)
         raw = Image.open(WORK / "wm_raw.png").convert("RGBA"); layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         layer.alpha_composite(raw, ((W - raw.width) // 2, (H - raw.height) // 2 - f(30))); layer.save(p)
     return p
@@ -80,8 +84,10 @@ def seg_black(out, dur):
     run(["-f", "lavfi", "-i", f"color=c=black:s={W}x{H}:r={FPS}", "-t", dur] + ENC + [out])
 
 def seg_clip(out, clip, ss, dur, fade=0.6, speed=1.0):
-    vf = (f"setpts=PTS/{speed},scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS},{GRADE},"
-          f"fade=t=in:st=0:d={fade},fade=t=out:st={max(dur-fade,0):.2f}:d={fade}")
+    den = "hqdn3d=1.2:1.2:3:3," if S > 1 else ""
+    up = f"scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos,crop={W}:{H},unsharp=5:5:0.9:5:5:0.0,"
+    bloom = f"split[a][b];[b]gblur=sigma={f(16)},eq=brightness=-0.10:saturation=1.2[bl];[a][bl]blend=all_mode=screen:all_opacity=0.24,"
+    vf = (f"setpts=PTS/{speed},{den}{up}fps={FPS},{GRADE},{bloom}fade=t=in:st=0:d={fade},fade=t=out:st={max(dur-fade,0):.2f}:d={fade},format=yuv420p")
     run(["-ss", ss, "-t", dur * speed, "-i", f"out/stock/{clip}.mp4", "-vf", vf] + ENC + [out])
 
 def concat(parts, out):
@@ -100,7 +106,7 @@ def overlay_texts(base, texts, dur, out):
     run(cmd + ["-filter_complex", ";".join(fc), "-map", prev, "-t", dur] + ENC + [out])
 
 # the phone
-FW, FH = f(430), f(932); FX, FY = f(1360), (H - f(932)) // 2
+FW, FH = f(430) // 2 * 2, f(932) // 2 * 2; FX, FY = f(1360), (H - f(932)) // 2
 def phone_frame():
     p = WORK / "phone_frame.png"
     if p.exists(): return p
@@ -114,13 +120,14 @@ def phone_frame():
     cut = Image.new("L", (W, H), 255); ImageDraw.Draw(cut).rounded_rectangle((FX, FY, FX + FW, FY + FH), radius=f(52), fill=0)
     a = np.array(img); a[..., 3] = np.minimum(a[..., 3], np.array(cut)); img = Image.fromarray(a)
     sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle((FX - f(30), FY + f(20), FX + FW + f(30), FY + FH + f(50)), radius=f(90), fill=(0, 0, 0, 150))
-    full = Image.new("RGBA", (W, H), (0, 0, 0, 0)); full.alpha_composite(sh.filter(ImageFilter.GaussianBlur(f(40)))); full.alpha_composite(img); full.save(p); return p
+    full = Image.new("RGBA", (W, H), (0, 0, 0, 0)); full.alpha_composite(sh.filter(ImageFilter.GaussianBlur(f(40)))); full.alpha_composite(img)
+    fa = np.array(full); fa[..., 3] = np.minimum(fa[..., 3], np.array(cut)); Image.fromarray(fa).save(p); return p
 
 def app_base(out, segs, dur, tag):
     parts = []; assert abs(sum(s[2] for s in segs) - dur) < 0.01, (tag, sum(s[2] for s in segs), dur)
     for i, (a, b, d) in enumerate(segs):
         sp = WORK / f"{tag}_a{i}.mp4"
-        run(["-ss", a, "-t", b - a, "-i", "out/tour-review.mp4", "-vf", f"setpts=(PTS-STARTPTS)*{d/(b-a):.6f},fps={FPS},scale={FW}:{FH}:flags=lanczos", "-t", d,
+        run(["-ss", a, "-t", b - a, "-i", "out/tour-review.mp4", "-vf", f"setpts=(PTS-STARTPTS)*{d/(b-a):.6f},fps={FPS},scale={FW}:{FH}:flags=lanczos,eq=contrast=1.05:saturation=1.12,unsharp=3:3:0.5", "-t", d,
              "-c:v", "libx264", "-preset", "veryfast", "-crf", "14", "-pix_fmt", "yuv420p", "-an", sp]); parts.append(sp)
     clip = WORK / f"{tag}_clip.mp4"; concat(parts, clip)
     fl = (f"[0:v][1:v]overlay={FX}:{FY}[a];[a][2:v]overlay=0:0,fade=t=in:st=0:d=0.8,fade=t=out:st={dur-0.8:.2f}:d=0.8")
