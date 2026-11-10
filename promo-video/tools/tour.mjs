@@ -20,6 +20,8 @@ await ctx.addInitScript(() => { window.full = window.hideCap = window.phone = wi
 await ctx.addInitScript(() => { const st = window.setTimeout.bind(window); window.setTimeout = (fn, ms, ...a) => (ms === 40000 || ms === 110000 || ms === 200000) ? 0 : st(fn, ms, ...a); });
 const page = await ctx.newPage();
 page.on('pageerror', e => console.log('PAGEERR', e.message.slice(0, 120)));
+page.on('framenavigated', f => { if (f === page.mainFrame()) console.log('[nav]', f.url()); });
+page.on('response', r => { if (r.status() >= 400) console.log('[http]', r.status(), r.url().slice(0, 120)); });
 fs.rmSync(OUT, { recursive: true, force: true }); fs.mkdirSync(OUT, { recursive: true });
 const cdp = await ctx.newCDPSession(page);
 const frameTimes = []; let t0Epoch = null; let running = true; let nFrames = 0;
@@ -711,7 +713,12 @@ async function typeInto(testId, value) {
   const el = fr().getByTestId(testId).locator('visible=true').first();
   await el.waitFor({ state: 'visible', timeout: 8000 });
   await el.scrollIntoViewIfNeeded().catch(() => {});
-  await el.click(); await page.keyboard.type(value, { delay: 35 }); await sleep(500);
+  for (let attempt = 0; attempt < 4; attempt++) {
+    await el.click(); await page.keyboard.press('Control+A'); await page.keyboard.press('Backspace');
+    await page.keyboard.type(value, { delay: 60 }); await sleep(400);
+    if ((await el.inputValue().catch(() => '')) === value) return;
+    log('retype', testId, JSON.stringify(await el.inputValue().catch(() => '')));
+  }
 }
 
 await section('x-notes-seller', async () => {

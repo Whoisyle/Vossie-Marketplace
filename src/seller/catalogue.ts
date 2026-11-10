@@ -1,6 +1,7 @@
 import type { Listing, Reel, Seller } from "@/data/types";
 
 import { galleryOf } from "@/components/art/photos";
+import { notesCoverUri } from "@/data/notes";
 import { registerOwnStore } from "@/data/repository";
 import { averageRating } from "./state";
 import type { SellerState } from "./types";
@@ -14,7 +15,7 @@ export function asListing(item: SellerState["listings"][number], storeId: string
     createdDaysAgo: Math.max(0, Math.round((Date.now() - new Date(item.updatedAt).getTime()) / 86_400_000)),
     description: item.description,
     id: item.id,
-    images: item.photos.length > 0 ? item.photos : item.artId ? galleryOf(item.artId) : [],
+    images: item.photos.length > 0 ? item.photos : item.artId ? galleryOf(item.artId) : item.notes ? [notesCoverUri(item.notes)] : [],
     location: item.notes ? "Digital download" : "",
     notes: item.notes,
     openHours: "",

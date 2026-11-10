@@ -131,3 +131,20 @@ export function notesDetailFor(listing: Listing): ProductDetail {
     ],
   };
 }
+
+const xml = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/** A picture of a printed cover for a pack that has none, drawn from the module's own details, as an image the app can show anywhere. */
+export function notesCoverUri(notes: NotesMeta): string {
+  const name = xml(notes.moduleName.length > 28 ? `${notes.moduleName.slice(0, 27)}…` : notes.moduleName);
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480"><defs><radialGradient id="g" cx="30%" cy="20%"><stop offset="0" stop-color="#F7F4EE"/><stop offset="1" stop-color="#DDD6CA"/></radialGradient></defs>` +
+    `<rect width="480" height="480" fill="url(#g)"/><g transform="rotate(-3 240 240)"><rect x="110" y="50" width="260" height="380" rx="12" fill="#376371"/><rect x="110" y="50" width="14" height="380" fill="#00000033"/>` +
+    `<text x="142" y="92" font-family="Arial" font-size="11" letter-spacing="3" fill="#FFFFFFD9">VOSSIE STUDY NOTES</text>` +
+    `<text x="142" y="215" font-family="Arial" font-weight="800" font-size="44" fill="#FFFFFF">${xml(notes.moduleCode)}</text>` +
+    `<text x="142" y="250" font-family="Arial" font-weight="600" font-size="20" fill="#FFFFFF">${name}</text>` +
+    `<line x1="142" y1="372" x2="350" y2="372" stroke="#FFFFFF66" stroke-width="1.5"/>` +
+    `<text x="142" y="396" font-family="Arial" font-size="12" fill="#FFFFFFF2">${xml(notesCampusName(notes.campusId))} · Year ${notes.year}</text>` +
+    `<text x="142" y="414" font-family="Arial" font-size="12" fill="#FFFFFFF2">PDF · Instant download</text></g></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}

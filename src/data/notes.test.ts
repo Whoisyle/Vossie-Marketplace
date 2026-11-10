@@ -1,6 +1,8 @@
 import { createInitialState, demoReducer, type DemoState } from "@/state/demoReducer";
 
-import { NOTES_CAMPUSES, noteListings, notesDetailFor, notesOutline, searchNotes } from "./notes";
+import { asListing } from "@/seller/catalogue";
+
+import { NOTES_CAMPUSES, noteListings, notesCoverUri, notesDetailFor, notesOutline, searchNotes } from "./notes";
 import { stockReviews } from "./mock/stockReviews";
 import { getListing, getListings, getSeller } from "./repository";
 
@@ -62,6 +64,24 @@ describe("notes are listings like any other", () => {
     const reviews = stockReviews(noteListings, []);
     expect(reviews.length).toBeGreaterThanOrEqual(noteListings.length * 2);
     expect(reviews.every((review) => !/library|seller met me|edition/i.test(review.body))).toBe(true);
+  });
+});
+
+describe("a pack a seller uploads", () => {
+  const notes = { campusId: "cape-town-mowbray" as const, fileName: "BLAW101-notes.pdf", moduleCode: "BLAW101", moduleName: "Business Law", pages: 24, previewPages: 2, year: 1 as const };
+
+  it("gets a drawn cover with its module code and name, so it is never a grey box", () => {
+    const uri = decodeURIComponent(notesCoverUri(notes));
+    expect(uri.startsWith("data:image/svg+xml")).toBe(true);
+    expect(uri).toContain("BLAW101");
+    expect(uri).toContain("Business Law");
+  });
+
+  it("shows up as a notes listing on its campus with that cover", () => {
+    const listing = asListing({ category: "books", description: "d", id: "sl-1", notes, onHand: 0, photos: [], priceCents: 2500, sku: "VM-1", status: "published", title: "t", unlimited: true, updatedAt: "", variants: [] }, "store");
+    expect(listing.notes?.moduleCode).toBe("BLAW101");
+    expect(listing.campusId).toBe("cape-town-mowbray");
+    expect(String(listing.images[0])).toMatch(/^data:image\/svg\+xml/);
   });
 });
 
