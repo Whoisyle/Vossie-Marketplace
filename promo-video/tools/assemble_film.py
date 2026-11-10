@@ -59,9 +59,9 @@ def text_png(key, lines, size=96, pos="center", sub=None, subsize=40, color=IVOR
     # soft dark band behind the text so it reads over bright footage
     ys = np.where(np.array(layer)[..., 3].max(axis=1) > 0)[0]
     if len(ys):
-        y0, y1 = max(ys.min() - f(150), 0), min(ys.max() + f(150), H)
+        y0, y1 = max(ys.min() - f(260), 0), min(ys.max() + f(260), H)
         band = np.zeros((H, W, 4), dtype="uint8"); prof = np.zeros(H)
-        n_ = y1 - y0; prof[y0:y1] = np.sin(np.linspace(0, np.pi, n_)) ** 1.6 * 85
+        n_ = y1 - y0; prof[y0:y1] = np.sin(np.linspace(0, np.pi, n_)) ** 2.2 * 175
         band[..., 3] = prof[:, None].astype("uint8")
         if pos != "left": layer = Image.alpha_composite(Image.fromarray(band), layer)
     sh_ = layer.filter(ImageFilter.GaussianBlur(f(14))); a = np.array(sh_); a[..., :3] = 0; a[..., 3] = (a[..., 3] * .55).astype("uint8")
