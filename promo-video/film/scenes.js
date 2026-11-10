@@ -12,7 +12,7 @@ export async function build(c) {
   const RIGHT = { x: 92, y: -4, s: 1.22, rx: .04, ry: -.30, rz: 0 };    // phone on the right, text on the left
 
   // ===================================================================================
-  //  INTRO  0 - 20 : the dot bounces, the wordmark lands, the burgundy phone rises and turns
+  //  INTRO  0 - 20 : the dot bounces, the wordmark lands, the silver phone rises and turns
   // ===================================================================================
   Object.assign(P, { x: 0, y: -330, z: 0, rx: .1, ry: PI + .5, rz: 0, s: .92, o: 1, on: 0 });
   Object.assign(C, { x: 0, y: 0, z: 640, lx: 0, ly: 0, fov: 24 });
@@ -75,7 +75,7 @@ async function chapters(c) {
   let lastTitleEnd = 0, rolePill = null, ry = RIGHT.ry;
   const T = (t, text, dur = 3.4, o = {}) => { const at = Math.max(t, lastTitleEnd); lastTitleEnd = at + dur + .2; title(text, at, dur, { size: 'mid', w: 800, y: 400, ...o }); };
   const role = (t, text) => { if (rolePill) pill(rolePill.text, rolePill.at, Math.max(1.2, t - rolePill.at + .3)); rolePill = text ? { text, at: t } : null; };
-  const G = { signup: ['#050b10', '#0e2230', '#376371'], seller: ['#12060b', '#3a1220', '#a03a5a'], buyer: ['#050b10', '#0e2230', '#376371'], courier: ['#05110d', '#0f2a22', '#2f7a5f'], call: ['#06090e', '#1b2a38', '#4a7b95'], earn: ['#120d05', '#2e2209', '#b0892f'] };
+  const G = { signup: ['#050b10', '#0e2230', '#376371'], seller: ['#07090d', '#1a2531', '#4f7384'], buyer: ['#050b10', '#0e2230', '#376371'], courier: ['#050b10', '#0b2431', '#2f7f94'], call: ['#06090e', '#1b2a38', '#4a7b95'], earn: ['#07090d', '#18232d', '#8fa6b4'] };
   const gr = (t, k, gx) => grade(t, G[k][0], G[k][1], G[k][2], gx || '62%', '45%', 2.2);
   const drift = (t, z, x) => camTo(t, 9, { z, x, lx: x * .3 }, 'sine.inOut');
 

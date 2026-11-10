@@ -1,4 +1,4 @@
-// Procedural iPhone Pro Max-style model in burgundy. Units: millimetres. Origin = centre of the phone. +Z = out of the screen.
+// Procedural Pro Max-style phone in silver, with a wide camera plate and a two-tone back (shape taken from the owner's reference photo; no logo). Units: millimetres. Origin = centre of the phone. +Z = out of the screen.
 import * as THREE from 'three';
 
 const W = 77.6, H = 163.0, D = 8.2, R = 12.0;
@@ -20,18 +20,18 @@ function ringGeo(w, h, r, inset, depth, bevel) {
   return new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel * .8, bevelSegments: 4, curveSegments: 20 });
 }
 
-export function makePhone({ color = 0x4a0c1c, canvasTex }) {
+export function makePhone({ color = 0xdcdfe3, canvasTex }) {
   const g = new THREE.Group();
   const base = new THREE.Color(color);
-  // ---- frame (polished burgundy metal band) ----
-  const metal = new THREE.MeshPhysicalMaterial({ color: base.clone().multiplyScalar(1.15), metalness: 1, roughness: .24, clearcoat: .8, clearcoatRoughness: .12, envMapIntensity: 2.6 });
+  // ---- frame (polished silver aluminium band) ----
+  const metal = new THREE.MeshPhysicalMaterial({ color: base.clone().multiplyScalar(.96), metalness: 1, roughness: .2, clearcoat: .8, clearcoatRoughness: .12, envMapIntensity: 2.6 });
   const body = new THREE.Mesh(roundedGeo(W, H, R, D, 2.2, 20), metal); g.add(body);
   // bright polished rims on both edges (catch light from the front too)
-  const rimMat = new THREE.MeshPhysicalMaterial({ color: base.clone().multiplyScalar(2.1).lerp(new THREE.Color(0xc07a86), .25), metalness: 1, roughness: .14, clearcoat: 1, clearcoatRoughness: .05, envMapIntensity: 3, emissive: 0x4a1020 });
+  const rimMat = new THREE.MeshPhysicalMaterial({ color: base.clone().lerp(new THREE.Color(0xffffff), .55), metalness: 1, roughness: .12, clearcoat: 1, clearcoatRoughness: .05, envMapIntensity: 3, emissive: 0x1c1d20 });
   const rimF = new THREE.Mesh(ringGeo(W - .3, H - .3, R - .15, 1.1, .1, .35), rimMat); rimF.position.z = D / 2 - .45; g.add(rimF);
   const rimB = new THREE.Mesh(ringGeo(W - .3, H - .3, R - .15, 1.1, .1, .35), rimMat); rimB.position.z = -D / 2 + .25; g.add(rimB);
   // ---- back glass (frosted, same hue) ----
-  const backGlass = new THREE.MeshPhysicalMaterial({ color: base.clone().multiplyScalar(.62), metalness: .25, roughness: .5, clearcoat: .2, clearcoatRoughness: .5, envMapIntensity: .75 });
+  const backGlass = new THREE.MeshPhysicalMaterial({ color: base.clone().multiplyScalar(.99), metalness: .12, roughness: .42, clearcoat: .25, clearcoatRoughness: .45, envMapIntensity: .9 });
   const back = new THREE.Mesh(new THREE.ShapeGeometry(rr(W - 2.2, H - 2.2, R - 1.1), 32), backGlass); back.position.z = -D / 2 - .14; back.rotation.y = Math.PI; g.add(back);
   // ---- front: black bezel glass + screen ----
   const glass = new THREE.MeshPhysicalMaterial({ color: 0x040405, metalness: .1, roughness: .08, clearcoat: 1, clearcoatRoughness: .04, envMapIntensity: .9 });
@@ -49,26 +49,30 @@ export function makePhone({ color = 0x4a0c1c, canvasTex }) {
   sheen.position.z = D / 2 + .2; g.add(sheen);
   const isl = new THREE.Mesh(new THREE.ShapeGeometry(rr(25, 7.4, 3.7), 24), new THREE.MeshBasicMaterial({ color: 0x000000 })); isl.position.set(0, SH / 2 - 5.8, D / 2 + .16); g.add(isl);
   // ---- camera plateau (viewed from the back: top-left = +x) ----
-  const pc = base.clone().multiplyScalar(.8);
-  const plate = new THREE.Mesh(roundedGeo(37, 37, 9.5, 1.8, .5), new THREE.MeshPhysicalMaterial({ color: pc, metalness: .2, roughness: .38, clearcoat: .5, clearcoatRoughness: .3, envMapIntensity: 1.1 }));
-  plate.position.set(W / 2 - 22.4, H / 2 - 22.4, -D / 2 - .9 - .14); g.add(plate);
-  const plateRim = new THREE.Mesh(ringGeo(37.2, 37.2, 9.7, .55, .1, .2), rimMat); plateRim.position.set(plate.position.x, plate.position.y, -D / 2 - 1.95); plateRim.rotation.y = Math.PI; plateRim.position.z = -D / 2 - 1.75; g.add(plateRim);
+  const pc = base.clone().multiplyScalar(.98);
+  const PW = W - 5, PH = 44;
+  const plate = new THREE.Mesh(roundedGeo(PW, PH, 10.5, 1.8, .5), new THREE.MeshPhysicalMaterial({ color: pc, metalness: .2, roughness: .38, clearcoat: .5, clearcoatRoughness: .3, envMapIntensity: 1.1 }));
+  plate.position.set(0, H / 2 - 2.6 - PH / 2, -D / 2 - .9 - .14); g.add(plate);
+  // the lower back panel of the two-tone back glass
+  const panel = new THREE.Mesh(new THREE.ShapeGeometry(rr(W - 9, 70, 6), 32), new THREE.MeshPhysicalMaterial({ color: base.clone().multiplyScalar(1.01), metalness: .08, roughness: .55, clearcoat: .1, envMapIntensity: .7 }));
+  panel.position.set(0, -H / 2 + 5 + 35, -D / 2 - .17); panel.rotation.y = Math.PI; g.add(panel);
+  const plateRim = new THREE.Mesh(ringGeo(PW + .2, PH + .2, 10.7, .55, .1, .2), rimMat); plateRim.position.set(plate.position.x, plate.position.y, -D / 2 - 1.95); plateRim.rotation.y = Math.PI; plateRim.position.z = -D / 2 - 1.75; g.add(plateRim);
   const zb = -D / 2 - 1.8;
   const lens = (x, y) => {
     const lg = new THREE.Group(); lg.position.set(plate.position.x + x, plate.position.y + y, zb); lg.rotation.x = Math.PI / 2; lg.rotation.y = 0;
     const mk = (geo, mat, yy) => { const m = new THREE.Mesh(geo, mat); m.position.y = -yy; lg.add(m); return m; };
     // cylinder axis is Y; rotate group so Y -> -Z (outward from the back)
     lg.rotation.x = Math.PI / 2;
-    mk(new THREE.CylinderGeometry(8.2, 8.4, .9, 64), new THREE.MeshPhysicalMaterial({ color: 0xcfc8c4, metalness: 1, roughness: .16, envMapIntensity: 1.8 }), .0);
+    mk(new THREE.CylinderGeometry(8.2, 8.4, .9, 64), new THREE.MeshPhysicalMaterial({ color: 0xeceef1, metalness: 1, roughness: .14, envMapIntensity: 2 }), .0);
     mk(new THREE.CylinderGeometry(6.6, 6.6, 1.0, 64), new THREE.MeshPhysicalMaterial({ color: 0x0a0b0e, metalness: .5, roughness: .25, envMapIntensity: 1 }), .15);
     mk(new THREE.CylinderGeometry(5.9, 5.9, 1.1, 64), new THREE.MeshPhysicalMaterial({ color: 0x050608, metalness: .3, roughness: .04, clearcoat: 1, clearcoatRoughness: .02, envMapIntensity: 2.2 }), .25);
     mk(new THREE.CylinderGeometry(3.3, 3.3, 1.2, 48), new THREE.MeshPhysicalMaterial({ color: 0x1a2748, metalness: .7, roughness: .08, clearcoat: 1, envMapIntensity: 2.4 }), .3);
     mk(new THREE.CylinderGeometry(1.3, 1.3, 1.25, 32), new THREE.MeshPhysicalMaterial({ color: 0x3a1f5c, metalness: .5, roughness: .05, envMapIntensity: 2.4 }), .32);
     g.add(lg);
   };
-  lens(8.4, 8.6); lens(8.4, -8.6); lens(-8.4, 0);
+  lens(25.5, 8.7); lens(24.2, -12); lens(5.7, -1.5);
   const fl = (x, y, r, c) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, .6, 32), new THREE.MeshPhysicalMaterial({ color: c, roughness: .3, metalness: .3, emissive: 0x241c0c })); m.rotation.x = Math.PI / 2; m.position.set(plate.position.x + x, plate.position.y + y, zb - .2); g.add(m); };
-  fl(-9.6, 12.4, 2.3, 0xf2e6c6); fl(-9.6, -12.4, 1.3, 0x151515);
+  fl(-26.3, 11.1, 3.2, 0xf6f0de); fl(-26.3, -10, 1.6, 0x151515);
   // ---- buttons ----
   const btn = (y, h, side = -1) => { const b = new THREE.Mesh(new THREE.BoxGeometry(.9, h, 2.2), metal); b.position.set(side * (W / 2 + .05), y, 0); g.add(b); };
   btn(H / 2 - 34, 7); btn(H / 2 - 50, 13); btn(H / 2 - 68, 13);       // action + volume
