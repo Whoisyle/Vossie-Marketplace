@@ -11,7 +11,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent; os.chdir(ROOT)
 MODE = sys.argv[1] if len(sys.argv) > 1 else "draft"
-ONLY = {int(a) for a in sys.argv[2:]}
+ONLY = {int(a) for a in sys.argv[2:] if a.isdigit()}
+MUX = "mux" in sys.argv
 S = {"draft": 0.5, "final": 1.0, "4k": 2.0}[MODE]
 W, H, FPS = int(1920 * S), int(1080 * S), 24
 WORK = pathlib.Path(f"out/film/{MODE}"); WORK.mkdir(parents=True, exist_ok=True)
@@ -49,12 +50,12 @@ def text_png(key, lines, size=96, pos="center", sub=None, subsize=40, color=IVOR
     F, FS = font(BOLD, size), font(SEMI, subsize)
     lh, sh = int(f(size) * 1.14), int(f(subsize) * 1.45)
     total = lh * len(lines) + (f(26) + sh * len(subl) if subl else 0)
-    y = (H - total) // 2 if pos == "center" else (f(380) if pos == "left" else (f(170) if pos == "upper" else H - total - f(150)))
+    y = (H - total) // 2 if pos == "center" else (f(380) if pos == "left" else (f(170) if pos == "upper" else (f(110) if pos == "topleft" else H - total - f(150))))
     items = [(l, F, color, lh) for l in lines] + [(l, FS, MIST, sh) for l in subl]
     for i, (l, fo, col, step) in enumerate(items):
         if i == len(lines) and subl: y += f(26)
         w = d.textlength(l, font=fo)
-        x = (W - w) / 2 if pos != "left" else f(140)
+        x = (W - w) / 2 if pos not in ("left", "topleft") else f(140)
         d.text((x, y), l, font=fo, fill=col + (255,)); y += step
     # soft dark band behind the text so it reads over bright footage
     ys = np.where(np.array(layer)[..., 3].max(axis=1) > 0)[0]
@@ -63,7 +64,7 @@ def text_png(key, lines, size=96, pos="center", sub=None, subsize=40, color=IVOR
         band = np.zeros((H, W, 4), dtype="uint8"); prof = np.zeros(H)
         n_ = y1 - y0; prof[y0:y1] = np.sin(np.linspace(0, np.pi, n_)) ** 2.2 * 175
         band[..., 3] = prof[:, None].astype("uint8")
-        if pos != "left": layer = Image.alpha_composite(Image.fromarray(band), layer)
+        if pos not in ("left", "topleft"): layer = Image.alpha_composite(Image.fromarray(band), layer)
     sh_ = layer.filter(ImageFilter.GaussianBlur(f(14))); a = np.array(sh_); a[..., :3] = 0; a[..., 3] = (a[..., 3] * .55).astype("uint8")
     out = Image.alpha_composite(Image.fromarray(a), layer); out.save(p); return p
 
@@ -169,7 +170,7 @@ def scene(n, window, kind, **kw): SCENES[n] = (window, kind, kw)
 
 # 01 opening: black, campus, hands and phones, buyer/seller/courier flashes, logo reveal  (music: Cinematic_Build)
 scene(1, 75, "story", parts=[("black", 6), ("photo", "potchefstroom-carousel-01", 7), ("photo", "potchefstroom-carousel-03", 6.8), ("wm", 6.2), ("clip", "39774", 1, 5), ("photo", "potchefstroom-Feature-02", 5, "card"),
-                              ("clip", "31999", 0.5, 5), ("photo", "potchefstroom-carousel-02", 5), ("photo", "potchefstroom-carousel-01", 4.6), ("wm", 24.4)],
+                              ("photo", "potchefstroom-Feature-01", 5, "card"), ("photo", "potchefstroom-carousel-02", 5), ("photo", "potchefstroom-carousel-01", 4.6), ("wm", 24.4)],
       texts=lambda n: [tx(n, "a", 0, ["Every campus", "has an economy."]), tx(n, "b", 1, ["People looking for something.", "Students building something."], size=70),
                        tx(n, "c", 2, ["What happens when", "all of it is connected?"]),
                        (text_png("1_d", "INTRODUCING", 40, "upper"), 19.6, 24.6),
@@ -179,11 +180,11 @@ scene(2, 75, "story", parts=[("photo", "potchefstroom-carousel-03", 7), ("photo"
       texts=lambda n: [tx(n, "a", 0, "Welcome."), (text_png("2_b", "BUY.", 150), L(n, 1) + 0.2, L(n, 1) + 3.0), (text_png("2_s", "SELL.", 150), L(n, 1) + 3.2, L(n, 1) + 6.0),
                        (text_png("2_d", "DISCOVER.", 150), L(n, 1) + 6.2, L(n, 1) + 9.4), tx(n, "c", 2, "It works, but it is scattered.", size=84),
                        tx(n, "d", 3, ["We think those moments", "belong together."], size=84), tx(n, "e", 4, "That is Vossie.", size=120)])
-scene(3, 90, "story", parts=[("clip", "42123", 2, 8), ("clip", "4915", 4, 6), ("clip", "31999", 1, 6.2), ("photo", "potchefstroom-carousel-01", 5.2), ("bg", 8, (0.5, 0.5)), ("app", [(990.9, 1092.5, 56.6)])],
+scene(3, 90, "story", parts=[("clip", "42123", 2, 8), ("clip", "4915", 4, 6), ("photo", "potchefstroom-carousel-03", 6.2), ("photo", "potchefstroom-carousel-01", 5.2), ("bg", 8, (0.5, 0.5)), ("app", [(990.9, 1092.5, 56.6)])],
       texts=lambda n: [tx(n, "a", 0, "Picture an ordinary day.", size=84), tx(n, "b", 1, "DISCOVERY", sub="A student needs something."), tx(n, "c", 2, "COMMERCE", sub="A student entrepreneur has something to sell."),
                        tx(n, "d", 3, "FULFILMENT", sub="How does it get from one person to the other?"), tx(n, "e", 4, ["One story, told in", "three disconnected places."], size=80),
                        tx(n, "f", 5, "Vossie connects them.", size=100)])
-scene(4, 90, "story", parts=[("bg", 12, (0.5, 0.5)), ("photo", "potchefstroom-carousel-01", 7), ("bg", 8, (0.5, 0.5)), ("app", [(1329, 1371.6, 25), (1730.5, 1762.8, 19), (1016.9, 1056.5, 19)])],
+scene(4, 90, "story", parts=[("bg", 12, (0.5, 0.5)), ("photo", "potchefstroom-carousel-01", 7), ("bg", 8, (0.5, 0.5)), ("app", [(1329, 1371.6, 25), (668.2, 692.0, 19), (1016.9, 1056.5, 19)])],
       texts=lambda n: [tx(n, "a", 0, ["At the centre of Vossie", "is a simple idea."], size=84), tx(n, "b", 1, ["Different people.", "One marketplace."], size=84, sub="Each with different tools."),
                        (text_png("4_buyer", "BUYER", 150), L(n, 2) + 0.3, L(n, 2) + 3.2), (text_png("4_seller", "SELLER", 150), L(n, 2) + 3.4, L(n, 2) + 6.4), (text_png("4_courier", "COURIER", 150), L(n, 2) + 6.6, L(n, 2) + 9.3),
                        tx(n, "c", 3, ["One app. Three roles.", "One connected marketplace."], size=84), tx(n, "d", 4, "Let me show you.", size=100)])
@@ -204,14 +205,14 @@ prod(8, 60, "OPERATIONS", [(1919.1, 2002.4, 60)],
 prod(9, 75, "TRUST", [(15.4, 39.9, 12), (371.3, 394.2, 14), (621.1, 659.7, 20), (1115.8, 1181.8, 29)],
      [(1, ["Your Eduvos account.", "Your role."], "One clear design for buyers, sellers and couriers"), (2, ["Easy to use."], None)])
 
-scene(10, 75, "story", parts=[("photo", "potchefstroom-carousel-03", 6), ("photo", "potchefstroom-Feature-01", 7, "card"), ("photo", "potchefstroom-carousel-01", 6), ("photo", "potchefstroom-Feature-02", 5.3, "card"), ("photo", "potchefstroom-carousel-02", 7), ("bg", 9, (0.5, 0.5)), ("photo", "potchefstroom-carousel-01", 7), ("bg", 27.7, (0.5, 0.5))],
+scene(10, 75, "story", parts=[("photo", "potchefstroom-carousel-03", 6), ("photo", "potchefstroom-Feature-01", 7, "card"), ("photo", "potchefstroom-carousel-01", 6), ("photo", "potchefstroom-Feature-02", 5.3, "card"), ("photo", "potchefstroom-carousel-02", 7), ("photo", "potchefstroom-carousel-03", 6), ("photo", "potchefstroom-Feature-01", 7, "card"), ("photo", "potchefstroom-carousel-01", 6), ("app", [(1919.1, 1950.1, 24.7)])],
       texts=lambda n: [tx(n, "a", 0, ["What sits around", "a single sale."], size=84), tx(n, "b", 1, ["Buyers. Sellers.", "Delivery. Campus operations."], size=70, sub="Working as one."),
                        (text_png("10_s", ["For students,", "a place made for campus life."], 70), L(n, 2), L(n, 2) + 4.5), (text_png("10_e", ["For student entrepreneurs,", "a way to reach customers."], 70), L(n, 2) + 4.7, L(n, 2) + 8.2),
                        (text_png("10_c", ["For campuses and partners,", "a more connected way to bring commerce on campus."], 56), L(n, 2) + 8.4, L(n, 2) + 11.5),
                        tx(n, "d", 3, ["For investors, an integrated", "marketplace that can grow", "beyond where it starts."], size=64),
                        tx(n, "f", 4, ["Prove the experience.", "Earn real participation.", "Grow responsibly."], size=72, tail=3.0),
-                       (text_png("10_x", "USERS  ·  SELLERS  ·  TRANSACTIONS  ·  OPERATIONS", 48), 63.0, 73.5)])
-scene(11, 45, "story", parts=[("bg", 45, (0.5, 0.5))],
+                       ])
+scene(11, 45, "story", parts=[("photo", "potchefstroom-carousel-02", 15), ("photo", "potchefstroom-Feature-01", 15, "card"), ("photo", "potchefstroom-carousel-03", 15)],
       texts=lambda n: [tx(n, "a", 0, ["Today is an introduction,", "and a starting point."], size=80), (text_png("11_b", "BUILD", 140, sub=["Refine the product", "(proposed)"]), L(n, 1) + 0.3, L(n, 1) + 3.4),
                        (text_png("11_v", "VALIDATE", 140, sub=["Test with real students", "(proposed)"]), L(n, 1) + 3.6, L(n, 1) + 6.8), (text_png("11_s", "SCALE", 140, sub=["Grow carefully, campus by campus", "(proposed)"]), L(n, 1) + 7.0, L(n, 1) + 10.3),
                        tx(n, "c", 2, ["Everything on this roadmap is proposed.", "We will earn each step."], size=64), tx(n, "d", 3, "That is what we are building with Vossie.", size=64, tail=5)])
@@ -224,9 +225,10 @@ def build_scene(n):
     base = WORK / f"scene{n:02d}_base.mp4"
     if kind == "app":
         app_base(base, kw["segs"], window, f"s{n}")
-        txts = []
-        for i, (li, big, small) in enumerate(kw["caps"]):
-            t0, t1 = L(n, li), L(n, li, "end") + 2.5
+        caps = kw["caps"]; starts = [max(L(n, li), 0.8) for li, _, _ in caps]
+        txts = [(text_png(f"{n}_lab", f"{n:02d}  ·  {kw['label']}", 34, "topleft", color=SKY), 0.4, window - 0.4)]
+        for i, (li, big, small) in enumerate(caps):
+            t0 = starts[i]; t1 = (starts[i + 1] + 0.5) if i + 1 < len(caps) else window - 0.6
             txts.append((text_png(f"{n}_c{i}", big, 96, "left", small, 38), t0, t1))
     else:
         parts = []
@@ -265,9 +267,9 @@ def build_audio():
     run(["-i", cb, "-i", gp, "-i", wr, "-i", nar, "-filter_complex", fl, "-map", "[o]", "-c:a", "aac", "-b:a", "256k", mix]); return mix
 
 if __name__ == "__main__":
-    nums = sorted(ONLY or SCENES)
+    nums = [] if MUX else sorted(ONLY or SCENES)
     for n in nums: print("scene", n, flush=True); build_scene(n)
-    if not ONLY:
+    if MUX or not ONLY:
         lst = WORK / "all.txt"; lst.write_text("".join(f"file '{(WORK / f'scene{n:02d}.mp4').resolve()}'\n" for n in sorted(SCENES)))
         video = WORK / "video.mp4"; run(["-f", "concat", "-safe", 0, "-i", lst, "-c", "copy", video])
         audio = build_audio(); out = pathlib.Path(f"out/film/vossie-launch-{MODE}.mp4")
