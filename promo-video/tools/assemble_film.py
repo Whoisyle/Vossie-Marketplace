@@ -179,15 +179,18 @@ scene(1, 75, "story", parts=[("black", 6), ("photo", "potchefstroom-carousel-01"
 scene(2, 75, "story", parts=[("photo", "potchefstroom-carousel-03", 7), ("photo", "potchefstroom-Feature-01", 8, "card"), ("photo", "potchefstroom-carousel-02", 8), ("photo", "potchefstroom-Feature-02", 5.2, "card"), ("bg", 8, (0.5, 0.5)), ("app", [(1016.9, 1070.5, 38.8)])],
       texts=lambda n: [tx(n, "a", 0, "Welcome."), (text_png("2_b", "BUY.", 150), L(n, 1) + 0.2, L(n, 1) + 3.0), (text_png("2_s", "SELL.", 150), L(n, 1) + 3.2, L(n, 1) + 6.0),
                        (text_png("2_d", "DISCOVER.", 150), L(n, 1) + 6.2, L(n, 1) + 9.4), tx(n, "c", 2, "It works, but it is scattered.", size=84),
-                       tx(n, "d", 3, ["We think those moments", "belong together."], size=84), tx(n, "e", 4, "That is Vossie.", size=120)])
+                       tx(n, "d", 3, ["We think those moments", "belong together."], size=84), tx(n, "e", 4, "That is Vossie.", size=120),
+                       (text_png("2_app", ["Buy. Sell.", "Discover."], 96, "left", "In one place, on your campus", 38), 37.5, 74.0)])
 scene(3, 90, "story", parts=[("clip", "42123", 2, 8), ("clip", "4915", 4, 6), ("photo", "potchefstroom-carousel-03", 6.2), ("photo", "potchefstroom-carousel-01", 5.2), ("bg", 8, (0.5, 0.5)), ("app", [(990.9, 1092.5, 56.6)])],
       texts=lambda n: [tx(n, "a", 0, "Picture an ordinary day.", size=84), tx(n, "b", 1, "DISCOVERY", sub="A student needs something."), tx(n, "c", 2, "COMMERCE", sub="A student entrepreneur has something to sell."),
                        tx(n, "d", 3, "FULFILMENT", sub="How does it get from one person to the other?"), tx(n, "e", 4, ["One story, told in", "three disconnected places."], size=80),
-                       tx(n, "f", 5, "Vossie connects them.", size=100)])
+                       tx(n, "f", 5, "Vossie connects them.", size=100),
+                       (text_png("3_app", ["Discovery, commerce", "and fulfilment,"], 96, "left", "connected in one app", 38), 35.0, 89.0)])
 scene(4, 90, "story", parts=[("bg", 12, (0.5, 0.5)), ("photo", "potchefstroom-carousel-01", 7), ("bg", 8, (0.5, 0.5)), ("app", [(1329, 1371.6, 25), (668.2, 692.0, 19), (1016.9, 1056.5, 19)])],
       texts=lambda n: [tx(n, "a", 0, ["At the centre of Vossie", "is a simple idea."], size=84), tx(n, "b", 1, ["Different people.", "One marketplace."], size=84, sub="Each with different tools."),
                        (text_png("4_buyer", "BUYER", 150), L(n, 2) + 0.3, L(n, 2) + 3.2), (text_png("4_seller", "SELLER", 150), L(n, 2) + 3.4, L(n, 2) + 6.4), (text_png("4_courier", "COURIER", 150), L(n, 2) + 6.6, L(n, 2) + 9.3),
-                       tx(n, "c", 3, ["One app. Three roles.", "One connected marketplace."], size=84), tx(n, "d", 4, "Let me show you.", size=100)])
+                       tx(n, "c", 3, ["One app. Three roles.", "One connected marketplace."], size=84), tx(n, "d", 4, "Let me show you.", size=100),
+                       (text_png("4_app", ["Buyer. Seller.", "Courier."], 96, "left", "Three roles, one app", 38), 28.5, 89.0)])
 
 def prod(n, window, label, segs, caps):
     scene(n, window, "app", label=label, segs=segs, caps=caps)
@@ -211,14 +214,14 @@ scene(10, 75, "story", parts=[("photo", "potchefstroom-carousel-03", 6), ("photo
                        (text_png("10_c", ["For campuses and partners,", "a more connected way to bring commerce on campus."], 56), L(n, 2) + 8.4, L(n, 2) + 11.5),
                        tx(n, "d", 3, ["For investors, an integrated", "marketplace that can grow", "beyond where it starts."], size=64),
                        tx(n, "f", 4, ["Prove the experience.", "Earn real participation.", "Grow responsibly."], size=72, tail=3.0),
-                       ])
+                       (text_png("10_app", ["Campus operations,", "in one view"], 96, "left", "Hub, transfers, incubation, activity log", 38), 51.5, 74.0)])
 scene(11, 45, "story", parts=[("photo", "potchefstroom-carousel-02", 15), ("photo", "potchefstroom-Feature-01", 15, "card"), ("photo", "potchefstroom-carousel-03", 15)],
       texts=lambda n: [tx(n, "a", 0, ["Today is an introduction,", "and a starting point."], size=80), (text_png("11_b", "BUILD", 140, sub=["Refine the product", "(proposed)"]), L(n, 1) + 0.3, L(n, 1) + 3.4),
                        (text_png("11_v", "VALIDATE", 140, sub=["Test with real students", "(proposed)"]), L(n, 1) + 3.6, L(n, 1) + 6.8), (text_png("11_s", "SCALE", 140, sub=["Grow carefully, campus by campus", "(proposed)"]), L(n, 1) + 7.0, L(n, 1) + 10.3),
                        tx(n, "c", 2, ["Everything on this roadmap is proposed.", "We will earn each step."], size=64), tx(n, "d", 3, "That is what we are building with Vossie.", size=64, tail=5)])
 scene(12, 30, "story", parts=[("photo", "potchefstroom-carousel-01", 12, "full"), ("bg", 4, (0.5, 0.5)), ("wm", 6), ("bg", 8, (0.5, 0.5))],
       texts=lambda n: [tx(n, "a", 0, ["One campus.", "Multiple opportunities.", "One connected marketplace."], size=76),
-                       (text_png("12_t", "THIS IS VOSSIE MARKETPLACE", 36, "lower"), 14.0, 18.5), (text_png("12_e", "DISCOVER.  CONNECT.  TRADE.", 92), 19.5, 29.2)])
+                       (text_png("12_t", "THIS IS VOSSIE MARKETPLACE", 36, "lower"), 16.6, 21.6), (text_png("12_e", "DISCOVER.  CONNECT.  TRADE.", 92), 22.6, 29.4)])
 
 def build_scene(n):
     window, kind, kw = SCENES[n]; out = WORK / f"scene{n:02d}.mp4"
