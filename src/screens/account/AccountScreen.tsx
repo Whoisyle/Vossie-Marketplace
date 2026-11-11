@@ -101,6 +101,7 @@ export function AccountScreen() {
 
       <View style={styles.menu}>
         <MenuRow icon="repeat" label="Switch role" onPress={() => setRoleOpen(true)} />
+        <MenuRow icon="shield" label="Vossie Operations (staff demo)" onPress={() => go("/operations/hub")} />
         <MenuRow icon="truck" label="Delivery preferences" onPress={() => setDeliveryOpen(true)} value={state.preferredDelivery ? deliveryLabels[state.preferredDelivery] : "Auto-pick"} />
         <MenuRow icon="edit-2" label="Edit Profile" onPress={() => go("/account/edit-profile")} />
         <MenuRow icon="credit-card" label="Wallet" onPress={() => go("/account/wallet")} />
