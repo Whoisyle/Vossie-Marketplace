@@ -1,0 +1,22 @@
+Authentication, Eduvos Identity and MF A
+Authentication, Eduvos Identity and MF A
+Security principle
+Identifier format is not proof of identity . An EDUV-prefixed student number or institutional-looking email may be validated
+syntactically , but neither grants access by itself.
+Production target
+V ossie → Continue with Eduvos → Eduvos/Microsoft identity provider → existing Microsoft Authenticator/MF A →
+signed identity response → V ossie validates issuer/tenant/token → V ossie verifies active-student eligibility → V ossie session.
+V ossie should not receive/store:
+• institutional password,
+• Authenticator seed,
+• MF A approval code.
+Separate concepts
+• Authentication: control of institutional identity .
+• Eligibility: active student allowed to participate.
+• Authorization: Buyer/Seller/Courier/staff permissions inside V ossie.
+Prototype
+Use a clearly marked sandbox simulation:
+Continue with Eduvos → demo Microsoft-style sign-in → simulated Authenticator approval → identity verified → cam-
+pus/student status displayed → V ossie session.
+Never claim the demo is connected to Eduvos production infrastructure.
+1

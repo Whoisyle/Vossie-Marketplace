@@ -1,0 +1,54 @@
+{
+  "task_id": "VOS-000",
+  "agent": "atlas",
+  "status": "HANDOFF_READY",
+  "summary": "Canonical specification package committed under docs/specs/ and cataloged in canonical_refs; DEC-001/DEC-002 resolved, BLK-001 resolved; Stage 1 dependency graph VOS-001..VOS-005 recorded; VOS-001 assigned to Pixel.",
+  "branch": "atlas/integration/2026-09-30-canonical-intake",
+  "commit_sha": "",
+  "changed_files": [
+    "docs/specs/**",
+    "project-state.json",
+    ".vossie/handoffs/VOS-000/atlas.json"
+  ],
+  "artifacts": [
+    "docs/specs/README.md",
+    "origin/vossie/claims (created from main 0bb43ea)"
+  ],
+  "tests_or_checks": [
+    {
+      "check": "python3 scripts/validate_agent_system.py",
+      "result": "PASSED"
+    }
+  ],
+  "acceptance_criteria_results": [
+    {
+      "criterion": "canonical_refs populated from committed/linked specs",
+      "result": "PASS"
+    },
+    {
+      "criterion": "first specialist tasks recorded with full task-brief fields",
+      "result": "PASS"
+    },
+    {
+      "criterion": "scripts/validate_agent_system.py passes",
+      "result": "PASS"
+    },
+    {
+      "criterion": "shared vossie/claims coordination branch exists before the first specialist task is assigned",
+      "result": "PASS"
+    }
+  ],
+  "risks_or_limitations": [
+    "Build Guide stack chapters conflict with locked stack; resolved by precedence (DEC-004)",
+    "Prototype screenshots use green primary; brand navy chosen (DEC-005)",
+    "No vector logo yet (DEC-006)",
+    "Text extracts are machine-generated; tables/colours may need the original file"
+  ],
+  "blockers": [],
+  "follow_ups": [
+    "DEC-006 vector logo/typeface",
+    "DEC-007 business/provider decisions before Stage 2 real integrations",
+    "Refine VOS-004/VOS-005 acceptance criteria when dependencies are accepted"
+  ],
+  "integration_notes": "VOS-001 is the only executable specialist task; VOS-002 and VOS-003 become eligible once VOS-001 is INTEGRATED and can run in parallel (disjoint scopes)."
+}

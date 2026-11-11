@@ -1,0 +1,33 @@
+Agentic W orkflow: ChatGPT, Cursor, VS Code and GitHub
+Agentic W orkflow: ChatGPT, Cursor, VS Code and GitHub
+Control plane
+• Architect (ChatGPT): feature contracts, architecture, cross-system requirements.
+• Atlas (Cursor): build lead; decomposes and integrates implementation work.
+• Guardian + Medic (Cursor): workflow completeness and runtime/debug repair.
+• Sentinel (VS Code): independent verification lead.
+• W atchtower + Resolver (VS Code): verification audit and root-cause/recovery .
+• Harbor + GitHub Actions: merge/release/deploy gates.
+• GitHub + .vossie/: durable state.
+End-to-end workflow
+1. Requirement enters GitHub.
+2. Architect creates/validates F eature Contract.
+3. Atlas decomposes.
+4. Branch/worktree isolation.
+5. Specialists build.
+6. Implementation tests.
+7. Guardian audits completeness.
+8. Medic runs/repairs ordinary failures.
+9. Atlas integrates green work.
+10. Atomic conventional commits pushed.
+11. PR generated.
+12. Sentinel dispatches independent checks.
+13. W atchtower confirms current gates ran.
+14. Resolver diagnoses failure; route back for repair.
+15. Harbor merge gate.
+16. CI/CD deploy .
+17. Post-deploy smoke verification.
+18. Status/evidence updated.
+Boundary
+Human approval remains required for destructive/high-risk production changes, credentials, security exceptions, ambiguous
+product choices and exhausted repair loops.
+1

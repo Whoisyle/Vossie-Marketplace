@@ -1,0 +1,35 @@
+Receipts, Notifications and Email System
+Receipts, Notifications and Email System
+Use one event-driven communications system.
+Channels
+• in-app notification centre,
+• push notifications,
+• email for important transactional/financial milestones,
+• optional marketing communications separately consented/configured.
+Notification Centre
+Suggested tabs/categories:
+• Orders,
+• Payments,
+• Messages,
+• Marketplace,
+• Account/Security .
+Each notification deep-links to the actual object.
+T ransactional milestones
+Examples:
+• order accepted,
+• payment secured,
+• seller preparing,
+• ready for pickup,
+• courier assigned,
+• hub received,
+• transfer departed/arrived,
+• delivered,
+• refund approved,
+• payout processed,
+• security/account status.
+Receipts
+Permanent in Orders, view/download/share/email. Derived from order and ledger data, not manually typed text.
+Operations monitor
+T rack communication event, recipient, channel, template version, delivery status, retry and failure. Communications should
+not block core order state changes.
+1

@@ -1,0 +1,32 @@
+W ork Execution Handoff for Cinematic Production
+W ork Execution Handoff for Cinematic Production
+When using ChatGPT W ork for Series 4, provide:
+• Developer Series 4 blueprint,
+• approved Brand Identity ,
+• approved Figma files/links,
+• working prototype,
+• optional team portraits/campus references/audio/media.
+Source precedence
+Brand Identity controls branding. Approved Figma/prototype controls product UI. Series 4 controls narrative, shot struc-
+ture and motion intent.
+Execution rule
+First audit assets and available tools. Create a production manifest mapping shot/cue IDs to assets, dependencies, app/tool,
+output and status. Then build sequence by sequence.
+Do not claim Illustrator/After Effects/Figma write access unless the W ork environment actually exposes those capabilities.
+Production groups
+• 01_IDENT
+• 02_CAMPUS
+• 03_TEAM_PRODUCT
+• 04_TEAM_DESIGN
+• 05_TEAM_DEV
+• 06_TEAM_PM_BIZ
+• 07_PITCH_HANDOFF
+• 08_DEMO_OVERLA YS
+• 09_LOGISTICS
+• 10_OPERA TIONS
+• 11_FINALE
+• 00_MASTER
+QA
+Brand fidelity , UI fidelity , missing media, fonts, composition dependencies, motion timing, legibility , audio sync, render
+errors, demo reset and offline/stage fallback.
+1

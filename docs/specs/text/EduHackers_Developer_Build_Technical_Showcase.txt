@@ -1,0 +1,1024 @@
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+EduHackers
+Developer Build & Technical Research
+How the marketplace could be built, validated, versioned, tested and integrated - research only, not a final technical commitment.
+
+Scope
+All Eduvos campuses • verified buyers and sellers • protected payments • delivery • events • rentals • AI compliance • Incubation Hub intelligence
+
+Output
+Stack research • architecture • API map • wireframes • GitHub workflow • CI/CD • security/privacy • build roadmap
+
+Team: EduHackers
+Prepared for Paballo Kali - Developer / Research Lead
+1
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+What this technical research must answer
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+1. What are we building?
+A campus-first marketplace ecosystem across products, services, rentals, digital products, events, gigs, delivery and Incubation Hub intelligence.
+
+2. What must integrate?
+Identity, listings, search, checkout, protected payments, delivery, disputes, AI moderation, analytics, notifications and staff dashboards.
+
+3. How do we build safely?
+Use modular architecture, GitHub workflows, OpenAPI contracts, RBAC, CI checks, testing gates and privacy-by-design boundaries.
+
+Research posture
+Every recommendation is a hypothesis until tested with Eduvos users, payment providers, institutional policy, security review and prototype evidence.
+2
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Core technical thesis
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+
+
+
+
+Demand
+search / request
+
+Supply
+listings / slots
+
+Trust
+verification / score
+
+Transaction
+protected payment
+
+Learning
+demand intelligence
+
+Architectural principle
+Every major user action should produce a safe business event that can support marketplace health, dispute resolution, analytics and Incubation Hub insight without exposing unnecessary personal data.
+3
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Recommended delivery model
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+Phase 1 - Web/PWA
+Next.js web app. Installable from browser. Strongest speed for Hack Jam. One frontend codebase. Works on desktop and mobile.
+
+Phase 2 - Mobile wrapper
+Expo/React Native or Capacitor only after PWA flows are validated. Use if push, camera, location and app-store distribution become essential.
+
+Phase 3 - Desktop install
+PWA desktop install first. Electron/Tauri only if offline workflows, native tray, local files or richer desktop features become necessary.
+
+Why
+The project is broad: protected payments, AI moderation, reels, events, delivery and dashboards. The team needs speed, shared code and easy deployment before native complexity.
+
+Option
+Strength
+Risk
+Recommendation
+
+PWA
+Fastest all-device build
+Limited native depth
+Start here
+
+Expo app
+Strong mobile UX
+More build overhead
+Phase 2
+
+Electron/Tauri
+Desktop-first power
+Overkill for MVP
+Later if needed
+4
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Candidate stack research
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+Layer
+Recommended research option
+Why
+Key validation
+
+Frontend
+Next.js + TypeScript
+Web/PWA speed, shared routing, server actions/API routes
+Can team build fast?
+
+UI
+Tailwind + shadcn/Radix
+Accessible components, fast design iteration
+Matches Figma system?
+
+Backend
+Next.js API + Supabase
+Fewer moving parts for MVP; Postgres, Auth, Storage, Realtime
+RLS/RBAC correctness
+
+Database
+Postgres + Prisma/Drizzle
+Relational marketplace domain + migrations
+Complex flows stay clear
+
+Payments
+PSP with marketplace/split/hold support
+Protected payment is core but regulated
+Provider terms and costs
+
+AI
+Moderation + demand clustering service
+Safety and intelligence, not novelty
+Human review path
+
+Deployment
+Vercel + Supabase
+Preview envs, quick CI, managed infra
+Cost and edu governance
+Note: these are research recommendations, not final procurement commitments.
+5
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Stack decision matrix
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+Criterion
+Next.js + Supabase
+Firebase
+Custom Node + Postgres
+Research implication
+
+Build speed
+High
+High
+Medium
+Speed favours managed platforms
+
+Relational fit
+High
+Medium
+High
+Marketplace domain is relational
+
+RBAC / RLS
+High
+Medium
+Custom
+Supabase RLS is useful but must be tested
+
+Realtime
+Good
+Strong
+Custom
+Messaging/status can work either way
+
+Vendor lock-in
+Medium
+Medium
+Lower
+Mitigate with clean domain boundaries
+
+Security burden
+Medium
+Medium
+High
+Custom backend increases developer load
+
+MVP suitability
+High
+Medium
+Medium
+Recommended starting point
+6
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Reference architecture
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+
+
+
+
+
+
+
+Web / PWA
+Marketplace UI
+
+API layer
+OpenAPI + validation
+
+Domain modules
+orders / delivery / trust
+
+Postgres
+RLS + events
+
+Payments PSP
+hold / refund / payout
+
+AI services
+moderation / demand
+
+Storage
+evidence / media
+
+Architecture rule
+The MVP can be one deployed app, but the code should preserve domain boundaries so payments, AI, delivery and Incubation features can change without rewriting everything.
+7
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Domain modules that should not be mixed together
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+Identity + Roles
+Eduvos + ID verification, buyer/seller/courier/staff roles
+
+Catalogue + Availability
+Products, services, food, rentals, digital goods, slots and stock
+
+Orders + Bookings
+State machines, 30% service deposit, acceptance and completion
+
+Payments + Payouts
+PSP references, holds, refunds, commissions and fee treatment
+
+Delivery + Pickup
+Pickup zones, seller delivery, student courier and proof of handoff
+
+Trust + Disputes
+Reviews, buyer/seller standing, reports, evidence, moderation
+
+AI + Compliance
+Policy checks, demand clustering, seller guidance and staff interventions
+
+Analytics + Incubation
+Marketplace metrics, demand intelligence, Business Health Score
+8
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Conceptual data model
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+Entity group
+Examples
+Why it matters
+
+Identity
+User, StudentProfile, SellerProfile, CourierProfile
+Verification, privacy boundary and role-based access
+
+Marketplace
+Listing, Availability, Campus, Category, SearchEvent
+Discovery, stock, slots, campus-first fallback
+
+Transactions
+Order, Booking, PaymentHold, Refund, Dispute
+Protected payment state and evidence-based decisions
+
+Fulfilment
+DeliveryTask, PickupPoint, Rental, EventTicket
+Physical logistics, cross-campus movement and handoff proof
+
+Trust
+Review, Report, EnforcementAction, Appeal
+Two-sided reputation and graduated enforcement
+
+Intelligence
+OpportunitySignal, IncubationRecord, AIRecommendation
+Demand loop and staff intervention
+
+Media
+FileAsset, EvidenceFile, Reel, DigitalProductAsset
+Uploads, evidence and content scanning
+
+Critical relationship
+SearchEvent -> UnmetDemand -> OpportunitySignal is the technical core of “demand becomes entrepreneurship intelligence.”
+9
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+RBAC and object-level authorisation
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+Role
+Can do
+Must not do
+Research question
+
+Buyer
+Buy, book, rent, review, dispute
+Edit seller/order evidence
+Can buyers also earn trust?
+
+Personal Seller
+Create standard listings, accept orders
+Brand storefront until unlock
+Which trust threshold is fair?
+
+Trusted Seller
+Brand storefront, selected subscriptions, larger gigs
+Bypass policy or disputes
+What benefits motivate quality?
+
+Courier
+Accept delivery tasks, prove handoff
+View unnecessary order details
+How much location is needed?
+
+Incubation Staff
+View eligible business insights and approve plans
+Contact non-opt-in sellers directly
+What metrics are actionable?
+
+Moderator
+Review reports/disputes and enforcement
+Change PSP states without audit
+What evidence is enough?
+10
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+API strategy
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+REST first for MVP
+Easier for team implementation, API documentation, testing and external review. Use strict validation at all boundaries.
+
+Realtime where needed
+Messaging, order status, delivery status, event capacity and moderator queues can use realtime after base flows work.
+
+Events for learning
+Commerce state changes should also produce analytics events, not be reconstructed later from raw tables.
+
+Area
+Example endpoints
+Notes
+
+Listings
+GET /listings, POST /seller/listings
+campus, category, stock, service slots
+
+Orders
+POST /orders, PATCH /orders/{id}/accept
+state machine, role checks
+
+Payments
+POST /payments/intent, POST /refunds
+PSP reference only, no raw secrets
+
+Disputes
+POST /orders/{id}/disputes
+evidence upload and moderator workflow
+
+Intelligence
+GET /staff/demand-signals
+aggregated, privacy scoped
+11
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+API traceability map
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+User action
+API / domain action
+Event emitted
+Test target
+
+Search fails locally
+fallback search + request prompt
+search_zero_result
+Fallback task completion
+
+Buyer starts order
+create order + payment intent
+order_started
+Checkout state and fee clarity
+
+Seller accepts service
+booking accepted + deposit protected
+order_accepted
+30% deposit comprehension
+
+Courier collects item
+delivery evidence upload
+delivery_started
+proof-of-handoff
+
+Buyer disputes
+dispute + evidence records
+dispute_opened
+evidence burden/fairness
+
+Staff approves intervention
+AI plan approved
+mentor_intervention_created
+staff control and audit
+This is the bridge between research, product, UX, development and testing.
+12
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Wireframe research: buyer discovery flow
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+
+Home / search
+
+Search: laptop repair
+
+Campus: Potchefstroom
+
+Available today toggle
+
+Listings + services
+
+If no local match: show fallback
+
+
+Fallback
+
+Local stock unavailable
+
+Try: nearby seller
+
+Try: other Eduvos campus
+
+Try: create request
+
+Save demand signal
+
+
+Request
+
+Need by date/time
+
+Budget range
+
+Delivery/pickup preference
+
+Notify matching sellers
+
+Track responses
+
+Research test
+Ask students to find an unavailable product/service and observe if they understand fallback, cross-campus options and request creation.
+13
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Wireframe research: seller onboarding and listing flow
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+
+Seller verify
+
+Eduvos account verified
+
+Government ID check
+
+Policy acknowledgement
+
+Personal seller profile
+
+No brand storefront yet
+
+
+Create listing
+
+Product / Service / Food / Rental
+
+Required category fields
+
+AI compliance check
+
+Availability + campus
+
+Publish or hold for review
+
+
+Progression
+
+10 successful sales
+
+R1,000 completed sales
+
+Good rating/standing
+
+Trusted Seller unlock
+
+Brand storefront
+
+Research test
+Check whether students understand the path from personal seller to Trusted Seller and whether the threshold feels fair for low-ticket businesses.
+14
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Protected payments research flow
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+
+
+
+
+Buyer pays
+card / EFT / Ozow
+
+PSP protects
+funds
+
+Seller fulfils
+order/service
+
+Buyer confirms
+completion
+
+Release payout
+less 2% commission
+
+Research issue
+Why it matters
+Action
+
+2% commission vs PSP fees
+Card/payment fees may exceed app commission
+model fee bearer explicitly
+
+Held funds
+Could trigger PSP/PASA/legal obligations
+use provider-held state, not raw Eduvos custody
+
+Disputes/refunds
+Need partial/full refund and evidence trail
+prototype states before live funds
+15
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Fulfilment model: pickup, seller delivery, student courier and cross-campus fallback
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+Campus pickup
+Designated pickup zones, safe handoff points, QR/PIN confirmation, evidence timestamp.
+
+Seller delivery
+Seller handles delivery, status updates, handoff proof and delivery-fee rules.
+
+Student courier
+Verified / approved couriers, task assignment, proof-of-handoff and limited live location.
+
+Cross-campus
+Student courier between campuses, seller ships to buyer campus, or buyer collects elsewhere.
+
+Key research question
+At what point does cross-campus fallback create value, and when does it create more friction than a request/waitlist?
+
+Proof model
+Pickup code, courier scan, before/after condition photos, delivery photo, buyer confirmation and dispute evidence.
+16
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+AI compliance and moderation architecture
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+
+
+
+
+Listing / content
+submitted
+
+AI policy
+classifier
+
+Block / hold
+with reason
+
+Moderator
+review
+
+Publish / warn
+probation / appeal
+
+AI use case
+Risk reduced
+Human control
+
+Prohibited items
+unsafe listings, banned services
+review and appeal
+
+Food ingredients/allergens
+missing disclosure
+cannot certify hygiene
+
+Demand clustering
+missed opportunities
+staff validates strategy
+
+Seller coaching
+business friction
+staff-approved interventions
+17
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Demand Intelligence pipeline
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+
+
+
+
+Search / stockout
+request
+
+Zero-result
+event
+
+Cluster by
+campus + category
+
+Opportunity
+signal
+
+Seller / Hub
+action
+
+Privacy rule
+Demand signals should aggregate repeated behaviour. Do not expose individual search histories to sellers or staff unless a user intentionally posts a request.
+
+Success metric
+Opportunity conversion: unmet demand -> tested offer -> completed transaction -> Incubation support where useful.
+18
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+GitHub repository setup
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+Area
+Recommended setup
+Purpose
+
+Repository
+private GitHub repo: eduhackers-marketplace
+protect IP and coordinate team work
+
+Branches
+main, develop, feature/*, fix/*
+clear merge path and demo stability
+
+Project board
+Backlog, Ready, In Progress, Review, Testing, Done
+shared execution view
+
+Issue templates
+feature, bug, research spike, design task
+standard work intake
+
+PR template
+screenshots, tests, security, issue link
+prevent unreviewed changes
+
+CODEOWNERS
+Paballo for code; UX/Product review where needed
+clear review responsibility
+
+Docs
+/docs/adr, /docs/api, /docs/research
+evidence + technical decisions
+Rule: no direct commits to main; every feature should link to research, requirement and test evidence.
+19
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Build workflow by role
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+
+
+
+
+
+Research
+insight
+
+Requirement
+/ user story
+
+Figma
+flow
+
+GitHub
+issue
+
+Branch + PR
+implementation
+
+Test + demo
+evidence
+
+Role
+What they do in GitHub workflow
+
+Product
+prioritises issues, accepts scope, rejects creep
+
+UX/UI
+attaches Figma, reviews frontend match
+
+BA/Marketing
+adds requirements, business rules and adoption evidence
+
+Developer
+implements, tests, documents, merges via PR
+
+PM/Pitch
+tracks milestones and evidence for demo
+20
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Local, staging and production environments
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+Environment
+Purpose
+Data
+Deployment
+
+Local
+developer build and unit tests
+seeded mock data
+developer machine
+
+Preview PR
+review feature branches and UX implementation
+isolated or shared staging DB
+Vercel preview
+
+Staging
+end-to-end testing and demo rehearsal
+realistic test data, no real money
+protected staging
+
+Production/demo
+final Hack Jam demo or pilot
+controlled accounts and seeded scenarios
+main branch
+
+Environment variables
+Never commit secrets. Use separate env keys for Supabase, PSP sandbox, AI APIs, storage, email/SMS and analytics.
+21
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Testing strategy: unit, component, E2E and security
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+Layer
+Examples
+Research priority
+
+Unit
+fee calculations, status transitions, trust thresholds
+prevent hidden logic errors
+
+Component
+forms, empty states, filters, modals
+match Figma and accessibility
+
+E2E
+search -> order -> payment hold -> completion
+prove core loop
+
+Security
+object-level access, upload controls, rate limits
+protect trust system
+
+Accessibility
+keyboard, contrast, focus, reflow
+brief requirement
+
+Policy tests
+prohibited listing, food fields, dispute evidence
+compliance before launch
+Highest-value E2E: buyer search fallback, seller onboarding, protected payment, service deposit, rental deposit, dispute, moderator review, demand intelligence.
+22
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Security and privacy research requirements
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+Object-level authorization
+Every listing, order, message, dispute, evidence file, payout reference and staff dashboard query must enforce ownership and role scope.
+
+Data minimisation
+Public profiles should not reveal student number or government ID. Analytics should be pseudonymous and aggregated wherever possible.
+
+Evidence handling
+Dispute files, delivery proof and condition photos need access controls, retention rules, audit trails and safe upload processing.
+
+Risk
+Technical control
+
+Fake seller / account takeover
+verification, session security, rate limits, alerts
+
+Payout diversion
+PSP references, payout authorization, audit logs
+
+Fraudulent disputes
+evidence chain, human moderation, reason codes
+
+AI moderation error
+confidence thresholds, review and appeal
+23
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Developer build roadmap
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+Week
+Developer focus
+Output
+
+2
+Research spikes: identity, PSP, data model, RLS/RBAC, API map
+technical-risk readout
+
+3
+Repo setup, ADRs, ERD v0, OpenAPI draft, wireframe contracts
+build-ready specification
+
+4
+Frontend scaffolding, component system, auth prototype, listing/search skeleton
+clickable technical prototype
+
+5
+Core MVP flows: seller, listing, search fallback, order/payment-state stubs
+working core loop
+
+6
+E2E tests, security/accessibility checks, user testing fixes
+validated build evidence
+
+7
+Hardening, demo data, observability, backup path, pitch technical diagrams
+demo-ready build
+
+8
+Demo Day: show evidence path and realistic implementation plan
+technical credibility
+24
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Paballo’s immediate developer/research workplan
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+This week
+Confirm tech-stack assumptions. Create ERD v0. Draft OpenAPI map. Define RBAC matrix. Research PSP held-funds model. Prepare GitHub repo plan. Create E2E test list.
+
+By end of research week
+Validated P0/P1/Later technical scope, unresolved institutional questions, architecture decision records, setup checklist and development workflow.
+
+Do not do yet
+Do not integrate live money, implement every category, build native apps, overfit AI, or hard-code campus rules before validation.
+
+Create private GitHub repo and branch protections
+
+Publish issue/PR templates and contribution rules
+
+Link every build card to research evidence and acceptance criteria
+
+Build with PWA-first architecture and replaceable integrations
+
+Keep the MVP focused on proof of the marketplace loop
+25
+
+
+EDUHACKERS
+Developer build research - not final implementation spec
+
+Source base and research references
+
+Scope: all Eduvos campuses | Build model must be validated by user research, policy, legal and payment-provider checks
+
+Area
+Primary references used in research
+
+Frameworks
+Next.js Route Handlers and authentication guide; MDN PWA installability guidance
+
+Backend/Data
+Supabase Auth, RLS, Storage, Realtime and Edge Functions documentation
+
+Workflow
+GitHub protected branches and Actions workflow syntax; Vercel preview deployments
+
+Contracts
+OpenAPI 3.1 specification
+
+Security
+OWASP API Security Top 10 2023 and OWASP ASVS 5.0
+
+Testing
+Playwright and Storybook testing documentation
+
+Final technical thesis
+The build should optimise for trust, proof of demand and controlled execution. A narrow, well-instrumented MVP is stronger than a broad, shallow feature showcase.
+26

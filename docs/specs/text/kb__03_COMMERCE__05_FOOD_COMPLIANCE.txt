@@ -1,0 +1,24 @@
+F ood Marketplace Compliance and T rust
+F ood Marketplace Compliance and T rust
+Any eligible seller may use the F ood category; V ossie does not create a completely separate food-seller identity .
+Do not use “buy at your own risk” as the product message
+That weakens trust and does not replace applicable obligations.
+Product approach
+F ood listings should require stronger structured information and traceability:
+• ingredients,
+• allergens,
+• prep/availability time,
+• seller identity ,
+• food-specific reviews,
+• order/batch/preparation timestamps where useful,
+• clear report-food-safety flow.
+Seller responsibility
+V ossie provides platform rules, guidance, traceability and incident handling. Sellers remain responsible for meeting appli-
+cable food laws and campus requirements.
+Incident flow
+F ood safety report → evidence/order linkage → urgent Operations review → affected listing/batch/seller may be paused
+→ trace related orders → escalate according to policy .
+Production dependency
+Actual compliance requirements must be validated with Eduvos and relevant municipal/environmental-health authorities.
+Do not hard-code a broad “student exemption. ”
+1

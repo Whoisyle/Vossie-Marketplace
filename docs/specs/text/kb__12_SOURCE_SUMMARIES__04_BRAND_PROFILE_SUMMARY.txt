@@ -1,0 +1,9 @@
+Source Summary — V ossie Marketplace Brand/UIUX Profile
+The Brand/UIUX Profile defines the approved V ossie visual direction.
+Core palette: - W arm Ivory #FAF8F2 - V ossie Navy #29475B - Powder Blue #AFCBDE - Slate Blue #567487 - Pale Sage
+#DDE5D9
+Supporting typeface: Nimbus Sans.
+Visual inspiration: Plato-like softness/airiness without copying. Interaction inspiration: Uber-like clarity/status/navigation
+without copying.
+Brand assets override temporary styling used in older prototypes.
+1

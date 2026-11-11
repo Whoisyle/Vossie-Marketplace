@@ -1,0 +1,7 @@
+Source Summary — V ossie Implementation Specification
+The Implementation Specification is the detailed engineering handoff.
+Known scope: - 90 database tables - 202 API operations - 177 screens - 514 action bindings - 385 delivery tickets
+It distinguishes: - specified, - implemented/tested foundation, - specified but not implemented, - and external launch
+dependencies.
+It must not be interpreted as proof that the full product is production-ready .
+1

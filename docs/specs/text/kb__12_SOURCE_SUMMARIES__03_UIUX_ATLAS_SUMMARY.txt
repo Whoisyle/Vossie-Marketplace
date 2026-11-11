@@ -1,0 +1,7 @@
+Source Summary — F ull UI/UX Page Architecture
+The UI/UX atlas defines the 177-screen design universe, page-level actions, role boundaries, navigation targets and intended
+system effects.
+It includes Access, Shared, Buyer, Seller, Courier, Hub, T ransfers, Incubation, Operations and Extensions.
+Important principle: prototype clicks can simulate mutation but do not prove a backend action exists. Production actions
+require server authority , state validation and permission checks.
+1

@@ -1,0 +1,2211 @@
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 1
+EDUHACKERS
+Eduvos
+Marketplace
+Full Research
+Dossier
+A multi-campus student commerce, trust and
+entrepreneurship ecosystem
+Research position
+This dossier is deliberately broader than a normal marketplace proposal. It benchmarks the
+market, tests where existing campus marketplaces stop, and develops a research agenda for a
+verified Eduvos ecosystem spanning commerce, delivery, events, gigs, rentals, social
+discovery, AI compliance and Incubation Hub intelligence.
+Primary audience: Eduvos students
+Also for: Hack Jam judges and EduHackers build team
+Team: EduHackers
+Prepared by workstream: Paballo Kali - Developer / Research Lead
+ Official Hack Jam brief - source of
+truth for the challenge.
+Version: 20 September 2026 | Scope: all Eduvos campuses | Status: desk research + research hypotheses for validation
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 2
+1. Executive summary
+What the evidence currently supports, what remains a hypothesis, and
+where EduHackers can differentiate.
+The Hack Jam brief asks teams to design a digital Marketplace for Incubation Hub entrepreneurs and
+the wider student community, covering profiles, listings, discovery, interaction, orders or enquiries,
+safety, accessibility and value creation. It also judges solutions on innovation, genuine user need,
+practicality, scalability, accessibility and sustainability. Those criteria mean a generic listing board is
+not enough. [R1]
+Desk research shows that many individual features the team initially considered are already present
+in the market. UWC has built a student marketplace with verification, search optimisation and
+security testing. Makethe supports verified student stores, products, services, bookings, secure
+payments, analytics and CRM. Campus Needs combines campus verification with protected payments
+and on-campus handoff. Grid has a wanted board. KANU combines entrepreneurship learning with a
+school marketplace and real venture outcomes. CampuzBhiz combines marketplace, food delivery,
+rider tracking and events. Therefore EduHackers should not claim novelty for verification, listings,
+messaging, requests, bookings, delivery, events or basic analytics in isolation. [R4] [R5] [R6] [R7]
+[R11] [R12]
+The strongest white-space hypothesis is the closed loop between demand, venture creation and
+incubation. Instead of treating a failed search or stock-out as the end of the user journey, the
+proposed system tries local alternatives, other sellers, other campuses, substitute products or service
+slots, and finally a structured request. Repeated unmet demand becomes an opportunity signal. That
+signal can help an existing seller extend their offer, help an aspiring entrepreneur choose what to
+test, and help the Incubation Hub identify where supply or business capability is weak. Real
+transaction outcomes then feed back into support decisions.
+Strategic thesis
+EduHackers should position the concept as a verified Eduvos entrepreneurship operating
+system: campus-first commerce + protected transactions + demand intelligence +
+evidence-driven incubation. The novelty claim should be modest: this exact closed loop was not
+found in the reviewed public student-marketplace implementations; that does not prove global
+uniqueness.
+The proposed concept is intentionally broad for research. Any verified Eduvos student can be a buyer
+and, after ID + student verification, a seller. The research scope includes products, services, food,
+second-hand goods, rentals, digital products, selected subscriptions, events, gigs, group orders, a
+campus-first short-video discovery feed, student couriers, designated pickup points, protected
+payments, buyer and seller trust, AI-assisted compliance, and an Incubation Hub intelligence layer.
+The MVP should not attempt all of these at full production depth; the research must determine which
+elements are essential to prove the ecosystem.
+A major finding is that the proposed 2% platform commission is not the same as an all-in payment
+cost. Current public pricing is roughly 2.9% + R1 for Paystack local cards, 3.2% + R2 for Payfast
+cards, 2% for some EFT rails, and 1.5% minimum R1 for several Ozow pay-by-bank / PayShap
+methods. If Eduvos absorbs processor fees, a 2% commission can be negative-margin on card
+payments. The commercial model must therefore decide whether processing is passed through,
+subsidised, negotiated at enterprise rates, or incorporated into a different fee architecture. [R19]
+[R21] [R22]
+The recommendation is to use Week 2 research to validate the biggest uncertainties rather than
+perfect every feature. Priority validation questions are: how Eduvos students currently discover
+student businesses; what makes them trust a seller; whether meaningful unmet demand exists
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 3
+across campuses; whether live availability and cross-campus fallback reduce lost demand; whether
+buyers understand protected payment; whether entrepreneurs value demand intelligence; and
+whether Incubation Hub staff can act on marketplace evidence.
+ Figure 1. EduHackers differentiation hypothesis: demand becomes opportunity intelligence and evidence-driven support.
+2. Interactive contents
+Use the PDF outline/bookmarks and clickable web references in the
+reference section.
+2
+1. Executive summary
+3
+2. Interactive contents
+8
+3. Method, evidence status and research discipline
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 8
+Evidence labels used throughout
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 8
+Source quality and freshness
+8
+4. Hack Jam brief alignment
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 9
+Judging criteria translated into product questions
+9
+5. EduHackers team and responsibility model
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 9
+Developer / Research Lead operating rule
+10
+6. Eduvos context: one institution, many campus micro-markets
+11
+7. Studentpreneurship evidence in South Africa
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 11
+Implication for the marketplace research
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 11
+Questions to validate
+11
+8. South African e-commerce context: digital buying is normal, trust still matters
+12
+9. South African payment behaviour and checkout design
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 4
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 12
+Payment methods to compare in user research
+13
+10. Market landscape: what already exists
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 13
+Campus / student marketplace prior art
+14
+11. Prior-art deep dive I: campus verification, discovery and protected trade
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 14
+UWC Campus Marketplace
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 14
+Campus Needs
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 14
+Yaga and Bob Shop as South African trust references
+14
+12. Prior-art deep dive II: entrepreneurship, delivery and campus operating systems
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 14
+Makethe
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 14
+KANU
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 15
+CampuzBhiz
+15
+13. What is not unique - and therefore should not lead the pitch
+16
+14. Differentiation thesis: the Eduvos Opportunity Engine
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 16
+Research questions
+17
+15. User and actor model
+17
+16. Marketplace modes in scope
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 17
+Shared listing core
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 17
+Subtype examples
+18
+17. Campus-first discovery and live availability
+19
+18. Cross-campus fulfilment and designated pickup points
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 19
+Proof-of-handoff options to test
+20
+19. Protected payments: the experience is easy; the money movement is not
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 20
+Proposed transaction states
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 20
+Services
+20
+20. The 2% commission problem: unit economics must be explicit
+21
+21. Buyer protection, refunds, returns and disputes
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 21
+Buyer-protection cases to support
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 22
+Human moderation
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 22
+Two-sided fairness
+22
+22. Trust architecture: verification, reputation and progression
+23
+23. Trusted Seller benefits - earned visibility, not paid boosting
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 23
+Benefits to research for Trusted Sellers
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 23
+Ranking fairness
+23
+24. Food marketplace research: convenience creates higher safety obligations
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 23
+Proposed food controls to research with Eduvos/legal/health
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 23
+AI role
+24
+25. Prohibited items, AI moderation and graduated enforcement
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 24
+User-selected enforcement flow
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 5
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 24
+Policy design principle
+24
+26. Services: booking, 30% deposits and academic-integrity boundaries
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 24
+Service evidence trail
+25
+27. Rentals and high-value items
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 25
+Proposed rental flow
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 25
+Research questions
+25
+28. Second-hand goods and digital products
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 25
+Second-hand goods
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 25
+Digital products
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 25
+Copyright and academic integrity
+26
+29. Limited recurring services and subscriptions
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 26
+Candidate categories to research
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 26
+Controls
+26
+30. Events, gigs and opportunity marketplace
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 26
+Critical institutional boundary
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 26
+Why events matter strategically
+27
+31. Social discovery: campus-first reels, follows and recommendations
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 27
+Benefits to test
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 27
+Risks
+27
+32. Group buying, rewards and campus recognition
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 27
+Two reward layers
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 27
+Leaderboards
+28
+33. Incubation Hub intelligence: from dashboard to intervention
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 28
+Internal Business Health Score
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 28
+Seller-facing guidance
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 28
+AI-assisted intervention
+28
+34. AI as a visible compliance and marketplace assistant
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 28
+High-value AI use cases
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 28
+Human-control rules
+29
+35. Privacy and POPIA: the platform should know less than it can
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 29
+Data-minimisation principles
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 29
+Automated decision risk
+29
+36. Security architecture: marketplace trust depends on object-level controls
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 29
+Priority controls for the MVP
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 30
+Threat-model focus
+30
+37. Accessibility and inclusive interaction
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 30
+MVP accessibility requirements
+30
+38. Reference architecture and data boundaries
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 6
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 31
+Core bounded areas
+32
+39. Conceptual data model
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 32
+Critical relationship
+32
+40. Analytics and marketplace-health metrics
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 32
+Core events
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 33
+Core metrics
+33
+41. Payment architecture and compliance research
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 33
+Architecture principle
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 33
+Payment research checklist
+34
+42. Consumer, electronic-transaction and platform-policy implications
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 34
+Policy areas requiring institutional/legal sign-off
+35
+43. Research hypotheses to test across campuses
+35
+44. Interview programme: observe behaviour before pitching the solution
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 36
+Buyer prompts
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 36
+Seller prompts
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 36
+Aspiring seller prompts
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 36
+Incubation / stakeholder prompts
+36
+45. Survey design: measure patterns after interviews reveal them
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 36
+Core survey fields
+37
+46. Prototype tests: convert the concept into falsifiable tasks
+37
+47. MVP cutline: prove the system before building the super-app
+38
+48. Eight-week research-to-build roadmap
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 38
+Week 2 - research
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 38
+Week 3 - concept / requirements
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 38
+Week 4 - design
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 38
+Week 5 - MVP
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 38
+Week 6 - user testing
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 38
+Week 7 - refine / pitch
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 38
+Week 8 - Demo Day
+39
+49. Risk matrix and mitigation priorities
+39
+50. Strategic focus: what EduHackers should optimise for
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 39
+1. Liquidity
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 40
+2. Trust
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 40
+3. Opportunity creation
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 40
+4. Business growth
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 40
+5. Institutional learning
+40
+51. Recommended pitch claims - and claims to avoid
+41
+52. Immediate work plan for Paballo Kali - Developer / Research Lead
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 7
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 41
+Research execution
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 41
+Technical research
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 41
+Decision outputs by the end of research week
+41
+53. Research repository structure and traceability
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 41
+Observation record
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 41
+Recommended tags
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 42
+Traceability example
+42
+54. Open decisions that research must not hide
+42
+55. Conclusion
+44
+56. References
+47
+Appendix A. Role-permission matrix
+48
+Appendix B. Analytics event dictionary
+49
+Appendix C. Interview note template
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 49
+Behavioural episode
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 49
+Raw observations
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 49
+Tags / interpretation
+ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 49
+Researcher caution
+50
+Appendix D. AI-use transparency log for Hack Jam work
+How to read this dossier
+Parts I-II establish the problem and market. Part III documents the full concept discussed by
+EduHackers. Part IV tests the technical, payment, legal and governance implications. Part V
+converts the research into interviews, metrics, MVP scope and an eight-week delivery plan.
+Policy ideas are labelled as proposals, not facts.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 8
+3. Method, evidence status and research
+discipline
+This report combines four evidence types: the uploaded Hack Jam brief; public Eduvos information;
+current market/prior-art research; and external academic, regulatory and industry sources. A fifth
+layer - EduHackers product-policy modelling - captures decisions made during the team discovery
+discussion. These layers must not be confused.
+Evidence labels used throughout
+• Brief requirement: directly supported by the Eduvos Hack Jam brief.
+• External evidence: supported by public academic, industry, provider or regulatory material.
+• Prior art: an existing product demonstrates that a feature is already in market.
+• Research hypothesis: plausible direction that still needs Eduvos user/staff evidence.
+• Policy proposal: a rule the team has discussed, but which requires legal, operational or user validation
+before production.
+The most important discipline is falsification. Interviews should not be used to make respondents
+agree with a pre-built solution. Instead, the team should look for evidence that its assumptions are
+wrong. If students already have effective discovery channels, or Incubation Hub staff cannot use
+marketplace data, or cross-campus fulfilment is too expensive, the product should adapt. This is
+stronger research than selectively collecting supportive quotes.
+Research limitation
+Desk research cannot establish how Eduvos students actually behave. Claims such as
+“students rely on WhatsApp” remain hypotheses until observed across actual Eduvos users.
+Findings should be segmented by campus and user type, and any Potchefstroom-heavy sample
+must be labelled as such.
+Source quality and freshness
+For current market/pricing claims, this dossier prioritises official provider pages and 2026 sources.
+Payment fees, app features and regulatory guidance can change; they should be re-checked before
+implementation. Academic studies provide context rather than direct proof of Eduvos behaviour.
+4. Hack Jam brief alignment
+The official challenge asks how Eduvos can create a digital Marketplace enabling Incubation Hub
+students to showcase, promote and sell products and services to the student community. The brief
+specifically calls out entrepreneur registration/profiles, listings, product/service discovery,
+customer-seller interaction, order/enquiry management, safety, accessibility/ease of use and ongoing
+value. [R1]
+The brief also encourages responsible AI but requires students to remain accountable for originality,
+accuracy, quality and integrity; to verify AI outputs; disclose AI contribution; respect IP/privacy; and
+avoid uploading confidential or sensitive information. This creates a direct design requirement for the
+project team itself and a useful precedent for the marketplace AI layer. [R1]
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 9
+Judging criteria translated into product questions
+Criterion
+Research question for EduHackers
+Innovative
+Does the concept create a meaningful new loop, or only repackage existing
+marketplace features?
+User-focused
+Which real buyer, seller and aspiring-entrepreneur problems are evidenced at
+Eduvos?
+Practical
+Can identity, payments, disputes, moderation and campus operations work within
+realistic institutional constraints?
+Scalable
+Can the same architecture support every campus without hard-coded local
+assumptions?
+Accessible
+Can students use the platform on mobile connections, with WCAG-aligned interaction
+and understandable flows?
+Sustainable
+Does the platform retain users, create liquidity and fund/support operations over
+time?
+The user-selected product vision broadens the original brief beyond only existing Incubation Hub
+entrepreneurs: the research hypothesis is that any verified Eduvos student can become a seller, with
+the Incubation Hub acting as a growth and evidence layer. That expansion must be presented as a
+proposed evolution of the challenge, not as a brief requirement.
+ Figure 2. Official Hack Jam 2026 brief cover - the primary project source.
+5. EduHackers team and responsibility
+model
+Member
+Role(s)
+Primary responsibility
+Paballo Kali
+Developer / Research Lead
+Research design, technical architecture, implementation,
+security, analytics, evidence traceability
+Oratile Modise
+UX/UI Designer
+Information architecture, user flows, wireframes, Figma
+prototype, accessibility, usability iteration
+Dikeledi Precious Phiri
+Marketing Lead / Business
+Analyst
+Requirements, business rules, value proposition, adoption
+research, marketplace marketing
+Mpumelelo Malindi
+Product Lead
+Vision, prioritisation, scope, decision log and MVP cutline
+Danny Mohale
+Project Manager / Pitch Lead
+Timeline, blockers, coordination, pitch structure, demo and
+evidence packaging
+Sixth member
+TBD
+Assign after skills/role confirmation; do not invent ownership
+Developer / Research Lead operating rule
+Paballo’s two roles create a useful advantage: research questions can become product
+instrumentation. Instead of doing research in a document and later guessing what to measure in
+code, the team can define events such as search_zero_result, request_matched, order_completed and
+dispute_opened before implementation. That allows the prototype to generate behavioural evidence
+automatically during testing.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 10
+The handoff chain should be: source → observation → insight → problem → hypothesis → requirement
+→ Figma → GitHub issue → code → test → evidence. This keeps the final pitch traceable and prevents
+features from appearing without a reason.
+6. Eduvos context: one institution, many
+campus micro-markets
+Eduvos publicly operates 12 campuses. The 2025 annual report presents a national student footprint
+with major differences in campus size, plus an online cohort. These differences matter because a
+marketplace can be liquid at a large campus while remaining sparse at a smaller campus. A single
+institution-wide product therefore needs campus-aware discovery and a fallback to institution-wide
+supply. [R2]
+The same annual report indicates an Incubation Hub pilot at Midrand, Tygervalley and Nelson
+Mandela Bay involving 22 students, which is directly relevant to the Hack Jam: the marketplace can
+be designed as a mechanism that helps the Hub observe and support student ventures using actual
+marketplace evidence rather than only periodic self-reporting. [R2]
+Eduvos also demonstrates an ability to run institution-wide engagement. In 2026, its career fairs took
+place across all 12 campuses, with more than 1,700 students and 240 employers participating. That
+supports the feasibility of coordinated campus programmes, while not proving that marketplace
+operations would be identical everywhere. [R3]
+Figure 3. Student footprint from Eduvos Annual Report 2025; counts may use different institutional reporting definitions and
+should be treated as contextual.
+Design consequence
+Model Campus as a first-class entity from the beginning. Physical supply should default to the
+user’s campus; digital services can be institution-wide; and “no local result” should trigger
+cross-campus alternatives rather than a dead end.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 11
+7. Studentpreneurship evidence in South
+Africa
+South African studentpreneurship research gives useful context but should not be treated as direct
+Eduvos evidence. Fihla and Gavaza’s 2026 qualitative work with 15 studentpreneurs found that
+entrepreneurship support mechanisms could be uneven, poorly integrated and inconsistently
+accessible, and argued for more sustained support. [R36]
+Research across South African public universities has highlighted mentorship, training, networking,
+business advice, creative spaces, management support and funding as important support
+mechanisms. Another study of transitions from student to business owner identified
+resourcing/capability challenges and reliance on informal support networks. [R37] [R38]
+Implication for the marketplace research
+These findings justify testing whether a marketplace can become more than a transaction layer. If a
+platform can observe real demand, fulfilment, repeat customers, cancellations, seller response time
+and opportunity gaps, it may provide a practical evidence layer for entrepreneurship support. The key
+word is may: Incubation Hub interviews must determine whether those metrics are meaningful,
+ethical and actionable in Eduvos practice.
+Questions to validate
+• Do current student entrepreneurs have reliable customer-acquisition channels?
+• Which support needs appear only after a student starts trading?
+• Would evidence of real traction improve mentorship decisions?
+• Would aspiring entrepreneurs use campus demand evidence to choose what to test?
+• Where would marketplace analytics create unfair or misleading judgments?
+8. South African e-commerce context: digital
+buying is normal, trust still matters
+South African online retail is forecast at about R159 billion in 2026, up an estimated 22.5% from
+roughly R130 billion in 2025, and expected to average 10% of national retail turnover for the first full
+year. This demonstrates a mature digital-commerce context rather than a fringe behaviour. [R17]
+[R18]
+However, internet access and online shopping are not the same. World Wide Worx reports internet
+access at 79.1% of adults while only 34.2% shop online, with 25-34-year-olds the highest age-group
+penetration at 39.5%. The implication is that having connected students does not guarantee
+transaction adoption; trust, payment friction, fulfilment and value still matter. [R17]
+The 2026 report also describes South African shopping as smartphone-first while browser purchasing
+remains important across many categories. That supports the user’s decision to research both a
+mobile app and a full web app/PWA rather than assuming app-only behaviour. [R18]
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 12
+ Figure 4. South African online retail turnover trajectory from public World Wide Worx / partner reporting.
+Product implication
+The winning interaction model is likely “mobile-first, not mobile-only”: fast browser access for
+discovery and checkout, a mobile app for deeper engagement/notifications, and an installable
+PWA/desktop experience for sellers, staff and power users.
+9. South African payment behaviour and
+checkout design
+Card remains important, but pay-by-bank, instant EFT, PayShap and digital wallets are increasingly
+relevant. Peach Payments’ 2026 reporting says digital wallets grew more than 35% year-on-year,
+40.8% of surveyed retailers were already on Instant EFT or PayShap, and Capitec Pay represented
+around 40% of payment value at some processors. [R18]
+The research implication is not “add every payment logo.” It is to make checkout recognise familiar
+student payment methods, recover cleanly from network failures, show fees before commitment, and
+use a payment orchestration architecture that can change providers without rewriting the
+marketplace. Crypto can remain a research/future rail, but it introduces reporting, volatility and
+compliance complexity that should not distract from the MVP.
+Payment methods to compare in user research
+• Debit / credit cards and mobile wallets where supported.
+• Pay-by-bank / instant EFT / PayShap-style rails.
+• Standard EFT only where reconciliation can be made reliable.
+• Crypto as a future/high-complexity option, not a default MVP dependency.
+Conversion risk
+Payment choice should be evidence-driven. The 2026 online-retail report identifies card
+declines and shipping fees among major abandonment causes. The marketplace should
+instrument checkout failures and recovery, not treat every abandoned cart as lack of interest.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 13
+10. Market landscape: what already exists
+The benchmark set spans campus marketplaces, student-business platforms, entrepreneurship
+systems and broader South African trust/payment references. The purpose is not to find one exact
+competitor; it is to understand which building blocks are already proven and where the combination
+may be underdeveloped.
+Campus / student marketplace prior art
+UWC Campus Marketplace shows student verification, products/services, strong search optimisation
+and cybersecurity testing. Makethe shows student stores, products, services, bookings, secure
+payments, analytics and CRM. Campus Needs shows verified campus users, protected payments and
+on-campus handoffs. Campus Marketplace on iOS shows verified students, Paystack, chat, search,
+filters and favourites. UniBay is a South African student marketplace with listings/chat and study-note
+functions. Student Hub Marketing supports campus listings, real-time chat and campus-focused
+authentication. [R4] [R5] [R6] [R8] [R9] [R10]
+Grid is especially relevant because its Wanted Board lets buyers post what they need and sellers
+respond. This means the “buyer request” pattern is prior art. CampuzBhiz is especially relevant
+because it combines campus marketplace, food delivery, live rider tracking, vendor tools and event
+tickets. That means campus delivery + events are also not sufficient differentiation. [R11] [R12]
+KANU is the closest entrepreneurship-system analogue: its current public site describes school
+marketplaces, AI guidance, venture activity and verified real-world outcomes. It demonstrates that
+“marketplace + entrepreneurship education/support” cannot be claimed as globally new. [R7]
+ Figure 5. Feature heatmap based on public materials reviewed; blank cells mean “not found in reviewed public material”,
+not proof of absence.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 14
+11. Prior-art deep dive I: campus
+verification, discovery and protected trade
+UWC Campus Marketplace
+UWC’s public story is useful because it documents an internal evolution from very low traffic to heavy
+emphasis on search optimisation. Security was treated as a first-class problem: the founders worked
+with campus cybersecurity groups and required student verification. The lesson for EduHackers is
+that discovery quality and trust are core infrastructure, not polish. [R4]
+Campus Needs
+Campus Needs frames its proposition around verified students, campus-local exchange and protected
+payments. It also emphasises on-campus handoffs. The lesson is that “verified students + safe
+exchange” is already a clear competitive proposition. EduHackers needs a deeper institutional loop
+rather than only safer classifieds. [R6]
+Yaga and Bob Shop as South African trust references
+Yaga’s payment-protection flow closely resembles the user-selected “buyer confirms before seller
+payout” idea: payment is held, the seller fulfils, the buyer confirms receipt, and funds are released.
+Yaga also ties protection to staying on-platform. Bob Shop shows another pattern: protection levels
+can vary by seller verification/tier, and both buyers and sellers accumulate transaction reputation.
+These examples support protected payments and earned trust, while also showing that the policies
+require evidence, exclusions and support operations. [R13] [R14] [R15]
+ Figure 6. Proposed EduHackers seller progression inspired by verified/trusted marketplace patterns, but tailored to student
+entrepreneurship.
+12. Prior-art deep dive II: entrepreneurship,
+delivery and campus operating systems
+Makethe
+Makethe demonstrates that a student marketplace can already package student verification, branded
+storefronts, products/services, bookings, payments, analytics, CRM and notifications. That raises the
+baseline. A seller dashboard is useful, but not enough to differentiate EduHackers. [R5]
+KANU
+KANU demonstrates a different direction: entrepreneurship education, a school marketplace, venture
+activity and verified outcomes. Its public site says 4,000+ student ventures and $200K+ verified
+student revenue. EduHackers should therefore avoid claiming that merely connecting
+entrepreneurship education to a marketplace is unique. [R7]
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 15
+CampuzBhiz
+CampuzBhiz shows a broad campus “super-app” pattern: buying/selling, food and product delivery,
+real-time rider tracking, services, messaging, vendor tools and events. It is a strong warning against
+positioning breadth itself as innovation. Breadth can improve utility; differentiation must come from
+the system logic and institutional integration. [R12]
+Benchmark conclusion
+The feature race is already crowded. EduHackers should win on orchestration: verification →
+discovery → protected transaction → evidence → demand intelligence → seller development →
+Incubation Hub action.
+13. What is not unique - and therefore
+should not lead the pitch
+Feature
+Why it should not be the innovation headline
+Verified university users
+Already present in multiple campus marketplaces.
+Products + services
+Common baseline.
+In-app chat
+Common baseline.
+Search and filters
+Common baseline.
+Secure payments
+Common baseline.
+Bookings
+Already present in student-marketplace prior art.
+Wanted board / requests
+Grid demonstrates the pattern.
+Campus delivery / riders
+CampuzBhiz demonstrates the pattern.
+Events / tickets
+Present in broader campus app patterns.
+Seller analytics
+Present in Makethe and other commerce systems.
+Entrepreneurship support
+KANU demonstrates an integrated education/venture model.
+Ratings / trusted sellers
+Mature marketplace baseline.
+These features are still valuable. The strategic mistake would be to present them as proof of
+innovation. Instead, the pitch can say that EduHackers learned from existing products and
+deliberately moved the innovation layer upward - from individual features to a feedback system that
+helps Eduvos create and grow student ventures.
+Defensible novelty wording
+“In the public student-marketplace implementations reviewed, we did not find this exact closed
+loop combining marketplace telemetry, unmet-demand creation, venture validation and
+Incubation Hub intervention. This is a white-space hypothesis, not a claim that nobody globally
+has ever built it.”
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 16
+14. Differentiation thesis: the Eduvos
+Opportunity Engine
+The proposed Opportunity Engine begins with a practical user-experience rule: never end a legitimate
+buying journey at “no stock” or “not available.” The platform should first protect the buyer’s intent:
+find another seller, another slot, another campus, a similar option, or let the buyer publish a
+structured request. Only after those fallbacks fail does the system treat the interaction as unmet
+demand.
+Unmet demand is then aggregated by campus, category, time and intent. A single failed search is
+noise; repeated patterns become a signal. The system can surface that signal to existing sellers
+(“students repeatedly ask for X”), to aspiring entrepreneurs (“this campus has demand and little
+supply”), and to the Incubation Hub (“this category has demand but low fulfilment”). The marketplace
+thereby becomes a market-sensing instrument.
+The strongest version of the idea closes the loop by measuring what happens next. If a student
+launches a new offer, the platform can see listing views, contacts, bookings, completion, repeat
+customers and disputes. That evidence can improve business support. This is materially different
+from an incubator asking only whether a student “made progress.”
+ Figure 7. The Opportunity Engine closes the loop from demand to business growth.
+Research questions
+• Are zero-result searches frequent enough to be useful?
+• Do students understand and trust a wanted/request flow?
+• Can opportunity signals be aggregated without exposing individual search behaviour?
+• Would aspiring entrepreneurs act on demand evidence?
+• Can the Incubation Hub turn the signals into concrete support?
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 17
+15. User and actor model
+The concept needs more than “buyer” and “seller.” It includes transaction participants, campus
+logistics actors, institutional staff and moderation. Roles should be explicit because permissions, data
+visibility and risk differ.
+Actor
+Capabilities / responsibilities
+Sensitive boundaries
+Verified Student /
+Buyer
+Discover, buy, book, rent, RSVP, review, post requests/reels
+No seller credibility inherited from buyer
+trust
+Personal Seller
+Sell under verified personal profile; fulfil orders/services
+Identity verified; business brand unlock
+not immediate
+Trusted Seller
+Earned benefits, storefront, selected subscriptions, larger
+opportunities
+Must remain in good standing
+Student Courier
+Accept eligible delivery tasks
+Location and handoff data tightly
+scoped
+Approved Courier
+Higher-trust courier status after extra onboarding
+Institution-defined checks
+Event Organiser
+Create approved events, capacity, tickets, vendor
+applications
+Only approved organisers
+Incubation Staff
+See internal business-health evidence; approve interventions
+No public exposure of internal scores
+Moderator
+Review reports, disputes, policy violations and appeals
+Human review with audit trail
+Admin
+Platform configuration and access management
+Least privilege; not universal data
+access by default
+AI Compliance
+Assistant
+Flag/hold content, summarise risk, recommend interventions
+No final high-impact penalty without
+review path
+The user-selected policy is that every verified Eduvos student can be a buyer. Selling requires Eduvos
+student verification plus government-ID verification. Real identity stays private to the
+platform/Eduvos; public identity can later become a brand storefront after the seller earns trust.
+16. Marketplace modes in scope
+The research scope is deliberately multi-modal because student economic activity does not fit one
+transaction type. Products, services, food, rentals, second-hand goods, digital products, events and
+gigs each have different data, fulfilment and dispute requirements. Forcing all of them into one
+“listing” flow creates fragile design.
+Shared listing core
+Every listing can share seller, campus, title, description, media, category, price/pricing model,
+availability, visibility, trust context, moderation status and timestamps. Subtypes then add
+domain-specific requirements.
+Subtype examples
+• Product: stock, condition, pickup/delivery options, variants.
+• Service: duration, availability slots, brief, booking, 30% deposit, milestones.
+• Food: ingredients/allergens, preparation window, storage and compliance declarations.
+• Rental: availability period, deposit, condition evidence, return deadline, late charges.
+• Digital: file/version/licence, controlled delivery, download evidence.
+• Event: capacity, tickets, waitlist, vendor applications, reminders.
+• Gig/opportunity: brief, deadline, budget, application/quote process and approval rules.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 18
+ Figure 8. Marketplace modes being researched. Inclusion in the diagram does not mean every mode belongs in the first
+MVP.
+17. Campus-first discovery and live
+availability
+The user’s strongest experience requirement is continuity: if one seller is unavailable, the platform
+should keep working rather than tell the buyer to leave. This is a direct response to marketplace
+liquidity problems: a marketplace fails when demand arrives but cannot find usable supply.
+For products, “availability” should mean real stock plus pickup/delivery readiness. For services it
+should mean bookable time. The interface can show states such as Available now, Available today,
+Available after 15:00, Pickup today and Next available slot. These states should be backed by seller
+configuration or inventory rather than decorative badges.
+The campus-first ranking principle is: own campus first for physical convenience; wider Eduvos only
+when needed. Digital services can be institution-wide by default. This reduces irrelevant results while
+preserving the all-campus network effect.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 19
+ Figure 9. Discovery fallback designed to preserve purchase intent and generate structured unmet-demand evidence.
+Metric consequence
+Track the entire fallback chain: local search success, fallback success, cross-campus
+conversion, substitute acceptance and request creation. A “zero-result rate” without fallback
+data would understate how much demand the platform actually salvages.
+18. Cross-campus fulfilment and designated
+pickup points
+When a product exists at another campus, the research concept allows three fulfilment paths: a
+verified student courier transports it between campuses; the seller ships/transfers it to the buyer’s
+campus; or the buyer arranges collection at the other campus. The marketplace should compare
+these options by cost, expected time and eligibility.
+For same-campus transactions, designated pickup points can reduce ambiguous meetups. The
+research should compare official safe zones, staffed desks, smart lockers and seller/courier handoff
+areas. Eduvos should approve physical locations and operating rules; the app should not infer or
+publish sensitive campus safety details without institutional approval.
+The student-courier concept is hybrid: verified students may apply to deliver, while Eduvos or the
+Incubation Hub can create a higher-trust “approved courier” tier. The research must test safety,
+insurance/liability, earnings, late delivery, lost items, food handling and what proof constitutes a
+completed handoff.
+Proof-of-handoff options to test
+• Buyer one-time code / QR at designated pickup.
+• Seller/courier and buyer timestamps.
+• Photo evidence only when privacy-safe and necessary.
+• Event logs tied to the order rather than exposing continuous location history.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 20
+19. Protected payments: the experience is
+easy; the money movement is not
+The user-selected experience is similar to Yaga: the buyer pays inside the marketplace; funds remain
+protected; the seller fulfils; the buyer manually confirms receipt/completion; only then does the seller
+receive the payout. Yaga demonstrates that this buyer-confirmation pattern exists in South Africa, but
+its legal and payment-provider structure should not simply be copied. [R13]
+The implementation should avoid Eduvos casually “holding client money” in its own bank account.
+PASA states that organisations accepting payments from multiple parties for a client or disbursing
+payments to multiple parties may need Third Party Payment Provider registration through a
+sponsoring bank. The architecture should therefore use a regulated payment partner/subaccount/split
+model and obtain legal/payment advice before launch. [R20] [R23]
+Proposed transaction states
+Requested → Accepted → Awaiting payment → Protected payment confirmed → Preparing / In
+progress → Ready / Delivered → Buyer confirms → Completed / Payout. Alternative end states include
+Cancelled, Refunded, Partially refunded and Disputed.
+Services
+The user-selected research policy is a fixed 30% upfront deposit for services, with the remaining 70%
+protected until completion. If the buyer cancels after work starts, a moderator decides whether the
+seller retains all, some or none of the deposit based on the agreed brief, timestamps, submitted work
+and communications. This should be tested for fairness across very different service types.
+Figure 10. Illustrative processor fees on a R500 order compared with a 2% platform commission; public standard pricing, not
+negotiated enterprise rates.
+20. The 2% commission problem: unit
+economics must be explicit
+The planned 2% app commission is attractive to students, but processor pricing creates a structural
+question. At public standard rates, a R500 Paystack card payment is about R15.50 before VAT, while
+a 2% platform commission is only R10. Payfast card pricing is higher. Some pay-by-bank rails can fit
+below 2%, but not every payment method will. [R19] [R21] [R22]
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 21
+This means “2% commission” cannot silently mean “Eduvos pays every payment cost and still earns
+2%.” The team needs an explicit fee model. Options include: 2% platform commission plus processor
+fee shown separately; processor fee borne by seller; a small buyer protection/processing fee;
+negotiated enterprise PSP rates; Eduvos subsidy during the pilot; or a different commission after
+evidence. The report recommends keeping 2% as the platform commission hypothesis while
+validating payment-cost treatment.
+This is also why lower-cost pay-by-bank and PayShap-style methods deserve prominent checkout
+placement, provided students trust and use them. The objective is not to push users to a payment
+method purely because it is cheaper; it is to balance conversion, familiarity, refunds, protection and
+cost.
+ Figure 11. The fee gap remains visible at R1,000. Enterprise pricing may differ; this is a research warning, not a final
+business model.
+Recommendation for the pitch
+Do not promise that 2% covers payment processing. Say: “We propose a 2% marketplace
+commission and will validate the processor-fee model with Eduvos and a regulated PSP.”
+21. Buyer protection, refunds, returns and
+disputes
+The platform’s trust proposition depends on clear failure handling. Mature marketplaces such as Yaga
+and Bob Shop tie protection to transactions completed on-platform and define evidence, exclusions
+and support processes. EduHackers should do the same. [R13] [R14]
+Buyer-protection cases to support
+• Non-delivery / seller never fulfils.
+• Item or service materially differs from agreed listing/brief.
+• Unsafe, prohibited or fraudulent transaction.
+• Partial failure where only part of the order/service was delivered correctly.
+• Returnable physical item with evidence and policy eligibility.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 22
+Human moderation
+Disputes should be reviewed by a human moderator using order data, in-app messages, uploaded
+evidence, delivery/handoff records, timestamps and the original listing/brief. AI can summarise
+evidence, detect inconsistencies and prioritise risk, but the user has explicitly chosen human review
+for dispute decisions.
+Two-sided fairness
+Buyer protection cannot become an easy refund-abuse mechanism. Buyer reputation should
+therefore include payment reliability, cancellations, abusive dispute patterns and failed collections.
+Seller reputation should separately reflect fulfilment, response time, complaints, repeat customers
+and cancellations. Neither side’s score should be a single opaque AI number.
+22. Trust architecture: verification,
+reputation and progression
+The proposed trust model has several layers rather than one five-star score. Identity trust comes from
+Eduvos student verification plus government ID for sellers. Transaction trust comes from completed
+orders, fulfilment, response time, cancellations, disputes and verified reviews. Business maturity
+comes from sustained good standing and seller progression.
+The user-selected storefront unlock is 10 successful sales + a recommended R1,000 cumulative
+completed sales value + good rating/trust standing + no serious unresolved disputes or active
+probation. R1,000 is a product-policy recommendation, not a regulatory standard. It is low enough to
+avoid excluding low-ticket businesses while still requiring real marketplace activity.
+SARS confirms that a sole proprietor can trade under a fictitious/trade name without creating a
+separate legal entity. That supports allowing informal student brands without mandatory CIPC
+registration, while formal registration can remain an optional future status. [R29]
+The 2026 turnover-tax threshold for qualifying micro businesses increased to R2.3 million with a
+R600,000 tax-free threshold, but the marketplace should not act as a tax adviser. It can provide
+links/education when sellers approach formalisation milestones. [R30]
+ Figure 12. Proposed progression. Thresholds should be piloted and adjusted from actual marketplace behaviour.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 23
+23. Trusted Seller benefits - earned
+visibility, not paid boosting
+The user rejected paid listing boosts. This is important because paid visibility could advantage
+students who already have more capital. The proposed model gives stronger discovery privileges to
+sellers who earn trust, while reserving exposure for new sellers so the marketplace does not become
+permanently incumbent-dominated.
+Benefits to research for Trusted Sellers
+• Priority placement where relevance and availability are otherwise comparable.
+• Eligibility for higher-value gigs / opportunities.
+• Higher transaction or rental limits.
+• Faster payout eligibility where the payment provider supports it and risk remains acceptable.
+• Advanced analytics and business tools.
+• Eligibility for selected subscriptions/recurring services.
+• Priority eligibility for campus event/vendor opportunities.
+Ranking fairness
+Search should not simply sort by lifetime sales. A more defensible ranking model combines relevance,
+campus, live availability, fulfilment quality, trust and controlled exploration for new sellers. The
+weighting should be explainable and monitored for campus/category concentration.
+24. Food marketplace research: convenience
+creates higher safety obligations
+Food can be a high-frequency student category, but it is not “just another listing.” The user wants
+food allowed only where sellers list ingredients and understand food hazards. South African hygiene
+regulations and labelling requirements create a strong case for category-specific onboarding,
+ingredient/allergen disclosure, preparation/storage rules and institutional approval. [R27] [R28]
+Proposed food controls to research with Eduvos/legal/health
+• Mandatory ingredients and common-allergen fields before publishing.
+• Preparation date/time and safe storage/serving guidance where relevant.
+• Seller declaration that preparation location and practices meet applicable requirements.
+• Higher-risk food categories routed for stronger review.
+• Clear cancellation/refund rules for perishable orders.
+• Delivery handoff times tracked for food orders without creating unnecessary location history.
+AI role
+AI can detect missing allergen fields, inconsistent ingredient claims or obviously disallowed listings,
+but it cannot certify that a kitchen is hygienic. Compliance AI should therefore function as a
+pre-publication checker and moderator assistant, not as a substitute for institutional and legal
+requirements.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 24
+25. Prohibited items, AI moderation and
+graduated enforcement
+The platform needs a clear prohibited-items policy covering illegal goods, age-restricted or
+institutionally inappropriate products, unsafe services, explicit/adult material, academic-misconduct
+services and other categories Eduvos decides not to permit. The product should prevent publication
+where rules are clear, rather than relying only on reports after harm occurs.
+User-selected enforcement flow
+AI/policy check → flag → notify seller → block/hide listing → moderator review →
+warning/probation/temporary suspension → permanent removal for serious or repeated violations.
+Buyers can face the same graduated enforcement for abuse, fraud, repeated no-shows or bad-faith
+disputes.
+Automated moderation makes mistakes. Low-confidence cases should be hidden pending review
+rather than trigger a punitive account action. Every enforcement action should have a reason code,
+evidence, timestamp, reviewer, appeal path and audit log. This is consistent with responsible-AI
+principles that emphasise transparency, human oversight and risk management. [R31] [R32]
+Policy design principle
+The safest model separates content state from account punishment. AI can block a specific listing
+quickly to reduce risk; higher-impact penalties should use human review or an appealable process.
+26. Services: booking, 30% deposits and
+academic-integrity boundaries
+Services need different workflows from products. Live availability, booking slots, briefs, deposits and
+completion evidence are central. The proposed default deposit is 30% for all services. The team
+should test whether users understand what the deposit covers and whether the same rule feels fair
+for tutoring, photography, design, coding assistance, repairs and event work.
+Academic services should be permitted only where they support learning: tutoring, study coaching,
+proofreading, concept explanation, coding guidance and design feedback. Services that complete
+graded assessments, impersonate a student or enable cheating should be prohibited.
+Higher-education academic-integrity guidance makes this distinction important, particularly where
+AI-generated work is involved. [R39]
+Service evidence trail
+• Original listing and agreed brief/version.
+• Scheduled appointment or milestones.
+• In-app messages and agreed changes.
+• Files/submissions delivered through or logged by the platform where appropriate.
+• Buyer acceptance or dispute with evidence.
+For large service jobs, the research can compare a single 30/70 split with multi-stage milestones, but
+the user-selected baseline remains 30% upfront and 70% protected until completion.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 25
+27. Rentals and high-value items
+Rentals extend marketplace value beyond ownership: textbooks, calculators, cameras, formal wear,
+gaming equipment, tools and event gear can be temporarily shared. This introduces a different risk
+model centred on deposits, return deadlines, condition evidence and damage/loss disputes.
+Proposed rental flow
+Rental request → availability confirmed → rental fee + refundable security deposit protected →
+condition evidence captured → item collected → return due time tracked → automatic late charges if
+overdue → return evidence → deposit released or dispute opened.
+High-value rentals should have stronger requirements: additional identity/trust checks, higher
+deposits, before/after photo or video evidence, stricter renter standing and possibly category-specific
+transaction limits. Late fees should be disclosed before checkout and capped/reviewable to avoid
+disproportionate penalties.
+Research questions
+• What deposit level feels fair by item value and category?
+• What evidence is practical at pickup/return?
+• How should normal wear differ from damage?
+• When should the platform require a designated pickup point?
+• How should courier damage be separated from renter liability?
+28. Second-hand goods and digital products
+Second-hand goods
+Condition should be standardised rather than free-form: New, Like New, Good and Fair, with
+mandatory defect disclosure and current photos. Electronics may require serial/model fields,
+functionality checks and stronger evidence. The user does not want swaps/trade-ins; this keeps the
+transaction model simpler.
+Digital products
+Digital products can include student-created templates, design assets, beats, presets, e-books,
+coding tools and study resources, subject to copyright and academic-integrity rules. Files should be
+versioned, scanned and licensed clearly. A buyer can receive access immediately after payment while
+seller payout remains protected until confirmation.
+Digital buyer protection creates a special abuse risk: a buyer could download a file and then claim it
+did not work. The system should therefore retain download/access logs, file hashes/version history
+and the original listing claims. Refund decisions should be evidence-based, not automatic.
+Copyright and academic integrity
+The marketplace should require sellers to confirm that they own or are authorised to distribute digital
+content. Study resources that reproduce protected textbooks, leaked assessments or answer graded
+work should be blocked. The platform can permit original notes or learning resources subject to
+Eduvos academic-integrity policy.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 26
+29. Limited recurring services and
+subscriptions
+The user wants subscriptions only for a limited set of appropriate categories and only for Trusted
+Sellers. This is a sensible restriction because recurring billing increases harm if the service
+deteriorates or cancellation is unclear.
+Candidate categories to research
+• Recurring tutoring or study coaching.
+• Selected ongoing creative/technical support where deliverables are clearly defined.
+• Meal-plan or recurring physical supply only if food safety and fulfilment can be reliably governed.
+• Other categories only after evidence and policy approval.
+Controls
+• Explicit billing period and renewal date.
+• Simple cancellation and future-charge stop.
+• Clear missed-session / missed-delivery rules.
+• No long lock-in periods for students by default.
+• Only Trusted Sellers in good standing.
+The MVP should probably defer recurring billing until the one-off transaction, dispute and payout
+model has been validated.
+30. Events, gigs and opportunity
+marketplace
+The user wants campus events integrated into the ecosystem. Students should be able to discover
+events, RSVP, buy tickets, join waitlists and receive reminders. Sellers can apply for stalls or vendor
+slots. Approved organisers can manage capacity, tickets and vendor applications. This creates a
+direct connection between campus engagement and student commerce.
+The gigs/opportunities layer allows approved societies, student organisations, campus stakeholders
+and verified businesses to publish legitimate paid needs such as photography, graphic design,
+catering, tutoring, web work or event support. Multiple verified sellers could respond with
+proposals/quotes.
+Critical institutional boundary
+The platform must not be framed as a way to bypass Eduvos procurement. Stakeholder interviews
+should explicitly ask which opportunities may be awarded to students through the marketplace and
+which must follow formal procurement or contracting procedures.
+Why events matter strategically
+Events can seed marketplace liquidity. A campus market day, workshop or entrepreneurship event
+can create concentrated buyer/seller activity, generate verified transactions, expose new sellers and
+create measurable engagement for the Incubation Hub.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 27
+31. Social discovery: campus-first reels,
+follows and recommendations
+The user wants a TikTok-style short-video discovery feed, but the research goal should be commerce
+discovery rather than recreating a generic social network. Sellers can post product/service reels;
+organisers can post events/opportunities; buyers can post transaction-linked reviews,
+recommendations and campus content. The feed defaults to the student’s campus and expands
+across Eduvos.
+Benefits to test
+• Show products/services in a richer format than static listings.
+• Give new sellers organic discovery opportunities.
+• Promote events, gigs and campus activity.
+• Create social proof through transaction-linked reviews.
+Risks
+• Popularity may overwhelm relevance and trust.
+• High moderation volume for user-generated video.
+• Attention-maximising ranking can conflict with student wellbeing and marketplace purpose.
+• Commercial and non-commercial campus content can become confusing.
+A safer research direction is a purposeful discovery feed: ranking uses campus, relevance,
+availability, trust and freshness, with controls to prevent a few high-engagement sellers from
+monopolising exposure. Paid boosts remain out of scope.
+32. Group buying, rewards and campus
+recognition
+Group purchases can make sense where demand is naturally pooled: catering, printing, merchandise,
+event supplies or transport-like services. A group order should define minimum participants, deadline,
+price rule, cancellation conditions and what happens if the threshold is not reached.
+The user is open to a points system but wants Eduvos to help define rewards. That is the correct
+governance model. Points could recognise completed purchases, reliable selling, event participation,
+referrals, courier reliability, verified reviews and Incubation workshop participation. They should not
+become an unregulated cash substitute.
+Two reward layers
+• Eduvos-wide: consistent recognition and institution-level programmes.
+• Campus-local: challenges, event participation, seller discovery and campus-specific partnerships.
+Leaderboards
+Campus recognition can include Trusted Sellers, highly rated services, reliable couriers, fast-growing
+businesses and constructive community contributors. Rankings should be category-specific,
+time-bounded and resistant to pure sales-volume domination. Some internal rankings may be better
+kept private to avoid unhealthy competition or gaming.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 28
+33. Incubation Hub intelligence: from
+dashboard to intervention
+The user wants the Incubation Hub to actively use marketplace evidence. Marketplace performance
+can automatically make a seller eligible for support; direct contact requires the seller to have opted
+in. If not opted in, relevant support opportunities can still appear inside the seller dashboard.
+Internal Business Health Score
+The user wants the raw Business Health Score visible to Incubation Hub staff, not to sellers. It can
+combine interpretable indicators such as sales trend, repeat customers, fulfilment, cancellations,
+disputes, ratings, response time, demand signals and account activity. The score must show its
+components and limitations rather than present a mysterious AI judgement.
+Seller-facing guidance
+Instead of exposing the internal score, AI can notify the seller with concrete observations: response
+time is slipping, cancellations are rising, a frequently requested product is missing, or a particular
+category is gaining demand. These prompts should be factual and explainable.
+AI-assisted intervention
+AI can recommend interventions to Hub staff - marketing support, pricing review, formalisation
+guidance, funding readiness, stock/operations coaching or mentorship. Staff approve the
+intervention. Then the AI can generate the user-selected 30-day improvement plan with daily/weekly
+actions, measurable goals, checkpoints and progress tracking. The plan should remain editable by
+staff and student.
+34. AI as a visible compliance and
+marketplace assistant
+AI is not intended as a novelty chatbot. The proposed role is operational: make the marketplace safer,
+easier to list on and more intelligent. NIST AI RMF provides a useful governance lens: map the
+context, measure risk, manage controls and govern the system, with transparency and human
+oversight. South Africa’s emerging AI policy direction likewise emphasises responsible, inclusive,
+human-centred governance. [R31] [R32]
+High-value AI use cases
+• Listing completeness and policy checks before publication.
+• Prohibited-category detection and moderation triage.
+• Ingredient/allergen completeness checks for food.
+• Duplicate/scam-pattern detection and suspicious transaction flags.
+• Natural-language search mapped into filters.
+• Demand clustering and opportunity summaries.
+• Seller analytics summaries and factual coaching prompts.
+• Incubation intervention recommendations and approved 30-day plans.
+Human-control rules
+AI may block or hold a specific listing where the policy match is clear, but account punishment,
+disputes and high-impact decisions require a human-review path. AI outputs should carry reasons and
+confidence; moderation decisions should be logged and appealable.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 29
+35. Privacy and POPIA: the platform should
+know less than it can
+The platform will handle identity, payments, messages, location context, transaction history, reviews
+and potentially sensitive dispute evidence. POPIA therefore needs to influence data architecture, not
+only the privacy policy. [R24]
+Data-minimisation principles
+• Public profiles never display raw student numbers or government ID details.
+• Identity verification records are separated from public marketplace profiles.
+• Analytics use pseudonymous user IDs wherever possible.
+• Precise location is optional and task-specific; campus is the default location context.
+• Courier live-location history should not be retained longer than operationally necessary.
+• Dispute evidence has access controls and retention rules.
+• Internal Business Health Scores are restricted to authorised Incubation staff.
+Automated decision risk
+Where AI or scoring materially affects access, suspension, opportunity eligibility or other significant
+outcomes, EduHackers should avoid opaque automated decisions. Explainability, human review and
+appeal are safer both ethically and under data-protection principles.
+The architecture should maintain a clear record of purpose, lawful basis, retention, access roles and
+deletion for each data class. Privacy should be part of the ERD and event taxonomy, not a final
+checklist.
+36. Security architecture: marketplace trust
+depends on object-level controls
+The platform combines user-generated content, messaging, payments, uploads, disputes and
+multiple roles. OWASP ASVS 5.0 is an appropriate baseline for security requirements. [R34]
+Priority controls for the MVP
+• Strong authentication/session management and secure reset/recovery.
+• Server-side role and object-level authorisation on every sensitive action.
+• Ownership checks for listings, orders, messages, disputes and evidence files.
+• Server-side input validation and parameterised database access.
+• XSS and CSRF protections where applicable.
+• Safe image/file upload processing and malware/content checks.
+• Rate limits for login, messaging, listing, review and dispute endpoints.
+• Secret management outside source code.
+• Admin/moderator audit logs.
+• Abuse reporting, blocking and moderation queues.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 30
+Threat-model focus
+The highest-value abuse paths include account takeover, fake sellers, fraudulent disputes, listing
+manipulation, payout diversion, courier impersonation, evidence tampering and insecure file uploads.
+Security testing should trace these user journeys rather than only scan endpoints generically.
+37. Accessibility and inclusive interaction
+The brief explicitly values accessibility/ease of use. WCAG 2.2 provides the core standard, organised
+around perceivable, operable, understandable and robust experiences. [R35]
+MVP accessibility requirements
+• High enough contrast and readable typography in light/dark themes.
+• Keyboard access and visible focus states.
+• Meaningful labels, error messages and status announcements.
+• Reflow on small screens without horizontal page scrolling.
+• Touch targets large enough for mobile use.
+• No important status communicated only by colour.
+• Captions/transcripts or text alternatives for marketplace reels where practical.
+• Accessible forms for seller onboarding, checkout, disputes and booking.
+A dark interface is not automatically accessible. Contrast, focus, motion and text size still require
+testing. The product should also perform acceptably on ordinary student connections; a highly
+animated feed should not make core commerce unusable on constrained bandwidth.
+38. Reference architecture and data
+boundaries
+A modular architecture helps separate the parts that are likely to change. Payment providers may
+change, AI models may change, campuses may add local rules, and the marketplace may phase
+features. These concerns should not be tightly coupled to the core order model.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 31
+ Figure 13. Reference architecture for research and prototyping; technology choices remain open.
+Core bounded areas
+• Identity and roles.
+• Marketplace catalogue and availability.
+• Orders/bookings/rentals/events.
+• Payments/payout orchestration.
+• Delivery and pickup.
+• Trust, reviews, disputes and enforcement.
+• Social/reels and notifications.
+• Analytics/demand intelligence.
+• Incubation records/interventions.
+For the Hack Jam prototype, these can live in a modular monolith rather than premature
+microservices. The important thing is clean domain boundaries, event instrumentation and
+replaceable integrations.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 32
+39. Conceptual data model
+Entity
+Purpose / important relationships
+User
+Authentication identity; links to StudentProfile and roles
+StudentProfile
+Campus/study context and public-safe identity
+SellerProfile
+Seller standing, trust tier, verification state
+Business
+Optional brand/storefront linked to seller after trust unlock
+Listing
+Shared product/service/rental/digital/food metadata + subtype
+Availability
+Stock, pickup windows, service slots or rental calendar
+SearchEvent
+Search intent, campus, filters, result state; pseudonymous analytics
+Request
+Wanted/custom need when supply is absent or custom
+OpportunitySignal
+Aggregated unmet demand or stakeholder opportunity
+Order / Booking
+Commercial state machine for product/service
+PaymentHold
+PSP reference, amount, release/refund/dispute state
+DeliveryTask
+Courier/pickup/transfer fulfilment and evidence
+Rental
+Deposit, condition evidence, return deadline, late charges
+Event / Ticket
+Capacity, RSVP, ticket, waitlist, vendor application
+Review
+Transaction-verified buyer/seller feedback
+Dispute / EvidenceFile
+Human-reviewed claim and supporting evidence
+Report / EnforcementAction
+Policy moderation, probation/suspension and appeal
+IncubationRecord
+Eligibility, opt-in, staff observations, interventions
+AIRecommendation
+Reasoned suggestion, confidence, reviewer/approval state
+AuditLog
+Security/admin/moderation trace
+Critical relationship
+SearchEvent → UnmetDemand → OpportunitySignal is the core differentiation. The model should
+preserve enough context to aggregate useful demand without retaining unnecessary individual-level
+behaviour.
+40. Analytics and marketplace-health
+metrics
+Raw registrations are weak marketplace metrics. The important question is whether supply and
+demand successfully meet. The team should instrument the prototype early so research sessions
+generate behavioural evidence.
+Core events
+search_performed; search_result_opened; search_zero_result; listing_viewed; seller_viewed;
+seller_contacted; request_created; request_matched; opportunity_viewed; opportunity_applied;
+idea_test_created; order_started; order_accepted; order_completed; order_cancelled; review_created;
+dispute_opened; report_created; delivery_started; delivery_completed; event_rsvp; ticket_purchased;
+rental_started; rental_returned; mentor_intervention_created.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 33
+Core metrics
+• Search success rate and local-campus search success.
+• Zero-result rate before and after fallback.
+• Request fill rate and time to first response.
+• Listing-view → enquiry/order conversion.
+• Order completion and cancellation.
+• Repeat buyer and repeat seller activity.
+• Seller activation and Trusted Seller progression.
+• Campus/category liquidity.
+• Dispute/report rate.
+• Opportunity conversion: unmet demand → new offer → completed transaction.
+ Figure 14. Illustrative dashboard only - values are placeholders, not Eduvos results.
+41. Payment architecture and compliance
+research
+Payment protection is both a UX feature and a regulated money-movement problem. Paystack
+documents transaction splits and subaccounts specifically for marketplace-like scenarios. PASA
+documents TPPP obligations for accepting or disbursing payments on behalf of multiple parties. [R20]
+[R23]
+Architecture principle
+EduHackers should model an internal PaymentHold state without assuming Eduvos literally holds
+money. The external PSP/payment partner remains the system of record for authorisation,
+settlement, refunds and payout. The marketplace stores references and business state.
+Payment research checklist
+• Which PSP supports seller subaccounts / marketplace onboarding in South Africa?
+• Can funds be protected until buyer confirmation under the provider’s terms?
+• How are refunds and partial refunds represented?
+• Who bears transaction fees?
+• How quickly can seller payouts occur?
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 34
+• What KYC is required from sellers beyond Eduvos/ID verification?
+• How are chargebacks and bank disputes allocated?
+• What PASA/sponsoring-bank requirements apply to the final model?
+• How should crypto be treated if enabled in a later phase?
+42. Consumer, electronic-transaction and
+platform-policy implications
+South African consumer and electronic-transaction law affect marketplace disclosures, transaction
+terms, refunds and supplier information. The Hack Jam team should not attempt to become legal
+counsel, but the product concept should expose the issues clearly and avoid promising policies that
+contradict law. [R25] [R26]
+Policy areas requiring institutional/legal sign-off
+• Who is the contractual seller: student, Eduvos, or both in different contexts?
+• How prominently must seller identity/contact information be disclosed?
+• Cancellation/cooling-off rights for different transaction types.
+• Return/refund exclusions for custom services, digital goods and perishables.
+• Event ticket cancellation and organiser obligations.
+• Rental deposits, late fees and damage deductions.
+• Student courier liability and insurance.
+• Food seller eligibility and campus health/safety requirements.
+• Dispute appeal and record retention.
+The safest product design makes terms contextual. A buyer renting a camera should see
+rental/deposit/late rules; a buyer booking design work should see the service brief, 30% deposit and
+cancellation rules; a food order should show ingredients, allergens and fulfilment timing.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 35
+43. Research hypotheses to test across
+campuses
+ID
+Hypothesis
+Primary test
+H1
+Student-business discovery is inefficient
+Last real purchase / search journey interviews
+H2
+Discovery depends heavily on fragmented informal channels
+Buyer + seller channel mapping
+H3
+Customer acquisition is a major seller constraint
+“Last five customers” interviews
+H4
+Eduvos + ID verification increases trust
+Prototype comparison
+H5
+Meaningful unmet demand exists by campus/category
+Interviews + survey + zero-result prototype
+telemetry
+H6
+Some students want income but do not know what to start
+Aspiring-entrepreneur interviews
+H7
+Demand evidence helps students choose what to test
+Opportunity Engine concept test
+H8
+Incubation staff can act on marketplace evidence
+Staff dashboard/intervention test
+H9
+Availability/proximity matter more for physical than digital offers
+Search/booking prototype test
+H10
+Transaction history is more trusted than generic star ratings
+Reputation prototype comparison
+H11
+Campus organisations generate legitimate student-supplier
+opportunities
+Society/stakeholder interviews
+H12
+Cross-campus fallback recovers otherwise lost demand
+Prototype task completion
+H13
+Protected payment increases transaction confidence
+Checkout/payment concept test
+H14
+Campus-first reels improve discovery without overwhelming
+search
+Usability/attention test
+H15
+Trusted Seller progression motivates quality without blocking
+new sellers
+Seller interviews + ranking prototype
+44. Interview programme: observe
+behaviour before pitching the solution
+The first round should be qualitative and behavioural. A practical target is 23-38 interactions across
+buyers, active sellers, aspiring sellers, Incubation/staff and societies/organisers. This is not
+statistically representative; the purpose is to uncover patterns, language, constraints and failure
+modes.
+ Figure 15. Recommended practical first-round qualitative target ranges.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 36
+Buyer prompts
+• Tell me about the last thing you bought from another student. How did you find them?
+• What was the last product/service you could not find? What did you do next?
+• What information made you trust or distrust the seller?
+• How did payment, collection/delivery and follow-up work?
+Seller prompts
+• Walk me through your last five customers. Where did each come from?
+• What takes the most time besides producing the product/service?
+• Which requests do customers make that you cannot fulfil?
+• How do you manage availability around classes?
+Aspiring seller prompts
+• If you wanted to earn from your skills this month, what would stop you?
+• How would you decide what to sell? What proof would reduce the risk?
+Incubation / stakeholder prompts
+• How do you currently know which ventures need support?
+• What marketplace evidence would be useful, misleading or inappropriate?
+• Which campus opportunities can students legitimately fulfil and which require formal procurement?
+45. Survey design: measure patterns after
+interviews reveal them
+The survey should not lead with “Would you use our app?” because stated intent is weak evidence. It
+should quantify behaviours that interviews uncover.
+Core survey fields
+• Campus / study mode.
+• Bought from another student in last six months? What category?
+• Discovery channel used.
+• Difficulty finding a suitable seller (scale).
+• Trust factors selected.
+• Recent unsuccessful search / unmet need.
+• Seller status and customer-acquisition channels.
+• Largest business constraint.
+• Frequency of unfulfillable requests.
+• Interest in earning from skills and barriers to starting.
+• Perceived usefulness of Eduvos verification, live availability, protected payment and demand trends.
+Survey outputs should be segmented by campus and user role. Small campus sample sizes should be
+clearly labelled; never convert a convenience sample into institution-wide percentages.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 37
+46. Prototype tests: convert the concept
+into falsifiable tasks
+Test
+Task
+Measure / evidence
+Discovery fallback
+Find an unavailable product/service and continue
+Task completion, fallback used, confusion,
+abandonment
+Protected payment
+Buy an item and explain when seller gets paid
+Comprehension, trust, fee clarity
+Service booking
+Book a service with live availability and 30% deposit
+Booking success, deposit understanding
+Trust
+Choose between new seller and Trusted Seller
+profiles
+Trust factors, fairness concerns
+Wanted request
+Post a need after zero result
+Completion, privacy concerns, expected
+responses
+Demand Intelligence
+Aspiring seller reviews opportunity signal
+Would-act evidence; information needed
+Incubation dashboard
+Staff interpret health indicators and AI
+recommendation
+Correct interpretation, actionability, concerns
+Reels discovery
+Find a relevant product through campus feed
+Relevance, distraction, seller fairness
+Dispute
+Open a claim and submit evidence
+Understanding, evidence burden, fairness
+Rental
+Rent high-value item with condition/deposit flow
+Risk comprehension, deposit acceptance
+Every test should end with a research note: what happened, why it happened, whether the underlying
+hypothesis gained/ lost support, and what requirement changes. “Users liked it” is not sufficient.
+47. MVP cutline: prove the system before
+building the super-app
+MUST PROVE IN MVP
+SHOULD IF RESEARCH SUPPORTS
+LATER / PHASED
+Verified Eduvos identity concept
+Aspiring-entrepreneur pathway
+Full live multi-PSP money movement
+Personal seller + listing
+Opportunity board / quote marketplace
+Advanced crypto payments
+Products + services
+Student courier pilot
+Full reels creator ecosystem
+Campus-first search + availability
+Event RSVP/ticket prototype
+Large-scale subscriptions
+Cross-campus fallback concept
+Rental flow prototype
+Advanced fraud automation
+Protected-payment state model
+Trusted Seller unlock
+Institution-wide loyalty economy
+Buyer/seller messaging
+Incubation health dashboard
+Procurement integration
+Request / zero-result capture
+AI compliance assistant
+Advanced AI recommender
+Completion-linked review
+Designated pickup proof
+Multi-campus logistics optimisation
+Report/dispute prototype
+Seller 30-day intervention plan
+Monetisation optimisation
+Demand Intelligence loop
+Accessibility/performance testing
+Production-scale operations
+The MVP recommendation is not a final build order; Week 2 research can move items. The
+non-negotiable demonstration should be the closed loop: demand is captured, the marketplace
+attempts to fulfil it, failure becomes structured opportunity evidence, and the Incubation layer can
+respond.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 38
+48. Eight-week research-to-build roadmap
+ Figure 16. Hack Jam journey aligned to the official eight-week cadence.
+Week 2 - research
+Interviews, survey, competitor evidence, assumptions, payment/compliance spikes, research
+repository and first synthesis.
+Week 3 - concept / requirements
+JTBD, problem statements, prioritised hypotheses, concept tests, initial architecture, ERD, RBAC and
+event model.
+Week 4 - design
+Buyer, seller, aspiring entrepreneur and Incubation flows; accessibility checks; protected-payment
+and fallback prototypes.
+Week 5 - MVP
+Build P0 flows, instrument telemetry, enforce object-level permissions, create test data and
+integration stubs for payment/notifications.
+Week 6 - user testing
+Usability tests, failure-state tests, security checks, performance/accessibility checks, evidence
+synthesis.
+Week 7 - refine / pitch
+Fix high-impact issues, harden demo, create before/after evidence, finalise implementation risks and
+pitch narrative.
+Week 8 - Demo Day
+Demonstrate problem evidence → closed-loop solution → tested prototype → practical architecture →
+realistic next steps.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 39
+49. Risk matrix and mitigation priorities
+ Figure 17. Relative research risk matrix. Placement is qualitative and should be updated as evidence arrives.
+Risk
+Why it matters
+Mitigation research
+Held funds / payments
+High regulatory and trust impact
+Use regulated PSP; PASA/legal review; prototype
+states before live funds
+Cold start / liquidity
+Empty marketplace destroys value
+Seed campus/category wedges; capture requests;
+events as launch moments
+Scope overload
+Broad vision can miss MVP
+P0/P1/Later cutline; research gates
+AI moderation error
+False blocks harm students
+Confidence thresholds; human review; appeals
+Food safety
+Physical health and institutional liability
+Category controls; compliance review; seller
+requirements
+Privacy/location
+Students are identifiable in a closed
+community
+Minimise precise location; pseudonymise
+analytics; role-based access
+Courier safety
+Physical handoff and travel risk
+Approved zones; clear eligibility; limited location
+retention
+Academic misuse
+Platform could enable misconduct
+Clear policy; category rules; moderation
+Cross-campus cost
+Fallback may be economically impractical
+Compare delivery/transfer costs and user
+willingness
+50. Strategic focus: what EduHackers should
+optimise for
+The concept should not optimise for the largest feature list. It should optimise for five linked
+outcomes.
+1. Liquidity
+A buyer should find a usable option quickly. Search success, fallback success, response time and
+request fill matter more than registration counts.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 40
+2. Trust
+Verification, protected payments, transaction-linked reputation, disputes and designated handoffs
+should reduce uncertainty without creating impossible onboarding.
+3. Opportunity creation
+Unmet demand should become structured information that can create new offers and new student
+ventures.
+4. Business growth
+Trusted sellers should gain better tools and opportunities through earned standing, while new sellers
+retain discovery access.
+5. Institutional learning
+The Incubation Hub should gain privacy-conscious evidence that helps it target real support, without
+turning the marketplace into a surveillance or opaque scoring system.
+One-sentence position
+EduHackers proposes a campus-first, all-Eduvos marketplace that protects transactions,
+prevents dead-end demand, helps students discover what to sell, and gives the Incubation Hub
+evidence to grow real student businesses.
+51. Recommended pitch claims - and claims
+to avoid
+Use
+Avoid
+“Existing campus marketplaces already solve verification,
+listings, chat, payments and requests.”
+“Nobody has ever built a student marketplace like this.”
+“Our white-space hypothesis is the closed demand →
+venture → incubation feedback loop.”
+“Demand Intelligence is definitely what Eduvos students
+want.”
+“We propose 2% platform commission; processor-fee
+treatment still needs validation.”
+“Every transaction only costs 2%.”
+“Any verified student could eventually sell, subject to
+ID/trust rules.”
+“This is already Eduvos policy.”
+“AI assists compliance and recommendations with human
+review for high-impact decisions.”
+“AI automatically decides who is trustworthy.”
+“The MVP proves the loop; broader modes are phased
+research.”
+“We will build every feature in eight weeks.”
+Judges are likely to reward a concept that is ambitious but credible. Transparent boundaries
+strengthen the pitch because they show the team understands implementation risk rather than hiding
+it.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 41
+52. Immediate work plan for Paballo Kali -
+Developer / Research Lead
+Research execution
+• Finalise behavioural interview guides and participant recruitment across more than one campus
+where possible.
+• Run buyer, seller, aspiring-entrepreneur, Incubation and society/stakeholder sessions.
+• Maintain raw observations separate from interpretation.
+• Synthesize affinity clusters and update H1-H15 status.
+• Build the competitor evidence matrix and reference log.
+Technical research
+• Identity/verification spike: what can Eduvos provide?
+• Payment/PSP spike: protected funds, subaccounts, refunds, fee bearer, payout/KYC.
+• ERD v0 and RBAC matrix.
+• Event taxonomy and privacy boundary.
+• Threat model and ASVS control checklist.
+• Performance/accessibility baseline for mobile-first web/PWA.
+Decision outputs by the end of research week
+• Validated pains and rejected assumptions.
+• P0/P1/Later scope.
+• Evidence for or against Demand Intelligence as the lead differentiation.
+• Technical blockers and institutional questions.
+• Research readout that Product, UX/UI, Business Analysis and Pitch can directly use.
+53. Research repository structure and
+traceability
+Use anonymous participant IDs such as BUY-01, SEL-04, ASP-03, INC-01 and SOC-02. Do not place
+student numbers in the research repository.
+Observation record
+Participant: SEL-04
+Context: last customer-acquisition journey
+Raw observation: record what actually happened, not interpretation
+Tag: DISCOVERY / TRUST / PAYMENT / AVAILABILITY / etc.
+Interpretation: separate researcher inference
+Hypothesis affected: H3
+Requirement implication: if evidence repeats
+Source link / consent: where applicable
+Recommended tags
+DISCOVERY • TRUST • PRICE • PAYMENT • COMMUNICATION • AVAILABILITY • DELIVERY •
+CUSTOMER_ACQUISITION • MARKETING • UNMET_DEMAND • MENTORING • STARTUP_IDEA • SAFETY
+• ACCESSIBILITY • FULFILMENT • REPEAT_PURCHASE
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 42
+Traceability example
+R-012 → INS-004 → H5 → REQ-007 → FIGMA-FLOW-03 → GH-ISSUE-18 → TEST-003 → EVIDENCE-09
+This chain makes the final presentation defensible: when a judge asks why a feature exists, the team
+can show the evidence path.
+54. Open decisions that research must not
+hide
+Decision
+Why unresolved
+Evidence needed
+Exact payment partner
+Fees, held-fund support, KYC and payout
+differ
+Provider/legal conversations + technical
+spike
+Who bears PSP fees
+2% commission may not cover cards
+Unit economics + student price sensitivity
+Exact Trusted Seller thresholds
+R1k + 10 sales is recommendation, not
+validated
+Seller interviews + pilot data
+Food seller approval model
+Institutional health/safety obligations
+Eduvos legal/operations/health input
+Courier insurance/liability
+Physical-delivery risk
+Eduvos operations + insurer/legal input
+Brand storefront benefits
+Could create unfair advantage
+Seller/buyer research + ranking test
+Business Health Score weights
+Can become misleading/opaque
+Incubation staff co-design + pilot
+Reels ranking
+Can bias exposure and attention
+Usability/fairness test
+Subscription categories
+Recurring billing risk
+Demand + legal/payment validation
+Cross-campus logistics
+Cost and timing may overwhelm value
+Pilot route/campus analysis
+Decision principle
+Do not “solve” institutional unknowns with assumptions. Put them in the risk/decision log,
+identify the owner who can answer them, and build the prototype so the decision can change
+without rewriting the entire system.
+55. Conclusion
+The market research changes the question from “How do we build a student marketplace?” to “What
+does Eduvos uniquely gain from owning the marketplace loop?” The answer is not simply listings.
+Existing platforms already show verification, secure payments, wanted boards, booking, analytics,
+campus delivery and entrepreneurship support.
+The stronger EduHackers concept treats commerce as evidence. Every search, fallback, request,
+transaction, repeat purchase, cancellation and opportunity can help the marketplace become more
+useful. Repeated unmet demand can reveal what students want. A student can test an offer against
+that demand. A seller can earn trust and graduate into a stronger storefront. The Incubation Hub can
+receive privacy-conscious evidence and approved AI recommendations, then support the student
+through a human-governed intervention and 30-day plan.
+That vision is ambitious. The right Hack Jam strategy is therefore to prove the loop, not build the
+whole universe. The research should establish the real Eduvos problems first; the MVP should
+demonstrate trust, discovery, protected transaction state, unmet-demand capture and incubation
+intelligence; and the broader modes should be staged based on evidence.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 43
+“A marketplace that does not stop at matching buyers and sellers - it helps
+Eduvos discover, validate and grow the next student business.”
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 44
+56. References
+References are grouped as a working research bibliography. URLs are clickable in this PDF. Market
+features and pricing should be re-verified immediately before implementation.
+R1. Eduvos Hack Jam 2026 Brief - Incubation Hub Marketplace
+Uploaded project brief; challenge, roles, journey, AI-use requirements, judging criteria and IP terms.
+Local source supplied by Eduvos.
+R2. Eduvos Annual Report 2025
+Student footprint by campus; Incubation Hub pilot; societies and campus engagement.
+https://www.eduvos.com/eduvos-annual-report.pdf
+R3. Eduvos: Students Connect with Industry at Career Fairs (2026)
+12 campuses; 1,700+ students; 240+ employers.
+https://www.eduvos.com/eduvosblog/eduvos-students-connect-with-industry-at-career-fairs/
+R4. UWC - From Fridge Hunt to Campus Marketplace
+Student verification, product/service discovery, search optimisation and security testing.
+https://www.uwc.ac.za/news-and-announcements/news/from-fridge-hunt-to-campus-marketplace
+R5. Makethe - Student Seller Marketplace
+University verification, seller stores, products/services, bookings, payments, analytics and CRM.
+https://makethe.co.za/Sell
+R6. Campus Needs - How It Works / About
+Verified students, protected payments, campus handoffs and campus-only focus.
+https://campusneeds.me/how-it-works
+R7. KANU
+Entrepreneurship learning, school marketplace, verified outcomes and venture activity.
+https://kanu.us/
+R8. Campus Marketplace - App Store
+Verified campus users, Paystack payments, messaging, search and favourites.
+https://apps.apple.com/za/app/campus-marketplace/id6755789641
+R9. UniBay - App Store
+South African student marketplace with listings, chat and study-note functionality.
+https://apps.apple.com/za/app/unibay/id6759392376
+R10. Student Hub Marketing - App Store
+Campus buying/selling, real-time chat, campus authentication and notifications.
+https://apps.apple.com/za/app/student-hub-marketing/id6761091315
+R11. Grid: Campus Marketplace - Google Play
+Wanted Board for buyer requests and seller responses.
+https://play.google.com/store/apps/details?id=com.galvam.grid
+R12. CampuzBhiz - App Store
+Campus products/services, food delivery, live rider tracking, tickets, vendor dashboard and rider system.
+https://apps.apple.com/za/app/campuzbhiz/id6761507551
+R13. Yaga South Africa - Payment / Buyer / Seller Protection
+Held payment, buyer confirmation, returns/refunds and platform-protected transactions.
+https://support.yaga.co.za/hc/en-us/articles/22458022801821-Payment-Protection
+R14. Bob Shop - Buyer Protection Programme
+Tiered buyer protection, in-platform payments and seller reputation.
+https://www.bobshop.co.za/content/23/Buyer_Protection_Programme.html
+R15. Bob Shop - Verified User / Ratings
+Identity verification, eligibility for store status, and two-sided ratings.
+https://help.bobshop.co.za/portal/en/kb/articles/become-a-verified-user
+R16. Mr D - delivery / payment experience
+South African reference for location-aware fulfilment, order status and electronic payments.
+https://www.mrd.com/
+R17. World Wide Worx / Mastercard - Online Retail in South Africa 2026
+R159bn forecast, 22.5% growth and 10% of national retail turnover.
+https://www.worldwideworx.com/onlineretailsa2026/
+R18. Peach Payments - Online Retail in South Africa 2026
+Smartphone/browser behaviour, payment-method shifts, digital wallet and pay-by-bank trends.
+https://www.peachpayments.com/2026-online-retail-report/
+R19. Paystack South Africa Pricing
+Current local card and EFT pricing.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 45
+https://paystack.com/za/pricing
+R20. Paystack Transaction Splits
+Subaccounts and marketplace split-payment functionality.
+https://support.paystack.com/en/articles/2132802
+R21. Payfast Fees
+Current card and Instant EFT fees.
+https://payfast.io/fees/
+R22. Ozow Pricing
+Pay-by-bank, PayShap, payouts, refunds and crypto pricing.
+https://ozow.com/pricing
+R23. Payments Association of South Africa - TPPP Registration
+Registration obligations when accepting/disbursing payments for multiple parties.
+https://authorisation.pasa.org.za/so-and-tppp/tppp-registration/
+R24. Protection of Personal Information Act 4 of 2013 (POPIA)
+South African data protection and automated-decision considerations.
+https://www.gov.za/documents/protection-personal-information-act
+R25. Electronic Communications and Transactions Act 25 of 2002
+Electronic transaction and consumer disclosure framework.
+https://www.gov.za/documents/electronic-communications-and-transactions-act
+R26. Consumer Protection Act 68 of 2008
+Fair marketplace practices, consumer rights and supplier obligations.
+https://www.gov.za/documents/consumer-protection-act
+R27. Regulations Governing General Hygiene Requirements for Food Premises, R638 (2018)
+Food-premises hygiene and Certificate of Acceptability context.
+https://www.gov.za/documents/foodstuffs-cosmetics-and-disinfectants-act-regulations-general-hygiene-requirements-food
+R28. Food Labelling Regulations R146
+Ingredient, allergen and labelling requirements relevant to food listings.
+https://www.health.gov.za/
+R29. SARS - Sole Proprietorship
+A sole proprietor may trade under a fictitious/trade name but remains the natural person.
+https://www.sars.gov.za/businesses-and-employers/small-businesses-taxpayers/starting-a-business-and-tax/sole-proprietorshi
+p/
+R30. SARS - Turnover Tax (2026)
+R2.3m annual turnover limit and 2026/27 threshold changes for qualifying micro businesses.
+https://www.sars.gov.za/types-of-tax/turnover-tax/
+R31. NIST AI Risk Management Framework + GenAI Profile
+AI trustworthiness, governance, measurement and human oversight.
+https://www.nist.gov/itl/ai-risk-management-framework
+R32. South Africa Draft National AI Policy (2026)
+Responsible governance, ethical/inclusive AI and human-centred deployment direction.
+https://www.gov.za/
+R33. South Africa National Entrepreneurship Strategy (2026)
+Policy emphasis on skills, technology, finance, markets and entrepreneurship ecosystem support.
+https://www.gov.za/
+R34. OWASP ASVS 5.0
+Application-security verification requirements and control baseline.
+https://owasp.org/www-project-application-security-verification-standard/
+R35. W3C WCAG 2.2
+Accessibility standard for perceivable, operable, understandable and robust experiences.
+https://www.w3.org/TR/WCAG22/
+R36. Fihla & Gavaza (2026) - Studentpreneurship at a South African University
+Qualitative evidence that support mechanisms can be uneven, fragmented and inconsistently accessible.
+https://www.mdpi.com/2076-3387/16/6/258
+R37. Student Entrepreneurship Support at South African Public Universities (2024)
+Mentorship, training, networking, business advice and institutional support themes.
+https://scielo.org.za/
+R38. Transition Experiences from Student to Business Owner (2024)
+South African evidence on resourcing/capability challenges and reliance on informal support networks.
+https://scielo.org.za/
+R39. Council on Higher Education - Academic Integrity / GenAI guidance
+Higher-education academic-integrity context relevant to tutoring and student-created academic resources.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 46
+https://www.che.ac.za/
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 47
+Appendix A. Role-permission matrix
+Capability
+Buyer
+Personal
+Seller
+Trusted Seller
+Courier
+Incubation
+Moderator
+Buy/book/rent
+✓
+✓
+✓
+✓
+—
+—
+Create standard listings
+—
+✓
+✓
+—
+—
+—
+Brand storefront
+—
+—
+✓
+—
+—
+—
+Selected subscriptions
+—
+—
+✓
+—
+—
+—
+Accept delivery task
+—
+—
+optional
+✓
+—
+—
+See Business Health Score
+—
+—
+—
+—
+✓
+limited
+Approve intervention
+—
+—
+—
+—
+✓
+—
+Review dispute
+—
+—
+—
+—
+—
+✓
+Apply probation/suspension
+—
+—
+—
+—
+—
+✓
+Appeal own action
+✓
+✓
+✓
+✓
+—
+—
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 48
+Appendix B. Analytics event dictionary
+Event
+Minimum fields / note
+search_performed
+timestamp, pseudonymous_user_id, campus, query/category, filters
+search_zero_result
+same + fallback stage
+request_created
+request_id, campus, category, desired timing/budget where supplied
+request_matched
+request_id, seller/listing match, time-to-match
+listing_viewed
+listing_id, campus context, source surface
+seller_contacted
+seller_id, listing/request source
+order_started / completed / cancelled
+order_id, mode, campus, timestamps, reason code
+payment_protected / released / refunded
+PSP reference only; never raw card/bank secrets
+delivery_started / completed
+task id, method, pickup zone, timestamps
+review_created
+transaction id, reviewer role, rating dimensions
+dispute_opened / resolved
+reason, evidence count, resolution code
+opportunity_signal_created
+aggregated category/campus, minimum-count threshold
+idea_test_created
+opportunity source, experiment type
+event_rsvp / ticket_purchased
+event id, campus, capacity state
+rental_started / returned / late
+rental id, condition evidence refs, timestamps
+mentor_intervention_created
+seller/business id, staff approver, intervention type
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 49
+Appendix C. Interview note template
+Participant ID: _____________    Segment: Buyer / Seller / Aspiring / Staff / Society
+Campus: _____________    Date: _____________    Consent: Notes / Recording (where permitted)
+Behavioural episode
+What happened? Who was involved? What channel was used? What did the participant do next? What
+evidence can be observed?
+Raw observations
+1. ______________________________________________________________________________
+2. ______________________________________________________________________________
+3. ______________________________________________________________________________
+Tags / interpretation
+Tags: ____________________    Pattern candidate: ____________________
+Hypothesis affected: ______    Supporting / contradicting / unclear
+Possible requirement implication: _________________________________________________
+Researcher caution
+Do not convert one memorable quote into a general finding. Keep direct observation separate from
+interpretation and wait for repeated evidence.
+
+EDUHACKERS  |  EDUVOS MARKETPLACE RESEARCH DOSSIER
+Hack Jam 2026
+Desk research + product-policy hypotheses. Eduvos-specific behaviour still requires field validation.
+Page 50
+Appendix D. AI-use transparency log for
+Hack Jam work
+Item
+AI contribution
+Human verification
+Source / evidence
+Final adaptation
+Desk research
+synthesis
+Drafted summaries /
+comparison structure
+Check every factual claim
+and current pricing
+Reference IDs / URLs
+Team edits wording
+and scope
+Interview guide
+Question drafting
+Research Lead checks for
+leading questions
+Research method
+rationale
+Pilot then revise
+Architecture
+Option generation
+Developer validates
+feasibility/security
+ASVS / provider docs
+Architecture
+decision record
+UI copy
+Draft labels / states
+UX/UI tests comprehension
+Usability evidence
+Figma revision
+Code
+Scaffolding/tests where used
+Developer reviews, tests,
+sec checks
+Git history / CI
+Refactor before
+merge
+Pitch
+Structure and wording
+support
+Pitch Lead verifies all
+claims
+Evidence tracker
+Team
+rehearses/adapts
+This appendix supports the brief requirement that AI contributions be transparent, verified and used
+as support rather than a replacement for student decision-making. [R1]

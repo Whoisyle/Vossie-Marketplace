@@ -1,0 +1,32 @@
+Decision Timeline
+Decision Timeline
+Early concept
+• Eduvos student marketplace.
+• Plato-inspired soft visual language and Uber-inspired interaction patterns.
+• Buyer/Seller/Courier plus separate staff/incubation concept.
+Architecture expansion
+• T wo application families locked.
+• V erified identity and progressive roles.
+• Campus hubs, QR custody , courier and cross-campus transfer architecture.
+• 177-screen UI/UX atlas and larger developer handoff produced.
+EduHackers 2.0 research session
+• Pilot money model: 7% seller / 5% courier hypotheses.
+• Pending/Secured/A vailable payout state model.
+• QR custody + OTP delivery + 24-hour issue window.
+• Eduvos/Microsoft SSO target with Authenticator MF A.
+• Hybrid hub-to-hub + third-party cross-campus model.
+• Buyer Requests confirmed.
+• Dynamic inventory/category attributes confirmed.
+• F ood trust/compliance approach confirmed.
+• Receipts/notifications/email event system confirmed.
+• Reels confirmed as first-class marketplace tab.
+• Courier transport modes and progressive verification confirmed.
+Developer Series
+• Series 1: adaptive PW A, stack and multi-agent architecture.
+• Series 2: Figma/UI/UX/motion production.
+• Series 3: agentic SDLC with Cursor/VS Code/GitHub gates.
+• Series 4: cinematic pitch and W ork handoff.
+Current phase
+Set up clean development/design environments and transfer project context into durable Markdown + repo/Figma sources
+rather than relying on chat history .
+1

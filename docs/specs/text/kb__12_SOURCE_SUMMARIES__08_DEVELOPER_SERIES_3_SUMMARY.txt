@@ -1,0 +1,6 @@
+Source Summary — Developer Series 3
+Series 3 is the final agentic engineering workflow.
+Control chain: ChatGPT Architect → Cursor Atlas → Guardian/Medic → GitHub PR → VS Code Sentinel → W atch-
+tower/Resolver → Harbor → CI/CD → post-deploy verification.
+The user should operate at requirement/decision level rather than being the first-line debugger for ordinary failures.
+1

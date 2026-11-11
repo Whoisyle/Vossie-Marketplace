@@ -1,0 +1,19 @@
+Integration Adapter Strategy
+Integration Adapter Strategy
+All external dependencies should sit behind V ossie-owned interfaces/adapters.
+Identity
+Prototype simulated institutional sign-in; production Microsoft/Entra/Eduvos federation if approved.
+Payments
+Sandbox provider adapter now; production PSP later.
+Maps/location
+Provider-neutral map/location layer where possible.
+Third-party courier
+Provider adapter converts external tracking/events into V ossie shipment states.
+Notifications
+In-app is internal; push/email providers remain replaceable.
+Storage/media
+Prototype may use Supabase Storage; video-heavy Reels may later move to a more suitable media/CDN service.
+Why
+Adapters prevent the prototype from becoming permanently coupled to whichever free service was easiest during the Hack
+Jam.
+1

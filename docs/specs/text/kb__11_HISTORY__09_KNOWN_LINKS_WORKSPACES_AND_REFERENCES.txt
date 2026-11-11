@@ -1,0 +1,32 @@
+Known Links, W orkspaces and References
+Hosted prototype
+• V ossie Marketplace hosted prototype: https://vossie-marketplace.paballokali11.chatgpt.site
+ChatGPT Sites project reference
+A prior ChatGPT Sites project existed and was used as the original prototype base. The public prototype is reference
+material, while the newer architecture and Figma system override old behaviour where decisions changed.
+Shared ChatGPT conversation
+A shared EduHackers conversation link was provided during the project. Because shared-chat pages are not always re-
+trievable programmatically , project knowledge was recovered through conversation context and the saved artifact library
+instead.
+Figma production context
+Later work created V ossie Figma production files for the design-system and prototype pipeline. T reat the latest approved
+Figma file plus Brand Identity as UI source of truth.
+Core file set for a fresh account
+Upload first:
+1. 00_ALL_IN_ONE_CONTEXT.md
+2. Latest Brand Identity / UIUX profile
+3. Vossie_Platform_Strategy_Differentiation_System_Blueprint_v12.pdf
+4. Vossie_Full_UIUX_Page_Architecture.pdf
+5. Vossie_177_Screen_Map.pdf
+6. Vossie_Motion_and_Interactive_3D_Showcase.pdf
+7. Developer Series 1–4
+8. Business Analysis + Market Research
+9. CMO Marketing Playbook + Visual Advertising Pack
+Source precedence
+1. Latest explicit user decision.
+2. Approved Brand Identity for branding.
+3. V12/latest platform blueprint for product policy .
+4. F ull UI/UX Architecture for screen structure.
+5. Developer Series for execution-specific rules.
+6. Existing live prototype only as a reference if it conflicts with newer decisions.
+1

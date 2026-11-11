@@ -1,0 +1,30 @@
+Inventory , T axonomy , Listings and Promotions
+Inventory , T axonomy , Listings and Promotions
+T op-level category direction
+Keep top-level navigation simple; use subcategories and dynamic attributes underneath.
+Current structure:
+• F ood & Drinks
+• Essentials
+• F ashion & Lifestyle
+• Services
+• Rentals
+• Digital
+• future/feature-gated categories such as Events/Tickets if later approved
+Dynamic listing model
+One core listing model + category-specific extensions.
+Examples:
+• F ood: ingredients, allergens, size, add-ons, prep time.
+• F ashion: size, colour, variant.
+• Services: slots/availability , duration, location/remote.
+• Rentals: duration, deposit, availability , condition.
+• Digital: file/access entitlement, ownership declaration, delivery rules.
+Seller UI
+Sellers fill structured fields; V ossie composes consistent cards and product pages. Sellers do not freely design marketplace
+cards.
+Buyer card
+Image → title → seller/trust context → price → special if valid → campus/fulfilment signals → CT A.
+Promotions
+Use structured fields for normal price, promotional price, dates and savings. A void fake “was” pricing.
+Seller live preview
+Listing editor should show how the buyer-facing card/detail page will look while the seller edits.
+1

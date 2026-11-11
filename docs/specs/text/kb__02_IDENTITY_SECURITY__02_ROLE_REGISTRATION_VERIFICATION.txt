@@ -1,0 +1,24 @@
+Role Registration and V erification
+Role Registration and V erification
+One identity , progressive capabilities
+There are not three separate login systems.
+Buyer
+Base verified student capability after institutional identity/eligibility .
+Seller activation
+Buyer verification + seller onboarding + agreements + store/business setup + payout information + review/approval where
+required.
+Courier activation
+Reuse verified identity . Add transport mode and courier-specific evidence.
+T ransport options:
+• walking,
+• bicycle,
+• motorcycle,
+• car.
+W alking/bicycle should have lighter onboarding and geographic/package constraints. Motorcycle/car require licence/vehicle
+evidence appropriate to the production policy .
+Staff roles
+Hub, Finance, Security , Admin, Incubation etc. are assigned memberships, not self-selected public roles.
+Role reuse
+If identity verification was already completed for Seller and the same user later activates Courier, reuse what is still valid
+instead of collecting duplicate sensitive information.
+1

@@ -1,0 +1,25 @@
+T echnical Stack
+T echnical Stack
+Locked prototype foundation
+Layer Direction
+Language TypeScript
+W eb/PW A Next.js + React
+UI implementation T ailwind CSS + Radix/shadcn-derived V ossie system
+Backend TypeScript modular monolith
+Database PostgreSQL
+Prototype backend platform Supabase
+Data access Drizzle + explicit SQL where needed
+V alidation Zod
+Authorization V ossie capabilities/RBAC + server checks + RLS
+Realtime Supabase Realtime for selected flows
+T esting Vitest + Playwright
+Repository GitHub monorepo, pnpm + T urborepo
+CI/CD GitHub Actions
+Prototype deploy V ercel + Supabase
+Candidates / optional layers
+• Clerk as an auth candidate behind an identity-provider abstraction.
+• SwiftUI as optional native iOS expansion.
+• Production maps, payments, notifications and observability remain adapter/provider decisions.
+Architecture rule
+Start as a modular monolith with clear domains. Do not create microservices simply because the platform is complex.
+1

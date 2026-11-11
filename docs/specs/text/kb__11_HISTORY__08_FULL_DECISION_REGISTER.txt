@@ -1,0 +1,93 @@
+F ull Decision Register
+Product
+• V ossie is a campus-commerce operating system, not only classifieds.
+• T wo application families share one backend.
+• Buyer/Seller/Courier are capabilities under one verified student identity .
+• Operations uses permissioned workspaces rather than one omnipotent admin role.
+Identity
+• Student number/email format is not authentication.
+• Production target: Eduvos/Microsoft institutional federation + existing Authenticator/MF A.
+• Prototype: honest sandbox simulation.
+• No separate Buyer/Seller/Courier login systems.
+Money
+• Pilot seller commission: 7%.
+• Pilot courier commission: 5%.
+• Buyer pays delivery by default.
+• Seller/courier can choose automatic or manual payout.
+• F unds: Pending → Secured → A vailable → Payout Processing → Paid Out.
+• F ull approved refund reverses seller commission; provider processing economics are tracked separately .
+Delivery / custody
+• QR establishes custody transitions.
+• OTP establishes final delivery proof.
+• 24-hour post-delivery issue window.
+• Product dispute does not automatically cancel courier earnings when delivery itself was successfully completed.
+Cross-campus
+• Hub-to-hub pooled movement where practical.
+• Nearest viable route, not naive geographic hops.
+• Manifest + scan for each leg.
+• Third-party courier fallback available.
+• Long-distance transfer is a separate capability from local student courier work.
+Requests
+• Buyer Requests are first-class.
+• Sellers respond with structured offers.
+• Accepted offer becomes normal order/booking.
+Inventory
+• Dynamic category schemas.
+• Core categories: F ood & Drinks, Essentials, F ashion & Lifestyle, Services, Rentals, Digital.
+• Seller controls price.
+• Promotions/specials are structured state, not fake crossed-out pricing.
+Digital
+• Controlled entitlement/delivery after purchase.
+• No public permanent file URLs as the normal model.
+• Academic/institutional material receives stronger moderation/ownership handling.
+1
+F ood
+• Any seller can list food; no separate food account type.
+• F ood listings use stronger transparency , ingredients/allergens, reporting, review and incident handling.
+• Do not use “buy at your own risk” as the main trust/compliance model.
+Reels
+• Dedicated marketplace navigation destination.
+• 15–30 second commerce-linked videos.
+• Product/service rail and direct actions.
+• Not a generic social network.
+Seller Studio
+• Store setup, listings, availability , timetable assistance, analytics, earnings and business controls.
+• Timetable extraction must be confirmed/edited by seller before use.
+Incubation
+• Seller support and entrepreneurship intelligence, not ordinary seller administration.
+• Uses aggregate demand, unmet searches, growth indicators and interventions.
+Operations
+• Command Center, tickets, disputes, compliance, finance, security , audit, users, listings, hubs, transfers and system
+health.
+• V ossie security dashboard is a platform security view, not a claim to replace a full enterprise SIEM.
+UX
+• Plato-inspired soft visual literacy , not copying.
+• Uber-inspired interaction clarity , not copying.
+• Mobile-first Marketplace, desktop-first Operations, shared responsive design system.
+• 177-screen universe is design architecture, not first-release scope.
+Motion
+• F unctional motion first.
+• Motion.dev/CSS for runtime microinteractions.
+• Motion.so optional exported motion only if free credits exist.
+• Reduced-motion support is mandatory .
+Engineering
+• TypeScript/Next.js/React PW A.
+• PostgreSQL/Supabase foundation.
+• Drizzle/Zod.
+• RBAC/capabilities/RLS.
+• GitHub monorepo + pnpm/T urborepo.
+• Vitest/Playwright.
+• GitHub Actions.
+• V ercel/Supabase prototype deployment.
+Agentic workflow
+• ChatGPT Architect.
+• Cursor Atlas + specialist agents + Guardian/Medic.
+• VS Code Sentinel + review agents + W atchtower/Resolver.
+• GitHub/.vossie is durable shared truth.
+• No silent direct-to-main autonomous pushes.
+2
+Pitch
+• 4-minute cinematic origin/team sequence.
+• 15–20 minute Danny-led live product demo.
+• V ossie dot as recurring motion signature.
+3

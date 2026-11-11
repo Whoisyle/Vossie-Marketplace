@@ -1,0 +1,24 @@
+Product Vision and Differentiation
+Product Vision and Differentiation
+Vision
+V ossie is a campus-commerce operating system for verified students. It is designed to connect everyday student demand
+with student supply , local fulfilment, accountable custody and entrepreneurship support.
+Differentiation stack
+The defensible idea is the combination of:
+1. verified student identity ,
+2. Buyer/Seller/Courier participation in one account,
+3. campus-local marketplace density ,
+4. Request marketplace for unmet demand,
+5. Marketplace Reels for commerce discovery ,
+6. QR/OTP custody and delivery proof,
+7. Campus Hubs and cross-campus transfers,
+8. Incubation intelligence from real demand/supply signals,
+9. Operations tooling for support, disputes, finance, compliance and security .
+Competitive framing
+Large e-commerce marketplaces have selection and mature fulfilment but do not optimize for verified campus peer commerce.
+Social/DM commerce has discovery but weak transaction state and accountability . Classifieds have broad supply but
+not integrated campus identity , custody , courier and incubation. On-demand delivery has strong logistics but is usually
+merchant-led rather than peer campus commerce.
+Product thesis
+V ossie should be pitched as campus commerce infrastructure , not another classifieds board.
+1

@@ -1,0 +1,9 @@
+Source Summary — Motion and Interactive 3D Showcase
+The motion showcase defines approximately 30 motion contracts plus optional interactive 3D concepts.
+Core principle: motion explains cause/effect and state; decoration is secondary .
+Important motion families include: - account steps, - press/submit feedback, - navigation, - workspace switch, - search
+continuity , - sheets/filters, - product continuity , - basket feedback, - seller matching, - request arrival, - money-state
+transitions, - order milestones, - courier location, - QR scan recognition, - recipient handover, - transfer reconciliation, -
+seller availability/listing publication, - messaging/notifications, - Incubation panels, - Operations queue updates, - load-
+ing/offline/recovery .
+1

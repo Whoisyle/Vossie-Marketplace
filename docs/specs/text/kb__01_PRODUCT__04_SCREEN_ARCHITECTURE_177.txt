@@ -1,0 +1,27 @@
+177-Screen Architecture Summary
+177-Screen Architecture Summary
+Current full design inventory:
+W orkspace Screens Scope
+Access / Authentication 12 registration, verification, recovery ,
+staff entry
+Shared / Account 24 account, role switching, messages,
+support, wallet/security
+Buyer 41 home, explore, activity , orders,
+requests
+Seller 25 requests, shop, earnings, account
+Courier 14 offers, delivery , earnings, account
+Campus Hub 8 intake, scans, transfers, account
+T ransfers 9 routes, manifests, scans, issues
+Incubation 12 overview, demand, businesses,
+plans
+Operations 17 moderation, finance, support,
+compliance, security , admin
+Extensions 15 feature-gated
+categories/workspaces
+T otal 177
+Application family totals
+• App 1 role-specific: Buyer 41 + Seller 25 + Courier 14 = 80, with Access/Shared layered across them.
+• App 2 operational: Hub 8 + T ransfers 9 + Incubation 12 + Operations 17 = 46.
+Important
+The 177-screen universe is the architecture, not the first MVP commitment. Build complete vertical journeys first.
+1

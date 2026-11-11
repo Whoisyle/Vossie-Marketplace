@@ -1,0 +1,656 @@
+VOSSIE / EDUHACKERS 2.0 — DEVELOPER SERIES 4 — V1
+Page 1
+ vossie
+ Developer Series 4
+Cinematic Pitch Film, Live Product Demonstration & Motion Production Blueprint — Version 1
+Locked presentation architecture: approximately 4 minutes of cinematic origin/team storytelling, followed by a 15–20 minute
+Danny-led product demonstration, differentiation narrative and ecosystem pitch, then a short cinematic close.
+Purpose: make Vossie itself the presentation. Act I explains why the platform exists and who built it through illustration, motion
+graphics, typography, 3D/device shots and engineering visualization. Act II reveals the real application and lets Danny drive Buyer,
+Seller, Courier, cross-campus logistics and Operations while the relevant UI and backend-system visualizations react to his
+narration.
+Continuity with previous series. The film uses the confirmed 177-screen architecture and two application families; the existing
+Figma/Motion pipeline remains the UI source, and the agentic engineering sequence reflects the Atlas/Sentinel reliability workflow
+already specified in Series 3.
+Motion signature
+The Vossie dot is the recurring visual particle. It can become a person, research point, cursor, request,
+notification, package, courier location, campus node, data point, agent task, Git commit or transition —
+and finally returns to the dot above the i.
+
+VOSSIE / EDUHACKERS 2.0 — DEVELOPER SERIES 4 — V1
+Page 2
+1. Runtime & act structure
+Block
+Target duration
+Purpose
+Presentation mode
+Act I — Origin + Team
+~4:00
+Problem, product thinking, design,
+research/development, project coordination, business
+analysis, marketing
+Pre-rendered cinematic film
+Act II — Danny / Pitch Lead
+15:00–20:00
+Full live/controlled demonstration, differentiation, user
+journeys, operational depth and value proposition
+Presenter-led app + synchronized
+motion/visual cues
+Finale
+~0:30–0:45
+Recombine Buyer/Seller/Courier/Operations into one
+ecosystem and close on Vossie identity
+Pre-rendered or cue-triggered
+cinematic close
+Act II should be modular rather than one uninterruptible video. Danny must be able to pause, answer a judge, jump to another
+feature, recover from a demo issue and resume. The visual system therefore needs cueable chapters and fallback recordings for
+every critical live interaction.
+
+VOSSIE / EDUHACKERS 2.0 — DEVELOPER SERIES 4 — V1
+Page 3
+2. Team integration — roles become visual sequences
+Team member
+Role
+How the film visualizes the contribution
+Malindi Mpumelelo
+Product Lead
+Fragmented campus needs reorganize into Buyer, Seller, Courier, Marketplace,
+Campus/Operations and Incubation. Product structure emerges before UI.
+Oratile Modise
+UI/UX Designer
+Product model flattens into wireframes, tokens, components, cards, navigation,
+Reels, maps and refined responsive frames. Finished UI is teased, not fully
+demonstrated.
+Babalo Kali
+Developer & Research Lead
+Research signals become technical decisions; architecture becomes agentic
+implementation, testing, GitHub, verification and deployment.
+Danny Mohale
+Project Manager + Pitch Lead
+Parallel streams become milestones/dependencies and converge into a release.
+Later, the film hands control to Danny and Vossie becomes his presentation.
+Babalo Kali + Danny
+Mohale
+Business Analysts + Marketing Leads
+Demand/supply/logistics/business signals become opportunity analysis, positioning,
+launch communication and campus growth narrative.
+
+VOSSIE / EDUHACKERS 2.0 — DEVELOPER SERIES 4 — V1
+Page 4
+3. Act I — four-minute cinematic shot list
+The following is the production baseline. Timing is editable during animatic/voice-over lock, but sequence logic should remain
+stable.
+ID / time
+Shot / camera
+Motion + visual action
+Audio / narrative intent
+A01 00:00–00:05
+Locked black frame → centered macro
+Black hold. Dot fades in, compresses, first small bounce.
+Near-silence; soft low-frequency
+impact.
+A02 00:05–00:13
+Camera begins vertical follow
+Second/higher bounce; third jump reaches apex; dot drops
+rapidly.
+Impacts build; brief
+vacuum/silence at apex.
+A03 00:13–00:20
+Macro push into wordmark
+Dot lands above i; controlled wave reveals VOSSIE, then
+MARKETPLACE.
+Audio logo resolves. No narration.
+A04 00:20–00:35
+Push through dot → 35° aerial campus
+Dot becomes illustrated campus world; students appear as
+stylized figures/nodes.
+VO: campus already contains an
+economy.
+A05 00:35–00:58
+Slow lateral campus glide
+Book need vs unused book; food vs hungry student; designer vs
+customer; delivery need vs passing student.
+Each need/supply gets a small
+icon/dot; subtle campus
+ambience.
+A06 00:58–01:12
+Wider camera; increasing parallax
+DMs, chat bubbles, cash, posts and disconnected channels
+accumulate; composition becomes noisy.
+VO establishes fragmentation;
+notification sound texture rises.
+A07 01:12–01:20
+Hard freeze → negative space
+All clutter drops away; four dots remain: BUY / SELL / MOVE /
+GROW.
+Audio abruptly cleans.
+A08 01:20–01:42
+Orbital product-system camera
+Malindi title enters. Dots connect into Buyer → Marketplace →
+Seller, with Courier below and Campus/Operations/Incubation
+around it.
+Product Lead contribution:
+problem becomes coherent
+system.
+A09 01:42–01:50
+Product diagram rotates toward camera
+System lines flatten into grid/wireframe plane.
+Transition from product thinking to
+design.
+A10 01:50–02:12
+Figma-canvas style dolly
+Oratile title. Rough rectangles become components: card, search,
+nav, buttons, Reel, map, sheets; tokens settle.
+UI/UX contribution: rough →
+refined.
+A11 02:12–02:22
+Device 3/4 hero angle
+Finished Buyer screen briefly resolves on phone; camera
+approaches but screen separates into layers before full reveal.
+Tease only; do not demo app yet.
+A12 02:22–02:42
+Dark volumetric technical space
+Babalo title. Research cards/points: behaviour, identity, logistics,
+payments, security, feasibility; findings connect.
+Research Lead: evidence
+becomes decisions.
+A13 02:42–03:03
+Forward flight through architecture
+Research points transform into auth, database, frontend, maps,
+logistics, payments, integrations.
+Developer: decisions become
+architecture.
+A14 03:03–03:27
+Central Atlas node; radial camera
+Atlas dispatches
+Pixel/Forge/Schema/Market/Relay/Bridge/Kinetic. Each
+assembles its domain and streams output back.
+Engineering system becomes
+visual choreography.
+A15 03:27–03:40
+Rapid diagnostic push-in
+Build turns red; Medic isolates failure, repair applied, green.
+Guardian checks surrounding workflow.
+Self-checking reliability shown
+without code-wall overload.
+A16 03:40–03:52
+Commit becomes moving dot
+Commit → GitHub PR → Sentinel chamber;
+Lens/Aegis/Vector/Pulse/Vault run; Resolver handles one failure;
+Watchtower confirms.
+Independent verification; align with
+Series 3 workflow.
+A17 03:52–04:02
+Timeline converges to center
+Danny Project Manager title.
+Product/design/research/dev/test/marketing streams snap onto
+milestones and converge.
+Coordination contribution.
+A18 04:02–04:14
+Data-space morph
+Babalo + Danny: demand, supply, logistics and seller-growth
+clusters become business insight; then launch/QR/social/campus
+positioning.
+Business analysis + marketing.
+A19 04:14–04:22
+Everything collapses to one dot
+Dot lands; VOSSIE LIVE flashes but UI remains hidden; cut black.
+Build-up complete.
+A20 04:22–04:30
+Centered title card
+DANNY MOHALE — PITCH LEAD. Dot bounces once and
+reveals phone silhouette.
+Handoff from film to presenter.
+
+VOSSIE / EDUHACKERS 2.0 — DEVELOPER SERIES 4 — V1
+Page 5
+4. Act II — Danny's 15–20 minute product demonstration
+Act II is a controlled live presentation system. The application is the primary visual; motion graphics expand only when the concept
+is larger than a screen (for example cross-campus routing or system architecture). Each chapter has a live path, a pre-recorded
+fallback, and a cue marker so Danny can advance without waiting for an editor.
+Chapter / target
+What Danny demonstrates
+On-screen choreography
+Differentiation point to prove
+D01 Reveal / 1:00
+What Vossie is; verified identity; role switching
+Phone emerges from darkness; screen wakes;
+Buyer/Seller/Courier orbit then Buyer activates
+One verified campus identity
+with multiple participation
+modes
+D02 Buyer discovery / 2:00
+Home, campus, search, filters, categories, seller
+profiles, product/service discovery
+Camera moves into real UI; cursor/touch actions
+enlarged subtly; cards react to speech
+Campus-scoped discovery
+rather than generic
+classifieds
+D03 Marketplace Reels / 1:30
+Vertical discovery, tagged products/services,
+tap-through
+Reel fills stage; swipe rhythm; tagged product lifts
+out of video into Product Detail
+Content → discovery →
+commerce in one
+marketplace
+D04 Purchase / 1:30
+Product detail, cart, quantity, delivery/pickup,
+sandbox payment, confirmation, tracking
+Selected product remains spatially continuous
+through cart/checkout; order becomes tracking
+card
+End-to-end transaction rather
+than lead/contact-only
+marketplace
+D05 Buyer Requests / 1:30
+No suitable listing → Request It; budget, campus,
+timing, optional image
+Failed search clears; Request CTA grows;
+submitted request becomes Vossie dot leaving
+device
+Demand can be expressed
+before supply exists
+D06 Seller response / 2:00
+Request inbox, offer, acceptance, shop, product
+creation, stock, orders, analytics, payouts
+Request dot lands on Seller; offer returns to Buyer;
+accepted offer transforms into order
+Two-sided request/offer
+marketplace + business
+tooling
+D07 Seller Reels loop / 1:15
+Seller posts product Reel; Buyer discovers and
+purchases
+Post travels through network; same Reel appears
+on Buyer; tap → product → cart
+Seller marketing loop is
+native to commerce
+D08 Courier / 2:00
+Activate mode, vehicle type, go online, job card,
+accept, navigate, QR pickup, live tracking, delivery,
+earnings
+Flat map tilts into campus; courier dot travels;
+Buyer tracking floats alongside
+Student delivery layer with
+verification and
+package/vehicle constraints
+D09 Cross-campus / 2:00
+Hub scan, manifest, custody, inter-hub route,
+destination handoff
+Real tracking UI expands into animated campus
+network; package-dot passes QR custody nodes
+Cross-campus uses
+hub/transfer network, not
+unrealistic student
+long-distance driving
+D10 Operations / 2:00
+Campus Hub, Transfers, moderation, users,
+disputes, security, announcements
+Phone widens/morphs into desktop; modules slide
+past as Danny narrates
+Separate operational family
+with permission-controlled
+workspaces
+D11 Incubation / 1:15
+Demand trends, emerging sellers, business support
+evidence
+Seller node grows with orders; request clusters
+form demand map; Incubation dashboard resolves
+Marketplace activity becomes
+entrepreneurship insight
+D12 Differentiation recap /
+1:00
+Requests + Reels + student courier + cross-campus
+hubs + incubation + operations
+Six capability nodes orbit Vossie; each lights as
+Danny summarizes
+Show integrated system
+rather than claiming one
+isolated novelty
+Timing note: the chapter targets above total approximately 18 minutes. Danny can compress to ~15 minutes by shortening
+D02/D06/D08/D10, or expand toward 20 minutes with judge-facing explanation and live interaction.
+
+VOSSIE / EDUHACKERS 2.0 — DEVELOPER SERIES 4 — V1
+Page 6
+5. Act II interaction, cueing & demo safety
+System
+Production rule
+Cue model
+Every chapter has a named cue: REVEAL, BUYER, REELS, CHECKOUT, REQUEST, SELLER, COURIER,
+CROSS_CAMPUS, OPERATIONS, INCUBATION, RECAP, FINALE.
+Live UI
+Use the real prototype wherever stable. Danny's actions should be deterministic with seeded demo accounts/data and
+known starting states.
+Synchronized graphics
+A cue can trigger overlays, device framing, camera crop, background motion, map expansion or data visualization while
+leaving the real app legible.
+Fallback
+Every critical live path has a frame-accurate prerecorded fallback matching the same starting UI. Switching should not
+require explaining a failure to the audience.
+Reset
+One-click/reset script restores demo accounts, carts, request state, courier job, hub shipment and Operations data to the
+known pitch state.
+Presenter freedom
+Danny may pause between cues. Motion must settle into a hold state; nothing essential should auto-advance while he is
+speaking or answering.
+No fake functionality
+Conceptual visuals are clearly cinematic expansions of real platform logic; they must not imply production integrations or
+live capabilities that the prototype does not actually have.
+
+VOSSIE / EDUHACKERS 2.0 — DEVELOPER SERIES 4 — V1
+Page 7
+6. Camera, lens & motion grammar
+Use
+Camera / angle
+Motion rule
+Identity / logo
+Macro centered; shallow perceived depth
+Few moves; heavy timing; dot impacts use squash/stretch +
+restrained overshoot
+Campus problem
+30–40° aerial/isometric
+Slow lateral glides and controlled parallax; chaos comes from
+content, not shaky camera
+Team roles
+3/4 spatial compositions
+Camera moves toward the contribution, then that contribution
+becomes the transition
+Device hero
+Front 3/4 at reveal; later straight-on for legibility
+Cinematic orbit only before interaction; during demo, prioritize
+readable UI
+Inside UI
+Orthographic/near-flat
+Use push-through, card lift, sheet rise, matched geometry; avoid
+excessive perspective
+Maps/logistics
+Top-down → 35° tilt
+Use route drawing, location pulse and package-dot movement;
+custody changes get discrete scan beats
+Engineering
+Forward flight + radial node layouts
+Faster than product sections but readable; failures use punch-in,
+not glitch spam
+Operations
+Desktop straight-on / slight parallax
+Lateral module transitions; tables stay legible
+Finale
+Wide pullback
+Progressively reveal more nodes until ecosystem resolves into
+wordmark
+Motion easing should feel physical but controlled: quick response, short overshoot only where appropriate, and longer
+ease-in/ease-out for camera travel. The film should never imitate Apple's exact shots or branding; it uses a restrained launch-film
+grammar adapted to Vossie's own identity.
+
+VOSSIE / EDUHACKERS 2.0 — DEVELOPER SERIES 4 — V1
+Page 8
+7. Asset manifest
+Asset family
+Required assets
+Source / production treatment
+Brand
+Vossie master logo, wordmark, dot, palette, type rules, icon
+set
+Vector exports from approved brand/Figma; dot built as
+reusable AE precomp
+UI
+Buyer/Seller/Courier/Operations screens, states, modals,
+Reels, maps, checkout, requests
+Native Figma frames/components + real prototype capture; no
+AI-generated fake UI
+Team
+Names/roles; optional portraits/silhouettes if desired
+Typography-led by default; portraits only if team wants them
+Campus
+Stylized buildings, paths, student figures, product/service
+icons
+Illustration/3D kit designed in Vossie language; generic unless
+approved campus references are supplied
+Devices
+Phone/tablet/desktop frames
+3D or high-quality device mockups; screen replacements linked
+to real captures
+Logistics
+Package, QR, route, hub, vehicle/walking icons, manifests,
+custody nodes
+Vector/3D hybrid; dot acts as package/location token
+Engineering
+Atlas/Sentinel agent nodes, Git/PR/test/deploy visual objects
+Abstract motion graphics based on Series 3 roles; avoid
+unreadable fake code walls
+Audio
+Audio logo, impacts, UI taps, scans, route pulses, ambience,
+music stems
+Original/licensed assets only; separate stems for presenter
+ducking
+Demo data
+Seed users, products, requests, offers, order, courier job,
+cross-campus shipment, Incubation metrics
+Deterministic staging/demo dataset with reset capability
+
+VOSSIE / EDUHACKERS 2.0 — DEVELOPER SERIES 4 — V1
+Page 9
+8. After Effects / production project architecture
+Build modularly. Do not create one 20+ minute After Effects timeline containing every live interaction.
+Folder / comp family
+Contents
+00_MASTER
+Master Act I render, Finale render, reference audio, delivery comps
+01_IDENT
+Dot physics, Vossie reveal, audio-logo timing
+02_CAMPUS
+Campus world, student nodes, fragmented channels
+03_TEAM_PRODUCT
+Malindi/product-system compositions
+04_TEAM_DESIGN
+Oratile/wireframe/component/Figma-style compositions
+05_TEAM_DEV
+Babalo/research, architecture, agentic engineering, Git/verification/deploy
+06_TEAM_PM_BIZ
+Danny PM + Babalo/Danny business/marketing sequences
+07_DEVICE
+Phone/desktop device rigs and reusable screen-replacement comps
+08_DEMO_OVERLAYS
+Cueable chapter titles, highlights, masks, pointer/touch emphasis, background states
+09_LOGISTICS
+Courier map, QR/custody, cross-campus network
+10_OPERATIONS
+Desktop transitions, analytics/incubation visualization
+11_FINALE
+Ecosystem pullback, node field, wordmark reconstruction
+ASSETS
+Figma exports, SVG, PNG/EXR, 3D, fonts-by-reference, audio, prototype recordings
+Where Work mode can access After Effects, the production specification should be used to create/import assets, organize comps,
+animate, preview and render. If a required AE capability/plugin is unavailable, the same shot specification remains executable
+through alternate motion/3D tools and can be assembled in the final edit.
+
+VOSSIE / EDUHACKERS 2.0 — DEVELOPER SERIES 4 — V1
+Page 10
+9. Shot-production schema
+Every production shot should be tracked using the following fields so Work/After Effects or a human motion designer can execute
+without interpreting vague creative direction.
+Field
+Example
+shot_id
+A14_SH03
+timecode / duration
+03:09.000–03:13.500 / 4.5s
+sequence / cue
+TEAM_DEV / ATLAS_BUILD
+narration
+Exact locked voice-over or Danny cue line
+camera
+3/4 orbit, 35mm-equivalent visual feel, slow push 8%
+composition
+Atlas center; specialist nodes radial; UI layers behind
+motion
+Task dots fire to agents; outputs return with stagger
+UI / Figma refs
+Frame/component IDs and version
+assets
+SVG/PNG/3D/audio filenames
+AE comp
+05_TEAM_DEV/ATLAS_BUILD_03
+transition in/out
+Architecture tunnel → radial node / commit-dot wipe
+SFX / music
+Task pulse x7; music stem B rise
+render
+4K master, alpha overlay or stage playback output
+dependency
+Requires locked Series 3 agent names + final Vossie palette
+fallback
+Simplified 2D node composition
+status
+BLOCKED / READY / ANIMATING / REVIEW / APPROVED / RENDERED
+
+VOSSIE / EDUHACKERS 2.0 — DEVELOPER SERIES 4 — V1
+Page 11
+10. Production workflow
+Phase
+Output / gate
+01 Narrative lock
+Final 4-minute Act I script + Danny's 15–20 minute speaking outline + differentiation claims approved
+02 Demo map
+Select exact screens/states from the 177-screen architecture; create deterministic demo accounts/data
+03 Storyboard
+One frame per shot/cue; verify visual continuity and role representation
+04 Animatic
+Rough timing, temp VO, temp music; confirm 4-minute Act I pacing before polish
+05 Asset build
+Figma exports, campus illustration/3D, device rigs, icons, logistics and engineering visual kit
+06 Act I animation
+Animate ident → team story → Pitch Lead handoff; review in low-res before final rendering
+07 Live demo package
+Prototype/staging environment + cue controller + overlays + fallback recordings + reset script
+08 Act II rehearsal
+Danny rehearses against cues; capture timing; shorten/expand chapters to competition limit
+09 Finale
+Build ecosystem/wordmark close and final audio-logo return
+10 Audio
+Voice-over cleanup, original/licensed music, SFX, ducking and loudness consistency
+11 Technical rehearsal
+Run full pitch on actual presentation hardware/network; deliberately test offline/fallback path
+12 Delivery
+4K master where needed, 1080p stage-safe playback, fallback videos, cue sheet, offline package and rehearsal copy
+The production must preserve the platform truth: Marketplace contains Buyer, Seller and Courier role-specific experiences, while
+Operations contains Hub, Transfers, Incubation and permission-controlled operational workspaces. The current screen architecture
+totals 177 designs across all confirmed areas, so the demo should select representative flows rather than attempt to show every
+screen.
+
+VOSSIE / EDUHACKERS 2.0 — DEVELOPER SERIES 4 — V1
+Page 12
+11. Locked creative decisions for Series 4 v1
+01. Opening identity uses the bouncing Vossie dot and ends with the dot landing above the i.
+02. The first ~4 minutes introduce the problem, Vossie concept and team contributions without fully demonstrating the application.
+03. Malindi = Product; Oratile = UI/UX; Babalo = Development + Research; Danny = Project Management + Pitch; Babalo + Danny
+= Business Analysis + Marketing.
+04. Danny's Pitch Lead handoff is the first complete reveal of the working application.
+05. Danny receives ~15–20 minutes for Buyer, Reels, purchase, Requests, Seller, Courier, cross-campus logistics, Operations,
+Incubation and differentiation.
+06. Act II is cueable and presenter-controlled, not a single locked video.
+07. Real Figma/prototype UI is used for product demonstrations. Motion graphics explain systems that cannot be understood from
+one screen.
+08. Every critical live flow has deterministic demo data, a reset path and a prerecorded fallback.
+09. The dot is the recurring motion signature across identity, campus, product, engineering, logistics, data and finale.
+10. Final production is modular: After Effects comps, real app capture, optional 3D, synchronized audio and cue-controlled live
+presentation.
+Next production artifact
+Once the exact competition pitch limit and the final Vossie prototype states are locked, this blueprint can be expanded into the
+frame-level production workbook: 60–90+ individual Act I/finale shots plus cue-by-cue Act II states, exact narration, Figma frame
+references, AE comp names, asset filenames, camera values, easing, audio events, dependencies and approval status.
+
+VOSSIE / EDUHACKERS 2.0 - DEVELOPER SERIES 4 - V2
+Page 1
+12. ChatGPT Work Execution Handoff
+This section is the execution bridge from the Series 4 specification into production. The user will provide the approved Vossie
+brand identity package and the Figma files/links containing the designed application pages and states. Work must treat those
+supplied assets as source-of-truth inputs, not recreate or reinterpret them unnecessarily.
+Required handoff package
+Input
+How Work must use it
+Developer Series 4 v2 PDF
+Authoritative creative, shot, motion, demo, production and delivery specification.
+Vossie Brand Identity
+Authoritative logo, colour, typography, iconography, spacing, visual-language and brand-use rules. Use these assets
+before creating any new visual element.
+Vossie Figma files / page designs
+Authoritative UI/UX source for Buyer, Seller, Courier and Operations screens. Preserve component hierarchy and
+approved states where possible.
+Working Vossie prototype
+Use for real interaction capture and stable live-demo paths where available.
+Optional media
+Team portraits, campus references, audio, approved photography/video and any other supplied production assets.
+Asset precedence
+If two inputs conflict, stop that affected shot and flag the conflict instead of guessing. For visual identity, the supplied Brand Identity
+overrides temporary styling in older production examples. For application UI, the supplied approved Figma/prototype state overrides
+illustrative UI shown elsewhere. Series 4 controls narrative, motion intent, shot structure and production workflow.
+
+VOSSIE / EDUHACKERS 2.0 - DEVELOPER SERIES 4 - V2
+Page 2
+13. Master prompt to paste into ChatGPT Work
+Attach this PDF plus the Brand Identity and Figma files first. Then paste the following prompt:
+VOSSIE SERIES 4 - MASTER PRODUCTION EXECUTION You are the production lead for the Vossie cinematic pitch
+experience. Read the entire attached Developer Series 4 specification before creating or changing anything. The
+user will also provide the approved Vossie Brand Identity and the Figma files or links containing the application
+pages. Treat those as authoritative source assets. Do not invent replacement branding or application screens when
+an approved source exists. GOAL Execute the Series 4 production: the approximately four-minute cinematic
+origin/team film, the cue-driven 15-20 minute Danny-led product demonstration package, and the cinematic ecosystem
+finale. FIRST ACTIONS 1. Audit every attached file, link and available application/tool. 2. Confirm which Vossie
+brand assets, Figma screens, prototype states, fonts, vector assets, audio assets and production applications are
+accessible. 3. Create a production manifest mapping Series 4 shot/cue IDs to source assets, output files,
+dependencies and status. 4. Create an organized, non-destructive Vossie production workspace. 5. Only then begin
+production. SOURCE-OF-TRUTH RULES - Brand Identity controls logo, palette, typography, iconography and visual
+language. - Approved Figma/prototype assets control product UI. - Developer Series 4 controls narrative, shot
+structure, motion intent, demo chapters and delivery requirements. - Never fabricate a feature or production
+integration. - If source files conflict, flag the conflict rather than silently choosing. APPLICATION ROUTING -
+Use Adobe Illustrator when available for editable vector/illustration work: Vossie dot assets, campus graphics,
+icons, logistics graphics, diagrams and other vector elements. - Use the supplied Figma source for real Vossie UI.
+Preserve approved components/states and export the exact frames required by each shot. - Use Adobe After Effects
+when available for cinematic sequences, motion graphics, device compositions, transitions, engineering
+visualization, logistics sequences and the finale. - Use appropriate editing/audio/render tools available in the
+environment for assembly, sound and delivery. - Do not claim an application was used if it is unavailable. Record
+the blocker and use the closest viable production route that preserves the specification. PRODUCTION ORDER Build
+and validate sequence-by-sequence: 01_IDENT 02_CAMPUS 03_TEAM_PRODUCT 04_TEAM_DESIGN 05_TEAM_DEV 06_TEAM_PM_BIZ
+07_PITCH_HANDOFF 08_DEMO_OVERLAYS 09_LOGISTICS 10_OPERATIONS 11_FINALE 00_MASTER FOR EACH SEQUENCE Gather approved
+assets -> build -> preview -> compare against Series 4 -> find errors -> repair -> preview again -> mark approved
+only after validation. ACT II Do not turn Danny's 15-20 minute section into one fixed movie. Build it as
+presenter-controlled chapters using the defined cues: REVEAL, BUYER, REELS, CHECKOUT, REQUEST, SELLER, COURIER,
+CROSS_CAMPUS, OPERATIONS, INCUBATION, RECAP and FINALE. Use the real prototype for stable interactions. Prepare
+deterministic demo data, known starting states, a reset procedure and a prerecorded fallback for every critical
+path. Motion overlays must settle into hold states so Danny can pause or answer judges without the presentation
+advancing. QUALITY AND RECOVERY Do not stop at a raw error when a safe repair is possible. Diagnose, attempt
+repair, rerun the affected preview/test and document the result. Ask the user only when credentials, unavailable
+source assets, licensing, an irreversible action or an undefined creative decision prevents safe continuation.
+Maintain the production manifest throughout. For every shot/cue record: ID, duration, narration/cue, source
+assets, Figma reference, application, composition/file, dependencies, status, blocker, fallback and render output.
+FINAL QA Audit branding, UI fidelity, missing media, fonts/references, composition dependencies, motion timing, UI
+legibility, audio synchronization, render errors, demo reset, offline fallback and stage playback. DELIVER Act I
+master, cue-driven live-demo package, overlays, fallback recordings, finale, cue sheet, production manifest,
+stage-safe render and offline presentation package. Start now by reading the complete Series 4 specification and
+auditing the supplied Brand Identity, Figma files and available production environment. Produce the manifest and
+then continue into the first executable production sequence. Do not stop after planning if the required tools and
+assets are available.
+
+VOSSIE / EDUHACKERS 2.0 - DEVELOPER SERIES 4 - V2
+Page 3
+14. Work recovery and QA prompts
+Resume after interruption
+Continue Vossie Series 4 production from the current production manifest. Read Series 4 and the manifest first.
+Revalidate the last approved sequence, identify the next incomplete shot/cue, preserve approved work and continue
+from there. Do not recreate approved assets unnecessarily. Repair recoverable errors before escalating them.
+Full project audit
+Audit the complete Vossie Series 4 project against the specification, Brand Identity and approved Figma/prototype
+sources. Check every shot and cue for missing assets, incorrect branding, UI drift, broken references, timing or
+motion problems, audio issues, demo-state problems, missing fallbacks and render errors. Repair issues that are
+unambiguously defined by the source material, rerun validation and update the production manifest.
+Figma/UI fidelity audit
+Compare every product-facing visual in Series 4 against the supplied approved Vossie Figma/prototype source.
+Identify invented, stale or mismatched UI. Replace mismatches with approved states while preserving the Series 4
+camera and motion intent. Do not redesign the product during film production unless the user explicitly requests a
+product-design change.
+Asset rule
+The Brand Identity and Figma files are expected user-supplied production inputs. The workflow should remain blocked only for shots
+that genuinely require an unavailable source. Other independent shots may continue.

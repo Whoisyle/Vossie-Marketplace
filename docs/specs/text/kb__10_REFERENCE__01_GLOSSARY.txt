@@ -1,0 +1,25 @@
+Glossary
+Glossary
+• V ossie Marketplace: student-facing App 1.
+• V ossie Operations: App 2 for hub/incubation/admin/operations.
+• Buyer: base verified student marketplace capability .
+• Seller: activated marketplace capability for selling/business operation.
+• Courier: activated student delivery capability .
+• Campus Hub: physical custody/collection/transfer node.
+• T ransfer:hub-to-hub movement across campus network.
+• Incubation: entrepreneurship/demand intelligence workspace.
+• Request: buyer-created demand object sent to eligible sellers.
+• Reel: short seller commerce video tied to listings.
+• Custody: accountable possession state of a package.
+• OTP delivery proof: recipient code proving final handover.
+• PSP: Payment Service Provider.
+• Ledger: append-only/reference-based money-movement record.
+• RLS: Row Level Security .
+• RBAC: Role-Based Access Control; V ossie also uses capabilities/resource scope.
+• PW A:Progressive W eb App; universal prototype distribution route.
+• F eature Contract: engineering handoff describing requirement, scope, risks and acceptance.
+• Atlas: Cursor build lead agent.
+• Sentinel: VS Code verification lead agent.
+• Guardian/Medic: Cursor reliability agents.
+• W atchtower/Resolver:VS Code verification reliability agents.
+1

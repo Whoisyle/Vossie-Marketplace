@@ -1,0 +1,26 @@
+Cinematic Pitch Blueprint
+Cinematic Pitch Blueprint
+Overall format
+T wo major acts plus finale.
+Act I — ~4-minute cinematic origin/team film
+• black frame,
+• V ossie dot bounces,
+• dot lands as the dot above the “i”,
+• V ossie wordmark resolves,
+• push through dot into illustrated campus economy ,
+• fragmented demand/supply channels become visible,
+• Product/Design/Engineering/PM/Business contributions are introduced,
+• full app is intentionally teased but not fully demonstrated.
+Act II — ~15–20-minute Danny-led live/cueable product demonstration
+Danny becomes Pitch Lead and the real V ossie prototype becomes the stage.
+Suggested chapters:
+REVEAL → BUYER → REELS → CHECKOUT → REQUEST → SELLER → COURIER → CROSS_CAMPUS →
+OPERA TIONS → INCUBA TION → RECAP → FINALE.
+Act II should be presenter-controlled rather than one long fixed film. Each critical live path needs deterministic demo data,
+a reset procedure and prerecorded fallback.
+Recurring visual motif
+The V ossie dot is reused as identity , student/node, map pin, request, package, system event and transition.
+Production architecture
+Use modular sequences/comps rather than one giant 20+ minute timeline. After Effects is one possible production envi-
+ronment when actually available; alternate tools may be used if necessary .
+1

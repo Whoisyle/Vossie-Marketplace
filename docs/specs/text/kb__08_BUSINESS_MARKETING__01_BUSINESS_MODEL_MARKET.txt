@@ -1,0 +1,33 @@
+Business Model and Market Thesis
+Business Model and Market Thesis
+Business thesis
+V ossie creates value across demand, supply , fulfilment and institutional support.
+• Buyers: relevant campus supply , trust context, fulfilment visibility .
+• Sellers: verified demand, storefront, orders, analytics, content discovery .
+• Couriers: local earning opportunities with structured jobs.
+• Eduvos/Incubation: visibility into entrepreneurship and unmet demand.
+Monetization order
+Do not optimize monetization before density and trust.
+Pilot currently uses seller/courier commissions as hypotheses. F uture levers may include:
+• transaction/service fees,
+• delivery economics,
+• seller tools for power sellers,
+• promoted discovery ,
+• institution/programme value,
+• approved partner services.
+Metrics
+T rack marketplace and logistics economics separately:
+• GMV,
+• average order value,
+• take rate,
+• payment cost,
+• refund/loss rate,
+• delivery revenue,
+• courier payout,
+• support cost,
+• contribution margin,
+• search failure/request rate,
+• repeat purchase,
+• active sellers,
+• fulfilment success.
+1

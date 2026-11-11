@@ -1,0 +1,21 @@
+Repository and Application Architecture
+Repository and Application Architecture
+Monorepo principle
+One GitHub repository is the durable source of truth for both IDEs and all agents.
+Suggested areas:
+• apps/marketplace — student-facing PW A
+• apps/operations — staff/operations web app if separated at route/app level
+• packages/ui — V ossie component system
+• packages/contracts — API/events/validation shared types
+• packages/domain — domain logic
+• packages/db — schema/migrations/data access
+• packages/integrations — payment/maps/identity/notifications adapters
+• packages/config — lint/TS/design tokens etc.
+• .vossie/ — architecture, agent contracts, feature contracts, handoffs and status
+Domain boundaries
+Identity , Marketplace, Listings/Inventory , Requests, Orders, Payments/Ledger, Courier, Hub/Custody , T ransfers, Messag-
+ing/Notifications, Disputes, Incubation, Operations/Audit.
+Realtime rule
+Realtime events improve speed but do not become source of truth. After reconnect, clients fetch authoritative current state
+from API/database.
+1

@@ -1,0 +1,59 @@
+Figma Production History
+Why Figma became central
+As the screen count and role complexity grew, static PDF s were no longer enough. Figma became the intended UI/UX
+source of truth between product specifications and implementation.
+Confirmed design universe
+177 screens:
+• Access / Authentication — 12
+• Shared / Account — 24
+• Buyer — 41
+• Seller — 25
+• Courier — 14
+• Campus Hub — 8
+• T ransfers — 9
+• Incubation — 12
+• Operations — 17
+• Extensions — 15
+Production philosophy
+Do not draw 177 independent screens. Build:
+1. Brand/foundations.
+2. V ariables/tokens.
+3. Core primitives.
+4. Marketplace components.
+5. Logistics components.
+6. Operations components.
+7. Role-specific patterns.
+8. Screen families.
+9. Responsive variants.
+10. Interaction states.
+11. Motion specifications.
+12. Clickable prototype journeys.
+13. Developer handoff.
+Brand source of truth
+The approved Brand Identity controls logo, palette, typography , spacing and visual language.
+The design language is soft and restrained, inspired by Plato’s visual literacy but not copied. Interaction behaviour is
+informed by Uber-style task clarity , live status, maps, contextual cards and sheets.
+Core design tokens
+Known brand direction includes:
+• W arm Ivory#FAF8F2
+• V ossie Navy#29475B
+• Powder Blue #AFCBDE
+• Slate Blue #567487
+• Pale Sage #DDE5D9
+• Nimbus Sans as supporting typeface
+• 4 / 8 / 12 / 16 / 24 / 32 spacing rhythm
+• 12 px field radius
+• 20 px card radius
+• approximately 48×48 px minimum touch target goal
+1
+Responsive behaviour
+• Phone: bottom navigation, sheets, full-screen Reels, QR/camera, courier map.
+• T ablet: split/context panels and wider commerce surfaces.
+• Desktop: sidebar, multi-column layouts, dense tables, larger operational maps.
+Priority prototype journey
+Authentication → Marketplace Home → Reels → Listing → Checkout → Payment → Seller → Courier → QR → OTP →
+Cross-campus/Hub → Incubation → Operations.
+Latest Figma work context
+Figma production was intended to preserve the Brand Identity and latest architecture, treating older prototypes as reference
+only when they conflict with newer specifications.
+2

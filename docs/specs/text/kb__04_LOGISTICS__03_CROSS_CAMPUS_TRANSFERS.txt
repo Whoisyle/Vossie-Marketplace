@@ -1,0 +1,20 @@
+Cross-Campus T ransfers
+Cross-Campus T ransfers
+Hybrid model
+Cross-campus is not a single student driving across provinces for every order.
+Preferred model:
+• campus hub network for pooled routes,
+• third-party courier fallback for low-volume/long-distance cases.
+Routing
+F or hub-to-hub movement, route through the nearest viable campuses, not merely nearest by straight-line distance.
+Viability includes route direction, schedule, capacity and operational availability .
+Example concept:
+Cape T own-area campus → next viable campus hub(s) → destination region/campus → local fulfilment.
+User experience
+Buyer sees one shipment and one tracking timeline, not many fragmented orders.
+Operational model
+Each leg has a manifest and custody scans. Intermediate hubs reconcile packages before forwarding.
+Third-party fallback
+If hub transfer is not economical (e.g. one parcel), offer approved external logistics such as parcel-point/direct courier where
+available. Third-party provider should be integrated through an adapter so the V ossie order still has a unified status view.
+1

@@ -1,0 +1,1593 @@
+VOSSIE / EDUHACKERS 2.0
+1
+ vossie
+ MARKETPLACE
+ Platform Strategy,
+Differentiation & System Blueprint
+ EduHackers 2.0 consolidated concept + market research
+September 2026
+Purpose
+Define what Vossie is, how the two applications work together, where it differs from existing
+marketplaces, and what must be validated before implementation.
+Strategy document - not a claim of production readiness
+
+VOSSIE / EDUHACKERS 2.0
+2
+1. Executive summary
+Vossie has evolved from a campus buy-and-sell concept into a closed student commerce, logistics and
+entrepreneurship platform. The core architecture is one platform with two application families sharing identity,
+permissions, orders, payments, custody, realtime events, analytics and audit infrastructure.
+Core thesis: Vossie's differentiation is not merely 'a marketplace for students'. The
+stronger proposition is verified campus identity + multi-role student participation +
+campus logistics/custody + cross-campus transfers + operational tooling + demand
+intelligence for student entrepreneurship.
+The student-facing Vossie Marketplace combines Buyer, Seller and Courier modes under one verified student
+identity. Vossie Operations serves hub staff, transfer operations, Incubation, support, moderation, finance,
+compliance, security and administrators through separate permission-controlled workspaces.
+The existing engineering package is extensive but is not a finished application: it specifies 90 database tables, 202
+API operations, 177 screens, 514 action bindings and 385 delivery tickets. A restricted backend foundation exists,
+while most screens, handlers, provider integrations and production deployment remain implementation work.
+2. Product architecture
+Vossie Marketplace - student application
+One identity, progressive roles. A student should not create three unrelated accounts. After student verification,
+Buyer access can be enabled. Seller and Courier capabilities are activated through additional role-specific
+verification, agreements and payout/operational setup.
+Mode
+Primary responsibility
+Key experiences
+Buyer
+Discover and purchase within the verified
+campus network.
+Explore, search, product/service pages, chat, checkout, orders,
+tracking, collection, disputes, ratings.
+Seller
+Operate a student storefront/business.
+Listings, inventory, requests, orders, fulfilment, earnings, payouts,
+customers and business analytics.
+Courier
+Perform authorised campus/local delivery
+work.
+Offers, acceptance, pickup, route, QR/PIN handover, proof,
+incidents and earnings.
+Vossie Operations - institutional and build-team application
+Operations should be one staff application with granular grants, not a collection of disconnected admin apps. A
+user's workspace is determined by authorised memberships and resource scope.
+Hub: intake, package scans, condition checks, custody, pickup/release, outgoing transfers, returns and exceptions.
+Transfers: manifests, hub-to-hub routes, package scans and mismatch handling. Incubation: seller/business
+health, campus demand, unmet searches, trends, interventions and growth plans. Operations/Admin: command
+centre, users, sellers, couriers, listings, orders, payments, disputes, tickets, compliance, incidents, audit, security,
+configuration and platform health.
+3. Identity, authentication and security
+The preferred long-term model is institutional federation rather than Vossie reproducing the institution's
+authentication stack. Where Eduvos identity is backed by Microsoft/Entra, the intended flow is Vossie -> institutional
+sign-in -> institutional MFA/Authenticator -> verified identity result -> Vossie session. Vossie should never receive or
+store the student's Authenticator secret.
+
+VOSSIE / EDUHACKERS 2.0
+3
+For a zero-budget prototype, this must be an explicitly labelled sandbox simulation: student number / institutional
+identity -> simulated Authenticator approval -> verified student state -> campus association -> Vossie account.
+Student-card information can support verification or campus interactions, but a photographed card should not
+become the primary long-term authentication mechanism.
+Production authorisation must be enforced server-side. A hidden UI button is not access control. Sensitive
+operations - payout destination changes, staff grants, high-risk refunds, MFA changes and certain financial
+overrides - should use step-up authentication, strict audit records and, where appropriate, two-person approval.
+4. Payments and transaction security
+Vossie should orchestrate commerce without storing raw card numbers, CVVs or authentication secrets. A
+regulated payment provider should handle payment credentials. Vossie stores transaction references, status,
+amounts, fees, allocations, refunds and payout state.
+The money model should use auditable ledger journals/lines rather than repeatedly mutating a single balance.
+Payment callbacks must be idempotent, and order state, money state and custody state must remain distinct.
+Prototype payment journey: Checkout -> provider/sandbox authorisation -> Payment
+secured -> Seller preparing -> Fulfilment/custody -> Buyer receipt confirmation ->
+Transaction completed -> Seller/courier payout eligibility. Refund and dispute paths
+must also be demonstrable.
+5. Cross-campus commerce and custody
+Cross-campus operation is one of the strongest differences between Vossie and a conventional classifieds
+experience. A buyer at one campus can discover an item at another campus and choose an authorised fulfilment
+path: collection, eligible courier delivery, or hub-to-hub transfer.
+A robust transfer path records Seller -> Origin Hub -> QR custody event -> Manifest/Transfer -> Destination Hub ->
+QR custody event -> Buyer -> recipient QR/PIN confirmation. Each handoff produces evidence for tracking,
+exceptions and disputes. Offline clients must not falsely confirm authoritative financial or custody events.
+6. Incubation intelligence
+Incubation is not the seller's ordinary dashboard. Seller Mode provides the seller's own listings, orders, inventory,
+earnings and analytics. Incubation receives appropriately scoped aggregate intelligence about demand, unmet
+searches, stock-outs, category trends, business health and intervention opportunities.
+This creates a feedback loop unavailable in a simple listings app: marketplace behaviour can reveal unmet campus
+demand; the Incubation team can use those signals to support student businesses; new supply can then return to
+the marketplace.
+
+VOSSIE / EDUHACKERS 2.0
+4
+7. Competitive landscape - September 2026 research
+The comparison below focuses on currently visible marketplace capabilities, not brand size or overall quality.
+Competitors solve parts of the same problem, but Vossie's proposed system combines several layers that are
+usually separate.
+Platform
+What it currently demonstrates
+Where Vossie's proposed model differs
+Yaga (SA)
+Integrated marketplace payments, buyer/seller
+protection, wallet-style seller proceeds and multiple
+national courier options. Payment is held until receipt
+confirmation.
+Vossie is institution-scoped and adds verified student roles,
+student couriers, campus hubs, custody events, hub-to-hub
+transfer and Incubation intelligence. Yaga is primarily a
+general fashion marketplace.
+Bob Shop (SA)
+Large general marketplace with seller ratings,
+in-platform payments, buyer protection and
+delivery/transit mechanisms.
+Vossie narrows trust to an institutional community and
+integrates campus identity, campus operations, student
+delivery roles and institution-facing operational intelligence.
+Campus Marketplace
+Student-only marketplace positioning with campus
+restriction, listings, chat, search and protected
+Paystack payments.
+This is the closest conceptual category. Vossie's proposed
+moat must therefore come from operational depth:
+progressive multi-role identity, hubs/custody, cross-campus
+transfers, courier workflow, staff Operations and Incubation.
+UniBay (SA)
+South African student marketplace with listings, chat
+and study-note discovery/upload.
+Vossie extends beyond discovery and messaging into
+transactional fulfilment, verified custody/logistics, seller
+operations and institution-side workflows.
+Student Hub
+Marketing
+Campus-focused buy/sell experience with
+authentication, profiles, listings, chat and
+campus-restricted discovery.
+Vossie's differentiation again depends on the system
+behind the listings: transaction state, payments/ledger,
+courier assignment, hubs, transfers, evidence, disputes and
+entrepreneurship intelligence.
+What the research changes
+Student-only access by itself is not unique. Current apps already market verified/campus-restricted student
+marketplaces. Likewise, chat, listings, search, ratings, protected payments and courier integrations are established
+marketplace features. Vossie should not present those as its primary moat.
+The more defensible differentiation is the combination of: institutional identity and progressive role activation;
+Buyer/Seller/Courier participation under one identity; campus hubs as operational nodes; custody-aware QR/PIN
+handoffs; cross-campus manifests and transfers; an institution-facing Operations console; and Incubation
+intelligence generated from marketplace demand.
+Positioning recommendation: do not pitch Vossie as 'Facebook Marketplace for
+students'. Pitch it as a verified campus commerce network that connects student
+demand, student businesses, student delivery, campus logistics and entrepreneurship
+support in one operational system.
+8. Differentiation framework
+Layer
+Vossie proposition
+Strategic value
+Trust
+Institution-linked identity, student verification, progressive
+Seller/Courier verification and role-scoped permissions.
+Reduces anonymous marketplace interactions and
+creates a defined community boundary.
+Commerce
+Listings, requests, protected checkout, transaction states,
+refunds, payouts and ledger.
+Moves beyond informal DM-based trading.
+Logistics
+Student courier + campus hub + hub-to-hub transfer +
+QR/PIN custody.
+Turns campuses into fulfilment nodes and creates
+evidence at handoffs.
+Operations
+Tickets, disputes, moderation, finance, compliance, security,
+audit and platform monitoring.
+Makes the marketplace institution-operable rather
+than merely student-facing.
+
+VOSSIE / EDUHACKERS 2.0
+5
+Layer
+Vossie proposition
+Strategic value
+Entrepreneurship
+Demand signals, unmet searches, seller health and
+Incubation interventions.
+Converts marketplace data into student-business
+development signals.
+Network
+My Campus + cross-campus discovery and fulfilment.
+Expands liquidity beyond one campus while
+preserving campus-aware logistics.
+9. Visual and interaction direction
+The existing Vossie visual system uses warm ivory #FAF8F2, navy #29475B, powder blue #AFCBDE, slate
+#567487 and pale sage #DDE5D9. The intended visual literacy is soft and restrained, while interaction patterns
+borrow the clarity and immediacy of on-demand apps: strong cards, obvious states, one primary task per screen,
+live status and recovery paths.
+The design must remain accessible: persistent labels, visible focus, practical touch targets, reduced-motion
+alternatives, clear loading/empty/error/offline states and explicit confirmation for irreversible actions.
+10. Current implementation reality
+Specified: domain/data contracts, screen/action mappings, API inventory, transaction rules, role boundaries,
+testing expectations and implementation backlog.
+Implemented foundation: SQL migrations/invariants and a restricted TypeScript/NestJS ordinary-product flow
+covering parts of quote/direct request, seller acceptance, capture-to-ledger processing, preparation, package
+creation and hub receipt.
+Still outstanding: most API handlers, complete native/web UI, ranked matching, full provider
+checkout/refunds/payouts, media pipeline, complete courier and extension workflows, production hosting and
+external integrations.
+The existing demo therefore remains a reviewable prototype. Identity, payment, camera, location and messaging
+simulations do not prove that production services are connected.
+11. Decisions to resolve in the next work session
+1. Pilot campus(es) and which physical hubs are in scope.
+2. Exact institutional identity/SSO path and what Eduvos can officially expose.
+3. Buyer, Seller and Courier registration requirements and verification evidence.
+4. Payment provider, merchant model, settlement/custody rules, fees, refunds and payout timing.
+5. Which fulfilment methods launch first: direct collection, student courier, hub pickup, cross-campus transfer.
+6. Courier eligibility, safety controls, assignment rules and incident process.
+7. Hub operating procedures, custody evidence, storage limits and exception handling.
+8. Marketplace categories permitted at launch and prohibited/restricted listing policy.
+9. Incubation metrics that are useful without exposing private/internal scores to sellers.
+10. Operations permission matrix, two-person approvals, audit retention and support ownership.
+11. Zero-budget prototype stack versus costs that only begin at pilot/production scale.
+12. MVP boundary: which subset of the 177-screen architecture proves the end-to-end system first.
+12. Recommended proof-of-flow
+
+VOSSIE / EDUHACKERS 2.0
+6
+Before attempting every screen, the next prototype should prove one complete ordinary-product journey with real
+state logic: verified student sign-in simulation -> Buyer discovery -> Seller request/acceptance -> sandbox payment
+-> package creation -> hub intake -> courier/transfer handoff -> destination/recipient confirmation -> ledger/payout
+state -> dispute/evidence path -> Operations audit trail.
+Then deliberately test failure and concurrency cases: two sellers accepting the same request, two couriers taking
+one job, duplicate payment callbacks, expired checkout holds, wrong QR scans, repeated recipient PINs, offline
+custody attempts and transfer mismatches. The quality of these state transitions matters more than adding another
+polished dashboard.
+13. Research notes and sources
+Market research checked 27 September 2026. Current competitor facts were verified against available
+official/help or app-store material. Product capabilities can change, so this section should be refreshed before an
+external pitch.
+ Yaga South Africa Help Center - How Yaga works; Buyer Protection; Payment Protection; Delivery; Fees Guide
+(2026 updates).
+ Bob Shop - Buyer Protection Programme and related support documentation.
+ Apple App Store South Africa - Campus Marketplace, UniBay, Student Hub Marketing listings.
+ Internal Vossie / EduHackers materials - Vossie Developer Architecture and Build Guide; Vossie Full UI/UX Page
+Architecture; Vossie Implementation Specification; EduHackers Developer Build Workflow Technical Research
+Dossier.
+
+VOSSIE / EDUHACKERS 2.0 - WORKING STRATEGY
+14. Pilot Policy Defaults & Money Model
+Working decisions from the pre-build research session. These are product rules to validate during the pilot, not final
+financial or regulatory assumptions.
+14.1 Revenue model selected
+Vossie uses transaction-based percentage revenue. A percentage is deducted from the seller's transaction
+earnings, and a percentage is deducted from the courier's delivery earnings. Under the current working model, the
+buyer is not charged a separate Vossie percentage fee.
+The exact seller and courier percentages remain undecided. They should be set only after payment-provider costs,
+tax/accounting treatment, courier economics and pilot affordability are researched.
+14.2 Seller earnings workflow
+Event
+Seller view
+Meaning
+Seller accepts request/order
+Pending earnings
+Expected proceeds are visible, but no payment has been
+confirmed.
+Buyer payment confirmed
+Secured
+Provider confirms payment. Seller allocation is recorded but
+is not yet available for payout.
+Order fulfilled / receipt confirmed
+Available for payout
+Fulfilment condition has been satisfied and no blocking
+dispute applies.
+Payout processed
+Paid out
+Provider/payout rail has processed the seller's eligible
+allocation.
+Critical distinction: seller acceptance can create expected/pending earnings, but the UI must not call money
+'secured' until the payment provider has actually confirmed the buyer's payment.
+14.3 Courier earnings workflow
+Courier earnings mirror the seller model: Pending when a delivery is accepted, Secured when the delivery allocation
+is funded, Available after the required delivery confirmation, and Paid out after payout processing. Vossie's courier
+commission is recorded separately as platform revenue.
+14.4 Ledger view
+The product should distinguish Pending, Secured, Available and Paid Out instead of displaying one ambiguous
+wallet balance. Internally, order state, payment state, custody state and payout state remain separate. Vossie's
+platform revenue, seller allocation, courier allocation, refunds and reversals should be represented as auditable
+ledger entries.
+14.5 Workflow
+1. REQUEST / ORDER
+2. SELLER ACCEPTS
+3. BUYER PAYS
+4. FULFILMENT
+5. RELEASE
+Price and fulfilment
+terms established.
+Expected seller earnings
+appear as Pending.
+Provider confirms funds.
+Allocation becomes
+Secured.
+Hub/courier/direct
+handoff generates
+custody or delivery
+evidence.
+Receipt rule satisfied ->
+earnings become
+Available -> payout.
+14.6 Next policy decision
+The next unresolved rule is what constitutes buyer receipt and therefore unlocks payout eligibility: a manual
+'Order received / Everything is okay' confirmation, a successful delivery QR/PIN event, or a hybrid model where
+QR/PIN proves delivery and the buyer receives a short problem-reporting window. This requires research because it
+affects payout speed, disputes, fraud exposure and provider design.
+
+VOSSIE / EDUHACKERS 2.0 - WORKING STRATEGY
+This section will be kept concise and updated as the research session continues; it is intended to capture decisions
+and workflows rather than become another long-form specification.
+
+VOSSIE / EDUHACKERS 2.0 - WORKING STRATEGY
+15. Confirmed Pilot Money & Custody Workflow
+The research session refined the pilot money model into the following working policy. Percentages are pilot
+hypotheses and remain subject to provider economics, legal/accounting review and pilot evidence.
+Rule
+Working Vossie policy
+Seller commission
+7% of seller transaction value; no listing fee or seller subscription in the pilot.
+Courier commission
+5% of courier delivery earnings.
+Buyer fee
+No separate Vossie percentage commission. Buyer pays the applicable delivery charge by default.
+Earnings states
+Pending -> Secured -> Available -> Payout Processing -> Paid Out.
+Payout choice
+Seller/courier chooses Automatic or Manual withdrawal. Only Available funds are eligible.
+Delivery proof
+Package QR records custody; recipient OTP proves final delivery.
+Inspection
+OTP delivery starts a 24-hour Vossie Purchase Protection issue window. OTP proves delivery, not
+product satisfaction.
+Dispute
+Issue opened in time freezes affected seller funds; structured evidence + seller-first resolution;
+unresolved cases escalate to Operations.
+Returns
+Responsibility-based: seller fault -> seller pays; buyer fault/change-of-mind where allowed -> buyer
+pays; hub/courier fault -> logistics incident; unclear -> Operations adjudicates.
+Full refund
+Seller commission reverses on a full approved refund; processor costs remain separately accounted
+for.
+Custody and release workflow
+Seller -> Hub [package QR] -> Courier [package QR] -> Buyer [delivery OTP] -> Delivered -> 24-hour issue
+window -> Completed -> Seller funds Available. A timely qualifying dispute pauses the affected seller allocation.
+Product complaints do not automatically freeze courier earnings when OTP-confirmed delivery itself was successfully
+completed.
+16. Authentication Research & Prototype Workflow
+Core security principle: an identifier format is not proof of identity. An EDUV-style student number or an address
+ending in an institutional domain can be useful validation data, but access must not be granted merely because a user
+can type a correctly formatted value.
+Production target
+The target architecture is institutional federation: Vossie -> Continue with Eduvos -> Eduvos/Microsoft identity
+provider -> existing Microsoft Authenticator/MFA -> signed authentication response -> Vossie validates
+trusted issuer/tenant/token -> active-student eligibility check -> Vossie session. Eduvos/Microsoft remains
+responsible for the student's institutional password and MFA. Vossie does not store or receive the student's password,
+Authenticator seed or approval code.
+Authentication, eligibility and authorization remain separate. Authentication establishes control of the institutional
+account. Eligibility establishes that the person is currently permitted to participate as an Eduvos student. Authorization
+determines Buyer/Seller/Courier capabilities inside Vossie.
+One identity, progressive roles
+There are no separate Buyer, Seller and Courier login systems. A verified Vossie student identity receives Buyer
+access as the base marketplace capability. Seller and Courier are activated after login through additional role-specific
+onboarding, agreements, payout information and approval. One student can therefore hold Buyer + Seller + Courier
+capabilities simultaneously.
+Prototype/demo workflow
+
+VOSSIE / EDUHACKERS 2.0 - WORKING STRATEGY
+Step
+Demo experience
+Production replacement
+1
+Student taps Continue with Eduvos.
+Same UI entry point.
+2
+Prototype presents a clearly labelled sandbox institutional
+sign-in handoff.
+Redirect to approved Eduvos/Microsoft institutional login.
+3
+Demo simulates the existing Microsoft Authenticator approval
+state; Vossie does not invent a second MFA system.
+Microsoft/Eduvos performs real MFA/Authenticator challenge.
+4
+Sandbox identity adapter returns a test verified identity and
+active-student state.
+Vossie validates signed token/tenant and approved
+student-status source.
+5
+New verified identity -> create Vossie profile. Existing identity
+-> open existing account.
+Same application logic.
+6
+Buyer active by default; Seller/Courier activation available from
+profile.
+Same role architecture with production verification.
+Prototype boundary
+The prototype must visibly label institutional authentication as Sandbox/Demo until Eduvos authorizes a real
+integration. It must not claim to verify live Eduvos credentials, call an unapproved student-information API, or collect
+real Eduvos passwords/MFA secrets. The sandbox should preserve the same interface contract so the mock identity
+adapter can later be replaced by the approved institutional integration without redesigning account/role logic.
+No Vossie-specific Face ID or passkey requirement is included in the current design. Sensitive payout/account
+changes still require an appropriate re-authentication/step-up policy once the real institutional integration and payment
+provider are known.
+Eduvos integration requirements to validate
+Before production: confirm the institutional identity provider/tenant; obtain approval for the Vossie application;
+determine the minimum identity claims Eduvos will release; determine the authoritative method for active-student and
+campus status; define deactivation/revalidation behaviour when student status changes; agree privacy/data-retention
+requirements; and test failure/revocation flows with Eduvos IT/security.
+
+VOSSIE / EDUHACKERS 2.0 - WORKING STRATEGY
+17. Cross-Campus Hybrid Fulfilment — Confirmed
+Direction
+Cross-campus fulfilment is hybrid by design. Vossie should not dispatch a dedicated campus-to-campus movement
+simply because one parcel exists. The system pools eligible parcels by route while preserving buyer choice when
+consolidation is inefficient or too slow.
+Fulfilment choices
+Method
+When used
+Custody / system treatment
+Vossie campus transfer
+Consolidated route has viable volume, capacity,
+economics and ETA.
+Origin Hub QR -> locked manifest -> transfer ->
+Destination Hub QR/reconciliation.
+External point / locker
+Low-volume route or buyer prefers a third-party
+collection point.
+Vossie records provider, quote, waybill/tracking ID,
+handover and provider events.
+External door courier
+Buyer wants direct delivery and compatible
+provider/service is available.
+Provider executes logistics; Vossie translates
+tracking into buyer-facing states.
+Student transfer courier
+Only when route, transport, eligibility,
+safety/insurance and operating rules permit.
+Package/manifest custody remains QR-audited; no
+unnecessary buyer/seller private data.
+Dispatch logic
+Do not hard-code a minimum parcel count. Route dispatch should eventually evaluate package count, weight/volume,
+oldest waiting time, scheduled capacity, promised ETA, Vossie transfer cost and available external-courier price. The
+previously proposed three daily windows remain configurable research defaults, not production policy.
+Confirmed cross-campus path: Buyer purchases -> Seller prepares -> Origin Hub inspection + QR ->
+route/fulfilment method selected -> Vossie manifest transfer OR external shipment -> destination
+reconciliation/collection point -> local delivery or pickup -> buyer OTP where Vossie controls final handover ->
+Delivered -> 24-hour Vossie Purchase Protection window.
+18. Payment Gateway & Financial Security Workflow
+The payment architecture separates marketplace entitlement from movement of regulated funds. Vossie maintains the
+authoritative internal ledger for allocations and eligibility; the payment service provider (PSP) remains authoritative for
+payment execution, refunds and payouts. Vossie must not present itself as independently holding escrow funds unless
+the eventual regulated commercial arrangement explicitly permits that structure.
+Confirmed transaction workflow
+Stage
+System behaviour
+1. Checkout
+Buyer enters payment through PSP-hosted/tokenised payment infrastructure. Vossie does not store raw
+card number or CVV.
+2. Provider confirmation
+PSP confirms server-to-server. Vossie verifies webhook authenticity, order reference, amount/currency
+and processes the event idempotently.
+3. Ledger
+Append-only journal records buyer payment, seller allocation, courier/logistics allocation where applicable,
+Vossie commission and processor cost as distinct components.
+4. Secured earnings
+Seller entitlement becomes Secured, not yet payout-eligible. Client UI cannot declare payment success.
+5. Delivery
+QR custody and final OTP evidence drive fulfilment state. OTP proves delivery, not product satisfaction.
+6. Protection
+Delivered order enters the confirmed 24-hour Vossie Purchase Protection issue window. A qualifying
+dispute freezes the affected seller allocation.
+7. Available
+No qualifying issue / resolved release -> seller entitlement becomes Available.
+8. Payout
+Automatic or manual payout is requested through the PSP to a verified payout destination; provider result
+moves state through Payout Processing -> Paid Out.
+
+VOSSIE / EDUHACKERS 2.0 - WORKING STRATEGY
+Provider strategy
+Prototype direction: use a PSP sandbox through a provider-neutral PaymentProvider adapter and simulate the full
+Vossie ledger/earnings state machine. Paystack is the current sandbox candidate; Stitch, Payfast and Peach remain
+production candidates/components. Production selection requires written validation that the provider arrangement
+supports Vossie's delayed payout eligibility, seller/courier payouts, refunds, reconciliation and South African regulatory
+requirements.
+Security controls
+Non-negotiable controls: backend-only secret keys; PSP tokenisation/hosted card capture; authenticated webhooks;
+idempotency keys and duplicate-event protection; immutable financial journals; server-side RBAC; payout-destination
+verification; re-authentication/step-up for payout changes; financial audit events; daily/provider reconciliation; dispute
+and refund traceability; and no client-controlled payment status.
+Financial state vocabulary
+Pending -> Secured -> Available -> Payout Processing -> Paid Out. Product price, seller commission, courier
+commission, original delivery fee, external courier/transfer cost, processor fee and refunds remain distinct ledger
+components. Refunds create reversing/adjusting entries rather than deleting or rewriting historical journals.
+
+VOSSIE / EDUHACKERS 2.0 - WORKING STRATEGY
+19. Two-App Experience, Roles & Responsive UI/UX —
+Confirmed
+App 1 — Vossie Marketplace: mobile-first student experience for Buyer, Seller Mode and Courier Mode. App 2 —
+Vossie Operations: web/desktop-first operational application with Seller Studio, Campus Hub, Incubation and Platform
+Operations workspaces. Both remain fully responsive and share the same backend, identity, authorization model and
+design system.
+Authorization model
+Permissions are enforced server-side as Role + Resource + Action + Context, not by hiding interface controls.
+Examples include SELLER + LISTING:OWN + UPDATE; HUB_OPERATOR + PACKAGE:ASSIGNED_HUB +
+ACCEPT_CUSTODY; COURIER + DELIVERY:ASSIGNED + SCAN_PICKUP. High-risk financial or privilege actions
+may require step-up authentication and/or a second approver.
+Workspace / Role
+Primary scope
+Explicit boundary
+Buyer
+Browse, purchase, pay, track, message, collect,
+dispute.
+No seller private analytics, manifests or admin
+data.
+Seller Mode
+Daily requests, orders, quick listing actions, earnings,
+fulfilment.
+Cannot self-approve listings or alter
+ledger/dispute truth.
+Courier Mode
+Eligible jobs, pickup/QR, route, OTP handover,
+earnings.
+Only assignment-necessary data.
+Seller Studio
+Store setup, listings, inventory, pricing,
+availability/timetable, analytics.
+Academic schedule is not assumed to equal
+availability.
+Campus Hub
+Intake, condition, QR/custody, manifests, transfers,
+returns, exceptions.
+Custody evidence only; no payout/order
+rewriting.
+Incubation
+Demand intelligence, business health, growth
+plans/interventions.
+Permissioned programme data; no unrestricted
+seller/customer access.
+Platform Operations
+Support, moderation, disputes, finance, logistics,
+security, system health.
+Separated duties; break-glass elevation is
+exceptional and audited.
+Responsive UI/UX
+Marketplace uses mobile-first navigation and expands to sidebar/multi-panel layouts on web. Operations is
+desktop/web-first for management and analytics while mobile remains task-focused for scanning, alerts, approvals and
+quick actions. The same workflows and permissions persist across iOS, Android, macOS/Windows browsers; layout
+and information density adapt to the device.
+Timetable workflow
+Seller uploads PDF -> isolated file validation/processing -> schedule extraction -> seller verifies/corrects class blocks ->
+seller adds personal availability constraints -> structured availability saved -> matching/booking engine consumes
+confirmed availability. Source timetable is not retained longer than justified.
+
+VOSSIE / EDUHACKERS 2.0 - WORKING STRATEGY
+20. Dynamic Inventory & Catalogue Engine —
+Confirmed
+Vossie uses one marketplace core with category-specific inventory behaviours. Categories are not merely filters:
+selecting a category determines attributes, availability rules, fulfilment, search filters and seller form fields. Buyer
+discovery uses progressive category cards/chips rather than exposing the internal taxonomy.
+Category
+Examples
+Inventory behaviour
+Food & Drinks
+Meals, snacks, baked goods, drinks, meal prep
+Quantity + modifiers/add-ons + prep time +
+availability.
+Essentials
+Stationery, toiletries, res supplies, accessories,
+personal care
+Stock: AVAILABLE -> RESERVED -> SOLD;
+checkout expiry releases reservation.
+Fashion & Lifestyle
+Clothing, shoes, bags, accessories, jewellery,
+beauty
+Stock by variants such as size/colour/condition.
+Services
+Tutoring, design, coding, photography, beauty,
+repairs, printing
+Time inventory: AVAILABLE -> HELD -> BOOKED;
+uses seller availability.
+Rentals
+Textbooks, calculators, electronics, cameras,
+equipment
+Reservable assets/date ranges;
+pickup/return/overdue/damage states.
+Digital
+Notes, study guides, templates, designs, code,
+permitted academic resources
+Private digital entitlement after payment; no public
+file URL.
+Tickets & Events
+Future student/campus events
+Taxonomy designed but feature-flagged pending
+fraud/refund/event rules.
+Seller creation flow
++ Create Listing -> Category -> Subcategory -> dynamic category form -> preview -> submit -> automated
+checks -> moderation when required -> publish. The seller sees only relevant fields. Core listing data is shared;
+category extensions provide food modifiers, fashion variants, service slots, rental reservation rules or digital
+entitlements.
+Digital academic resources
+Student-created notes/study resources require a rights/ownership declaration and appropriate moderation. Institutional
+exam papers, lecturer materials, textbook scans or third-party work are not automatically publishable merely because a
+student possesses a copy. Digital files remain private and purchase creates an authenticated entitlement.
+Search, Operations & Incubation
+Structured attributes power category-aware search and filters. Operations can add, reorder, disable or moderate
+subcategories without an app-store release when an existing approved schema supports the change; schema evolution
+is versioned. Search/view/purchase/stock-gap signals feed Incubation demand intelligence and seller opportunity
+analysis.
+Locked inventory principle
+Food = quantity + modifiers + preparation. Essentials = stock. Fashion = stock + variants. Services = time slots.
+Rentals = reservable assets + date ranges. Digital = access entitlements. Identity, payments, seller profiles,
+messaging, search, moderation, reviews and analytics remain shared platform services.
+
+VOSSIE / EDUHACKERS 2.0 — UI/UX WIREFRAME REFERENCE
+1
+21. UI/UX Wireframe & Workflow Reference
+Low-fidelity reference sketches for the confirmed Vossie architecture. These are interaction blueprints, not final visual
+comps. Marketplace remains mobile-first; Operations remains desktop-first with task-focused mobile adaptations.
+Marketplace — Buyer Home / Discovery
+VOSSIE MARKETPLACE — MOBILE
+Potchefstroom ■ Buyer ■
+Search products, services, notes…
+Categories: Food · Essentials · Fashion
+Services · Rentals · Digital
+Popular near you →
+[Product card] [Product card]
+Home Search Orders Chat Me
+VOSSIE
+Home
+Search
+Orders
+Messages
+Profile
+MARKETPLACE — WEB
+Potchefstroom ■ Buyer ■
+Search Vossie…
+Food Essentials Fashion Services Rentals Digital
+Popular near you | Recommended
+[Product] [Product] [Product] [Product]
+Active order: Preparing → Hub → Delivery
+Marketplace — Seller & Courier quick operations
+SELLER MODE
+Today: AVAILABLE until 14:00
+New requests: 3
+Orders requiring action: 2
+Listings: 14 live · 1 review
+Earnings: Secured R465 · Available R920
+Requests Orders Listings Earnings
+COURIER MODE
+Available jobs: 4
+Potchefstroom Campus → Res
+R32 earning · 1 parcel
+[ACCEPT JOB]
+Active: Scan pickup QR → Navigate → OTP
+Jobs Active Scan Earnings
+
+VOSSIE / EDUHACKERS 2.0 — UI/UX WIREFRAME REFERENCE
+2
+Seller Studio — Desktop Management
+VOSSIE
+Overview
+Store
+Listings
+Inventory
+Orders
+Availability
+Earnings
+Analytics
+SELLER STUDIO
+Good morning + Create Listing
+Secured R2,840 Available R920 Orders 12 Actions 4
+Today's availability: 08 10 12 14 16 18
+BUSY | OPEN | CLASS | OPEN
+Orders requiring attention
+#VOS-1028 Ready for handover [OPEN]
+Demand insight: USB-C accessories searched 84× this week
+Timetable → Seller Availability
+Upload timetable PDF
+ ↓
+Validate & isolate file → extract proposed class blocks
+ ↓
+Seller reviews/corrects extracted timetable
+ ↓
+Add personal constraints, breaks, Busy Mode and exceptions
+ ↓
+Save structured availability
+ ↓
+Matching + service booking + fulfilment estimates use confirmed availability
+Dynamic Listing Creation
++ Create Listing
+ ↓
+Choose: Food | Essential | Fashion | Service | Rental | Digital
+ ↓
+Choose subcategory
+ ↓
+Load category-specific attributes / availability / fulfilment
+ ↓
+Photos + price + stock/slots/asset/file as applicable
+
+VOSSIE / EDUHACKERS 2.0 — UI/UX WIREFRAME REFERENCE
+3
+ ↓
+Preview → Submit
+ ↓
+Automated checks → Publish OR Human Review
+
+VOSSIE / EDUHACKERS 2.0 — UI/UX WIREFRAME REFERENCE
+4
+Campus Hub — Scan & Custody
+VOSSIE
+Incoming
+Ready
+Outgoing
+Transfers
+Returns
+Exceptions
+SCAN
+CAMPUS HUB
+SCAN PACKAGE [ CAMERA ]
+Package: VOS-PKG-20481 Expected: Seller Intake
+Order verified ✓ Seller verified ✓
+Condition: ■ Intact ■ Damaged ■ Tampered ■ Exception
+[REJECT + REASON] [ACCEPT CUSTODY]
+On acceptance: activate/print authoritative package QR + custody event
+Transfer Manifest & Reconciliation
+Open route manifest
+ ↓
+Scan expected package set
+ ↓
+Duplicate scan ignored; unexpected package blocked
+ ↓
+Exact set reconciled?
+ ↓
+YES → Lock manifest → accept transfer custody → depart
+ ↓
+Destination scans every package
+ ↓
+Exact destination reconciliation → complete; mismatch → exception/investigation
+Payment → Protection → Payout
+Buyer checkout through PSP
+ ↓
+Verified server-to-server payment event
+ ↓
+Append-only ledger → Seller earnings SECURED
+ ↓
+Fulfilment + QR custody
+ ↓
+
+VOSSIE / EDUHACKERS 2.0 — UI/UX WIREFRAME REFERENCE
+5
+Buyer OTP → DELIVERED
+ ↓
+24-hour Purchase Protection window
+ ↓
+No qualifying issue / resolved release → AVAILABLE
+ ↓
+Automatic or manual PSP payout → PAID OUT
+
+VOSSIE / EDUHACKERS 2.0 — UI/UX WIREFRAME REFERENCE
+6
+Incubation — Business Intelligence
+VOSSIE
+Portfolio
+Business Health
+Demand
+Trends
+Unmet Searches
+Growth Plans
+Interventions
+INCUBATION
+Campus: Potchefstroom ■ Period: 30 days ■
+Unmet demand: Printing ↑ USB-C Chargers ↑ Network Notes ↑
+Participating sellers requiring attention: 6
+Seller Growth Profile: demand · conversion · fulfilment · stock-outs
+30-Day Plan: Goal → Action → Owner → Due Date → Result
+Aggregate intelligence by default; seller-level access permissioned
+Platform Operations — Command Center
+VOSSIE
+Overview
+Users
+Sellers
+Couriers
+Listings
+Orders
+Hubs
+Transfers
+Payments
+Disputes
+Compliance
+Security
+Audit
+System
+COMMAND CENTER
+Live Operations: Orders | Transfers | Open disputes | Tickets
+Attention Required: payout exception · manifest mismatch · moderation
+Platform Health: API ✓ DB ✓ Queue ✓ Realtime ✓ PSP ✓
+Financial Ops: reconciliation · refunds · payout processing
+Security: auth anomalies · role changes · webhook failures · incidents
+
+VOSSIE / EDUHACKERS 2.0 — UI/UX WIREFRAME REFERENCE
+7
+Dispute / Ticket Investigation
+VOSSIE
+Cases
+Disputes
+Evidence
+Messages
+Audit
+CASE #VOS-D-1042
+Order #VOS-8821 Priority: High Assigned: Operator 14
+Buyer | Seller | Courier | Hub | Payment — linked case entities
+Timeline: Paid → Hub → Courier → OTP → Issue reported
+Evidence: listing snapshot · QR events · OTP · photos · messages
+Financial state: Seller allocation FROZEN
+[REQUEST INFO] [PARTIAL REFUND] [RETURN] [ESCALATE]
+Security Operations / Vossie SOC View
+VOSSIE
+Overview
+Auth
+Authorization
+Financial
+Custody
+Incidents
+Audit
+System Health
+SECURITY OPERATIONS
+Critical alerts: 2 Open incidents: 3 Failed webhook signatures: 4
+AUTH_FAILURE spike PAYOUT_DESTINATION_CHANGED ROLE_CHANGED
+Authorization failures by endpoint / role
+Custody anomalies: rejected QR · repeated OTP · manifest mismatch
+No secrets/raw payment credentials displayed; structured events only
+Responsive interaction rule
+Desktop tables become mobile cards; sidebars become bottom navigation or drawers; multi-column investigations become
+staged detail views. Scanning and urgent operational actions remain one-tap on mobile. Permissions and workflow state do
+not change between devices.
+
+VOSSIE / EDUHACKERS 2.0 — FOOD COMPLIANCE & TRUST
+1
+22. Food Marketplace Compliance, Trust & Safety —
+Confirmed Direction
+Food remains available through the normal Seller capability; Vossie does not create a separate seller account merely
+because a student lists food. Food does, however, invoke a stronger category-specific workflow for applicable
+compliance, transparency, handling, traceability and incident response.
+Product principle
+Do not use an “eat/buy at your own risk” model. Buyer messaging should explain that food is supplied by
+independent student sellers while preserving buyer protection and reporting mechanisms. Seller terms allocate seller
+responsibilities, but the platform must not imply that consumer or food-law obligations have been waived.
+Food listing onboarding
+ Seller → + Create Listing → Food
+ ↓
+ Select food type: sealed/pre-packaged | prepared | perishable/refrigerated |
+made-to-order
+ ↓
+ Food Setup: preparation/source context + ingredients + allergens +
+prep/availability + fulfilment
+ ↓
+ Applicable compliance guidance/status captured without inventing a Vossie
+regulatory certificate
+ ↓
+ Seller accepts food-specific obligations
+ ↓
+ Automated checks / review when required → Publish
+Compliance status
+The platform may track Food Setup Incomplete → Compliance Pending → Compliance Confirmed → Reverification
+Required. “Confirmed” must only be shown when supported by the applicable evidence/process. Vossie should not
+encode a blanket student exemption. Before production launch, the operating model should be validated with Eduvos and
+the relevant Municipal Environmental Health Service.
+Buyer-facing trust layer
+Signal
+Buyer experience
+Identity
+Student Verified; seller profile and order history.
+Food transparency
+Ingredients, known allergens, dietary claims where substantiated, prepared/availability
+information.
+Reputation
+Food-specific rating, completed food orders, order accuracy, packaging and readiness
+feedback.
+Fulfilment
+Pickup/local delivery, preparation estimate and timestamped handover/delivery.
+
+VOSSIE / EDUHACKERS 2.0 — FOOD COMPLIANCE & TRUST
+2
+Signal
+Buyer experience
+Protection
+Dedicated Report Food Concern route plus applicable Vossie purchase-protection process.
+
+VOSSIE / EDUHACKERS 2.0 — FOOD COMPLIANCE & TRUST
+3
+Seller obligations
+Food-specific Seller Terms should require truthful product information; accurate ingredient/allergen disclosure to the
+extent applicable; compliance with applicable food laws; appropriate preparation, storage and transport; truthful
+dietary/safety claims; cooperation with incident investigations; and prompt disclosure of known contamination or safety
+concerns. These are marketplace obligations in addition to applicable law, not substitutes for it.
+Prepared-food inventory & traceability
+Prepared food should be batch/time-aware rather than persistent ordinary stock. A preparation batch records seller,
+listing, quantity, preparation/availability timestamps, affected orders and fulfilment events. Remaining prepared-food
+availability is removed at the appropriate cutoff instead of carrying stale inventory into the next day.
+ Food batch / preparation record
+ ↓
+ Buyer order + payment
+ ↓
+ Seller preparation / ready timestamp
+ ↓
+ Pickup or local courier handover
+ ↓
+ Delivery / collection timestamp
+ ↓
+ Review OR Report Food Concern
+ ↓
+ Batch-level monitoring + Operations evidence trail
+Food safety incident workflow
+ Buyer → Report Food Concern
+ ↓
+ Link order + seller + listing + batch + fulfilment timestamps + submitted
+ evidence
+ ↓
+ Risk triage
+ ↓
+ Credible batch pattern → stop remaining batch sales + preserve evidence +
+urgent Operations review
+ ↓
+
+VOSSIE / EDUHACKERS 2.0 — FOOD COMPLIANCE & TRUST
+4
+ Seller/listing capability action where warranted
+ ↓
+ Affected buyer handling + refund/remediation workflow where applicable
+ ↓
+ External escalation where legally required
+Fulfilment constraint
+Prepared meals should begin as same-campus/local pickup or local courier fulfilment, not the ordinary inter-campus
+parcel-transfer network. A Campus Hub should not casually store prepared food alongside general parcels. Any future
+hub food handling requires its own approved operating model and facilities.
+Operations workspace
+Platform Operations → Compliance gains a Food view: Food Listings, Compliance Status, Open Concerns, Batch
+Alerts, Seller Incidents, Affected Orders, Evidence, Escalations and Actions. Actions are permissioned and audited.
+Launch validation
+Before a production Eduvos rollout, confirm the student-food operating model with Eduvos and the relevant municipal
+Environmental Health Service, including the practical route for applicable food-premises requirements. Final
+consumer-facing terms and allocation of responsibility should receive South African legal review.
+Locked food principle
+Light on the student-facing surface; controlled underneath. Any Seller can enter the Food workflow, but Food
+receives category-specific compliance guidance, seller obligations, structured disclosures, batch/time traceability, local
+fulfilment controls, buyer protection and rapid incident response. Vossie communicates evidence and traceability rather
+than making an unsupported promise that food is “safe.”
+
+VOSSIE / EDUHACKERS 2.0 — INVENTORY & LISTING PRESENTATION
+1
+23. Inventory Taxonomy & Listing Presentation —
+Confirmed
+The inventory taxonomy and shared listing presentation system are now locked. Buyer discovery stays simple while the
+catalogue remains structured underneath: Category → Subcategory → Item/Service Type → Attributes →
+Variants/Modifiers → Availability → Fulfilment.
+Pilot catalogue
+Category
+Initial subcategories / types
+Inventory behaviour
+Food & Drinks
+Meals; Fast Food; Snacks; Baked Goods; Desserts; Drinks; Meal
+Prep; Breakfast; Traditional; Healthy
+Batch/time-aware quantity,
+modifiers, prep time, allergens,
+pickup/local delivery
+Essentials
+Stationery; Toiletries; Cleaning; Residence Supplies; Electronics
+Accessories; Personal Care; Groceries; Study Supplies
+Physical stock: Available →
+Reserved → Sold
+Fashion & Lifestyle
+Clothing; Shoes; Bags; Accessories; Jewellery; Beauty; Hair;
+Sportswear
+Variant stock by
+size/colour/condition
+Services
+Tutoring; Design; Coding & Tech; Photography/Video; Beauty/Hair;
+Repairs; Printing; CV/Career; Academic Support; Event Services
+Time inventory: Available → Held
+→ Booked
+Rentals
+Textbooks; Calculators; Electronics; Cameras; Tools; Event
+Equipment; Gaming; Sports Equipment; Formalwear
+Date/time availability + deposit +
+condition + return state
+Digital
+Notes; Study Guides; Practice Resources; Templates; Design
+Assets; Code/Software; Digital Art; Productivity Resources
+Payment-confirmed entitlement
+→ My Library
+Catalogue controls
+Operations maintains the taxonomy through a versioned Catalogue/Taxonomy Manager: add, rename, reorder, disable,
+feature or moderate subcategories; assign approved listing schemas, filters, fulfilment modes and required attributes.
+Tickets & Events remains feature-flagged for later. Accommodation, Jobs, Cars and Financial Services are not ordinary
+inventory categories.
+
+VOSSIE / EDUHACKERS 2.0 — INVENTORY & LISTING PRESENTATION
+2
+Shared buyer-facing listing grammar
+Sellers provide structured data; they do not manually design marketplace cards. Vossie composes a consistent card, detail
+page and storefront. Core fields: cover image/gallery, title, seller, description, current price, promotion state,
+rating/reputation, availability and fulfilment.
+BUYER CARD
+[ COVER IMAGE ] ■
+Thato's Kitchen ✓
+Chicken Alfredo
+R55   R70
+SPECIAL · SAVE R15
+★ 4.8 (42) · 20–30 min
+DETAIL PAGE
+[ HERO IMAGE ] [gallery thumbnails]
+Chicken Alfredo
+Thato's Kitchen ✓ · ★ 4.8 · 138 sold
+R55 R70 · 21% OFF · SAVE R15
+Description · Size · Add-ons · Ingredients/Allergens
+Ready 20–30 min · Qty − 1 +
+ADD TO CART · calculated total
+Category-specific transaction blocks
+Type
+Buyer controls
+Food
+Size/portion, modifiers/add-ons, ingredients/allergens, prep time, today’s availability, pickup/local
+delivery.
+Physical / Fashion
+Variant chips/swatches, size, colour, condition, stock, delivery/pickup.
+Service
+Duration, price basis, online/in-person, available slots, Book Session.
+Rental
+Rental dates, daily/hourly rate, deposit, condition, collection/return, Check Availability.
+Digital
+File/resource type, preview, rights/moderation status, Buy Digital Resource → Open in My Library
+after entitlement.
+
+VOSSIE / EDUHACKERS 2.0 — INVENTORY & LISTING PRESENTATION
+3
+Seller listing editor + live preview
+CREATE LISTING
+Photos [ + ][ + ][ + ][ + ][ + ]
+Cover image: Image 1
+Title [ Chicken Alfredo ]
+Category [ Food & Drinks ■ ]
+Subcategory [ Meals ■ ]
+Description [ … ]
+Pricing
+Regular price [ R70 ]
+■ Run a special
+Special price [ R55 ]
+Start [ date/time ] · End [ date/time ]
+Category fields appear dynamically below.
+LIVE BUYER PREVIEW
+[ IMAGE ]
+Chicken Alfredo
+R55 R70
+21% OFF · SAVE R15
+Seller sees buyer-facing result while editing.
+Promotions
+Promotions are structured fields, not text embedded in listing titles. Initial promotion types: fixed price reduction,
+percentage discount, bundle/deal. Seller enters regular price plus promotion terms/start/end; Vossie calculates and
+displays the saving and automatically restores the normal price when the promotion ends. Price history is retained internally
+to support promotion integrity.
+Seller Studio listing management
+Active | Draft | Under Review | Sold Out | Paused | Specials. Each row/card shows photo, title, current price,
+stock/availability, views, orders, revenue and status, with Edit / Pause / Duplicate actions.
+Seller storefront
+Each seller receives a buyer-facing storefront with cover/profile assets, verified identity signal, rating, completed-order
+count, campus, description, active categories and tabs such as All | category filters | Specials. The visual hierarchy is
+therefore: Discovery Card → Listing Detail → Seller Storefront.
+Asset handling
+Listings support a cover image plus gallery. Vossie should validate file type/size, generate optimized thumbnails and
+responsive derivatives, preserve an appropriate original, and serve media from controlled storage/CDN infrastructure.
+Category-specific moderation rules apply. Buyer-facing imagery must not intentionally misrepresent the item being sold.
+Discovery behaviour
+The buyer sees simple top-level category tiles and progressive subcategory/filter chips. Structured search maps natural
+queries into catalogue attributes—for example, “black hoodie medium” → Fashion / Clothing / Hoodie / Black / M; “Network+
+tutor tomorrow” → Services / Tutoring / Networking / date availability; “calculator for three days” → Rentals / Academic /
+Calculator / rental dates.
+Locked principle
+One shared presentation system, category-aware transaction logic. Every listing looks recognisably Vossie, while
+Food, products, Fashion, Services, Rentals and Digital expose only the controls needed for that transaction type.
+
+VOSSIE / EDUHACKERS 2.0 — REELS / SHOPPABLE VIDEO
+1
+24. Vossie Reels — Shoppable Video Discovery —
+Confirmed
+Vossie Reels is a first-class Marketplace destination: short-form vertical video tied directly to commerce objects. It is a
+discovery and conversion surface, not a general social network.
+Marketplace navigation
+Mobile bottom navigation: Home | Search | Reels | Orders | Me. Reels occupies the centre discovery position. Home
+also contains a compact “Trending on your campus” Reel preview rail; See All opens the full feed.
+VOSSIE REELS
+For You Campus Following
+ 
+FULL-SCREEN SELLER VIDEO
+5–30 seconds
+ 
+■ Save ■ Share ■ Report
+@ThatosKitchen ✓
+Fresh Alfredo available today
+SHOPPABLE RAIL
+[img] Chicken Alfredo
+R55 · ★4.8 · 7 available
+VIEW / ADD →
+Home Search REELS Orders Me
+INTERACTION
+Vertical swipe
+Previous / next Reel.
+Tap seller
+Open Seller Storefront.
+Tap listing
+Open Listing Detail.
+Multiple tagged listings
+Horizontal swipe inside the product rail.
+Category-aware CTA
+Food: Add/Order
+Product: Add to Cart
+Service: Book
+Rental: Check Availability
+Digital: View/Buy
+Commerce rule
+Published Reels must remain connected to valid Vossie
+commerce content.
+Seller creation flow
+Seller Mode → + → Create Reel → Record or Upload → Trim (5–30 sec) → Cover Frame → Caption → Link one or
+more valid listings → Preview → Publish. A seller may also start from a listing via Promote → Create Reel, with that
+listing pre-linked.
+Seller integration
+Seller storefront navigation becomes Shop | Reels | Reviews. Seller Mode includes Reels alongside operational areas.
+Seller Studio gains Content/Reels analytics: views, unique viewers, listing taps, store visits, saves, add-to-cart, bookings,
+purchases and conversion rate.
+
+VOSSIE / EDUHACKERS 2.0 — REELS / SHOPPABLE VIDEO
+2
+Discovery and ranking
+Feed tabs: For You | Campus | Following. Campus is a major pilot signal. The first implementation should use explainable
+ranking rather than a TikTok-scale recommendation engine: campus relevance, category interest, availability, content/listing
+quality, freshness, engagement and seller reliability, with mechanisms that preserve exposure opportunities for new sellers.
+Commerce graph
+Reel → Shoppable Listing Rail → Listing Detail → Seller Storefront → Cart / Booking / Rental / My Library. Reels
+reuses the catalogue, pricing, promotion, availability, fulfilment and payment architecture already defined; it does not create
+parallel inventory.
+Moderation & media pipeline
+Upload processing: file validation → controlled storage → transcode/optimize → thumbnail/cover → content
+moderation → linked-listing validation → publish. Users can report a Reel. Prohibited or misleading content, prohibited
+goods/services, stolen content, harassment/sexual content and off-platform payment redirection are subject to enforcement.
+Reel moderation and listing moderation remain separate objects/actions.
+Pilot social scope
+Do not launch public comment threads in the pilot. Saves, shares and seller/listing navigation provide sufficient commerce
+interaction without creating a large additional moderation surface. Seller Following can be activated as the
+follower/notification system matures.
+Core data object
+MarketplaceReel: reel_id, seller_id, video_asset_id, cover_asset_id, caption, linked_listing_ids, campus_scope,
+moderation_status, publication_status, created_at. Analytics are stored as structured events rather than mutable vanity
+counters being treated as transaction truth.
+Locked principle
+Reels is commerce content. It is a permanent Marketplace navigation destination and a seller discovery tool, but it must
+continuously lead back into Vossie listings, storefronts and transactions rather than evolving into a generic student social
+feed.
+
+VOSSIE / EDUHACKERS 2.0 — COMMUNICATIONS & TRANSACTION DOCUMENTS
+1
+25. Communications, Notifications & Transaction
+Documents — Confirmed
+Vossie uses one event-driven communications system. Transaction/order/payment/ledger records remain authoritative; the
+communications layer determines who must be informed, through which channel, using which versioned template.
+Core architecture
+Domain Event → Transactional Outbox → Notification Orchestrator → Channel Workers → In-App / Push / Email →
+Delivery Status. Communications are asynchronous and must not block or roll back a successful commerce transaction.
+Buyer Notification Centre
+All | Orders | Payments | Messages | Marketplace | Account. Cards show meaningful title, contextual detail,
+timestamp/unread state and deep-link directly to the underlying order, payment, conversation, listing, dispute or account action.
+Channel policy
+Event
+In-app
+Push
+Email
+Order placed
+Yes
+Yes
+Confirmation
+Payment confirmed
+Yes
+Yes
+Receipt/confirmation
+Seller accepted / preparing
+Yes
+Accepted: Yes;
+preparing: optional
+No
+Ready / courier assigned / collected / nearby
+Yes
+Yes
+Normally no
+Delivered
+Yes
+Yes
+Delivery confirmation
+Protection ending / completed
+Yes
+Protection: Yes
+Final record remains available
+Refund / dispute milestone
+Yes
+Yes
+Important financial/case
+milestones
+Payout sent
+Seller/Courier
+Yes
+Yes
+Security event
+Yes
+When appropriate
+When appropriate
+Preference rule
+Required transactional, payment, fulfilment and security communications are separated from optional Marketplace/promotional
+communications. Optional seller/Reels/marketing activity can be disabled without suppressing critical order or account
+information.
+
+VOSSIE / EDUHACKERS 2.0 — COMMUNICATIONS & TRANSACTION DOCUMENTS
+2
+Buyer email/document patterns
+Transaction type
+Key content
+Primary action
+Physical / Food
+Order reference, seller, items, totals, payment state, fulfilment method,
+ETA/status; delivery confirmation and protection state after handoff.
+Track / View Order
+Service
+Service, provider, booking date/time, duration, online/in-person location,
+amount; scheduled reminders.
+View Booking
+Rental
+Item, rental period, rental charge, deposit, collection/return details; due and
+return/deposit status.
+View Rental
+Digital
+Purchased resource, price, entitlement confirmation. Do not attach seller
+content directly to email.
+Open in My Library
+Refund
+Order reference, refund amount, processing state, destination/payment method
+and provider timing caveat.
+View Refund
+Permanent receipt & documents
+Every order exposes Receipt & Documents: View Receipt, Download PDF, Email Receipt and Share Receipt. Additional
+records appear when relevant: payment record, refund record, dispute outcome and rental return record. Receipt HTML and
+PDF are generated from the same normalized server-side receipt data.
+Receipts preserve transaction history. Later refunds/adjustments create linked records and reversing ledger entries rather than
+silently rewriting the original transaction. Category-specific receipt sections show the relevant fulfilment, booking, rental or
+digital-entitlement facts.
+Seller communications & statements
+Seller notifications cover new order/request, payment-backed secured earnings, fulfilment actions, protection/completion,
+earnings becoming Available and payout. Seller statements expose gross sale, promotion/discount allocation, Vossie seller
+commission, adjustments/refunds, net seller allocation and lifecycle state: Secured → Available → Payout Processing →
+Paid Out.
+Courier communications & statements
+Courier notifications cover assignment/offer, pickup/custody actions, delivery exceptions, completion and earnings. Earnings
+records show gross delivery earning, Vossie courier fee, adjustments if applicable and net courier earning. Values always
+originate from the ledger.
+
+VOSSIE / EDUHACKERS 2.0 — COMMUNICATIONS & TRANSACTION DOCUMENTS
+3
+Operations: Communications Monitor
+Operations receives a delivery-monitoring view rather than an unrestricted message-content viewer.
+Event
+Recipient
+Channel
+Template
+State
+ORDER_DELIVERED
+Buyer
+Push
+buyer_order_delivered_v1
+Delivered / Failed /
+Retry
+REFUND_COMPLETED
+Buyer
+Email
+buyer_refund_completed_v1
+Delivered / Failed /
+Retry
+PAYOUT_SENT
+Seller
+Email
+seller_payout_sent_v1
+Delivered / Failed /
+Retry
+Versioned templates
+Examples: buyer_order_confirmed_v1, buyer_order_delivered_v1, buyer_refund_completed_v1, seller_new_order_v1,
+seller_earnings_available_v1, courier_delivery_assigned_v1, courier_earning_available_v1, security_new_login_v1.
+Template revisions do not alter the historical meaning of already-sent communications.
+Demo implementation scope
+For the working demo, the complete architecture does not require production email/SMS/push infrastructure. Implement the
+event stream, Notification Centre, order timeline, receipt/document screens and realistic branded email previews with
+sandbox/mock delivery states. This demonstrates the full workflow without falsely implying live production messaging or
+payment-provider settlement.
+Locked principle
+One event. One source of transaction truth. Multiple appropriate communication channels. The commerce domain
+records what happened; communications communicate that fact without becoming the transaction authority.
+
+VOSSIE / EDUHACKERS 2.0 - INTEGRATION ARCHITECTURE
+1
+26. Integration Architecture & Prototype Simulation
+Strategy - Confirmed
+Vossie separates integration contracts from provider implementations. The demo must visibly distinguish working internal logic,
+sandbox/provider-backed functions and simulated external behaviour. If Eduvos approves production deployment, provider
+adapters can be replaced or hardened without redesigning Buyer, Seller, Courier or Operations workflows.
+Current research basis
+Current provider documentation supports the proposed architecture: Microsoft Entra supports OIDC/SSO and Microsoft
+Authenticator MFA; Expo supports foreground/background location subject to OS permissions and constraints, and push through
+Expo or native FCM/APNs; Google Maps Routes supports route calculation/matrices and Geocoding maps addresses to
+coordinates; Supabase Realtime supports broadcast/presence/database-change delivery; Paystack documents
+signed-event/webhook workflows and Transfers availability in South Africa. Provider selection remains replaceable through
+adapters.
+APP 1 - Buyer integrations
+Integration
+Prototype
+Production path
+Identity
+Clearly labelled Eduvos/Microsoft sandbox sign-in +
+simulated Authenticator approval.
+Eduvos-approved Entra/OIDC; institutional MFA remains
+under Eduvos/Microsoft control.
+Maps/location
+Real map component, approved campus/hub pins,
+controlled routes, simulated courier marker.
+Routing/geocoding provider + privacy-scoped live courier
+location for active orders.
+Payments
+Sandbox checkout + functional Vossie ledger; no real
+settlement.
+Approved SA PSP via Payment Adapter, verified
+server-side webhooks, reconciliation/refunds.
+Realtime
+Order state, chat and simulated tracking synchronized
+through backend realtime events.
+Scaled WebSocket/realtime service with authorization per
+order/resource.
+Notifications
+Functional Notification Centre + email/push previews
+or test push.
+APNs/FCM/transactional email with delivery monitoring.
+Media
+Listing/Reel/profile assets in controlled demo storage.
+Private/public object policies, CDN, derivatives,
+scanning/transcoding/moderation.
+APP 1 - Seller integrations
+Seller reuses Identity, Payments/Earnings, Notifications, Realtime and Media. Additional integration: Timetable PDF -> isolated
+upload/processing -> proposed class blocks -> seller review/correction -> availability engine. Demo may use controlled
+sample documents; production requires hardened parsing, malware/file validation, retention controls and explicit seller confirmation.
+Fulfilment/location UI should prefer approved campus pickup/handoff points rather than exposing unnecessary private residence
+data.
+
+VOSSIE / EDUHACKERS 2.0 - INTEGRATION ARCHITECTURE
+2
+APP 1 - Courier integrations
+Courier is the strongest map/GPS demonstration. Demo flow: Offer -> Accept -> Pickup/QR -> Start Delivery -> simulated GPS
+route -> buyer/hub/ops update together -> arrival -> OTP -> Delivered. A real map is used while location movement is
+simulated and labelled as such.
+Capability
+Prototype
+Production
+Map & route
+Campus/hub/buyer route, ETA and moving marker
+from controlled route points.
+Routes/geocoding provider; traffic-aware routing where
+justified.
+Device location
+Optional foreground demo location; deterministic
+simulated route preferred for judging reliability.
+Foreground/background device GPS with explicit
+permissions, throttling, battery/privacy controls and
+OS-policy compliance.
+Navigation
+Embedded route view or deep-link to external maps.
+External turn-by-turn navigation or approved Navigation
+SDK; Vossie need not build its own navigation engine.
+Proof
+Functional QR and demo OTP against demo order
+state.
+Server-validated QR/custody + secure recipient proof
+and abuse controls.
+APP 2 - Campus Hub integrations
+Campus Hub uses maps as an operational visualization of custody and transfer state, not as the source of truth. Screens show
+incoming parcels, ready local deliveries, outgoing transfers, route/ETA and exceptions. The authoritative workflow remains scan ->
+verify -> custody -> manifest -> exact-set reconciliation -> depart -> destination reconciliation.
+Demo inter-campus transfer: origin Hub scans packages into a manifest, locks it, animates the transfer along a predefined campus
+route, destination Hub scans/reconciles the same manifest, then releases to pickup/local courier. Production can attach actual
+transfer telemetry/provider tracking to the same transfer object.
+APP 2 - Incubation integrations
+Incubation consumes aggregated marketplace analytics, not individual GPS. Inputs include searches, views, Reels engagement,
+orders, category demand, inventory gaps, seller performance and campus. Outputs include Demand Intelligence, Trending
+Categories, Unmet Searches, Seller Growth and programme interventions. Campus maps, if used, display aggregate business
+signals only.
+
+VOSSIE / EDUHACKERS 2.0 - INTEGRATION ARCHITECTURE
+3
+APP 2 - Platform Operations integrations
+Operations is the integration observability and control surface. It consumes identity status, payment/ledger state, logistics maps,
+notification delivery, moderation/media state, support cases, security events and analytics subject to role permissions.
+A demo Integration Health panel should explicitly label each dependency: Connected, Sandbox, Simulated, Degraded or Offline.
+This makes the prototype credible without pretending simulated services are production integrations.
+Integration Gateway
+Marketplace/Operations clients -> Vossie API -> Domain Services -> Integration Gateway -> provider adapters. Adapters
+should cover Identity, Maps/Routing, Payments, Notifications, Media/Storage, Document Processing, Moderation and
+Analytics/Observability. Domain logic must not depend directly on a specific vendor SDK where an adapter boundary is practical.
+Prototype vs production matrix
+Area
+Demo target
+If selected for production
+Maps
+Real map UI + predefined campus/hub routes
+Production routing/geocoding and cost/usage controls
+Courier GPS
+Simulated deterministic movement
+Permissioned device GPS + background strategy
+Hub transfer
+Real manifest state machine + animated route
+Operational transfer/provider telemetry
+Eduvos identity
+Sandbox institutional flow
+Eduvos-approved Entra/OIDC + institutional MFA
+Payments
+Sandbox PSP + real demo ledger
+Approved PSP, webhooks, reconciliation, refunds/payouts
+Push/email
+In-app + previews/test delivery
+APNs/FCM + transactional email provider
+Realtime
+Functional demo events
+Hardened authorized realtime infrastructure
+Reels/media
+Upload/playback where feasible
+CDN, transcoding, scanning, moderation
+Timetable
+Controlled sample extraction
+Hardened isolated document processing
+QR/OTP
+Functional demo state transitions
+Server validation, anti-replay/abuse controls
+Analytics
+Live demo events + seeded history
+Production event pipeline + governed retention
+
+VOSSIE / EDUHACKERS 2.0 - INTEGRATION ARCHITECTURE
+4
+Demo Scenario A - Local order
+Buyer order -> sandbox payment -> seller receives order -> seller prepares -> Hub QR intake -> courier offer/accept ->
+route appears -> simulated courier GPS -> Buyer + Hub + Ops update in sync -> OTP -> Delivered -> protection state ->
+ledger/earnings transition -> receipt + notifications -> analytics event.
+This single scenario proves cross-role synchronization, maps, logistics, payments, communications, QR/OTP, ledger and analytics
+without requiring production money movement or unrestricted live tracking.
+Demo Scenario B - Hub-to-hub
+Seller -> origin Campus Hub -> QR intake -> transfer manifest -> exact-set scan -> manifest lock -> animated inter-campus
+route -> destination Hub -> reconciliation -> local courier/pickup -> OTP -> completion.
+This demonstrates that Vossie is a campus commerce network with custody and transfer logic rather than a simple marketplace
+catalogue.
+Implementation safeguards from current research
+1. Background GPS is permission- and OS-constrained; do not promise uninterrupted tracking. The demo should use deterministic
+simulated movement while production uses explicit foreground/background permission flows and handles platform limits.
+2. Payment truth comes from server verification/webhooks and idempotent ledger processing, never from the client success screen.
+3. Identity uses institutional OIDC/SSO if Eduvos approves it; Vossie does not collect Eduvos passwords or Microsoft Authenticator
+secrets.
+4. Realtime delivery is a transport layer, not authorization. Every subscription/event remains scoped to authenticated resources.
+5. Private digital resources should use time-limited authorized access rather than permanent public URLs.
+Locked principle
+Build the demo around stable Vossie domain contracts and provider adapters. Demonstrate the complete user experience
+now with sandbox, functional internal state and clearly labelled simulations; replace simulations with approved production
+integrations later without rebuilding the product model.
+
+VOSSIE / EDUHACKERS 2.0 - COURIER, TRANSFERS & REQUESTS
+1
+27. Courier Eligibility, Campus Transfers & Buyer Requests
+- Confirmed
+This section consolidates the three confirmed marketplace/logistics decisions following the integration architecture in Section 26.
+27.1 Courier Registration & Eligibility
+Eduvos student verification establishes identity, but does not automatically grant Courier capability. Courier is an optional capability
+on the same Vossie identity and is approved independently from Buyer or Seller access.
+Flow: Verified Eduvos Student -> Activate Courier -> Select one or more transport modes -> Mode-specific verification -> Approval
+-> Configure availability/radius -> Select today's transport mode -> Receive eligible delivery offers.
+Mode
+Onboarding/verification
+Dispatch implications
+Walking
+Student identity, courier terms, campus, availability and
+practical operating radius.
+Short-distance/light jobs only, based on configured
+rules.
+Bicycle
+Student identity plus basic bicycle/operational details
+where justified. Do not invent a driving-licence
+requirement for an ordinary pedal bicycle.
+Distance/size/weight rules appropriate to bicycle
+delivery.
+Motorcycle / Scooter
+Appropriate driver and vehicle documentation,
+expiry/status and operational review.
+Only offered jobs compatible with approved mode and
+capability.
+Car
+Appropriate driver's licence, vehicle details/supporting
+documents, expiry/status and operational review.
+Eligible for larger/longer local jobs subject to
+configured limits.
+Each transport mode has its own verification state. A document expiry or failed reverification disables only the affected courier
+capability; it does not remove Buyer/Seller access or unrelated approved courier modes.
+When going online, a multi-mode courier selects the transport method being used for that session. Dispatch intersects campus +
+current mode + verification + availability + distance + parcel weight/size + fulfilment requirements. Limits remain
+configurable by Operations rather than being permanently hard-coded.
+Courier offers use an Uber-like card: map, pickup, destination, distance/ETA, package class, expected earning, countdown where
+genuinely time-sensitive, Accept and Decline. Verification status and courier reputation remain separate concepts.
+Prototype: verification is explicitly marked demo/sandbox verification. Production: approved document/identity validation
+processes replace the simulation; Vossie must not assume direct government database access until such access is confirmed.
+Operations adds Courier Management: Applications, Approved, Pending, Reverification, Suspended and Incidents. Sensitive
+verification documents use restricted permissions and audit logging.
+
+VOSSIE / EDUHACKERS 2.0 - COURIER, TRANSFERS & REQUESTS
+2
+27.2 Campus Transfer Network
+Cross-campus fulfilment is a hub network, not a default long-distance trip by one student courier. Routing chooses the nearest
+viable onward hub, considering direction toward destination, active routes, schedules, parcel compatibility, capacity, cost and
+expected arrival - not geographic proximity alone.
+Buyer fulfilment choice: where viable, checkout can present Vossie Campus Transfer, an integrated third-party courier option,
+and other eligible collection/fulfilment methods. The buyer sees price/ETA information appropriate to each option.
+A single shipment may contain multiple transfer legs. Each leg has a manifest and custody evidence. At every hub: arrival scan ->
+manifest reconciliation -> custody recorded -> next viable leg -> outgoing manifest. Mismatches or missing packages create
+exceptions rather than silent status changes.
+Shipment lifecycle: Seller Ready -> Origin Hub Received -> Waiting for Transfer -> Manifested -> In Transfer -> Intermediate Hub
+Received -> Next Transfer -> Destination Hub Received -> Local Delivery Ready -> Courier Collected -> Delivered.
+The buyer sees one continuous shipment timeline/map with campus milestones. Hub and Operations users see the detailed legs,
+manifests, custody holders, reconciliations and exceptions.
+The production Campus Route Registry records origin, next hub/destination, distance, transfer method, operating days, cut-off,
+expected duration, capacity, parcel classes, cost model and Active/Suspended state. Routing can select another permitted path
+when a route is unavailable.
+Vossie should not force inefficient multi-hop routing. Where the campus route is unreasonable, unavailable or materially inferior, an
+integrated third-party shipment can be offered. Provider events map back into the Vossie timeline while the provider remains
+authoritative for its own logistics events.
+Local Courier and Campus Transfer Courier/Operator are distinct capabilities. Approval for local car delivery does not automatically
+authorize inter-campus transfer work.
+Prototype: selected campus nodes and routes are predefined and movement is simulated, while QR scans, manifests,
+reconciliation, custody and shipment state transitions are functional.
+27.3 Buyer Request Marketplace
+Requests sit beside Listings. Search answers 'what supply exists now'; Request answers 'I need this - who can fulfil it?'. A request
+is a demand-discovery route into the existing transaction engine, not a second commerce engine.
+Flow: Request -> category-specific details -> matching -> eligible sellers notified -> structured seller offers -> buyer compares ->
+accepts one offer -> normal Order/Booking/Rental -> payment -> fulfilment -> receipt/ledger/notifications.
+
+VOSSIE / EDUHACKERS 2.0 - COURIER, TRANSFERS & REQUESTS
+3
+Request creation and matching
+Buyer Home/Search includes Can't find what you need? Request it. Initial request types are Product, Food, Service, Rental and
+Digital. The existing taxonomy dynamically controls fields such as quantity, variant, condition, timing, duration, campus, fulfilment,
+budget, dietary/allergen information, rental period and optional media.
+Before broad matching, Vossie may surface compatible existing listings so buyers can transact immediately. If the buyer continues,
+matching uses category/subcategory, campus, seller capability, availability, inventory/service type, fulfilment radius and seller
+status. Requests are not indiscriminately broadcast to every seller.
+Seller offers and buyer decision
+Eligible sellers receive an Uber-like request card and may Respond or Dismiss. Responding creates a structured offer containing
+price, timing/availability, relevant fulfilment or service terms and an optional concise note. Sellers do not see competing sellers' offer
+prices, avoiding an uncontrolled visible bidding race.
+The buyer receives real-time 'New offer' notifications and an Offers view containing the information needed to choose. Accepting an
+offer locks/converts it into the existing transaction workflow; payment, ledger, protection, fulfilment, receipts and communications
+are reused.
+Request lifecycle and controls
+Draft -> Open -> Matching -> Offers Received -> Offer Accepted -> Converted to Transaction -> Fulfilled -> Closed. Alternate
+states include Expired, Cancelled, No Match and Moderation Hold. My Requests provides Active and Closed views; Seller Mode
+adds For You, Responded, Won and Closed.
+Requests cannot bypass marketplace controls. Food requests only reach sellers eligible for the relevant food category/compliance
+state. Digital/academic requests remain subject to rights, academic-integrity and prohibited-content rules.
+Incubation and Operations value
+Unfulfilled and partially fulfilled requests become structured demand intelligence: category, campus, request volume, offer rate and
+fulfilment rate. Incubation uses this to identify unmet demand and seller opportunities. Operations receives request
+moderation/abuse tooling without manually controlling normal matching.
+Prototype proof flow
+Buyer requests a Network+ tutor tonight -> matching identifies eligible sellers -> Seller A sends a structured offer -> Buyer
+receives the offer in real time -> Buyer accepts -> Vossie creates the booking -> sandbox payment -> seller confirmation ->
+notifications/receipt/ledger update -> analytics records the conversion.
+Locked combined principle
+Courier capability is verified and mode-aware; cross-campus logistics is a custody-controlled hub network with optional third-party
+fulfilment; and buyer Requests expose unmet demand while converting successful matches into the same trusted Vossie
+transaction system.

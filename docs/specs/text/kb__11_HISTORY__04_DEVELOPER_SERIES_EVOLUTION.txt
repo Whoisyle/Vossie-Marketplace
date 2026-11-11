@@ -1,0 +1,73 @@
+Developer Series Evolution
+Developer Series 1 — Prototype architecture and stack
+Series 1 established the universal prototype distribution and technical baseline.
+Distribution
+One URL/QR opens an adaptive PW A across iOS, Android, Windows and macOS. It is one platform with respon-
+sive/adaptive presentation rather than unrelated device-specific products.
+Locked stack direction
+• TypeScript
+• Next.js + React
+• T ailwind + Radix/shadcn-derived V ossie component system
+• TypeScript modular monolith
+• PostgreSQL
+• Supabase prototype foundation
+• Drizzle + explicit SQL where needed
+• Zod validation
+• V ossie RBAC/capabilities + server checks + RLS
+• Supabase Realtime
+• Vitest + Playwright
+• GitHub monorepo
+• pnpm + T urborepo
+• GitHub Actions
+• V ercel + Supabase prototype deployment
+Candidate/optional layers
+• SwiftUI for future iOS-native expansion where background location/camera/native behaviour requires it.
+• Clerk considered as an auth candidate behind an identity-provider boundary .
+• Provider adapters for payments, maps, notifications and media.
+Developer Series 2 — Figma and motion production
+Series 2 made Figma the UI/UX source of truth and defined:
+• variables/tokens,
+• primitives,
+• reusable components,
+• role-specific patterns,
+• responsive states,
+• full 177-screen assembly ,
+• Figma MCP as an accelerator where access permits,
+• Motion.dev/CSS as the runtime motion layer,
+• Motion.so as optional exported-media generation only .
+The rule was to build a design system first, not generate 177 disconnected mockups.
+Developer Series 3 — Agentic engineering workflow
+Series 3 defined the multi-agent SDLC across ChatGPT, Cursor, VS Code, GitHub and CI/CD.
+ChatGPT
+Architect/coordination layer.
+Cursor lead
+Atlas — build lead and task coordinator.
+1
+Cursor specialists include: - Pixel — frontend/UI - F orge — backend - Schema — data/database - Market — market-
+place/domain flows - Relay — logistics/realtime - Bridge — integrations - Kinetic — motion/UI behaviour - Probe —
+implementation testing - Scribe — documentation
+Reliability: - Guardian — workflow completeness/audit - Medic — build/runtime/debug recovery
+VS Code lead
+Sentinel — independent verification/control lead.
+Review agents include: - Lens — code review - Aegis — security - V ector — QA/E2E/release smoke - Pulse — perfor-
+mance/accessibility - V ault — data/migrations/RLS - Harbor — Git/release/merge gates
+Reliability: - W atchtower — verifies required gates actually ran - Resolver — root-cause analysis and recovery routing
+W orkflow
+Requirement → F eature Contract → Atlas plan → isolated branch/worktree → specialists build → Probe checks → Guardian
+audit → Medic runtime verification → commits/PR → Sentinel review → W atchtower gate audit → Resolver recovery if
+needed → Harbor merge gate → CI/CD deploy → post-deploy smoke → status/evidence written to GitHub/.vossie.
+Developer Series 4 — Cinematic pitch production
+Series 4 defined an Apple-style, motion-led pitch system.
+Act I
+Approximately four minutes of cinematic origin/team story .
+Act II
+Approximately 15–20 minutes of Danny-led product demonstration with cueable sections instead of one fixed long movie.
+Motion identity
+The V ossie dot is the recurring transition and motion signature.
+Production system
+Figma/prototype UI is authoritative for product visuals. After Effects is the primary cinematic composition tool where
+available. Illustrator handles vector assets where useful. Motion sequences are modular, not one giant timeline.
+W ork handoff
+A dedicated prompt tells ChatGPT W ork to audit the Brand Identity , Figma, prototype and Series 4 spec before building
+production assets.
+2

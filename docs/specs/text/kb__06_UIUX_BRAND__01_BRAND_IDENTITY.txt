@@ -1,0 +1,24 @@
+Brand Identity
+Brand Identity
+Brand direction
+V ossie is soft, approachable, dependable and enterprising.
+Core palette
+• W arm Ivory#FAF8F2 — primary surface
+• V ossie Navy#29475B — logo, copy , primary action
+• Powder Blue #AFCBDE — selections/campaign panels
+• Slate Blue #567487 — supporting information
+• Pale Sage #DDE5D9 — restrained accent
+Typography
+Nimbus Sans is the supporting typeface in the approved brand profile. Use the approved custom logo artwork rather than
+retyping the wordmark.
+Starting UI tokens
+• Type scale: 32 / 24 / 20 / 16 / 14 px
+• Spacing: 4 / 8 / 12 / 16 / 24 / 32 px
+• Fields: ~12 px radius
+• Cards: ~20 px radius
+• T ouch targets: ~48×48 px minimum goal
+Logo rules
+Preserve clear space and proportions. A void stretching, shadows, outlines, arbitrary recolouring and busy-photo placement.
+Copy style
+F riendly , direct, useful. Explain what happened and what the user can do next.
+1
