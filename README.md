@@ -1,81 +1,90 @@
 # Vossie Marketplace
 
-Campus marketplace engineering repository.
+**The campus marketplace for Eduvos students.** Buy, sell and deliver on campus, in one app, for iPhone, Android and the web.
 
-## Current status
+**Live demo:** <https://vossie-marketplace.vercel.app>
 
-This repository contains the engineering runtime and the approved universal Expo application foundation. The canonical product, screen, UI, and data specifications are still missing, so marketplace feature implementation remains blocked while the development shell is operational.
+> **Status: working prototype.** The full buyer, seller and courier experience is built and runs on demo data. The Supabase backend is designed, tested and live, but payments, real sign-in and verification are not connected yet. See [what is still demo](docs/DEMO-TO-REAL.md).
 
-The intended product has two connected areas:
+<p>
+  <img src="design/screens/05-home-all.png" width="170" alt="Home" />
+  <img src="design/screens/06-listing-detail.png" width="170" alt="Listing detail" />
+  <img src="design/screens/07-checkout.png" width="170" alt="Checkout" />
+  <img src="design/screens/09-order-confirmation.png" width="170" alt="Order confirmation" />
+  <img src="design/screens/18-reels.png" width="170" alt="Reels" />
+</p>
 
-- Vossie Marketplace: Buyer, Seller, and Courier workflows.
-- Vossie Operations: campus hubs, transfers, incubation, staff workflows, and administration.
+## What it does
 
-## Repository map
+Three modes in one app, switched from the account tab:
 
-- [`AGENTS.md`](AGENTS.md) — shared engineering contract.
-- [`AGENT-CONTRACTS.md`](AGENT-CONTRACTS.md) — agent ownership and handoff rules.
-- [`docs/INDEX.md`](docs/INDEX.md) — source-of-truth precedence and knowledge map.
-- [`.cursor/`](.cursor/) — Cursor agents, rules, skills, and commands.
-- [`.codex/`](.codex/) — Codex mirrors of the Cursor agent prompts.
-- [`.agents/`](.agents/) — build, verification, and safety runtime skills.
-- [`.vossie/`](.vossie/) — task, branching, concurrency, handoff, and verification state.
-- [`.gemini/jev-mcp/`](.gemini/jev-mcp/) — local Jev MCP decision layer.
-- [`src/app/`](src/app/) — Expo Router routes.
-- [`src/screens/`](src/screens/) — product-neutral screen compositions.
-- [`docs/decisions/0001-universal-expo-foundation.md`](docs/decisions/0001-universal-expo-foundation.md) — accepted stack decision.
+| Mode | What you can do |
+| --- | --- |
+| **Buyer** | Browse by category, search, watch Reels, view listings, add to cart, check out with card or voucher, track orders and bookings, manage wallet, inbox and security. |
+| **Seller** | Set up a store, list products, manage stock, receive and fulfil orders, hand over with a code, see earnings and payouts. |
+| **Courier** | Set up availability, take delivery jobs, run an active delivery, track earnings. |
 
-Talk to **ATLAS** by default. Foundation engineering may proceed under ADR 0001; product work must wait until the canonical product specifications are recorded.
+Money is handled as integer ZAR cents throughout.
 
-## Application setup
+## Tech stack
 
-```powershell
+- **App:** Expo 57, React Native, Expo Router, TypeScript (universal: iOS, Android, web)
+- **Backend:** Supabase (Postgres with row-level security, Auth, Storage, Realtime, Edge Functions)
+- **Hosting:** Vercel (web export), EAS (native builds)
+- **Tests:** Jest for the app, Node test runner with PGlite for the database
+
+## Getting started
+
+```bash
 npm ci
-npm run web
+cp .env.example .env.local   # add your own Supabase values
+npm run web                  # open the Metro URL in Chrome
 ```
 
-Open the Metro URL in Chrome. For a physical iPhone using Expo Go, run `npm run start:go`. To use an installed Vossie development build, run `npm run start:dev-client` and connect that client to Metro. Apple's local iOS Simulator requires macOS; the `ios-simulator` EAS profile produces a compatible development build.
+Other ways to run it:
 
-The EAS project is owned by [`paballokalis-team`](https://expo.dev/accounts/paballokalis-team/projects/vossie-marketplace). A simulator-targeted development build is available from [EAS build `a5cd58ce`](https://expo.dev/accounts/paballokalis-team/projects/vossie-marketplace/builds/a5cd58ce-1bda-4c96-8552-ee5fead49a15). Browser-streamed EAS Simulator access is not currently enabled for the team account; request access at <https://expo.dev/services/simulators> before attempting a remote iOS session.
-
-Vossie does not use a local Android emulator. Remote iOS and Android development both use an EAS Simulator session connected to `npm run start:remote`; the same Metro tunnel and Fast Refresh loop serves either platform. The `android-remote` EAS profile produces the APK required by a remote Android session when that platform is requested. Do not start a remote session while the account availability check is false.
-
-For the Appetize page, run `npm run update:appetize -- -BuildId <finished-ios-simulator-build-id>`. The helper validates the EAS artifact is the Vossie iOS Simulator build before updating the existing Appetize app. `APPETIZE_API_TOKEN` must remain in the ignored local `.env` file or process environment.
-
-Each supplied page is decomposed and scaffolded with `npm run scaffold:page -- -PageName <name> -AssetName "asset one,asset two"`; see [`docs/engineering/page-build-loop.md`](docs/engineering/page-build-loop.md) for the complete Chrome/Appetize verification loop and page-local asset convention.
-
-Before handoff:
-
-```powershell
-npm run verify
+```bash
+npm run start:go             # iPhone with Expo Go on the same network
+npm run start:dev-client     # an installed Vossie development build
 ```
 
-## Jev setup
+Out of the box the app runs on in-memory demo data, so it works without any backend. Set `EXPO_PUBLIC_USE_BACKEND=true` to use Supabase.
 
-From the repository root:
+Demo sign-in: `eduv230953@vossie.net` is a returning user. Any other email starts profile setup. Voucher codes: `VOSSIE10`, `WELCOME20`.
 
-```powershell
-cd .gemini/jev-mcp
-npm install
-npm run build
-npm test
+## Checks
+
+```bash
+npm run verify      # lint, typecheck, unit tests, web export
+npm run test:db     # database and row-level security tests
 ```
 
-Configure the API key in a local, untracked `.env` file or the current PowerShell session:
+## Project layout
 
-```powershell
-$env:JEV_API_KEY = "your-typesafe-api-key"
-```
+| Path | Purpose |
+| --- | --- |
+| `src/app/` | Expo Router routes: tabs, seller, courier and onboarding flows |
+| `src/screens/`, `src/components/` | Screens and shared UI |
+| `src/seller/`, `src/courier/` | Seller and courier modes |
+| `src/services/`, `src/backend/` | Typed service layer over Supabase |
+| `src/theme/` | Design tokens |
+| `supabase/` | Migrations, Edge Functions, seed data and database tests |
+| `design/` | Design system, reference screens and tokens |
+| `docs/` | Architecture, product, security and decision records |
+| `promo-video/` | Source for the launch film |
 
-The Gemini MCP configuration uses the built files under `.gemini/jev-mcp/dist/`. The safety hook code is present but not registered or enabled, so it does not automatically intercept commands. Generated output and dependencies are intentionally ignored by Git.
+## Documentation
 
-See [`docs/JEV_AGENT_ARCHITECTURE.md`](docs/JEV_AGENT_ARCHITECTURE.md) for routing, approval, validation, fallback, and troubleshooting details.
+- [Backend architecture](docs/architecture/backend.md)
+- [Screens built](docs/product/screens-built.md)
+- [Design system](design/README.md)
+- [What is still demo](docs/DEMO-TO-REAL.md)
+- [Documentation index](docs/INDEX.md)
 
-## Current blockers
+## Engineering workflow
 
-The project state remains `BLOCKED` because the repository still needs:
+The repository also carries an AI-agent engineering runtime ([`AGENTS.md`](AGENTS.md), [`AGENT-CONTRACTS.md`](AGENT-CONTRACTS.md), `.vossie/`, `.cursor/`, `.codex/`). Contributors working by hand can ignore it.
 
-1. The canonical product/screen specification package.
-2. Product-domain and production data decisions.
+## Contributing
 
-The frontend, package manager, and delivery foundation are approved by ADR 0001. Do not invent the remaining product decisions in application code.
+Open a pull request using the [template](.github/PULL_REQUEST_TEMPLATE.md). Run `npm run verify` first.
