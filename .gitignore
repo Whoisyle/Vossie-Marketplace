@@ -46,3 +46,19 @@ expo-env.d.ts
 
 .vercel
 .env*
+
+# Promo film working files (final film lives in docs/media)
+promo-video/node_modules/
+promo-video/out/
+promo-video/shots/
+promo-video/app-demo/
+promo-video/app-demo-offline/
+promo-video/app-fresh/
+promo-video/samples/
+promo-video/pitch/footage-*.mp4
+promo-video/dbg*.log
+*.wav
+
+# Coverage and misc build output
+.expo/
+.vercelignore.bak
