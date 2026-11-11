@@ -78,7 +78,6 @@
     "preset": "jest-expo",
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/.gemini/",
       "/supabase/"
     ],
     "setupFiles": [

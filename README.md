@@ -125,7 +125,7 @@ npm run test:db     # database and row-level security tests
 
 ## Engineering workflow
 
-The repository also carries an AI-agent engineering runtime ([`AGENTS.md`](AGENTS.md), [`AGENT-CONTRACTS.md`](AGENT-CONTRACTS.md), `.vossie/`, `.cursor/`, `.codex/`). Contributors working by hand can ignore it.
+The repository also carries an AI-agent engineering runtime ([`AGENTS.md`](AGENTS.md), [`AGENT-CONTRACTS.md`](AGENT-CONTRACTS.md), `.vossie/`, `.cursor/`). Contributors working by hand can ignore it.
 
 ## Contributing
 
