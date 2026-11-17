@@ -24,7 +24,8 @@ const row = (id) => db.query("select campus_id, delivery_mode from sellers where
 
 before(async () => {
   db = await createDb();
-  for (const name of ["a", "b", "c"]) u[name] = await newUser(db, `${name}@vossie.net`, { display_name: name });
+  for (const name of ["a", "b", "c", "ops"]) u[name] = await newUser(db, `${name}@vossie.net`, { display_name: name });
+  await db.exec(`insert into memberships (user_id, role, state) values ('${u.ops}', 'operations', 'active')`);
   for (const who of ["a", "b", "c"]) await rpc(u[who], "(public.update_my_profile($1, '0712345678', 'potchefstroom')).id", [`Student ${who}`]);
 });
 
@@ -64,6 +65,13 @@ describe("the back of an ID", () => {
     assert.equal(await backOf(u.a), null);
     await attach(u.a, `${u.a}/id-back.jpg`);
     assert.equal(await backOf(u.a), `${u.a}/id-back.jpg`);
+  });
+
+  it("can be read by staff for review, and not by another student", async () => {
+    const seen = (who) => q(who, "select back_storage_path from seller_documents where kind = 'id' and back_storage_path is not null");
+    assert.equal((await seen(u.ops)).length, 1);
+    assert.equal((await seen(u.b)).length, 0);
+    assert.equal((await seen(u.a)).length, 1);
   });
 
   it("must sit in the seller's own folder", async () => {

@@ -657,3 +657,31 @@ describe("the verified screen", () => {
     expect(sellerReduce(seen, { type: "sellerApprovalSeen" })).toBe(seen);
   });
 });
+
+describe("staff review of one document (demo)", () => {
+  const sent = () => run(signedIn(), { type: "sellerStart" }, { kind: "student", type: "sellerSetKind" }, { phone: "0825735164", storeName: "CampusBites", type: "sellerSetBasics" }, { fileName: "id.jpg", kind: "id", type: "sellerUploadDocument" }, { fileName: "bill.pdf", kind: "address", type: "sellerUploadDocument" }, { type: "sellerSubmitVerification" });
+
+  it("verifies the chosen document and approves the seller when it was the last", () => {
+    let state = sent();
+    state = demoReducer(state, { decision: "verified", kind: "id", type: "sellerStaffReview" });
+    expect(state.seller.documents.find((doc) => doc.kind === "id")?.status).toBe("verified");
+    expect(state.seller.status).toBe("pending");
+    state = demoReducer(state, { decision: "verified", kind: "address", type: "sellerStaffReview" });
+    expect(state.seller.status).toBe("approved");
+  });
+
+  it("turns a document down with the reason, and lets the seller upload it again", () => {
+    let state = demoReducer(sent(), { decision: "rejected", kind: "id", note: "The photo is blurry.", type: "sellerStaffReview" });
+    const doc = state.seller.documents.find((item) => item.kind === "id");
+    expect(doc?.status).toBe("rejected");
+    expect(doc?.note).toBe("The photo is blurry.");
+    expect(state.seller.status).toBe("setup");
+    state = demoReducer(state, { fileName: "id2.jpg", kind: "id", type: "sellerUploadDocument" });
+    expect(state.seller.documents.find((item) => item.kind === "id")?.status).toBe("uploaded");
+  });
+
+  it("ignores a review of a document that is not in review", () => {
+    const state = run(signedIn(), { type: "sellerStart" }, { kind: "student", type: "sellerSetKind" });
+    expect(demoReducer(state, { decision: "verified", kind: "id", type: "sellerStaffReview" })).toEqual(state);
+  });
+});

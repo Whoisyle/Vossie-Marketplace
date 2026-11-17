@@ -35,3 +35,39 @@ export const setPayoutStatus = (payoutId: string, status: "approved" | "processi
 export const setFeePolicy = (bps: number, note: string, activate = false) => rpc<string>("finance_set_fee_policy", { p_bps: bps, p_note: note, p_activate: activate });
 export const reconcile = (provider: string, from: string, to: string, providerTotalCents: number) =>
   rpc<string>("finance_reconcile", { p_provider: provider, p_from: from, p_to: to, p_provider_total_cents: providerTotalCents });
+
+/** A seller document waiting for a person at Vossie Operations to look at it. */
+export type DocumentInReview = {
+  id: string;
+  kind: "student_card" | "id" | "address" | "cipc";
+  file_name: string | null;
+  storage_path: string;
+  back_storage_path: string | null;
+  updated_at: string;
+  seller_id: string;
+  sellers: { display_name: string; kind: string | null; contact_phone: string | null; campus_id: string } | null;
+};
+
+/** Every document waiting for review, oldest first. Only staff can read other sellers' documents; the database enforces it. */
+export async function listDocumentsInReview(): Promise<DocumentInReview[]> {
+  const rows = unwrap(
+    await supabase
+      .from("seller_documents")
+      .select("id, kind, file_name, storage_path, back_storage_path, updated_at, seller_id, sellers(display_name, kind, contact_phone, campus_id)")
+      .eq("status", "in_review")
+      .order("updated_at"),
+  );
+  return rows as unknown as DocumentInReview[];
+}
+
+/** A link to a private document picture, good for an hour. Null for the Eduvos record, which has no file. */
+export async function signedDocumentUrl(path: string | null): Promise<string | null> {
+  if (!path || path === "eduvos-record") return null;
+  const { data, error } = await supabase.storage.from("seller-documents").createSignedUrl(path, 3600);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
+/** Accepts or turns down one document. A turned-down document needs a reason the seller will read. */
+export const reviewSellerDocument = (documentId: string, decision: "verified" | "rejected", note?: string) =>
+  rpc("staff_review_seller_document", { p_document_id: documentId, p_decision: decision, p_note: note ?? null });

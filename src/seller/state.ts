@@ -440,6 +440,31 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
         status: allVerified ? "approved" : state.status,
       };
     }
+    case "sellerStaffReview": {
+      // demo only: what Vossie Operations does in the review screen. The live backend does this in the database.
+      const target = state.documents.find((doc) => doc.kind === action.kind && doc.status === "in-review");
+      if (!target) return state;
+      if (action.decision === "rejected") {
+        return {
+          ...state,
+          alerts: addAlert({ body: action.note ?? `Your ${docTitles[target.kind].toLowerCase()} was not accepted. Upload it again.`, href: "/seller/account/documents", kind: "account", title: "A document was not accepted" }),
+          documents: state.documents.map((doc) => (doc.kind === target.kind ? { ...doc, note: action.note, status: "rejected" as const } : doc)),
+          status: state.status === "approved" ? "approved" : "setup",
+        };
+      }
+      const documents = state.documents.map((doc) => (doc.kind === target.kind ? { ...doc, status: "verified" as const, verifiedAt: stamp } : doc));
+      const allVerified = documents.every((doc) => doc.status === "verified");
+      const wasApproved = state.status === "approved";
+      return {
+        ...state,
+        alerts: allVerified
+          ? addAlert(wasApproved ? { body: `Your ${docTitles[target.kind].toLowerCase()} was checked and is up to date.`, href: "/seller/account/documents", kind: "account", title: "Document verified" } : { body: "You can start listing and taking orders.", href: "/seller/home", kind: "account", title: "You are an approved seller" })
+          : state.alerts,
+        approvedAt: allVerified && !wasApproved ? stamp : state.approvedAt,
+        documents,
+        status: allVerified ? "approved" : state.status,
+      };
+    }
     case "sellerSaveStore": {
       const profile = { ...state.profile, ...action.patch };
       // the setup hours become the schedule until the seller refines it

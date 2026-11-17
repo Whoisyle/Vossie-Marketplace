@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 
 import { setBadgeCount } from "@/lib/notifications";
 import { weekKey } from "@/seller/schedule";
+import { reviewDesk } from "@/seller/reviewDesk";
 import { demoIncomingOrder } from "@/seller/state";
 import { useDemoStore } from "@/state/DemoStore";
 
@@ -29,7 +30,10 @@ export function SellerDemoEffects({ enabled = true }: { enabled?: boolean }) {
 
   useEffect(() => {
     if (!reviewing) return;
-    const timer = setInterval(() => dispatch({ type: "sellerReviewTick" }), DEMO_REVIEW_MS);
+    // a person at the Operations review screen is doing this job, so the automatic review waits
+    const timer = setInterval(() => {
+      if (!reviewDesk.isOpen()) dispatch({ type: "sellerReviewTick" });
+    }, DEMO_REVIEW_MS);
     return () => clearInterval(timer);
   }, [dispatch, reviewing]);
 

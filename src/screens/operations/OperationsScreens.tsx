@@ -13,9 +13,10 @@ export const OPERATIONS_TABS: { name: string; label: string; icon: IconName }[] 
   { icon: "repeat", label: "Transfers", name: "transfers" },
   { icon: "trending-up", label: "Incubation", name: "incubation" },
   { icon: "list", label: "Log", name: "log" },
+  { icon: "shield", label: "Review", name: "review" },
 ];
 
-function Page({ children, subtitle, testID, title, tone = "white" }: { children: ReactNode; title: string; subtitle: string; testID: string; tone?: "blue" | "white" }) {
+export function OperationsPage({ children, subtitle, testID, title, tone = "white" }: { children: ReactNode; title: string; subtitle: string; testID: string; tone?: "blue" | "white" }) {
   const router = useRouter();
   return (
     <SellerScreen testID={testID} tone={tone}>
@@ -39,7 +40,7 @@ export function OperationsHubScreen() {
   const items = HUB_ITEMS.filter((item) => hub === "all" || item.hub === hub);
   const open = HUB_ITEMS.filter((item) => item.status !== "collected" && !done.includes(item.id)).length;
   return (
-    <Page subtitle="What is at each campus hub right now" testID="operations-hub" title="Campus Hub" tone="blue">
+    <OperationsPage subtitle="What is at each campus hub right now" testID="operations-hub" title="Campus Hub" tone="blue">
       <View style={styles.tiles}>
         <StatTile label="At the hubs" value={open} />
         <StatTile label="Ready to collect" tone="success" value={HUB_ITEMS.filter((item) => item.status === "ready" && !done.includes(item.id)).length} />
@@ -60,7 +61,7 @@ export function OperationsHubScreen() {
           </SellerCard>
         );
       })}
-    </Page>
+    </OperationsPage>
   );
 }
 
@@ -72,7 +73,7 @@ export function OperationsTransfersScreen() {
   const list = TRANSFERS.filter((transfer) => filter === "all" || transfer.stage === filter);
   const stages = Object.keys(STAGE_LABEL) as TransferStage[];
   return (
-    <Page subtitle="From the seller to the buyer, step by step" testID="operations-transfers" title="Transfers">
+    <OperationsPage subtitle="From the seller to the buyer, step by step" testID="operations-transfers" title="Transfers">
       <Chips
         items={[{ count: TRANSFERS.length, key: "all", label: "All" }, ...stages.map((key) => ({ count: TRANSFERS.filter((t) => t.stage === key).length, key, label: STAGE_LABEL[key] }))]}
         onChange={setFilter}
@@ -97,7 +98,7 @@ export function OperationsTransfersScreen() {
           <Text style={styles.caption}>{transfer.when}</Text>
         </SellerCard>
       ))}
-    </Page>
+    </OperationsPage>
   );
 }
 
@@ -110,7 +111,7 @@ const STAGE_PILL: Record<"building" | "idea" | "selling", { label: string; tone:
 /** Incubation: the student businesses Vossie is helping to grow. */
 export function OperationsIncubationScreen() {
   return (
-    <Page subtitle="Student businesses we are helping to grow" testID="operations-incubation" title="Incubation">
+    <OperationsPage subtitle="Student businesses we are helping to grow" testID="operations-incubation" title="Incubation">
       <View style={styles.tiles}>
         <StatTile label="Businesses" value={FOUNDERS.length} />
         <StatTile label="Selling" tone="success" value={FOUNDERS.filter((f) => f.stage === "selling").length} />
@@ -128,7 +129,7 @@ export function OperationsIncubationScreen() {
           <Text style={styles.caption}>Next: {founder.next}</Text>
         </SellerCard>
       ))}
-    </Page>
+    </OperationsPage>
   );
 }
 
@@ -145,7 +146,7 @@ const KINDS: { key: "all" | LogKind; label: string }[] = [
 export function OperationsLogScreen() {
   const [kind, setKind] = useState<"all" | LogKind>("all");
   return (
-    <Page subtitle="Everything staff and the system did today" testID="operations-log" title="Activity log">
+    <OperationsPage subtitle="Everything staff and the system did today" testID="operations-log" title="Activity log">
       <Chips items={KINDS} onChange={setKind} prefix="log" value={kind} />
       <SellerHeading>Today</SellerHeading>
       {LOG.filter((entry) => kind === "all" || entry.kind === kind).map((entry) => (
@@ -159,7 +160,7 @@ export function OperationsLogScreen() {
           </View>
         </SellerCard>
       ))}
-    </Page>
+    </OperationsPage>
   );
 }
 

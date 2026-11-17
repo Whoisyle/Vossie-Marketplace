@@ -355,6 +355,8 @@ export type SellerAction =
   | { type: "sellerReplaceDocument"; kind: DocKind; fileName: string; uri?: string; fileKind?: "image" | "pdf" | "file"; backUri?: string; backFileName?: string }
   | { type: "sellerSubmitVerification" }
   | { type: "sellerReviewTick" }
+  /** Demo only: a Vossie Operations reviewer accepts or turns down one document. */
+  | { type: "sellerStaffReview"; kind: DocKind; decision: "verified" | "rejected"; note?: string }
   | { type: "sellerSaveStore"; patch: Partial<Pick<SellerProfile, "logoUri" | "bannerUri" | "place" | "storeName" | "description" | "location" | "days" | "opens" | "closes" | "taxNumber" | "campusId" | "delivery">> }
   | { type: "sellerFinishSetup" }
   | { type: "sellerReceiveOrder"; order: SellerOrder }
