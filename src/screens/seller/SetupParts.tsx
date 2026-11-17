@@ -55,7 +55,7 @@ export function SetupHeader({ art, step, subtitle, title }: { art: 0 | 1 | 2; st
           <Text style={styles.subtitle}>{subtitle}</Text>
         </View>
         <Animated.View pointerEvents="none" style={[styles.art, bob]}>
-          <Hero index={art} scale={0.42} />
+          <Hero index={art} scale={0.38} />
         </Animated.View>
       </View>
     </View>
@@ -119,7 +119,7 @@ function PreviewChip({ icon, label }: { icon: IconName; label: string }) {
 }
 
 const styles = StyleSheet.create({
-  art: { marginRight: -26, marginTop: -8 },
+  art: { marginRight: -4, marginTop: -4 },
   back: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.14)", borderRadius: 18, height: 36, justifyContent: "center", width: 36 },
   banner: { height: 74, overflow: "hidden" },
   bar: { flex: 1 },

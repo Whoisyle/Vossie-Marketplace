@@ -1,25 +1,15 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, Text, StyleSheet, View } from "react-native";
-import Animated, {
-  Easing,
-  FadeIn,
-  FadeInDown,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from "react-native-reanimated";
+import { type LayoutChangeEvent, Pressable, Text, StyleSheet, View } from "react-native";
+import Animated, { Easing, FadeInDown, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "@/components";
 import { color } from "@/theme/tokens";
 
 import { useSellerDispatch } from "./actions";
-import { Hero } from "./Packaging";
+import { PackagingScene, SCENE } from "./Packaging";
 
 type Slide = { first: string; second: string; text: string };
 
@@ -41,13 +31,7 @@ export function SellerWelcomeScreen() {
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();
   const [index, setIndex] = useState(0);
-  const float = useSharedValue(0);
   const fill = useSharedValue(0);
-
-  useEffect(() => {
-    if (reduced) return;
-    float.set(withRepeat(withSequence(withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.sin) }), withTiming(0, { duration: 2600, easing: Easing.inOut(Easing.sin) })), -1));
-  }, [float, reduced]);
 
   // each slide fills its bar, then the next one comes in; the last one rests
   useEffect(() => {
@@ -62,9 +46,12 @@ export function SellerWelcomeScreen() {
     return () => clearTimeout(timer);
   }, [fill, index, reduced]);
 
-  const bob = useAnimatedStyle(() => ({ transform: [{ translateY: -float.get() * 10 }, { rotate: `${(float.get() - 0.5) * 2}deg` }] }));
   const bar = useAnimatedStyle(() => ({ width: `${fill.get() * 100}%` }));
   const slide = SLIDES[index]!;
+  // the scene is drawn on a fixed canvas and scaled to the room between the words and the button
+  const [room, setRoom] = useState<{ height: number; width: number }>({ height: SCENE.height, width: SCENE.width });
+  const onHeroLayout = (event: LayoutChangeEvent) => setRoom({ height: event.nativeEvent.layout.height, width: event.nativeEvent.layout.width });
+  const heroScale = Math.max(0.5, Math.min(1.12, room.width / SCENE.width, room.height / SCENE.height));
 
   const start = () => {
     dispatch({ type: "sellerStart" });
@@ -99,9 +86,10 @@ export function SellerWelcomeScreen() {
         </Animated.View>
       </View>
 
-      <Animated.View entering={reduced ? undefined : FadeIn.duration(500)} key={`h-${index}`} style={[styles.hero, bob]} testID="welcome-story">
-        <Hero index={index} />
-      </Animated.View>
+      <View onLayout={onHeroLayout} style={styles.hero} testID="welcome-story">
+        {/* one scene for all three slides: the boxes and products carry on from slide to slide */}
+        <PackagingScene index={index} scale={heroScale} />
+      </View>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 14) + 8 }]}>
         <Pressable accessibilityLabel="Set up my shop" accessibilityRole="button" onPress={start} style={({ pressed }) => [styles.cta, pressed && styles.pressed]} testID="seller-start">
