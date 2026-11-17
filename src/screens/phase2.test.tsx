@@ -32,7 +32,7 @@ describe("Explore", () => {
     renderWithProviders(<ExploreScreen />, signedIn());
     expect(screen.getAllByText("Featured").length).toBeGreaterThan(0);
     expect(screen.getByText("Top stores near you")).toBeTruthy();
-    expect(screen.getByText("Browse by category")).toBeTruthy();
+    expect(screen.getByTestId("category-chips")).toBeTruthy();
     expect(screen.getByTestId("featured-carousel")).toBeTruthy();
   });
 

@@ -31,7 +31,7 @@ beforeEach(() => {
 });
 
 describe("Explore layout", () => {
-  it("shows the promo first, then the search, trending, categories, and top stores in the middle of the listings", () => {
+  it("shows the promo first, then the search with category chips, trending, and top stores in the middle of the listings", () => {
     renderWithProviders(<ExploreScreen />, signedIn());
     const text = JSON.stringify(screen.toJSON());
     const at = (needle: string) => text.indexOf(needle);
@@ -39,8 +39,9 @@ describe("Explore layout", () => {
     expect(at("promo-carousel")).toBeGreaterThan(-1);
     expect(at("promo-carousel")).toBeLessThan(at("Search products, stores and categories"));
     expect(at("Search products, stores and categories")).toBeLessThan(at("Trending on campus"));
-    expect(at("Trending on campus")).toBeLessThan(at("Browse by category"));
-    expect(at("Browse by category")).toBeLessThan(at("More to explore"));
+    expect(at("category-chips")).toBeGreaterThan(at("Search products, stores and categories"));
+    expect(at("category-chips")).toBeLessThan(at("Trending on campus"));
+    expect(at("Trending on campus")).toBeLessThan(at("More to explore"));
     expect(at("More to explore")).toBeLessThan(at("Top stores near you"));
     // listings continue after the stores row
     const afterStores = text.slice(at("Top stores near you"));

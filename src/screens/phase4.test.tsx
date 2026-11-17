@@ -221,7 +221,7 @@ describe("Alerts, stock, block and reorder", () => {
     expect(screen.getByText("Sold out right now")).toBeTruthy();
     expect(screen.queryByTestId("add-to-cart")).toBeNull();
     fireEvent.press(screen.getByTestId("notify-back-in-stock"));
-    expect(screen.getByText("We'll tell you when it's back")).toBeTruthy();
+    expect(screen.getByText("Alert on")).toBeTruthy();
   });
 
   it("shows a full listing: photos, description, highlights, details, reviews and more to look at", () => {

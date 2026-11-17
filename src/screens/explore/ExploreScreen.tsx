@@ -9,7 +9,6 @@ import {
   EmptyState,
   FilterButton,
   Icon,
-  ListingCard,
   ListingsSkeleton,
   Screen,
   SearchBar,
@@ -31,7 +30,7 @@ import { PromoCarousel } from "@/screens/home/PromoCarousel";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, corner, size, space, text } from "@/theme/tokens";
 
-import { FeaturedCarousel, StoreCard } from "./ExploreParts";
+import { CategoryChips, ExploreCard, FeaturedCarousel, StoreCard } from "./ExploreParts";
 
 const KIND_ICON: Record<Suggestion["kind"], IconName> = { category: "grid", listing: "search", store: "shopping-bag" };
 
@@ -118,31 +117,23 @@ export function ExploreScreen() {
     }
   };
 
-  const grid = (items: Listing[], inserted?: { afterRow: number; node: ReactNode }) => {
-    const rows: Listing[][] = [];
-    for (let i = 0; i < items.length; i += 2) rows.push(items.slice(i, i + 2));
-    return (
-      <View style={styles.grid}>
-        {rows.map((pair, rowIndex) => (
-          <Fragment key={pair.map((l) => l.id).join("-")}>
-            <Animated.View entering={FadeInDown.delay(Math.min(rowIndex, 4) * 55).duration(300)} style={styles.row}>
-              {pair.map((listing) => (
-                <ListingCard
-                  favourite={state.favourites.includes(listing.id)}
-                  key={listing.id}
-                  listing={listing}
-                  onPress={() => router.push(open("listing", listing.id))}
-                  onToggleFavourite={() => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
-                />
-              ))}
-              {pair.length === 1 ? <View style={styles.flex} /> : null}
-            </Animated.View>
-            {inserted && rowIndex === inserted.afterRow ? inserted.node : null}
-          </Fragment>
-        ))}
-      </View>
-    );
-  };
+  const grid = (items: Listing[], inserted?: { afterRow: number; node: ReactNode }) => (
+    <View style={styles.grid}>
+      {items.map((listing, index) => (
+        <Fragment key={listing.id}>
+          <Animated.View entering={FadeInDown.delay(Math.min(index, 4) * 55).duration(300)}>
+            <ExploreCard
+              favourite={state.favourites.includes(listing.id)}
+              listing={listing}
+              onOpen={() => router.push(open("listing", listing.id))}
+              onToggleFavourite={() => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
+            />
+          </Animated.View>
+          {inserted && index === inserted.afterRow ? inserted.node : null}
+        </Fragment>
+      ))}
+    </View>
+  );
 
   if (loading) {
     return (
@@ -177,6 +168,21 @@ export function ExploreScreen() {
         </View>
         <FilterButton count={filterCount} onPress={() => setFiltersOpen(true)} />
       </View>
+
+      {typing ? null : (
+        <View style={styles.chips}>
+          <CategoryChips
+            onSelect={(key) => {
+              haptic.select();
+              setQuery("");
+              setSubmitted(null);
+              setCategory(key === "all" ? null : (key as CategoryId));
+            }}
+            options={[{ key: "all", label: "All" }, ...categories.map((item) => ({ key: item.id as string, label: item.name }))]}
+            value={category ?? "all"}
+          />
+        </View>
+      )}
 
       {typing ? (
         <View accessibilityLiveRegion="polite" style={styles.suggestions}>
@@ -267,6 +273,17 @@ export function ExploreScreen() {
             </Animated.View>
           ) : null}
 
+          <Animated.View entering={FadeInDown.delay(160).duration(320)} style={styles.section}>
+            <SectionHeader title="Featured" />
+            <FeaturedCarousel
+              favourites={state.favourites}
+              listings={featured}
+              onOpen={(listing) => router.push(open("listing", listing.id))}
+              onToggleFavourite={(listing) => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
+              width={pageWidth}
+            />
+          </Animated.View>
+
           <Animated.View entering={FadeInDown.delay(60).duration(320)} style={styles.section}>
             <SectionHeader title="Trending on campus" />
             <ScrollView contentContainerStyle={styles.storeRow} horizontal showsHorizontalScrollIndicator={false} style={styles.bleed}>
@@ -288,36 +305,6 @@ export function ExploreScreen() {
                 </Pressable>
               ))}
             </ScrollView>
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.delay(110).duration(320)} style={styles.section}>
-            <SectionHeader title="Browse by category" />
-            <View style={styles.chipRow}>
-              {categories.map((item) => (
-                <Chip
-                  icon={item.icon as IconName}
-                  key={item.id}
-                  label={item.name}
-                  onPress={() => {
-                    haptic.select();
-                    setQuery("");
-                    setSubmitted(null);
-                    setCategory(item.id);
-                  }}
-                />
-              ))}
-            </View>
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.delay(160).duration(320)} style={styles.section}>
-            <SectionHeader title="Featured" />
-            <FeaturedCarousel
-              favourites={state.favourites}
-              listings={featured}
-              onOpen={(listing) => router.push(open("listing", listing.id))}
-              onToggleFavourite={(listing) => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
-              width={pageWidth}
-            />
           </Animated.View>
 
           <View style={styles.section}>
@@ -355,7 +342,8 @@ const styles = StyleSheet.create({
   bleed: { marginHorizontal: -space.lg },
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: space.xs, marginTop: space.xs },
   flex: { flex: 1 },
-  grid: { gap: space.xs },
+  chips: { marginTop: space.sm },
+  grid: { gap: space.md },
   headActions: { flexDirection: "row", gap: space.md },
   link: { color: color.link, fontSize: 13, fontWeight: "600" },
   pressed: { opacity: 0.7 },

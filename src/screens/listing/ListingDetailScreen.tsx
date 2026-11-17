@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -6,15 +7,14 @@ import {
   AppHeader,
   StoreLogo,
   Button,
-  Card,
   EmptyState,
   HeartButton,
   Icon,
   QuantityStepper,
   Screen,
   Sheet,
-  StarRating,
   useToast,
+  type IconName,
 } from "@/components";
 import { dealFor, effectivePrice } from "@/data/deals";
 import { isSoldOut, isVerifiedSeller } from "@/data/phase4";
@@ -25,7 +25,7 @@ import { useDetail } from "@/lib/paths";
 import { notesDetailFor } from "@/data/notes";
 import { NotesBuySheet, NotesFacts } from "@/screens/notes/NotesScreens";
 import { useDemoStore } from "@/state/DemoStore";
-import { color, corner, space, text } from "@/theme/tokens";
+import { color, corner, shadow, space, text } from "@/theme/tokens";
 
 import { ListingFacts, ListingGallery, ListingRow, ReviewPreview } from "./ListingSections";
 
@@ -87,91 +87,95 @@ export function ListingDetailScreen() {
     router.push(`/account/inbox/seller-${seller.id}` as Href);
   };
 
+  const goBack = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace("/home");
+  };
+  const barCaption = listing.notes ? "Study notes" : soldOut ? "Sold out" : quantity > 1 ? `${quantity} items` : "Total";
+  const barAmount = formatRand(listing.notes || soldOut ? unit : unit * quantity);
+
   return (
     <Screen
+      bleedTop
       footer={
-        <View style={styles.footer}>
-          {soldOut || listing.notes ? null : <QuantityStepper onChange={setQuantity} value={quantity} />}
-          <View style={styles.flex}>
-            {listing.notes ? (
-              state.notesLibrary.includes(listing.id) ? (
-                <Button fullWidth icon="book-open" label="Open your notes" onPress={() => router.push(`/account/notes-read/${listing.id}` as Href)} testID="notes-open" />
-              ) : (
-                <Button fullWidth icon="download" label={`Buy and download · ${formatRand(unit)}`} onPress={() => setBuyOpen(true)} testID="notes-buy" />
-              )
-            ) : soldOut ? (
-              <Button
-                fullWidth
-                icon="bell"
-                label={hasAlert("back-in-stock") ? "We'll tell you when it's back" : "Sold out · Notify me"}
-                onPress={() => {
-                  dispatch({ kind: "back-in-stock", listingId: listing.id, type: "toggleAlert" });
-                  toast.show(hasAlert("back-in-stock") ? "Alert removed" : "We'll let you know when it's back");
-                }}
-                testID="notify-back-in-stock"
-                variant={hasAlert("back-in-stock") ? "outline" : "primary"}
-              />
-            ) : (
-              <Button
-                fullWidth
-                icon="shopping-cart"
-                label={`Add to Cart · ${formatRand(unit * quantity)}`}
-                onPress={addToCart}
-                testID="add-to-cart"
-              />
-            )}
+        <View style={styles.bar}>
+          <View style={styles.barPrice}>
+            <Text style={styles.barCaption}>{barCaption}</Text>
+            <Text numberOfLines={1} style={styles.barAmount}>
+              {barAmount}
+            </Text>
           </View>
+          {listing.notes ? (
+            state.notesLibrary.includes(listing.id) ? (
+              <BarButton label="Open your notes" onPress={() => router.push(`/account/notes-read/${listing.id}` as Href)} testID="notes-open" />
+            ) : (
+              <BarButton label="Buy and download" onPress={() => setBuyOpen(true)} testID="notes-buy" />
+            )
+          ) : soldOut ? (
+            <BarButton
+              label={hasAlert("back-in-stock") ? "Alert on" : "Notify me"}
+              onPress={() => {
+                dispatch({ kind: "back-in-stock", listingId: listing.id, type: "toggleAlert" });
+                toast.show(hasAlert("back-in-stock") ? "Alert removed" : "We'll let you know when it's back");
+              }}
+              outline={hasAlert("back-in-stock")}
+              testID="notify-back-in-stock"
+            />
+          ) : (
+            <BarButton label="Add to cart" onPress={addToCart} testID="add-to-cart" />
+          )}
         </View>
       }
     >
-      <AppHeader
-        back
-        right={
-          <Pressable accessibilityLabel="More options" accessibilityRole="button" hitSlop={8} onPress={() => setMoreOpen(true)} style={styles.more} testID="listing-more">
-            <Icon color={color.heading} name="more-horizontal" size={20} />
-          </Pressable>
-        }
-      />
-      <ListingGallery images={listing.images} title={listing.title} />
-
-      <View style={styles.titleRow}>
-        <View style={styles.flex}>
-          <Text accessibilityRole="header" style={styles.title}>
-            {listing.title}
-          </Text>
-          <View style={styles.priceRow}>
-            <Text style={styles.price}>{formatRand(unit)}</Text>
-            {percent > 0 ? (
-              <>
-                <Text style={styles.was}>{formatRand(option?.priceCents ?? listing.priceCents)}</Text>
-                <View style={styles.dealPill}>
-                  <Text style={styles.dealPillText}>-{percent}%</Text>
-                </View>
-              </>
-            ) : null}
+      <ListingGallery
+        images={listing.images}
+        overlay={
+          <View pointerEvents="box-none" style={styles.topBar}>
+            <RoundButton icon="chevron-left" label="Back" onPress={goBack} testID="header-back" />
+            <View style={styles.topRight}>
+              <View style={styles.round}>
+                <HeartButton
+                  active={favourite}
+                  idleColor={color.heading}
+                  onPress={() => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
+                />
+              </View>
+              <RoundButton icon="more-horizontal" label="More options" onPress={() => setMoreOpen(true)} testID="listing-more" />
+            </View>
           </View>
-          <Pressable
-            accessibilityHint="Opens ratings and reviews"
-            accessibilityLabel={`${listing.rating.toFixed(1)} stars, ${listing.ratingCount} reviews`}
-            accessibilityRole="button"
-            hitSlop={8}
-            onPress={() => router.push(open("review", listing.id))}
-            style={styles.ratingRow}
-            testID="open-reviews"
-          >
-            <StarRating size={15} value={listing.rating} />
-            <Text style={text.bodySmall}>
-              {listing.rating.toFixed(1)} ({listing.ratingCount})
-            </Text>
-            <Text style={styles.reviewLink}>Reviews</Text>
-            <Icon color={color.link} name="chevron-right" size={14} />
-          </Pressable>
+        }
+        title={listing.title}
+      />
+
+      <View style={styles.titleBlock}>
+        <Text accessibilityRole="header" style={styles.title}>
+          {listing.title}
+        </Text>
+        <Pressable
+          accessibilityHint="Opens ratings and reviews"
+          accessibilityLabel={`${listing.rating.toFixed(1)} stars, ${listing.ratingCount} reviews`}
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={() => router.push(open("review", listing.id))}
+          style={styles.ratingRow}
+          testID="open-reviews"
+        >
+          <Ionicons color={color.ink} name="star" size={15} />
+          <Text style={styles.ratingValue}>{listing.rating.toFixed(2)}</Text>
+          <Text style={text.bodySmall}>({listing.ratingCount} reviews)</Text>
+          <Icon color={color.textMuted} name="chevron-right" size={14} />
+        </Pressable>
+        <View style={styles.priceRow}>
+          <Text style={styles.price}>{formatRand(unit)}</Text>
+          {percent > 0 ? (
+            <>
+              <Text style={styles.was}>{formatRand(option?.priceCents ?? listing.priceCents)}</Text>
+              <View style={styles.dealPill}>
+                <Text style={styles.dealPillText}>-{percent}%</Text>
+              </View>
+            </>
+          ) : null}
         </View>
-        <HeartButton
-          active={favourite}
-          idleColor={color.textSecondary}
-          onPress={() => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
-        />
       </View>
 
       {soldOut ? (
@@ -181,7 +185,47 @@ export function ListingDetailScreen() {
         </View>
       ) : null}
 
-      <View style={styles.alerts}>
+      {seller ? (
+        <View style={styles.section}>
+          <Pressable accessibilityRole="button" onPress={() => router.push(open("store", seller.id))} style={styles.sellerRow}>
+            <View style={styles.flex}>
+              <View style={styles.nameRow}>
+                <Text numberOfLines={1} style={[styles.sellerName, styles.nameText]}>
+                  {seller.name}
+                </Text>
+                {isVerifiedSeller(seller) ? <Icon color={color.link} name="check-circle" size={15} /> : null}
+              </View>
+              <Text numberOfLines={1} style={text.caption}>
+                {isVerifiedSeller(seller) ? "Verified seller · " : "Seller · "}
+                {seller.location}
+              </Text>
+            </View>
+            <StoreLogo name={seller.name} sellerId={seller.id} size={48} />
+          </Pressable>
+          <View style={styles.sellerActions}>
+            <Pressable accessibilityLabel={`Message ${seller.name}`} accessibilityRole="button" hitSlop={4} onPress={message} style={styles.pillButton}>
+              <Icon color={color.heading} name="message-circle" size={15} />
+              <Text style={styles.pillButtonText}>Message</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              hitSlop={4}
+              onPress={() => dispatch({ sellerId: seller.id, type: "toggleFollow" })}
+              style={[styles.pillButton, following && styles.pillButtonOn]}
+            >
+              <Text style={[styles.pillButtonText, following && styles.pillButtonTextOn]}>{following ? "Following" : "Follow"}</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
+
+      <View style={styles.section}>
+        <Text style={styles.groupHeading}>Good to know</Text>
+        <View style={styles.pills}>
+          <Info icon="clock" label={listing.openHours} />
+          <Info icon="package" label={listing.notes ? "Instant download" : `Ready in ${listing.pickupTime}`} />
+          <Info icon="map-pin" label={listing.location} />
+        </View>
         <Pressable
           accessibilityLabel="Tell me when the price drops"
           accessibilityRole="switch"
@@ -200,48 +244,16 @@ export function ListingDetailScreen() {
         </Pressable>
       </View>
 
-      <View style={styles.pills}>
-        <Info icon="clock" label={listing.openHours} />
-        <Info icon="package" label={listing.notes ? "Instant download" : `Ready in ${listing.pickupTime}`} />
-        <Info icon="map-pin" label={listing.location} />
-      </View>
-
-      {seller ? (
-        <Card onPress={() => router.push(open("store", seller.id))} style={styles.sellerCard} variant="soft">
-          <StoreLogo name={seller.name} sellerId={seller.id} size={48} />
-          <View style={styles.flex}>
-            <View style={styles.nameRow}>
-              <Text numberOfLines={1} style={[text.cardTitle, styles.nameText]}>
-                {seller.name}
-              </Text>
-              {isVerifiedSeller(seller) ? <Icon color={color.link} name="check-circle" size={15} /> : null}
-            </View>
-            <Text numberOfLines={1} style={text.caption}>
-              {isVerifiedSeller(seller) ? "Verified seller · " : ""}
-              {seller.location}
-            </Text>
-          </View>
-          <Pressable
-            accessibilityLabel={`Message ${seller.name}`}
-            accessibilityRole="button"
-            hitSlop={6}
-            onPress={message}
-            style={styles.iconButton}
-          >
-            <Icon name="message-circle" size={18} />
-          </Pressable>
-          <Button
-            label={following ? "Following" : "Follow"}
-            onPress={() => dispatch({ sellerId: seller.id, type: "toggleFollow" })}
-            size="sm"
-            variant={following ? "outline" : "accent"}
-          />
-        </Card>
-      ) : null}
+      {soldOut || listing.notes ? null : (
+        <View style={[styles.section, styles.quantityRow]}>
+          <Text style={styles.groupHeadingFlat}>Quantity</Text>
+          <QuantityStepper onChange={setQuantity} value={quantity} />
+        </View>
+      )}
 
       {listing.options.length > 0 ? (
         <>
-          <Text style={styles.heading}>Options</Text>
+          <Text style={[styles.heading, styles.groupHeading]}>Options</Text>
           <View accessibilityRole="radiogroup" style={styles.options}>
             {listing.options.map((item) => {
               const selected = item.id === optionId;
@@ -311,6 +323,37 @@ export function ListingDetailScreen() {
   );
 }
 
+/** A white round button that sits on top of the photo. */
+function RoundButton({ icon, label, onPress, testID }: { icon: IconName; label: string; onPress: () => void; testID?: string }) {
+  return (
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      hitSlop={4}
+      onPress={onPress}
+      style={({ pressed }) => [styles.round, pressed && styles.pressed]}
+      testID={testID}
+    >
+      <Icon color={color.heading} name={icon} size={20} />
+    </Pressable>
+  );
+}
+
+/** The main action in the dark bar at the bottom: a white pill. */
+function BarButton({ label, onPress, outline = false, testID }: { label: string; onPress: () => void; outline?: boolean; testID?: string }) {
+  return (
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.barButton, outline && styles.barButtonOutline, pressed && styles.pressed]}
+      testID={testID}
+    >
+      <Text style={[styles.barButtonText, outline && styles.barButtonTextOutline]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 function Info({ icon, label }: { icon: "clock" | "package" | "map-pin"; label: string }) {
   return (
     <View style={styles.info}>
@@ -323,8 +366,45 @@ function Info({ icon, label }: { icon: "clock" | "package" | "map-pin"; label: s
 }
 
 const styles = StyleSheet.create({
-  alertChip: { alignItems: "center", alignSelf: "flex-start", backgroundColor: color.surfaceSoft, borderRadius: 18, flexDirection: "row", gap: 6, minHeight: 36, paddingHorizontal: 12 },
-  alertChipOn: { backgroundColor: color.primary },
+  bar: {
+    alignItems: "center",
+    backgroundColor: color.ink,
+    borderRadius: corner.pill,
+    flexDirection: "row",
+    gap: space.sm,
+    justifyContent: "space-between",
+    paddingLeft: space.lg,
+    paddingRight: space.xs,
+    paddingVertical: space.xs,
+    ...shadow.raised,
+  },
+  barAmount: { color: color.onPrimary, fontSize: 20, fontWeight: "700" },
+  barButton: { alignItems: "center", backgroundColor: color.onPrimary, borderRadius: corner.pill, justifyContent: "center", minHeight: 48, paddingHorizontal: space.xl },
+  barButtonOutline: { backgroundColor: "transparent", borderColor: "rgba(255,255,255,0.6)", borderWidth: 1 },
+  barButtonText: { color: color.ink, fontSize: 16, fontWeight: "700" },
+  barButtonTextOutline: { color: color.onPrimary },
+  barCaption: { color: "rgba(255,255,255,0.7)", fontSize: 12 },
+  barPrice: { flexShrink: 1 },
+  groupHeading: { color: color.text, fontSize: 16, fontWeight: "700", marginBottom: space.xs },
+  groupHeadingFlat: { color: color.text, fontSize: 16, fontWeight: "700" },
+  pillButton: { alignItems: "center", borderColor: color.borderStrong, borderRadius: corner.pill, borderWidth: 1, flexDirection: "row", gap: 6, minHeight: 40, paddingHorizontal: space.md },
+  pillButtonOn: { backgroundColor: color.ink, borderColor: color.ink },
+  pillButtonText: { color: color.heading, fontSize: 14, fontWeight: "600" },
+  pillButtonTextOn: { color: color.onPrimary },
+  pressed: { opacity: 0.7 },
+  quantityRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
+  ratingValue: { color: color.text, fontSize: 14, fontWeight: "700" },
+  round: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.92)", borderRadius: 22, height: 44, justifyContent: "center", width: 44, ...shadow.card },
+  section: { borderTopColor: color.border, borderTopWidth: 1, marginTop: space.md, paddingTop: space.md },
+  sellerActions: { flexDirection: "row", gap: space.xs, marginTop: space.sm },
+  sellerName: { color: color.text, fontSize: 16, fontWeight: "700" },
+  sellerRow: { alignItems: "center", flexDirection: "row", gap: space.sm },
+  titleBlock: { marginTop: space.md },
+  topBar: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
+  topRight: { alignItems: "center", flexDirection: "row", gap: space.xs },
+
+  alertChip: { alignItems: "center", alignSelf: "flex-start", borderColor: color.borderStrong, borderRadius: 20, borderWidth: 1, flexDirection: "row", gap: 6, marginTop: space.sm, minHeight: 40, paddingHorizontal: 14 },
+  alertChipOn: { backgroundColor: color.ink, borderColor: color.ink },
   alertText: { color: color.heading, fontSize: 13, fontWeight: "600" },
   alertTextOn: { color: color.onPrimary },
   alerts: { marginTop: space.sm },
@@ -346,7 +426,7 @@ const styles = StyleSheet.create({
   },
   info: {
     alignItems: "center",
-    backgroundColor: color.surfaceSoft,
+    backgroundColor: color.backgroundMuted,
     borderRadius: corner.pill,
     flexDirection: "row",
     gap: 6,
@@ -367,10 +447,10 @@ const styles = StyleSheet.create({
   },
   optionLabel: { color: color.heading, fontSize: 14, fontWeight: "600" },
   optionPrice: { color: color.textSecondary, fontSize: 12 },
-  optionSelected: { backgroundColor: color.accent },
+  optionSelected: { backgroundColor: color.ink },
   optionTextSelected: { color: color.onPrimary },
   options: { flexDirection: "row", gap: space.xs },
-  pills: { flexDirection: "row", flexWrap: "wrap", gap: space.xs, marginTop: space.sm },
+  pills: { flexDirection: "row", flexWrap: "wrap", gap: space.xs },
   dealPill: { backgroundColor: color.mist, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
   dealPillText: { color: color.ink, fontSize: 12, fontWeight: "800" },
   price: { color: color.text, fontSize: 22, fontWeight: "700" },
@@ -379,6 +459,6 @@ const styles = StyleSheet.create({
   ratingRow: { alignItems: "center", flexDirection: "row", gap: 6, marginTop: 4, minHeight: 28 },
   reviewLink: { color: color.link, fontSize: 13, fontWeight: "600" },
   sellerCard: { alignItems: "center", flexDirection: "row", gap: space.sm, marginTop: space.md },
-  title: { ...text.pageTitle, marginTop: space.sm },
+  title: { color: color.text, fontSize: 24, fontWeight: "700", letterSpacing: -0.3 },
   titleRow: { alignItems: "flex-start", flexDirection: "row" },
 });

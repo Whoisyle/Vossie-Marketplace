@@ -1,13 +1,18 @@
-import { useRef, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 import { type LayoutChangeEvent, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon, ListingCard, Media, StarRating } from "@/components";
 import type { ProductDetail } from "@/data/mock/productDetails";
 import type { Listing, Review } from "@/data/types";
-import { color, corner, space, text } from "@/theme/tokens";
+import { color, corner, size, space, text } from "@/theme/tokens";
 
-/** The photos of a listing: swipe through them, with a counter, dots and a strip of small previews. */
-export function ListingGallery({ images, title }: { images: (number | string)[]; title: string }) {
+/**
+ * The photos of a listing: one wide picture with rounded bottom corners that runs under the status bar.
+ * Swipe through them; the counter and tappable dots sit on the picture, and `overlay` holds the buttons on top of it.
+ */
+export function ListingGallery({ images, overlay, title }: { images: (number | string)[]; title: string; overlay?: ReactNode }) {
+  const insets = useSafeAreaInsets();
   const [width, setWidth] = useState(0);
   const [index, setIndex] = useState(0);
   const scroller = useRef<ScrollView>(null);
@@ -18,7 +23,10 @@ export function ListingGallery({ images, title }: { images: (number | string)[];
   };
   return (
     <View testID="listing-gallery">
-      <View onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)} style={styles.hero}>
+      <View
+        onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}
+        style={[styles.hero, { height: (width || 360) * 0.92 + insets.top }]}
+      >
         <ScrollView
           horizontal
           onMomentumScrollEnd={(event) => width > 0 && setIndex(Math.round(event.nativeEvent.contentOffset.x / width))}
@@ -27,39 +35,36 @@ export function ListingGallery({ images, title }: { images: (number | string)[];
           showsHorizontalScrollIndicator={false}
         >
           {(images.length > 0 ? images : [undefined]).map((source, position) => (
-            <View key={position} style={{ height: "100%", width: width || 320 }}>
+            <View key={position} style={{ height: "100%", width: width || 360 }}>
               <Media accessibilityLabel={`${title}, photo ${position + 1}`} radius={0} source={source} style={StyleSheet.absoluteFill} />
             </View>
           ))}
         </ScrollView>
-        <View style={styles.counter}>
-          <Text style={styles.counterText}>
-            {index + 1}/{count}
-          </Text>
+        <View pointerEvents="box-none" style={[styles.overlay, { paddingTop: insets.top + space.xs }]}>
+          {overlay}
         </View>
         {count > 1 ? (
-          <View pointerEvents="none" style={styles.dots}>
-            {images.map((_, position) => (
-              <View key={position} style={[styles.dot, position === index && styles.dotOn]} />
-            ))}
-          </View>
+          <>
+            <View style={styles.dots}>
+              {images.map((_, position) => (
+                <Pressable
+                  accessibilityLabel={`Photo ${position + 1}`}
+                  accessibilityRole="button"
+                  hitSlop={8}
+                  key={position}
+                  onPress={() => go(position)}
+                  style={[styles.dot, position === index && styles.dotOn]}
+                />
+              ))}
+            </View>
+            <View pointerEvents="none" style={styles.counter}>
+              <Text style={styles.counterText}>
+                {index + 1} / {count}
+              </Text>
+            </View>
+          </>
         ) : null}
       </View>
-      {count > 1 ? (
-        <View style={styles.thumbs}>
-          {images.slice(0, 5).map((source, position) => (
-            <Pressable
-              accessibilityLabel={`Photo ${position + 1}`}
-              accessibilityRole="button"
-              key={position}
-              onPress={() => go(position)}
-              style={[styles.thumb, position === index && styles.thumbOn]}
-            >
-              <Media radius={corner.sm} source={source} style={StyleSheet.absoluteFill} />
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -158,17 +163,18 @@ export function ListingRow({ favourites, items, onOpen, onToggle, title }: { tit
 
 const styles = StyleSheet.create({
   bullet: { alignItems: "flex-start", flexDirection: "row", gap: space.xs, paddingVertical: 3 },
-  card: { backgroundColor: color.surfaceSoft, borderRadius: corner.md, padding: space.md },
-  counter: { backgroundColor: "rgba(30, 43, 51, 0.55)", borderRadius: corner.pill, paddingHorizontal: 8, paddingVertical: 2, position: "absolute", right: space.xs, top: space.xs },
-  counterText: { color: color.onPrimary, fontSize: 11, fontWeight: "600" },
+  card: { backgroundColor: color.backgroundMuted, borderRadius: corner.lg, padding: space.md },
+  counter: { backgroundColor: "rgba(30, 43, 51, 0.6)", borderRadius: corner.pill, bottom: space.md, paddingHorizontal: 10, paddingVertical: 4, position: "absolute", right: space.md },
+  counterText: { color: color.onPrimary, fontSize: 12, fontWeight: "600" },
   dot: { backgroundColor: "rgba(255,255,255,0.55)", borderRadius: 3, height: 6, width: 6 },
   dotOn: { backgroundColor: "#FFFFFF", width: 16 },
-  dots: { alignItems: "center", bottom: space.xs, flexDirection: "row", gap: 4, justifyContent: "center", left: 0, position: "absolute", right: 0 },
+  dots: { alignItems: "center", bottom: space.md + 6, flexDirection: "row", gap: 5, justifyContent: "center", left: 0, position: "absolute", right: 0 },
   flex: { flex: 1 },
   gap: { marginTop: space.xs },
   heading: { ...text.sectionTitle, marginBottom: space.xs, marginTop: space.md },
   headingTight: { ...text.sectionTitle },
-  hero: { aspectRatio: 1.15, borderRadius: corner.md, overflow: "hidden", width: "100%" },
+  hero: { borderBottomLeftRadius: 32, borderBottomRightRadius: 32, marginHorizontal: -size.screenGutter, overflow: "hidden" },
+  overlay: { left: 0, paddingHorizontal: space.md, position: "absolute", right: 0, top: 0 },
   link: { color: color.link, fontSize: 13, fontWeight: "700" },
   reply: { backgroundColor: color.surface, borderRadius: 10, gap: 2, marginTop: 6, padding: space.xs },
   replyHead: { color: color.heading, fontSize: 11, fontWeight: "700" },
@@ -185,7 +191,4 @@ const styles = StyleSheet.create({
   specLabel: { color: color.textSecondary, flex: 0.9, fontSize: 13 },
   specRow: { flexDirection: "row", gap: space.sm, paddingVertical: 8 },
   specValue: { color: color.text, flex: 1.4, fontSize: 13, fontWeight: "600" },
-  thumb: { borderColor: "transparent", borderRadius: corner.sm, borderWidth: 2, flex: 1, maxWidth: 64, overflow: "hidden", aspectRatio: 1 },
-  thumbOn: { borderColor: color.accent },
-  thumbs: { flexDirection: "row", gap: space.xs, marginTop: space.xs },
 });

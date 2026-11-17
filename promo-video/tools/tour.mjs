@@ -111,7 +111,7 @@ async function fill(i, v) { const el = fr().locator('input:visible, textarea:vis
 const cap = async () => {};
 const cam = async () => {};
 const shot = async n => { if (DEBUG) await page.screenshot({ path: `shots/walk_${String(shotN++).padStart(2, '0')}_${n}.png` }); };
-async function section(name, fn) { if (process.env.ONLY && !(name === 'signin' || name.startsWith(process.env.ONLY))) return; log('>>', name); marks['sec:' + name] = Number(now()); try { await fn(); } catch (e) { log('SECTION FAIL', name, e.message.slice(0, 300).split(String.fromCharCode(10)).join(' ')); await page.screenshot({ path: 'shots/fail_' + name + '.png' }); } await shot(name); if (process.env.STOP === name) { log('STOP after', name); await ctx.close(); await b.close(); process.exit(0); } }
+async function section(name, fn) { if (process.env.SECTIONS && !process.env.SECTIONS.split(',').includes(name)) return; if (process.env.ONLY && !(name === 'signin' || name.startsWith(process.env.ONLY))) return; log('>>', name); marks['sec:' + name] = Number(now()); try { await fn(); } catch (e) { log('SECTION FAIL', name, e.message.slice(0, 300).split(String.fromCharCode(10)).join(' ')); await page.screenshot({ path: 'shots/fail_' + name + '.png' }); } await shot(name); if (process.env.STOP === name) { log('STOP after', name); await ctx.close(); await b.close(); process.exit(0); } }
 
 
 
@@ -715,7 +715,9 @@ async function typeInto(testId, value) {
   await el.scrollIntoViewIfNeeded().catch(() => {});
   for (let attempt = 0; attempt < 4; attempt++) {
     await el.click(); await page.keyboard.press('Control+A'); await page.keyboard.press('Backspace');
-    await page.keyboard.type(value, { delay: 60 }); await sleep(400);
+    if (process.env.FOCUSLOG) { for (const ch of value) { await page.keyboard.type(ch); await page.waitForTimeout(80); log('key', ch, 'active=', await page.evaluate(() => { const a = document.activeElement; return a ? (a.getAttribute('data-testid') || a.tagName) + ':' + (a.value ?? '') : 'none'; })); } }
+    else await page.keyboard.type(value, { delay: 60 });
+    await sleep(400);
     if ((await el.inputValue().catch(() => '')) === value) return;
     log('retype', testId, JSON.stringify(await el.inputValue().catch(() => '')));
   }

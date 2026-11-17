@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
@@ -33,7 +34,7 @@ import { getCampusName } from "@/data/repository";
 import type { Listing, Seller } from "@/data/types";
 import { haptic } from "@/lib/haptics";
 import { duration, spring } from "@/theme/motion";
-import { color, corner, gradient, space } from "@/theme/tokens";
+import { color, corner, gradient, shadow, space } from "@/theme/tokens";
 
 /** How long each card stays before the carousel moves on by itself, and how long it waits after a touch. */
 export const AUTO_ADVANCE_MS = 3800;
@@ -273,7 +274,133 @@ export function StoreCard({
   );
 }
 
+/** A big rounded photo card, one per row: heart on the photo, then the name, rating, place and price. */
+export function ExploreCard({
+  favourite,
+  listing,
+  onOpen,
+  onToggleFavourite,
+}: {
+  favourite: boolean;
+  listing: Listing;
+  onOpen: () => void;
+  onToggleFavourite: () => void;
+}) {
+  const percent = dealFor(listing.id);
+  const price = effectivePrice(listing);
+  return (
+    <View style={styles.bigCard}>
+      <Pressable
+        accessibilityHint="Opens the listing"
+        accessibilityLabel={`${listing.title}, ${formatRand(price)}${percent ? `, ${percent} percent off` : ""}, ${listing.rating.toFixed(1)} stars`}
+        accessibilityRole="button"
+        onPress={onOpen}
+        style={({ pressed }) => pressed && styles.bigPressed}
+        testID={`listing-card-${listing.id}`}
+      >
+        <View style={styles.bigPhoto}>
+          <Media radius={0} source={listing.images[0]} style={StyleSheet.absoluteFill} />
+          {percent > 0 ? (
+            <View style={styles.bigDeal}>
+              <Text style={styles.bigDealText}>-{percent}%</Text>
+            </View>
+          ) : null}
+        </View>
+        <View style={styles.bigInfo}>
+          <View style={styles.bigTitleRow}>
+            <Text numberOfLines={1} style={styles.bigTitle}>
+              {listing.title}
+            </Text>
+            <View style={styles.bigRating}>
+              <Ionicons color={color.ink} name="star" size={13} />
+              <Text style={styles.bigRatingText}>
+                {listing.rating.toFixed(2)} ({listing.ratingCount})
+              </Text>
+            </View>
+          </View>
+          <Text numberOfLines={1} style={styles.bigMeta}>
+            {listing.location}
+          </Text>
+          <View style={styles.bigPriceRow}>
+            {percent > 0 ? <Text style={styles.bigWas}>{formatRand(listing.priceCents)}</Text> : null}
+            <Text style={styles.bigPrice}>{formatRand(price)}</Text>
+          </View>
+        </View>
+      </Pressable>
+      {/* a sibling of the card, not a child, so a web page never has a button inside a button */}
+      <View style={styles.bigHeart}>
+        <HeartButton
+          active={favourite}
+          idleColor={color.heading}
+          onPress={onToggleFavourite}
+          testID={`favourite-${listing.id}`}
+        />
+      </View>
+    </View>
+  );
+}
+
+/** One row of outline pills under the search box; the chosen one is filled dark. */
+export function CategoryChips<T extends string>({
+  onSelect,
+  options,
+  value,
+}: {
+  options: { key: T; label: string }[];
+  value: T;
+  onSelect: (key: T) => void;
+}) {
+  return (
+    <ScrollView
+      contentContainerStyle={styles.chipsContent}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.chipsScroll}
+      testID="category-chips"
+    >
+      {options.map((option) => {
+        const selected = option.key === value;
+        return (
+          <Pressable
+            accessibilityLabel={option.label}
+            accessibilityRole="button"
+            accessibilityState={{ selected }}
+            hitSlop={4}
+            key={option.key}
+            onPress={() => onSelect(option.key)}
+            style={({ pressed }) => [styles.pill, selected && styles.pillOn, pressed && styles.bigPressed]}
+            testID={`category-${option.key}`}
+          >
+            <Text style={[styles.pillText, selected && styles.pillTextOn]}>{option.label}</Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
 const styles = StyleSheet.create({
+  bigCard: { backgroundColor: color.surface, borderRadius: 28, padding: space.xs, ...shadow.card },
+  bigDeal: { backgroundColor: color.mist, borderRadius: 10, left: 12, paddingHorizontal: 8, paddingVertical: 4, position: "absolute", top: 12 },
+  bigDealText: { color: color.ink, fontSize: 12, fontWeight: "800" },
+  bigHeart: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.92)", borderRadius: 20, height: 40, justifyContent: "center", position: "absolute", right: 16, top: 16, width: 40 },
+  bigInfo: { gap: 2, paddingBottom: space.xs, paddingHorizontal: space.xs, paddingTop: space.sm },
+  bigMeta: { color: color.textMuted, fontSize: 13 },
+  bigPhoto: { aspectRatio: 1.45, borderRadius: 22, overflow: "hidden", width: "100%" },
+  bigPressed: { opacity: 0.85 },
+  bigPrice: { color: color.text, fontSize: 17, fontWeight: "700" },
+  bigPriceRow: { alignItems: "center", flexDirection: "row", gap: space.xs, marginTop: 2 },
+  bigRating: { alignItems: "center", flexDirection: "row", gap: 4 },
+  bigRatingText: { color: color.text, fontSize: 13, fontWeight: "600" },
+  bigTitle: { color: color.text, flex: 1, fontSize: 16, fontWeight: "700" },
+  bigTitleRow: { alignItems: "center", flexDirection: "row", gap: space.xs },
+  bigWas: { color: color.textMuted, fontSize: 14, textDecorationLine: "line-through" },
+  chipsContent: { gap: space.xs, paddingHorizontal: space.lg, paddingVertical: space.xxs },
+  chipsScroll: { flexGrow: 0, marginHorizontal: -space.lg },
+  pill: { alignItems: "center", borderColor: color.borderStrong, borderRadius: corner.pill, borderWidth: 1, justifyContent: "center", minHeight: 40, paddingHorizontal: space.md },
+  pillOn: { backgroundColor: color.ink, borderColor: color.ink },
+  pillText: { color: color.heading, fontSize: 14, fontWeight: "600" },
+  pillTextOn: { color: color.onPrimary },
   bleed: { marginHorizontal: -space.lg },
   dots: { alignItems: "center", marginTop: space.xs },
   featured: {
