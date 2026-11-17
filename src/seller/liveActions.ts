@@ -20,7 +20,9 @@ function isLocalFile(uri: string | undefined): uri is string {
   return Boolean(uri && /^(file:|blob:|content:|data:|https?:)/.test(uri));
 }
 
-async function saveOnboarding(profile: SellerProfile, campusId: string): Promise<void> {
+async function saveOnboarding(profile: SellerProfile, fallbackCampusId: string): Promise<void> {
+  // the campus chosen in the seller setup wins over the campus the student buys on
+  const campusId = profile.campusId ?? fallbackCampusId;
   if (!profile.kind) return;
   let logoPath: string | null = null;
   if (isLocalFile(profile.logoUri)) {
@@ -30,6 +32,7 @@ async function saveOnboarding(profile: SellerProfile, campusId: string): Promise
     bio: profile.description,
     campusId,
     closesAt: profile.closes,
+    deliveryMode: profile.delivery,
     displayName: profile.storeName,
     kind: KIND_TO_DB[profile.kind],
     locationText: profile.location,
@@ -63,7 +66,7 @@ export async function runLiveSellerAction(action: SellerAction, state: DemoState
     switch (action.type) {
       case "sellerSetBasics":
         // the seller row has to exist before documents can be attached to it, so it is created as soon as step 1 is done
-        await saveOnboarding({ ...seller.profile, phone: action.phone, storeName: action.storeName }, campusId);
+        await saveOnboarding({ ...seller.profile, ...(action.campusId ? { campusId: action.campusId } : {}), phone: action.phone, storeName: action.storeName }, campusId);
         break;
       case "sellerSaveStore":
         await saveOnboarding({ ...seller.profile, ...action.patch }, campusId);

@@ -1,6 +1,7 @@
 import { backendEnabled, supabase, unwrap } from "@/services/client";
 import * as money from "@/services/money";
 import * as sellerService from "@/services/seller";
+import type { CampusId } from "@/data/types";
 import type { SellerOrderRow, SellerOrderStatus as DbOrderStatus } from "@/services/types";
 
 import { courierCodeFor, docKindsFor, platformFeeCents } from "./state";
@@ -154,6 +155,8 @@ type DbSeller = {
   open_days: string[] | null;
   opens_at: string | null;
   closes_at: string | null;
+  campus_id: string | null;
+  delivery_mode: string | null;
 };
 
 const DAYS: DayKey[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -182,8 +185,10 @@ export async function loadSellerState(): Promise<Partial<SellerState> | null> {
     listings: (listingRows as unknown as DbListing[]).map(mapListing),
     orders: orderRows.map((row) => mapSellerOrder(row, names, me.location_text ?? "")).filter((item): item is SellerOrder => item !== null),
     profile: {
+      campusId: (me.campus_id ?? undefined) as CampusId | undefined,
       closes: (me.closes_at ?? "17:00:00").slice(0, 5),
       days: (me.open_days ?? []).filter((day: string): day is DayKey => (DAYS as string[]).includes(day)),
+      delivery: me.delivery_mode === "courier" || me.delivery_mode === "collection" || me.delivery_mode === "both" ? me.delivery_mode : undefined,
       description: me.bio ?? "",
       kind,
       location: me.location_text ?? "",

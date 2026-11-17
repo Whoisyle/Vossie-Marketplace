@@ -395,7 +395,7 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
       return { ...state, documents, profile: { ...state.profile, kind: action.kind } };
     }
     case "sellerSetBasics":
-      return { ...state, profile: { ...state.profile, phone: action.phone.trim(), storeName: action.storeName.trim() } };
+      return { ...state, profile: { ...state.profile, ...(action.campusId ? { campusId: action.campusId } : {}), phone: action.phone.trim(), storeName: action.storeName.trim() } };
     case "sellerGoToStep":
       return { ...state, step: action.step };
     case "sellerUploadDocument":

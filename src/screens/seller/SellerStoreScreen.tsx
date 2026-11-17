@@ -6,6 +6,9 @@ import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
 import { Icon } from "@/components";
 import { initials } from "@/data/format";
+import { getCampusName } from "@/data/repository";
+import type { CampusId } from "@/data/types";
+import { CampusPicker } from "@/screens/profile/CampusPicker";
 import { haptic } from "@/lib/haptics";
 import { DAY_KEYS, DAY_LABELS, type DayKey, type SellerDelivery } from "@/seller/types";
 import { color } from "@/theme/tokens";
@@ -36,6 +39,8 @@ export function SellerStoreScreen({ mode = "setup" }: { mode?: "setup" | "manage
   const [name, setName] = useState(saved.storeName);
   const [description, setDescription] = useState(saved.description);
   const [delivery, setDelivery] = useState<SellerDelivery>(saved.delivery ?? "both");
+  const [campusId, setCampusId] = useState<CampusId | undefined>(saved.campusId ?? state.profile?.campusId);
+  const [campusOpen, setCampusOpen] = useState(false);
   const [days, setDays] = useState<DayKey[]>(saved.days);
   const [opens, setOpens] = useState(saved.opens);
   const [closes, setCloses] = useState(saved.closes);
@@ -54,7 +59,7 @@ export function SellerStoreScreen({ mode = "setup" }: { mode?: "setup" | "manage
     if (!isTime(opens) || !isTime(closes) || opens >= closes) found.hours = "Use times like 08:00 and 17:00, with the opening time first.";
     setErrors(found);
     if (Object.keys(found).length > 0) return;
-    dispatch({ patch: { closes: closes.trim(), days, delivery, bannerUri: banner, description: description.trim(), logoUri: logo, opens: opens.trim(), storeName: name.trim() }, type: "sellerSaveStore" });
+    dispatch({ patch: { campusId, closes: closes.trim(), days, delivery, bannerUri: banner, description: description.trim(), logoUri: logo, opens: opens.trim(), storeName: name.trim() }, type: "sellerSaveStore" });
     haptic.success();
     if (mode === "manage") {
       router.back();
@@ -121,6 +126,18 @@ export function SellerStoreScreen({ mode = "setup" }: { mode?: "setup" | "manage
         </View>
 
         <View style={styles.hours}>
+          <Text style={styles.label}>Campus you sell on</Text>
+          <Pressable accessibilityHint="Change the campus" accessibilityLabel={`Campus, ${campusId ? getCampusName(campusId) : "not chosen"}`} accessibilityRole="button" onPress={() => setCampusOpen(true)} style={styles.option} testID="store-campus">
+            <Icon color={color.sage} name="map-pin" size={20} />
+            <View style={styles.optionText}>
+              <Text style={styles.optionTitle}>{campusId ? getCampusName(campusId) : "Choose your campus"}</Text>
+              <Text style={styles.optionHint}>Buyers on this campus see your store first</Text>
+            </View>
+            <Icon color="rgba(255,255,255,0.7)" name="chevron-right" size={20} />
+          </Pressable>
+        </View>
+
+        <View style={styles.hours}>
           <Text style={styles.label}>How do buyers get their order?</Text>
           {(["courier", "collection", "both"] as const).map((option) => {
             const on = delivery === option;
@@ -162,6 +179,15 @@ export function SellerStoreScreen({ mode = "setup" }: { mode?: "setup" | "manage
         </View>
       </View>
       {mode === "setup" ? <StorePreview banner={banner} campusId={saved.campusId} delivery={delivery} kind={saved.kind} logo={logo} name={name} /> : null}
+      <CampusPicker
+        onClose={() => setCampusOpen(false)}
+        onSelect={(next) => {
+          setCampusId(next);
+          setCampusOpen(false);
+        }}
+        selected={campusId ?? null}
+        visible={campusOpen}
+      />
       <AttachSheet
         onClose={() => setAttaching(null)}
         onPicked={(file) => (attaching === "banner" ? setBanner(file.uri) : setLogo(file.uri))}

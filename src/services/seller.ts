@@ -21,7 +21,7 @@ export const submitSellerProfile = (input: SellerProfileInput) =>
   });
 
 export async function getMySeller() {
-  return unwrap(await supabase.from("sellers").select("id, display_name, bio, location_text, status, review_note, campus_id, sells_goods, provides_services, kind, contact_phone, logo_path, open_days, opens_at, closes_at").maybeSingle());
+  return unwrap(await supabase.from("sellers").select("id, display_name, bio, location_text, status, review_note, campus_id, sells_goods, provides_services, kind, contact_phone, logo_path, open_days, opens_at, closes_at, delivery_mode").maybeSingle());
 }
 
 export type ListingInput = {
@@ -113,6 +113,8 @@ export type SaveSellerOnboardingInput = {
   opensAt: string;
   closesAt: string;
   logoPath?: string | null;
+  /** How buyers get orders: a campus courier, collection from the seller, or both. */
+  deliveryMode?: "courier" | "collection" | "both";
 };
 
 /** Steps 1 and 3 of the seller setup: who the seller is and how buyers see the store. Creates the seller as a draft. */
@@ -128,6 +130,7 @@ export const saveSellerOnboarding = (input: SaveSellerOnboardingInput) =>
     p_opens_at: input.opensAt,
     p_closes_at: input.closesAt,
     p_logo_path: input.logoPath ?? null,
+    p_delivery_mode: input.deliveryMode ?? "both",
   });
 
 /** Uploads a file to the private seller-documents bucket, in the seller's own folder, and returns its path. */

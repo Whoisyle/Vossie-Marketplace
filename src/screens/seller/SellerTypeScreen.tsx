@@ -47,8 +47,7 @@ export function SellerTypeScreen() {
     setErrors(found);
     if (Object.keys(found).length > 0) return;
     dispatch({ kind: kind!, type: "sellerSetKind" });
-    dispatch({ phone, storeName, type: "sellerSetBasics" });
-    dispatch({ patch: { campusId: campusId! }, type: "sellerSaveStore" });
+    dispatch({ campusId: campusId!, phone, storeName, type: "sellerSetBasics" });
     dispatch({ step: 2, type: "sellerGoToStep" });
     router.push("/seller-setup/verify" as Href);
   };

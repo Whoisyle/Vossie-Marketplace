@@ -37,6 +37,13 @@ describe("sending seller actions to the real services", () => {
     expect(seller.saveSellerOnboarding).toHaveBeenCalledWith(expect.objectContaining({ campusId: "potchefstroom", displayName: "CampusBites", kind: "campus_business", phone: "0825735164", openDays: ["mon", "tue", "wed", "thu", "fri"] }));
   });
 
+  it("sends the campus chosen in the setup, not the campus the student buys on, and the delivery choice", async () => {
+    await runLiveSellerAction({ campusId: "pretoria", phone: "0825735164", storeName: "CampusBites", type: "sellerSetBasics" }, state(), none);
+    expect(seller.saveSellerOnboarding).toHaveBeenLastCalledWith(expect.objectContaining({ campusId: "pretoria" }));
+    await runLiveSellerAction({ patch: { campusId: "bloemfontein", delivery: "collection" }, type: "sellerSaveStore" }, state(), none);
+    expect(seller.saveSellerOnboarding).toHaveBeenLastCalledWith(expect.objectContaining({ campusId: "bloemfontein", deliveryMode: "collection" }));
+  });
+
   it("uploads a document with the file that was picked", async () => {
     await runLiveSellerAction({ fileName: "id.jpg", kind: "id", type: "sellerUploadDocument", uri: "file:///id.jpg" }, state(), none);
     expect(seller.attachSellerDocument).toHaveBeenCalledWith("id", { name: "id.jpg", uri: "file:///id.jpg" });

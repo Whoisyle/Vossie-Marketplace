@@ -347,7 +347,7 @@ export type SellerState = {
 export type SellerAction =
   | { type: "sellerStart" }
   | { type: "sellerSetKind"; kind: SellerKind }
-  | { type: "sellerSetBasics"; storeName: string; phone: string }
+  | { type: "sellerSetBasics"; storeName: string; phone: string; /** The campus chosen in the setup. */ campusId?: CampusId }
   | { type: "sellerGoToStep"; step: 1 | 2 | 3 }
   | { type: "sellerUploadDocument"; kind: DocKind; fileName: string; /** The picked file, which the live backend uploads. */ uri?: string; fileKind?: "image" | "pdf" | "file" }
   | { type: "sellerRemoveDocument"; kind: DocKind }

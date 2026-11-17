@@ -35,7 +35,7 @@ export function asSeller(state: SellerState, followers: number): Seller {
   const total = state.reviewCounts.reduce((a, b) => a + b, 0);
   return {
     bio: state.profile.description,
-    campusId: "potchefstroom",
+    campusId: state.profile.campusId ?? "potchefstroom",
     followers,
     id: state.profile.storeId,
     location: state.profile.place ? `${state.profile.place.name}, ${state.profile.place.address.split(",")[0]}` : state.profile.location,
@@ -61,8 +61,8 @@ export function syncCatalogue(state: SellerState, followers: number): void {
   }
   const storeId = state.profile.storeId;
   registerOwnStore({
-    known: state.listings.map((item) => asListing(item, storeId)),
-    listings: state.listings.filter((item) => item.status === "published" && (item.unlimited || item.onHand > 0)).map((item) => asListing(item, storeId)),
+    known: state.listings.map((item) => asListing(item, storeId, state.profile.campusId)),
+    listings: state.listings.filter((item) => item.status === "published" && (item.unlimited || item.onHand > 0)).map((item) => asListing(item, storeId, state.profile.campusId)),
     seller: asSeller(state, followers),
   });
 }
