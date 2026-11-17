@@ -19,17 +19,23 @@ export const color = {
   ink: "#1f2f39",
   inkDeep: "#1e2a38",
 
+  // Owner palette additions (2026-11-17): used sparingly, as surfaces and small accents
+  slateBlue: "#5F7691", // secondary accent: info, links to secondary actions, stat figures
+  cloudGrey: "#E8EBEE", // resting fields and quiet panels
+  linen: "#FAF7F2", // page background, warmer than pure white
+  dustyBlue: "#8FA7BA", // soft icons, badges and dividers
+
   // Surfaces
-  background: "#FFFFFF",
-  backgroundMuted: "#F5F7F8",
+  background: "#FAF7F2", // linen; cards stay white on top of it
+  backgroundMuted: "#EEF0F2", // cloud grey, lighter step
   surface: "#FFFFFF",
   surfaceSoft: "#DFEAF1", // checkout panels, option tiles
-  surfaceIcon: "#E1E9EB", // menu icon circles, unread inbox rows
-  surfaceRow: "#ECF1F4", // recent-order rows
+  surfaceIcon: "#DCE5EC", // menu icon circles, unread inbox rows
+  surfaceRow: "#EEF1F4", // recent-order rows
   surfacePeach: "#FAF3EA", // "Open orders" summary card
-  surfaceBadge: "#D6DFE2", // "Verified student" badge
+  surfaceBadge: "#D3DEE7", // "Verified student" badge
   placeholder: "#D9D9D9", // image placeholders
-  searchField: "#F2F3F4",
+  searchField: "#E8EBEE",
 
   // Text
   text: "#1E2B33",
@@ -41,7 +47,7 @@ export const color = {
 
   // Lines
   border: "#E6ECEF",
-  borderStrong: "#C8D2D8",
+  borderStrong: "#C5CFD8",
   divider: "#EDF1F3",
 
   // Status
@@ -51,8 +57,8 @@ export const color = {
   warningSoft: "#FFF4DE",
   danger: "#B4544A",
   dangerSoft: "#F3E0DC",
-  info: "#2C6E9E",
-  infoSoft: "#E8F2FA",
+  info: "#5F7691",
+  infoSoft: "#E6ECF3",
 
   // Third-party look used only by the demo sign-in card
   microsoftBlue: "#1074CE",
