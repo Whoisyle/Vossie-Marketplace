@@ -103,7 +103,8 @@ export function HomeScreen() {
     <HomeHeader
       campusName={campusId ? getCampusName(campusId) : "Choose a campus"}
       filterCount={filterCount}
-      greeting={`${greeting()}${state.profile ? `, ${firstName(state.profile.fullName)}` : ""}`}
+      greeting={greeting()}
+      name={state.profile ? firstName(state.profile.fullName) : undefined}
       hasUnread={hasUnread}
       hints={HINTS}
       onBell={() => router.push("/home/notifications" as Href)}

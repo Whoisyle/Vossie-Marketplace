@@ -1,21 +1,24 @@
-import { LinearGradient } from "expo-linear-gradient";
 import { type ReactNode, useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Icon, Wordmark } from "@/components";
+import { Icon } from "@/components";
 import { haptic } from "@/lib/haptics";
-import { color, size, space } from "@/theme/tokens";
+import { color, space } from "@/theme/tokens";
 
-/** The two header colours; the promo photo fades into a colour in between. */
-export const HEADER_COLORS = ["#386573", "#335B69"] as const;
-export const HEADER_FADE = "#345E6C";
+const HAND = Platform.select({
+  android: "cursive",
+  ios: "Noteworthy",
+  default: "'Segoe Script', 'Bradley Hand', 'Brush Script MT', cursive",
+});
 
 type HomeHeaderProps = {
   campusName: string;
   children?: ReactNode;
   filterCount: number;
   greeting: string;
+  /** The student's first name, shown big under the greeting; empty before a profile exists. */
+  name?: string;
   hasUnread: boolean;
   hints: string[];
   onBell: () => void;
@@ -35,6 +38,7 @@ export function HomeHeader({
   children,
   filterCount,
   greeting,
+  name,
   hasUnread,
   hints,
   onBell,
@@ -59,92 +63,93 @@ export function HomeHeader({
   };
 
   return (
-    <View style={styles.bleed}>
-      <LinearGradient
-        colors={HEADER_COLORS}
-        end={{ x: 1, y: 1 }}
-        start={{ x: 0, y: 0 }}
-        style={[styles.header, { paddingTop: insets.top + space.xs }]}
-      >
-        <View style={styles.topRow}>
-          <View style={styles.flex}>
-            <Wordmark tone="white" width={104} />
-            <Text numberOfLines={1} style={styles.greeting}>
-              {greeting}
-            </Text>
-            <Pressable
-              accessibilityHint="Change your campus"
-              accessibilityLabel={`Campus, ${campusName}`}
-              accessibilityRole="button"
-              hitSlop={8}
-              onPress={onCampus}
-              style={({ pressed }) => [styles.campusRow, pressed && styles.pressed]}
-              testID="home-campus"
-            >
-              <Icon color={color.onPrimary} name="map-pin" size={16} />
-              <Text numberOfLines={1} style={styles.campus}>
-                {campusName}
-              </Text>
-              <Icon color={color.onPrimary} name="chevron-down" size={18} />
+    <View style={[styles.header, { paddingTop: insets.top + space.xs }]}>
+      <View style={styles.topRow}>
+        <View style={styles.note} testID="home-note">
+          <Text style={styles.noteText}>One campus.</Text>
+          <Text style={styles.noteText}>Many opportunities.</Text>
+          <View style={styles.noteLine} />
+        </View>
+        <Pressable
+          accessibilityLabel={hasUnread ? "Notifications, unread" : "Notifications"}
+          accessibilityRole="button"
+          hitSlop={10}
+          onPress={onBell}
+          style={({ pressed }) => [styles.bell, pressed && styles.pressed]}
+        >
+          <Icon color={color.charcoal} name="bell" size={24} />
+          {hasUnread ? <View style={styles.dot} /> : null}
+        </Pressable>
+      </View>
+
+      <View style={styles.hello}>
+        <Text style={styles.greeting}>{greeting},</Text>
+        <Text numberOfLines={1} style={styles.name}>
+          {name ? `${name} ` : "there "}
+          <Text style={styles.wave}>👋</Text>
+        </Text>
+        <Text style={styles.tagline}>Find it. Sell it. Get it delivered.</Text>
+        <Pressable
+          accessibilityHint="Change your campus"
+          accessibilityLabel={`Campus, ${campusName}`}
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={onCampus}
+          style={({ pressed }) => [styles.campusRow, pressed && styles.pressed]}
+          testID="home-campus"
+        >
+          <Icon color={color.slate} name="map-pin" size={15} />
+          <Text numberOfLines={1} style={styles.campus}>
+            {campusName}
+          </Text>
+          <Icon color={color.slate} name="chevron-down" size={16} />
+        </Pressable>
+      </View>
+
+      <View style={styles.searchRow}>
+        <View style={styles.search}>
+          <Icon color={color.slate} name="search" size={21} />
+          <TextInput
+            accessibilityHint="Type what you are looking for, then search"
+            accessibilityLabel="Search products, service and sellers"
+            autoCapitalize="none"
+            autoCorrect={false}
+            onChangeText={setQuery}
+            onSubmitEditing={submit}
+            placeholder={hints[hint]}
+            placeholderTextColor={color.steelGrey}
+            returnKeyType="search"
+            style={styles.input}
+            testID="home-search"
+            value={query}
+          />
+          {query ? (
+            <Pressable accessibilityLabel="Clear search" accessibilityRole="button" hitSlop={10} onPress={() => setQuery("")}>
+              <Icon color={color.steelGrey} name="x-circle" size={18} />
             </Pressable>
-          </View>
-          <Pressable
-            accessibilityLabel={hasUnread ? "Notifications, unread" : "Notifications"}
-            accessibilityRole="button"
-            hitSlop={10}
-            onPress={onBell}
-            style={({ pressed }) => [styles.bell, pressed && styles.pressed]}
-          >
-            <Icon color={color.onPrimary} name="bell" size={26} />
-            {hasUnread ? <View style={styles.dot} /> : null}
-          </Pressable>
+          ) : null}
         </View>
+        <Pressable
+          accessibilityLabel={filterCount > 0 ? `Filters, ${filterCount} active` : "Filters"}
+          accessibilityRole="button"
+          hitSlop={6}
+          onPress={() => {
+            haptic.tap();
+            onFilters();
+          }}
+          style={({ pressed }) => [styles.filter, pressed && styles.pressed]}
+          testID="open-filters"
+        >
+          <Icon color={color.onPrimary} name="sliders" size={20} />
+          {filterCount > 0 ? (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{filterCount}</Text>
+            </View>
+          ) : null}
+        </Pressable>
+      </View>
 
-        <View style={styles.searchRow}>
-          <View style={styles.search}>
-            <Icon color={color.textSecondary} name="search" size={22} />
-            <TextInput
-              accessibilityHint="Type what you are looking for, then search"
-              accessibilityLabel="Search products, service and sellers"
-              autoCapitalize="none"
-              autoCorrect={false}
-              onChangeText={setQuery}
-              onSubmitEditing={submit}
-              placeholder={hints[hint]}
-              placeholderTextColor={color.textMuted}
-              returnKeyType="search"
-              style={styles.input}
-              testID="home-search"
-              value={query}
-            />
-            {query ? (
-              <Pressable accessibilityLabel="Clear search" accessibilityRole="button" hitSlop={10} onPress={() => setQuery("")}>
-                <Icon color={color.textMuted} name="x-circle" size={18} />
-              </Pressable>
-            ) : null}
-          </View>
-          <Pressable
-            accessibilityLabel={filterCount > 0 ? `Filters, ${filterCount} active` : "Filters"}
-            accessibilityRole="button"
-            hitSlop={6}
-            onPress={() => {
-              haptic.tap();
-              onFilters();
-            }}
-            style={({ pressed }) => [styles.filter, pressed && styles.pressed]}
-            testID="open-filters"
-          >
-            <Icon color={color.accent} name="sliders" size={20} />
-            {filterCount > 0 ? (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{filterCount}</Text>
-              </View>
-            ) : null}
-          </Pressable>
-        </View>
-
-        {children ? <View style={styles.hero}>{children}</View> : null}
-      </LinearGradient>
+      {children ? <View style={styles.hero}>{children}</View> : null}
     </View>
   );
 }
@@ -158,29 +163,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minWidth: 18,
     position: "absolute",
-    right: -2,
-    top: -2,
+    right: -4,
+    top: -4,
   },
   badgeText: { color: color.onPrimary, fontSize: 11, fontWeight: "700" },
-  bell: { alignItems: "center", height: 44, justifyContent: "center", marginLeft: space.xs, width: 40 },
-  bleed: { marginHorizontal: -size.screenGutter },
-  campus: { color: color.onPrimary, flexShrink: 1, fontSize: 19, fontWeight: "800" },
-  campusRow: { alignItems: "center", flexDirection: "row", gap: 6, marginTop: 2 },
-  dot: { backgroundColor: "#FFFFFF", borderColor: HEADER_FADE, borderRadius: 5, borderWidth: 1.5, height: 11, position: "absolute", right: 8, top: 8, width: 11 },
-  filter: { alignItems: "center", backgroundColor: color.onPrimary, borderRadius: 18, height: 52, justifyContent: "center", width: 52 },
-  flex: { flex: 1 },
-  greeting: { color: "rgba(255,255,255,0.78)", fontSize: 12.5, fontWeight: "600", marginTop: space.xs },
-  header: {
-    borderBottomLeftRadius: 34,
-    borderBottomRightRadius: 34,
-    overflow: "hidden",
-    paddingBottom: space.md,
-    paddingHorizontal: size.screenGutter,
-  },
+  bell: { alignItems: "center", backgroundColor: color.surface, borderRadius: 22, boxShadow: "0 2px 8px rgba(25,27,29,0.08)", height: 44, justifyContent: "center", width: 44 },
+  campus: { color: color.slate, flexShrink: 1, fontSize: 14, fontWeight: "700" },
+  campusRow: { alignItems: "center", alignSelf: "flex-start", backgroundColor: color.sage, borderRadius: 16, flexDirection: "row", gap: 6, marginTop: space.sm, paddingHorizontal: 12, paddingVertical: 7 },
+  dot: { backgroundColor: color.danger, borderColor: color.surface, borderRadius: 5, borderWidth: 1.5, height: 11, position: "absolute", right: 10, top: 9, width: 11 },
+  filter: { alignItems: "center", backgroundColor: color.charcoal, borderRadius: 18, height: 52, justifyContent: "center", width: 52 },
+  greeting: { color: color.charcoal, fontSize: 24, fontWeight: "400", letterSpacing: -0.2 },
+  header: { paddingBottom: space.xs },
+  hello: { marginTop: space.md },
   hero: { marginTop: space.md },
-  input: { color: color.text, flex: 1, fontSize: 15, height: "100%", outlineWidth: 0 },
+  input: { color: color.charcoal, flex: 1, fontSize: 15, height: "100%", outlineWidth: 0 },
+  name: { color: color.charcoal, fontSize: 42, fontWeight: "800", letterSpacing: -1, lineHeight: 50 },
+  note: { transform: [{ rotate: "-4deg" }] },
+  noteLine: { backgroundColor: color.slateBlue, borderRadius: 1, height: 2, marginTop: 3, width: 96 },
+  noteText: { color: color.slateBlue, fontFamily: HAND, fontSize: 15, lineHeight: 19 },
   pressed: { opacity: 0.75 },
-  search: { alignItems: "center", backgroundColor: color.onPrimary, borderRadius: 18, flex: 1, flexDirection: "row", gap: space.xs, height: 52, paddingHorizontal: space.md },
+  search: { alignItems: "center", backgroundColor: color.cloudGrey, borderRadius: 18, flex: 1, flexDirection: "row", gap: space.xs, height: 52, paddingHorizontal: space.md },
   searchRow: { alignItems: "center", flexDirection: "row", gap: space.xs, marginTop: space.md },
-  topRow: { alignItems: "flex-start", flexDirection: "row" },
+  tagline: { color: color.steelGrey, fontSize: 14, marginTop: 2 },
+  topRow: { alignItems: "flex-start", flexDirection: "row", justifyContent: "space-between" },
+  wave: { fontSize: 34 },
 });

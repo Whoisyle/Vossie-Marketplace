@@ -8,9 +8,8 @@ import { Icon } from "@/components";
 import { ProductArt } from "@/components/art/ProductArt";
 import { formatRand } from "@/data/format";
 import { promoPhotoFlip, promoPhotoFocus, promoPhotos } from "@/data/mock/promoPhotos";
-import { color, corner, size, space } from "@/theme/tokens";
+import { color, corner, space } from "@/theme/tokens";
 
-import { HEADER_FADE } from "./HomeHeader";
 import { PROMOS, type Promo } from "./PromoCarousel";
 
 export const HERO_HEIGHT = 172;
@@ -18,7 +17,8 @@ export const HERO_HEIGHT = 172;
 export const HERO_HOLD_MS = 5_500;
 const FADE_MS = 650;
 
-const CLEAR = "rgba(52,94,108,0)";
+const CARD = color.charcoal;
+const CLEAR = "rgba(25,27,29,0)";
 
 /**
  * The banner on the teal Home header: one promo at a time that fades away while the next fades in. The promo
@@ -41,7 +41,7 @@ export function HomeHero({ onPress, promos = PROMOS }: { onPress: (promo: Promo)
   const photo = product ? promoPhotos[product.id] : undefined;
 
   return (
-    <View>
+    <View style={styles.card}>
       <View style={styles.stage} testID="home-hero">
         <Animated.View
           entering={reduced ? undefined : FadeIn.duration(FADE_MS)}
@@ -60,9 +60,9 @@ export function HomeHero({ onPress, promos = PROMOS }: { onPress: (promo: Promo)
                   style={StyleSheet.absoluteFill}
                 />
               </View>
-              <LinearGradient colors={[HEADER_FADE, "rgba(52,94,108,0.6)", CLEAR]} end={{ x: 1, y: 0.5 }} locations={[0, 0.2, 0.5]} start={{ x: 0, y: 0.5 }} style={StyleSheet.absoluteFill} />
-              <LinearGradient colors={[HEADER_FADE, CLEAR]} end={{ x: 0.5, y: 1 }} locations={[0, 0.3]} start={{ x: 0.5, y: 0 }} style={StyleSheet.absoluteFill} />
-              <LinearGradient colors={[CLEAR, HEADER_FADE]} end={{ x: 0.5, y: 1 }} locations={[0.84, 1]} start={{ x: 0.5, y: 0 }} style={StyleSheet.absoluteFill} />
+              <LinearGradient colors={[CARD, "rgba(25,27,29,0.6)", CLEAR]} end={{ x: 1, y: 0.5 }} locations={[0, 0.2, 0.5]} start={{ x: 0, y: 0.5 }} style={StyleSheet.absoluteFill} />
+              <LinearGradient colors={[CARD, CLEAR]} end={{ x: 0.5, y: 1 }} locations={[0, 0.3]} start={{ x: 0.5, y: 0 }} style={StyleSheet.absoluteFill} />
+              <LinearGradient colors={[CLEAR, CARD]} end={{ x: 0.5, y: 1 }} locations={[0.84, 1]} start={{ x: 0.5, y: 0 }} style={StyleSheet.absoluteFill} />
             </View>
           ) : product ? (
             <View pointerEvents="none" style={styles.artSpot}>
@@ -119,12 +119,13 @@ export function HomeHero({ onPress, promos = PROMOS }: { onPress: (promo: Promo)
   );
 }
 
-const STAGE = HERO_HEIGHT - 8;
+const STAGE = HERO_HEIGHT;
 
 const styles = StyleSheet.create({
+  card: { backgroundColor: CARD, borderRadius: 26, overflow: "hidden" },
   artSpot: { alignItems: "center", bottom: 0, justifyContent: "center", position: "absolute", right: 0, top: 0, width: "42%" },
   cta: { alignSelf: "flex-start", backgroundColor: color.onPrimary, borderRadius: corner.pill, marginTop: space.xxs, paddingHorizontal: 18, paddingVertical: 9 },
-  ctaText: { color: color.accent, fontSize: 14, fontWeight: "700" },
+  ctaText: { color: color.charcoal, fontSize: 14, fontWeight: "700" },
   discount: {
     alignItems: "center",
     backgroundColor: "#FFE14A",
@@ -133,19 +134,19 @@ const styles = StyleSheet.create({
     height: 52,
     justifyContent: "center",
     position: "absolute",
-    right: 4,
-    top: 4,
+    right: 12,
+    top: 12,
     width: 52,
   },
   discountValue: { color: "#1F2F39", fontSize: 15, fontWeight: "900" },
-  dot: { backgroundColor: "rgba(255,255,255,0.4)", borderRadius: 4, height: 8, width: 8 },
-  dotOn: { backgroundColor: color.onPrimary, width: 22 },
-  dots: { alignItems: "center", flexDirection: "row", gap: 6, justifyContent: "center", marginTop: space.xs },
+  dot: { backgroundColor: "rgba(255,255,255,0.28)", borderRadius: 2, flex: 1, height: 4 },
+  dotOn: { backgroundColor: color.onPrimary },
+  dots: { bottom: 14, flexDirection: "row", gap: 6, left: space.md, position: "absolute", right: space.md },
   flipped: { transform: [{ scaleX: -1 }] },
   iconBadge: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 48, height: 96, justifyContent: "center", width: 96 },
   // the photo reaches the right edge of the header and the bottom of the header, past the side gutter
-  photoLayer: { bottom: -(space.xs + 8 + space.md), overflow: "hidden", position: "absolute", right: -size.screenGutter, top: -space.xs, width: "62%" },
-  slide: { height: STAGE },
+  photoLayer: { bottom: 0, overflow: "hidden", position: "absolute", right: 0, top: 0, width: "62%" },
+  slide: { height: STAGE, paddingBottom: 30, paddingLeft: space.md, paddingTop: space.md },
   stage: { height: STAGE },
   subtitle: { color: "rgba(255,255,255,0.9)", fontSize: 12.5, lineHeight: 17 },
   texts: { flex: 1, gap: 6, justifyContent: "center", maxWidth: "56%" },
