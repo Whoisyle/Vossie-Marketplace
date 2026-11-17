@@ -12,7 +12,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Vossie" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <style id="expo-reset">
       /* Phone browsers: use the visible height (dvh) so the bottom bar is not hidden under the
          browser toolbar; stop double-tap zoom and rubber-band scrolling. */
@@ -21,6 +21,12 @@
       body { overflow: hidden; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; background: #FFFFFF; }
       #root { display: flex; flex: 1; }
       /* Logo shown while the app code downloads; hides itself once the app renders into #root. */
+      /* Installed app (Home Screen): the page draws behind the phone's status bar. A soft dark
+         fade under the clock and battery keeps them readable on white screens. */
+      @media all and (display-mode: standalone) {
+        body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px);
+          background: linear-gradient(rgba(53, 80, 92, 0.55), rgba(53, 80, 92, 0)); pointer-events: none; z-index: 2147483647; }
+      }
       #boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #FFFFFF; z-index: -1; }
       #boot img { border-radius: 22px; }
       #root:not(:empty) ~ #boot { display: none; }
