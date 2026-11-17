@@ -35,7 +35,7 @@ import { PromoCarousel, promoProductFor, type Promo } from "@/screens/home/Promo
 import { useDemoStore } from "@/state/DemoStore";
 import { color, corner, gradient, size, space, text } from "@/theme/tokens";
 
-type Tab = "menu" | "specials" | "services" | "reviews";
+type Tab = "menu" | "specials" | "services" | "reels" | "reviews";
 
 /** A store's page: who they are, their promos, specials, menu or listings, services and reviews. */
 export function StorefrontScreen() {
@@ -73,6 +73,7 @@ export function StorefrontScreen() {
     const replies = new Map(state.seller.reviews.map((review) => [review.id, review.reply]));
     return [...fromBuyers.map((review) => ({ ...review, reply: replies.get(review.id) ?? review.reply })), ...fromSeller];
   }, [id, own, state.reviews, state.seller.reviews]);
+  const storeReels = state.reels.filter((reel) => reel.sellerId === id);
   const isFood = goods.length > 0 && goods.every((listing) => listing.categoryId === "food");
 
   if (!seller) {
@@ -90,6 +91,7 @@ export function StorefrontScreen() {
     ...(goods.length ? [{ count: goods.length, key: "menu" as const, label: isFood ? "Menu" : "Listings" }] : []),
     ...(specials.length ? [{ key: "specials" as const, label: "Specials" }] : []),
     ...(services.length ? [{ count: services.length, key: "services" as const, label: "Services" }] : []),
+    ...(storeReels.length ? [{ count: storeReels.length, key: "reels" as const, label: "Reels" }] : []),
     { count: reviews.length, key: "reviews" as const, label: "Reviews" },
   ];
   const active = tabs.some((item) => item.key === tab) ? tab : tabs[0]!.key;
@@ -214,6 +216,20 @@ export function StorefrontScreen() {
 
       <Text style={[text.bodySmall, styles.bio]}>{seller.bio}</Text>
 
+      <View style={styles.statsStrip} testID="store-stats">
+        {[
+          { label: "Items", value: String(all.length) },
+          { label: "Rating", value: seller.rating.toFixed(1) },
+          { label: "Followers", value: seller.followers.toLocaleString("en-ZA") },
+          { label: "Reels", value: String(storeReels.length) },
+        ].map((item) => (
+          <View key={item.label} style={styles.statCell}>
+            <Text style={styles.statValue}>{item.value}</Text>
+            <Text style={styles.statLabel}>{item.label}</Text>
+          </View>
+        ))}
+      </View>
+
       <View accessibilityLabel={`Where to find ${seller.name}`} style={styles.findUs}>
         <VossieMap
           accessibilityLabel={`Map showing ${seller.name}`}
@@ -265,6 +281,24 @@ export function StorefrontScreen() {
                 <Text style={styles.price}>{formatRand(service.priceCents)}</Text>
               </View>
             </Card>
+          ))}
+        </View>
+      ) : null}
+      {active === "reels" ? (
+        <View style={styles.reelGrid} testID="store-reels">
+          {storeReels.map((reel) => (
+            <Pressable
+              accessibilityLabel={`Watch reel: ${reel.caption}`}
+              accessibilityRole="button"
+              key={reel.id}
+              onPress={() => router.push({ params: { reel: reel.id }, pathname: "/reels" } as unknown as Href)}
+              style={[styles.reelTile, { backgroundColor: reel.tint }]}
+              testID={`store-reel-${reel.id}`}
+            >
+              <Icon color="#FFFFFF" name="play" size={22} />
+              <Text numberOfLines={3} style={styles.reelCaption}>{reel.caption}</Text>
+              <Text style={styles.reelLikes}>♥ {reel.likes}</Text>
+            </Pressable>
           ))}
         </View>
       ) : null}
@@ -356,5 +390,13 @@ const styles = StyleSheet.create({
   promo: { marginTop: space.md },
   serviceList: { gap: space.xs },
   serviceRow: { alignItems: "center", flexDirection: "row", gap: space.sm, justifyContent: "space-between" },
+  statsStrip: { backgroundColor: color.surfaceSoft, borderRadius: corner.lg, flexDirection: "row", marginTop: space.md, paddingVertical: space.sm },
+  statCell: { alignItems: "center", flex: 1 },
+  statValue: { color: color.heading, fontSize: 17, fontWeight: "800" },
+  statLabel: { color: color.textSecondary, fontSize: 11 },
+  reelGrid: { flexDirection: "row", flexWrap: "wrap", gap: space.xs },
+  reelTile: { borderRadius: corner.lg, gap: 6, justifyContent: "flex-end", minHeight: 190, padding: space.sm, width: "48.5%" },
+  reelCaption: { color: "#FFFFFF", fontSize: 12, fontWeight: "600" },
+  reelLikes: { color: "rgba(255,255,255,0.8)", fontSize: 11 },
   statText: { color: color.mist, fontSize: 12 },
 });

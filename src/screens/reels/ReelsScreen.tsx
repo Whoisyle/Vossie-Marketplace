@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
@@ -44,6 +44,8 @@ const LIKED = "#E2564B";
  */
 export function ReelsScreen() {
   const router = useRouter();
+  const { reel: startReel } = useLocalSearchParams<{ reel?: string }>();
+  const listRef = useRef<FlatList<Reel>>(null);
   const open = useDetail();
   const toast = useToast();
   const chrome = useTabChrome();
@@ -67,6 +69,14 @@ export function ReelsScreen() {
       };
     }, [chrome]),
   );
+
+  // arriving from a store's Reels tab: land on that reel's page, not the first one
+  useEffect(() => {
+    if (!startReel || height <= 0) return;
+    const index = state.reels.findIndex((reel) => reel.id === startReel);
+    if (index < 0) return;
+    listRef.current?.scrollToOffset({ animated: false, offset: index * height });
+  }, [startReel, height, state.reels]);
 
   const edgeSwipe = useMemo(
     () =>
@@ -107,6 +117,7 @@ export function ReelsScreen() {
     <View onLayout={(event) => setHeight(event.nativeEvent.layout.height)} style={styles.root} testID="reels-screen">
       <FlatList
         data={state.reels}
+        ref={listRef}
         decelerationRate="fast"
         extraData={height}
         keyExtractor={(reel) => reel.id}
