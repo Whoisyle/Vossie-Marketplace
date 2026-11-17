@@ -164,7 +164,7 @@ function AnimatedDescriptor({
         {
           height: 110 * scale,
           left: 130 * scale,
-          top: 1420 * scale,
+          top: 1450 * scale,
           width: 592 * scale,
         },
         revealStyle,
@@ -341,18 +341,19 @@ export function AnimatedWelcomeContent({
       <AnimatedCopy
         accessibilityLabel="Welcome to Vossie Marketplace"
         clock={clock}
-        fontSize={50}
+        fontSize={68}
         fontWeight="700"
-        height={110}
-        lineHeight={70}
+        height={176}
+        lineHeight={84}
+        lines={2}
         range={introTimeline.heading}
         reducedMotion={reducedMotion}
         scale={scale}
-        text="Welcome to Vossie Marketplace"
+        text={"Welcome to\nVossie Marketplace"}
         textColor={color.accent}
         width={792}
         x={30}
-        y={1290}
+        y={1245}
       />
       <AnimatedDescriptor
         clock={clock}
