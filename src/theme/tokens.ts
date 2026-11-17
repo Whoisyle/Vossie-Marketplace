@@ -25,6 +25,12 @@ export const color = {
   linen: "#FAF7F2", // page background, warmer than pure white
   dustyBlue: "#8FA7BA", // soft icons, badges and dividers
 
+  // Owner accent colours (2026-11-17): small accents, dividers and quiet text
+  steelGrey: "#8B9DA6",
+  sage: "#DFE2DC",
+  slate: "#586879",
+  charcoal: "#191B1D", // owner typed "191BID"; read as 191B1D
+
   // Surfaces
   background: "#FAF7F2", // linen; cards stay white on top of it
   backgroundMuted: "#EEF0F2", // cloud grey, lighter step

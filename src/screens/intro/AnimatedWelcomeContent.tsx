@@ -12,6 +12,7 @@ import {
   rangeProgress,
 } from "./VossieIntroTransition";
 
+import { color } from "@/theme/tokens";
 import { useIntroRevealAccessibility } from "./useIntroRevealAccessibility";
 
 type AnimatedWelcomeContentProps = {
@@ -22,8 +23,8 @@ type AnimatedWelcomeContentProps = {
 };
 
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1).factory();
-const ACTION_COLOR = "#1A1A1A";
-const ACTION_PRESSED_COLOR = "#000000";
+const ACTION_COLOR = color.accent;
+const ACTION_PRESSED_COLOR = color.accentPressed;
 
 // Sign-in pill frame on the 852x1846 Welcome canvas.
 const SIGN_IN_FRAME = { height: 116, width: 732, x: 60, y: 1594 } as const;
@@ -59,6 +60,7 @@ function AnimatedCopy({
   height,
   lineHeight,
   lines = 1,
+  textColor = "#101114",
   range,
   reducedMotion,
   scale,
@@ -74,6 +76,7 @@ function AnimatedCopy({
   fontSize: number;
   fontWeight?: "400" | "500" | "600" | "700";
   lines?: number;
+  textColor?: string;
   height: number;
   lineHeight: number;
   range: MotionRange;
@@ -116,7 +119,7 @@ function AnimatedCopy({
         maxFontSizeMultiplier={1.35}
         numberOfLines={lines}
         style={{
-          color: "#101114",
+          color: textColor,
           fontFamily,
           fontSize: fontSize * scale,
           fontWeight,
@@ -161,7 +164,7 @@ function AnimatedDescriptor({
         {
           height: 110 * scale,
           left: 130 * scale,
-          top: 1450 * scale,
+          top: 1420 * scale,
           width: 592 * scale,
         },
         revealStyle,
@@ -336,20 +339,20 @@ export function AnimatedWelcomeContent({
   return (
     <>
       <AnimatedCopy
-        accessibilityLabel="Welcome to Vossie"
+        accessibilityLabel="Welcome to Vossie Marketplace"
         clock={clock}
-        fontSize={86}
+        fontSize={50}
         fontWeight="700"
-        height={210}
-        lineHeight={100}
-        lines={2}
+        height={110}
+        lineHeight={70}
         range={introTimeline.heading}
         reducedMotion={reducedMotion}
         scale={scale}
-        text="Welcome to Vossie"
-        width={560}
-        x={146}
-        y={1230}
+        text="Welcome to Vossie Marketplace"
+        textColor={color.accent}
+        width={792}
+        x={30}
+        y={1290}
       />
       <AnimatedDescriptor
         clock={clock}
