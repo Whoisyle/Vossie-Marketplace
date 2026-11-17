@@ -401,14 +401,14 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
     case "sellerUploadDocument":
       return {
         ...state,
-        documents: state.documents.map((doc) => (doc.kind === action.kind && doc.status !== "verified" ? { ...doc, fileKind: action.fileKind, fileName: action.fileName, status: "uploaded", uploadedAt: stamp, uri: action.uri } : doc)),
+        documents: state.documents.map((doc) => (doc.kind === action.kind && doc.status !== "verified" ? { ...doc, backFileName: action.backFileName, backUri: action.backUri, fileKind: action.fileKind, fileName: action.fileName, status: "uploaded", uploadedAt: stamp, uri: action.uri } : doc)),
       };
     case "sellerReplaceDocument":
       // only a document that was verified can be sent again this way; the store keeps trading while it is checked
       if (!state.documents.some((doc) => doc.kind === action.kind && doc.status === "verified")) return state;
       return {
         ...state,
-        documents: state.documents.map((doc) => (doc.kind === action.kind && doc.status === "verified" ? { fileKind: action.fileKind, fileName: action.fileName, kind: doc.kind, status: "in-review" as const, uploadedAt: stamp, uri: action.uri } : doc)),
+        documents: state.documents.map((doc) => (doc.kind === action.kind && doc.status === "verified" ? { backFileName: action.backFileName, backUri: action.backUri, fileKind: action.fileKind, fileName: action.fileName, kind: doc.kind, status: "in-review" as const, uploadedAt: stamp, uri: action.uri } : doc)),
       };
     case "sellerRemoveDocument":
       // a file can be taken back until the documents are sent in

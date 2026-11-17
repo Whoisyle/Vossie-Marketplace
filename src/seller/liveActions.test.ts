@@ -46,9 +46,11 @@ describe("sending seller actions to the real services", () => {
 
   it("uploads a document with the file that was picked", async () => {
     await runLiveSellerAction({ fileName: "id.jpg", kind: "id", type: "sellerUploadDocument", uri: "file:///id.jpg" }, state(), none);
-    expect(seller.attachSellerDocument).toHaveBeenCalledWith("id", { name: "id.jpg", uri: "file:///id.jpg" });
+    expect(seller.attachSellerDocument).toHaveBeenCalledWith("id", { name: "id.jpg", uri: "file:///id.jpg" }, undefined);
+    await runLiveSellerAction({ backFileName: "id-back.jpg", backUri: "file:///id-back.jpg", fileName: "id-front.jpg", kind: "id", type: "sellerUploadDocument", uri: "file:///id-front.jpg" }, state(), none);
+    expect(seller.attachSellerDocument).toHaveBeenLastCalledWith("id", { name: "id-front.jpg", uri: "file:///id-front.jpg" }, { name: "id-back.jpg", uri: "file:///id-back.jpg" });
     await runLiveSellerAction({ fileName: "x.jpg", kind: "student-card", type: "sellerUploadDocument", uri: "file:///c.jpg" }, state(), none);
-    expect(seller.attachSellerDocument).toHaveBeenLastCalledWith("student_card", expect.anything());
+    expect(seller.attachSellerDocument).toHaveBeenLastCalledWith("student_card", expect.anything(), undefined);
   });
 
   it("submits for review, accepts, declines and advances orders", async () => {

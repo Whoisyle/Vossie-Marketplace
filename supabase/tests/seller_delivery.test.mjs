@@ -51,3 +51,22 @@ describe("seller campus and delivery", () => {
     await fails(db.query("update sellers set delivery_mode = 'drone' where id = $1", [id]), /sellers_delivery_mode_valid/);
   });
 });
+
+describe("the back of an ID", () => {
+  const attach = (who, back) =>
+    back === undefined
+      ? rpc(who, "(public.attach_seller_document('id', $1, 'id-front.jpg')).id", [`${who}/id-front.jpg`])
+      : rpc(who, "(public.attach_seller_document('id', $1, 'id-front.jpg', $2)).id", [`${who}/id-front.jpg`, back]);
+  const backOf = (who) => db.query("select back_storage_path from seller_documents where kind = 'id' and seller_id = (select id from sellers where user_id = $1)", [who]).then((r) => r.rows[0]?.back_storage_path);
+
+  it("is kept next to the front, and an earlier call without it still works", async () => {
+    await attach(u.a);
+    assert.equal(await backOf(u.a), null);
+    await attach(u.a, `${u.a}/id-back.jpg`);
+    assert.equal(await backOf(u.a), `${u.a}/id-back.jpg`);
+  });
+
+  it("must sit in the seller's own folder", async () => {
+    await fails(attach(u.a, `${u.b}/id-back.jpg`), /invalid_path/);
+  });
+});

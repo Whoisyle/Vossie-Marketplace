@@ -13,7 +13,7 @@ import { color } from "@/theme/tokens";
 import type { SellerDelivery, SellerKind } from "@/seller/types";
 
 import { StepBar } from "./motion";
-import { Hero } from "./SellerWelcomeScreen";
+import { Hero } from "./Packaging";
 
 export const DELIVERY_LABELS: Record<SellerDelivery, string> = {
   both: "Courier and collection",

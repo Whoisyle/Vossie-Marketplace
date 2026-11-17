@@ -15,7 +15,7 @@ export type DocKind = "student-card" | "id" | "address" | "cipc";
 /** Where a document is: not given yet, handed in, being reviewed by Vossie Operations, accepted, or turned down. */
 export type DocStatus = "required" | "uploaded" | "in-review" | "verified" | "rejected";
 
-export type SellerDocument = { kind: DocKind; status: DocStatus; fileName?: string; uploadedAt?: string; note?: string; /** The chosen file, so it can be looked at, replaced or taken back. */ uri?: string; fileKind?: "image" | "pdf" | "file"; /** When Vossie Operations accepted it. */ verifiedAt?: string };
+export type SellerDocument = { kind: DocKind; status: DocStatus; fileName?: string; uploadedAt?: string; note?: string; /** The back of an ID, photographed in the scanner. */ backUri?: string; backFileName?: string; /** The chosen file, so it can be looked at, replaced or taken back. */ uri?: string; fileKind?: "image" | "pdf" | "file"; /** When Vossie Operations accepted it. */ verifiedAt?: string };
 
 /**
  * Where the seller is in becoming a seller: not started, filling in the setup, waiting for review, or approved.
@@ -349,10 +349,10 @@ export type SellerAction =
   | { type: "sellerSetKind"; kind: SellerKind }
   | { type: "sellerSetBasics"; storeName: string; phone: string; /** The campus chosen in the setup. */ campusId?: CampusId }
   | { type: "sellerGoToStep"; step: 1 | 2 | 3 }
-  | { type: "sellerUploadDocument"; kind: DocKind; fileName: string; /** The picked file, which the live backend uploads. */ uri?: string; fileKind?: "image" | "pdf" | "file" }
+  | { type: "sellerUploadDocument"; kind: DocKind; fileName: string; /** The picked file, which the live backend uploads. */ uri?: string; fileKind?: "image" | "pdf" | "file"; /** The back of an ID, from the scanner. */ backUri?: string; backFileName?: string }
   | { type: "sellerRemoveDocument"; kind: DocKind }
   /** A verified document is out of date: send a new file, which goes back to Vossie Operations while the seller keeps trading. */
-  | { type: "sellerReplaceDocument"; kind: DocKind; fileName: string; uri?: string; fileKind?: "image" | "pdf" | "file" }
+  | { type: "sellerReplaceDocument"; kind: DocKind; fileName: string; uri?: string; fileKind?: "image" | "pdf" | "file"; backUri?: string; backFileName?: string }
   | { type: "sellerSubmitVerification" }
   | { type: "sellerReviewTick" }
   | { type: "sellerSaveStore"; patch: Partial<Pick<SellerProfile, "logoUri" | "bannerUri" | "place" | "storeName" | "description" | "location" | "days" | "opens" | "closes" | "taxNumber" | "campusId" | "delivery">> }

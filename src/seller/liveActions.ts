@@ -73,7 +73,7 @@ export async function runLiveSellerAction(action: SellerAction, state: DemoState
         break;
       case "sellerReplaceDocument":
       case "sellerUploadDocument":
-        if (action.uri) await sellerService.attachSellerDocument(DOC_KIND_TO_DB[action.kind], { name: action.fileName, uri: action.uri });
+        if (action.uri) await sellerService.attachSellerDocument(DOC_KIND_TO_DB[action.kind], { name: action.fileName, uri: action.uri }, action.backUri ? { name: action.backFileName ?? "back.jpg", uri: action.backUri } : undefined);
         break;
       case "sellerSubmitVerification":
         await sellerService.submitSellerVerification();

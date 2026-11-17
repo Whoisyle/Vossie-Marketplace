@@ -104,11 +104,17 @@ const OPTIONS: { source: AttachSource; icon: IconName; title: string; hint: stri
  * A sheet that asks where the file comes from. `sources` narrows it (a product photo needs no PDF), and `onPicked`
  * gets the file once the seller has chosen one.
  */
-export function AttachSheet({ onClose, onPicked, sources = ["library", "camera", "files"], title = "Add a file", visible }: { visible: boolean; onClose: () => void; onPicked: (file: Picked) => void; sources?: AttachSource[]; title?: string }) {
+export function AttachSheet({ onCamera, onClose, onPicked, sources = ["library", "camera", "files"], title = "Add a file", visible }: { visible: boolean; onClose: () => void; onPicked: (file: Picked) => void; sources?: AttachSource[]; title?: string; /** When given, "Take a photo" opens this guided scanner instead of the plain camera. */ onCamera?: () => void }) {
   const attach = useAttach();
   const [busy, setBusy] = useState<AttachSource | null>(null);
   const choose = async (source: AttachSource) => {
     if (busy) return;
+    if (source === "camera" && onCamera) {
+      onClose();
+      // the scanner is a full-screen page, so let the sheet finish closing first
+      setTimeout(onCamera, Platform.OS === "web" ? 0 : 450);
+      return;
+    }
     setBusy(source);
     onClose();
     // a phone cannot open its picker while the sheet is still closing, so wait for it to finish

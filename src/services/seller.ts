@@ -145,10 +145,11 @@ export async function uploadSellerFile(kind: string, file: { uri: string; name: 
   return path;
 }
 
-/** Hands in one document: uploads the file, then records it against the seller. */
-export async function attachSellerDocument(kind: SellerDocKindDb, file: { uri: string; name: string }) {
+/** Hands in one document: uploads the file (and the back of an ID when there is one), then records it against the seller. */
+export async function attachSellerDocument(kind: SellerDocKindDb, file: { uri: string; name: string }, backFile?: { uri: string; name: string }) {
   const path = await uploadSellerFile(kind, file);
-  return rpc("attach_seller_document", { p_kind: kind, p_storage_path: path, p_file_name: file.name });
+  const backPath = backFile ? await uploadSellerFile(`${kind}-back`, backFile) : null;
+  return rpc("attach_seller_document", { p_kind: kind, p_storage_path: path, p_file_name: file.name, p_back_path: backPath });
 }
 
 /** Sends the documents for review. The student card is accepted on its own when the Eduvos record matched. */

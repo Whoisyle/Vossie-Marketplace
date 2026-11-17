@@ -14,12 +14,12 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Circle, Defs, Ellipse, G, LinearGradient as SvgGradient, Path, Polygon, Rect, Stop, Text as SvgText } from "react-native-svg";
 
 import { Icon } from "@/components";
 import { color } from "@/theme/tokens";
 
 import { useSellerDispatch } from "./actions";
+import { Hero } from "./Packaging";
 
 type Slide = { first: string; second: string; text: string };
 
@@ -33,83 +33,6 @@ export const SLIDES: readonly Slide[] = [
 const DWELL_MS = 4800;
 const DEEP = "#14292F";
 const TEAL = "#376371";
-
-/** A glossy object on a podium, drawn in code: a shopping bag and card, a parcel, or a shop front. */
-export function Hero({ index, scale = 1 }: { index: number; scale?: number }) {
-  return (
-    <Svg height={350 * scale} viewBox="0 0 300 290" width={362 * scale}>
-      <Defs>
-        <SvgGradient id="pod" x1="0" x2="1" y1="0" y2="1">
-          <Stop offset="0" stopColor="#4C7B89" />
-          <Stop offset="1" stopColor="#1E414B" />
-        </SvgGradient>
-        <SvgGradient id="obj" x1="0" x2="1" y1="0" y2="1">
-          <Stop offset="0" stopColor="#6FA3B2" />
-          <Stop offset="1" stopColor="#2A5866" />
-        </SvgGradient>
-        <SvgGradient id="card" x1="0" x2="1" y1="0" y2="1">
-          <Stop offset="0" stopColor="#E8EBEE" />
-          <Stop offset="1" stopColor="#8B9DA6" />
-        </SvgGradient>
-        <SvgGradient id="lid" x1="0" x2="1" y1="0" y2="0">
-          <Stop offset="0" stopColor="#8DB9C6" />
-          <Stop offset="1" stopColor="#4B7D8C" />
-        </SvgGradient>
-      </Defs>
-      <Ellipse cx={150} cy={262} fill="rgba(0,0,0,0.28)" rx={118} ry={20} />
-      <Rect fill="url(#pod)" height={34} rx={4} width={176} x={62} y={228} />
-      <Ellipse cx={150} cy={228} fill="#5B8795" rx={88} ry={20} />
-      <Ellipse cx={150} cy={226} fill="#3E6E7C" rx={74} ry={15} />
-
-      {index === 0 ? (
-        <G>
-          <G transform="rotate(-14 186 150)">
-            <Rect fill="url(#card)" height={86} rx={11} width={134} x={120} y={98} />
-            <Rect fill="#B9A06A" height={20} rx={4} width={26} x={134} y={120} />
-            <Rect fill="rgba(25,27,29,0.22)" height={5} rx={2} width={50} x={134} y={158} />
-            <Circle cx={232} cy={150} fill="rgba(25,27,29,0.28)" r={11} />
-            <Circle cx={244} cy={150} fill="rgba(25,27,29,0.18)" r={11} />
-          </G>
-          <Path d="M110 128 C110 92 190 92 190 128" fill="none" stroke="#DFE2DC" strokeLinecap="round" strokeWidth={7} />
-          <Path d="M82 128 H218 L228 224 Q228 232 220 232 H80 Q72 232 72 224 Z" fill="url(#obj)" />
-          <Path d="M82 128 H218 L220 142 H80 Z" fill="rgba(255,255,255,0.12)" />
-          <Circle cx={150} cy={184} fill="#DFE2DC" r={22} />
-          <SvgText fill={DEEP} fontSize={28} fontWeight="800" textAnchor="middle" x={150} y={194}>
-            V
-          </SvgText>
-        </G>
-      ) : null}
-
-      {index === 1 ? (
-        <G>
-          <Polygon fill="#3F7080" points="86,150 150,180 150,236 86,206" />
-          <Polygon fill="url(#obj)" points="150,180 214,150 214,206 150,236" />
-          <Polygon fill="url(#lid)" points="86,150 150,120 214,150 150,180" />
-          <Polygon fill="#DFE2DC" points="136,126 164,114 192,128 164,140" opacity={0.9} />
-          <Polygon fill="rgba(223,226,220,0.55)" points="150,180 150,236 160,232 160,176" />
-          <Circle cx={196} cy={112} fill="#DFE2DC" r={26} />
-          <Path d="M184 112 L193 121 L209 103" fill="none" stroke={DEEP} strokeLinecap="round" strokeLinejoin="round" strokeWidth={7} />
-        </G>
-      ) : null}
-
-      {index === 2 ? (
-        <G>
-          <Rect fill="url(#obj)" height={78} rx={6} width={150} x={75} y={152} />
-          <Rect fill="#DFE2DC" height={42} rx={4} width={48} x={90} y={176} />
-          <Rect fill="rgba(25,27,29,0.35)" height={52} rx={4} width={34} x={160} y={178} />
-          <Rect fill="rgba(223,226,220,0.35)" height={34} rx={3} width={22} x={196} y={178} />
-          <Path d="M66 154 L84 104 H216 L234 154 Z" fill="#DFE2DC" />
-          <Path d="M84 104 H104 L98 154 H66 Z M126 104 H146 L146 154 H122 Z M170 104 H190 L194 154 H170 Z" fill="#8B9DA6" />
-          <Path d="M66 154 Q80 170 94 154 Q108 170 122 154 Q136 170 150 154 Q164 170 178 154 Q192 170 206 154 Q220 170 234 154 Z" fill="#586879" />
-          <Rect fill={DEEP} height={22} rx={5} width={86} x={107} y={78} />
-          <SvgText fill="#DFE2DC" fontSize={13} fontWeight="800" textAnchor="middle" x={150} y={93}>
-            OPEN
-          </SvgText>
-        </G>
-      ) : null}
-    </Svg>
-  );
-}
 
 /** The seller's first page: three short slides in the Vossie teal, then the button that starts the setup. */
 export function SellerWelcomeScreen() {

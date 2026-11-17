@@ -12,6 +12,7 @@ import { useSellerDispatch } from "./actions";
 
 import { AttachSheet, type Picked } from "./attach";
 import { DocPreview } from "./DocPreview";
+import { DocScanner } from "./DocScanner";
 import { Confetti } from "./motion";
 import { SetupHeader } from "./SetupParts";
 import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerScreen, SellerTopBar, Text } from "./ui";
@@ -31,6 +32,7 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
   const dispatch = useSellerDispatch();
   const [choosing, setChoosing] = useState<SellerDocument | null>(null);
   const [viewing, setViewing] = useState<SellerDocument | null>(null);
+  const [scanning, setScanning] = useState<SellerDocument | null>(null);
   const seller = state.seller;
   const received = seller.documents.filter((doc) => doc.status !== "required" && doc.status !== "rejected").length;
   const missing = seller.documents.length - received;
@@ -53,8 +55,12 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
     // something is already uploaded: look at it, replace it or take it back
     setViewing(doc);
   };
-  const keep = (doc: SellerDocument, file: Picked) =>
-    dispatch(doc.status === "verified" ? { fileKind: file.kind, fileName: file.name, kind: doc.kind, type: "sellerReplaceDocument", uri: file.uri } : { fileKind: file.kind, fileName: file.name, kind: doc.kind, type: "sellerUploadDocument", uri: file.uri });
+  const keep = (doc: SellerDocument, file: Picked, back?: Picked) =>
+    dispatch(
+      doc.status === "verified"
+        ? { backFileName: back?.name, backUri: back?.uri, fileKind: file.kind, fileName: file.name, kind: doc.kind, type: "sellerReplaceDocument", uri: file.uri }
+        : { backFileName: back?.name, backUri: back?.uri, fileKind: file.kind, fileName: file.name, kind: doc.kind, type: "sellerUploadDocument", uri: file.uri },
+    );
 
   const headline = approved ? { label: "Approved", tone: "success" as const } : submitted ? { label: "Pending", tone: "warn" as const } : missing > 0 ? { label: "Incomplete", tone: "danger" as const } : { label: "Ready", tone: "info" as const };
 
@@ -101,7 +107,7 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
                 <View style={styles.rowText}>
                   <Text style={styles.rowTitle}>{docTitles[doc.kind]}</Text>
                   <Text numberOfLines={1} style={styles.rowHint}>
-                    {doc.status === "required" || doc.status === "rejected" ? docHints[doc.kind] : doc.status === "verified" ? `${doc.kind === "student-card" ? "Eduvos record" : "Verified"}${doc.verifiedAt ? ` ${shortDate(doc.verifiedAt)}` : ""} · tap to view or update` : doc.fileName ?? "Uploaded"}
+                    {doc.status === "required" || doc.status === "rejected" ? docHints[doc.kind] : doc.status === "verified" ? `${doc.kind === "student-card" ? "Eduvos record" : "Verified"}${doc.verifiedAt ? ` ${shortDate(doc.verifiedAt)}` : ""} · tap to view or update` : (doc.backUri ? "Front and back added" : doc.fileName) ?? "Uploaded"}
                   </Text>
                 </View>
                 <Pill label={look.label} tone={look.tone} />
@@ -122,7 +128,22 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
           <TimelineRow detail="You can start listing" done={approved} title="Seller approved" />
         </SellerCard>
       </Animated.View>
-      <AttachSheet onClose={() => setChoosing(null)} onPicked={(file) => choosing && keep(choosing, file)} title={choosing ? `Add ${docTitles[choosing.kind].toLowerCase()}` : "Add a file"} visible={Boolean(choosing)} />
+      <AttachSheet
+        onCamera={choosing && (choosing.kind === "id" || choosing.kind === "address") ? (() => { const doc = choosing; return () => setScanning(doc); })() : undefined}
+        onClose={() => setChoosing(null)}
+        onPicked={(file) => choosing && keep(choosing, file)}
+        title={choosing ? `Add ${docTitles[choosing.kind].toLowerCase()}` : "Add a file"}
+        visible={Boolean(choosing)}
+      />
+      <DocScanner
+        kind={scanning?.kind === "address" ? "address" : "id"}
+        onClose={() => setScanning(null)}
+        onDone={(result) => {
+          if (scanning) keep(scanning, result.front, result.back);
+          setScanning(null);
+        }}
+        visible={Boolean(scanning)}
+      />
       <DocPreview
         canChange={!submitted}
         doc={viewing ? (seller.documents.find((item) => item.kind === viewing.kind) ?? viewing) : null}

@@ -32,6 +32,11 @@ export function DocPreview({ canChange, doc, onClose, onRemove, onReplace, onUpd
               </View>
             )}
           </View>
+          {doc.backUri ? (
+            <View style={styles.frame} testID="doc-preview-back">
+              <Image accessibilityLabel={`${docTitles[doc.kind]} back preview`} contentFit="contain" source={{ uri: doc.backUri }} style={StyleSheet.absoluteFill} />
+            </View>
+          ) : null}
           {verified ? (
             <View style={styles.badge} testID="doc-verified">
               <Icon color="#1E7A4A" name="check-circle" size={16} />
