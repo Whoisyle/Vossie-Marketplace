@@ -47,6 +47,38 @@ export const reelsSeed: Reel[] = [
     tint: "#556C77",
     comments: [{ id: "c1", author: "aiden.p", body: "Ordering 2 boxes" }],
   },
+  {
+    id: "reel-5", seller: "Plato Coffee", sellerId: "plato-coffee", caption: "Iced latte season ☕ Order ahead and skip the queue.", listingId: "iced-latte", likes: 296, tint: "#3C5A66",
+    comments: [{ id: "c1", author: "naledi.k", body: "Oat milk please!" }],
+  },
+  {
+    id: "reel-6", seller: "Varsity Cafe", sellerId: "varsity-cafe", caption: "Matcha avo toast between lectures 🥑", listingId: "matcha-avo", likes: 178, tint: "#4A6A5E",
+    comments: [],
+  },
+  {
+    id: "reel-7", seller: "KFC", sellerId: "kfc", caption: "Zinger meal deal, collected on campus.", listingId: "zinger-meal", likes: 341, tint: "#5A3A3A",
+    comments: [{ id: "c1", author: "sipho.d", body: "Lunch sorted" }],
+  },
+  {
+    id: "reel-8", seller: "Thabo's Books", sellerId: "thabos-books", caption: "Engineering maths textbook, clean and unmarked.", listingId: "eng-maths", likes: 121, tint: "#334B57",
+    comments: [],
+  },
+  {
+    id: "reel-9", seller: "TechSwap Potch", sellerId: "techswap", caption: "Casio calculator, exam-approved and tested.", listingId: "casio-calculator", likes: 207, tint: "#2D4652",
+    comments: [{ id: "c1", author: "kea.m", body: "Still available?" }],
+  },
+  {
+    id: "reel-10", seller: "Kamo Threads", sellerId: "kamo-threads", caption: "Campus hoodie restock, S to XL 🔥", listingId: "campus-hoodie", likes: 459, tint: "#376371",
+    comments: [],
+  },
+  {
+    id: "reel-11", seller: "Tshwane Eats", sellerId: "pretoria-eats", caption: "Kota special, fresh and loaded.", listingId: "kota-special", likes: 188, tint: "#35505C",
+    comments: [],
+  },
+  {
+    id: "reel-12", seller: "TechSwap Potch", sellerId: "techswap", caption: "Tablet with desk stand, perfect for note-taking.", listingId: "tablet-desk", likes: 133, tint: "#2F4A56",
+    comments: [],
+  },
 ];
 
 export const faqs: Faq[] = [
