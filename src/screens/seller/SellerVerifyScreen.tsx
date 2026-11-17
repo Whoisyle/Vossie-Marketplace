@@ -12,7 +12,8 @@ import { useSellerDispatch } from "./actions";
 
 import { AttachSheet, type Picked } from "./attach";
 import { DocPreview } from "./DocPreview";
-import { Confetti, StepBar } from "./motion";
+import { Confetti } from "./motion";
+import { SetupHeader } from "./SetupParts";
 import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerScreen, SellerTopBar, Text } from "./ui";
 
 const DOC_LABEL: Record<DocStatus, { label: string; tone: PillTone }> = {
@@ -59,15 +60,16 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
 
   return (
     <SellerScreen
+      deep={mode !== "manage"}
       footer={
         mode === "manage" ? (
           submitted ? undefined : (
-            <SellerButton disabled={missing > 0} label="Submit for review" onPress={() => dispatch({ type: "sellerSubmitVerification" })} size="lg" testID="seller-submit-review" variant="glass" />
+            <SellerButton disabled={missing > 0} label="Submit for review" onPress={() => dispatch({ type: "sellerSubmitVerification" })} size="lg" testID="seller-submit-review" variant={mode === "manage" ? "glass" : "light"} />
           )
         ) : submitted ? (
-          <SellerButton label="Continue" onPress={() => { dispatch({ step: 3, type: "sellerGoToStep" }); router.push("/seller-setup/store" as Href); }} size="lg" testID="seller-verify-continue" variant="glass" />
+          <SellerButton label="Continue" onPress={() => { dispatch({ step: 3, type: "sellerGoToStep" }); router.push("/seller-setup/store" as Href); }} size="lg" testID="seller-verify-continue" variant="light" />
         ) : (
-          <SellerButton disabled={missing > 0} label="Submit for review" onPress={() => dispatch({ type: "sellerSubmitVerification" })} size="lg" testID="seller-submit-review" variant="glass" />
+          <SellerButton disabled={missing > 0} label="Submit for review" onPress={() => dispatch({ type: "sellerSubmitVerification" })} size="lg" testID="seller-submit-review" variant="light" />
         )
       }
       tabs={mode === "manage"}
@@ -76,14 +78,7 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
       {mode === "manage" ? (
         <SellerTopBar title="Documents" />
       ) : (
-        <View style={styles.top}>
-          <StepBar step={2} />
-          <Text style={styles.step}>Step 2 of 3</Text>
-          <Text accessibilityRole="header" style={styles.title}>
-            Verify your account
-          </Text>
-          <Text style={styles.subtitle}>Buyers trust verified sellers</Text>
-        </View>
+        <SetupHeader art={1} step={2} subtitle="Buyers trust verified sellers" title="Verify your account" />
       )}
 
       <View style={styles.list}>

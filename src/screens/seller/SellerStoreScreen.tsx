@@ -7,7 +7,8 @@ import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 import { Icon } from "@/components";
 import { initials } from "@/data/format";
 import { haptic } from "@/lib/haptics";
-import { DAY_KEYS, DAY_LABELS, type DayKey } from "@/seller/types";
+import { DAY_KEYS, DAY_LABELS, type DayKey, type SellerDelivery } from "@/seller/types";
+import { color } from "@/theme/tokens";
 import { useDemoStore } from "@/state/DemoStore";
 
 import { useSellerDispatch } from "./actions";
@@ -15,7 +16,7 @@ import { useSellerDispatch } from "./actions";
 import { AttachSheet } from "./attach";
 import { SellerField } from "./fields";
 import { PlaceCard } from "./SellerPlaceScreen";
-import { StepBar } from "./motion";
+import { DELIVERY_LABELS, SetupHeader, StorePreview } from "./SetupParts";
 import { SELLER, SellerButton, SellerScreen, SellerTopBar, Text } from "./ui";
 
 /** "08:00" style times only. */
@@ -34,6 +35,7 @@ export function SellerStoreScreen({ mode = "setup" }: { mode?: "setup" | "manage
   const [banner, setBanner] = useState(saved.bannerUri);
   const [name, setName] = useState(saved.storeName);
   const [description, setDescription] = useState(saved.description);
+  const [delivery, setDelivery] = useState<SellerDelivery>(saved.delivery ?? "both");
   const [days, setDays] = useState<DayKey[]>(saved.days);
   const [opens, setOpens] = useState(saved.opens);
   const [closes, setCloses] = useState(saved.closes);
@@ -52,7 +54,7 @@ export function SellerStoreScreen({ mode = "setup" }: { mode?: "setup" | "manage
     if (!isTime(opens) || !isTime(closes) || opens >= closes) found.hours = "Use times like 08:00 and 17:00, with the opening time first.";
     setErrors(found);
     if (Object.keys(found).length > 0) return;
-    dispatch({ patch: { closes: closes.trim(), days, bannerUri: banner, description: description.trim(), logoUri: logo, opens: opens.trim(), storeName: name.trim() }, type: "sellerSaveStore" });
+    dispatch({ patch: { closes: closes.trim(), days, delivery, bannerUri: banner, description: description.trim(), logoUri: logo, opens: opens.trim(), storeName: name.trim() }, type: "sellerSaveStore" });
     haptic.success();
     if (mode === "manage") {
       router.back();
@@ -63,18 +65,11 @@ export function SellerStoreScreen({ mode = "setup" }: { mode?: "setup" | "manage
   };
 
   return (
-    <SellerScreen footer={<SellerButton label={mode === "manage" ? "Save changes" : "Save & continue"} onPress={save} size="lg" testID="seller-store-save" variant="glass" />} tabs={mode === "manage"} testID="seller-store">
+    <SellerScreen deep={mode === "setup"} footer={<SellerButton label={mode === "manage" ? "Save changes" : "Save & continue"} onPress={save} size="lg" testID="seller-store-save" variant={mode === "manage" ? "glass" : "light"} />} tabs={mode === "manage"} testID="seller-store">
       {mode === "manage" ? (
         <SellerTopBar title="Store profile" />
       ) : (
-        <View style={styles.top}>
-          <StepBar step={3} />
-          <Text style={styles.step}>Step 3 of 3</Text>
-          <Text accessibilityRole="header" style={styles.title}>
-            Set up your store
-          </Text>
-          <Text style={styles.subtitle}>How buyers will see you</Text>
-        </View>
+        <SetupHeader art={2} step={3} subtitle="How buyers will see you" title="Set up your store" />
       )}
 
       <Animated.View entering={FadeInDown.duration(340)} testID="banner-picker">
@@ -126,6 +121,23 @@ export function SellerStoreScreen({ mode = "setup" }: { mode?: "setup" | "manage
         </View>
 
         <View style={styles.hours}>
+          <Text style={styles.label}>How do buyers get their order?</Text>
+          {(["courier", "collection", "both"] as const).map((option) => {
+            const on = delivery === option;
+            return (
+              <Pressable accessibilityLabel={DELIVERY_LABELS[option]} accessibilityRole="radio" accessibilityState={{ selected: on }} key={option} onPress={() => { haptic.select(); setDelivery(option); }} style={[styles.option, on && styles.optionOn]} testID={`delivery-${option}`}>
+                <Icon color={on ? color.slate : color.steelGrey} name={option === "collection" ? "map-pin" : option === "courier" ? "truck" : "package"} size={20} />
+                <View style={styles.optionText}>
+                  <Text style={[styles.optionTitle, on && styles.optionTitleOn]}>{DELIVERY_LABELS[option]}</Text>
+                  <Text style={[styles.optionHint, on && styles.optionHintOn]}>{option === "courier" ? "A campus courier takes it to the student" : option === "collection" ? "Students pick it up where you hand over" : "Let the buyer choose at checkout"}</Text>
+                </View>
+                {on ? <Icon color={color.slate} name="check-circle" size={20} /> : null}
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={styles.hours}>
           <Text style={styles.label}>Operation hours</Text>
           <View style={styles.days}>
             {DAY_KEYS.map((day) => {
@@ -149,6 +161,7 @@ export function SellerStoreScreen({ mode = "setup" }: { mode?: "setup" | "manage
           {errors.hours ? <Text style={styles.error}>{errors.hours}</Text> : null}
         </View>
       </View>
+      {mode === "setup" ? <StorePreview banner={banner} campusId={saved.campusId} delivery={delivery} kind={saved.kind} logo={logo} name={name} /> : null}
       <AttachSheet
         onClose={() => setAttaching(null)}
         onPicked={(file) => (attaching === "banner" ? setBanner(file.uri) : setLogo(file.uri))}
@@ -167,7 +180,14 @@ const styles = StyleSheet.create({
   bannerRemove: { alignSelf: "flex-start", marginTop: 8 },
   bannerText: { color: "#FFFFFF", fontSize: 15, fontWeight: "800" },
   day: { backgroundColor: "rgba(255,255,255,0.14)", borderRadius: 18, minHeight: 36, minWidth: 48, paddingHorizontal: 12, paddingVertical: 8 },
-  dayOn: { backgroundColor: "#FFFFFF" },
+  dayOn: { backgroundColor: color.sage },
+  option: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.12)", borderColor: "rgba(255,255,255,0.18)", borderRadius: 18, borderWidth: 1.5, flexDirection: "row", gap: 12, minHeight: 62, padding: 12 },
+  optionHint: { color: "rgba(255,255,255,0.72)", fontSize: 12.5 },
+  optionHintOn: { color: color.slate },
+  optionOn: { backgroundColor: color.sage, borderColor: color.slate },
+  optionText: { flex: 1, gap: 1 },
+  optionTitle: { color: "#FFFFFF", fontSize: 15, fontWeight: "800" },
+  optionTitleOn: { color: color.charcoal },
   dayText: { color: "#FFFFFF", fontSize: 14, fontWeight: "700", textAlign: "center" },
   dayTextOn: { color: SELLER.solid },
   days: { flexDirection: "row", flexWrap: "wrap", gap: 8 },

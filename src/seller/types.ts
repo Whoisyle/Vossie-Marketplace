@@ -1,3 +1,4 @@
+import type { CampusId } from "@/data/types";
 /**
  * Seller mode: the shapes behind the seller screens (owner designs, 2026-10-20). The same shapes are used by the demo
  * store and by the live Supabase services, so the screens do not care which one is behind them.
@@ -47,7 +48,13 @@ export type SellerProfile = {
   place?: StoreLocation;
   /** Tax or VAT number, for a registered business. */
   taxNumber?: string;
+  /** The campus this store sells on. */
+  campusId?: CampusId;
+  /** How buyers get their order: a campus courier, collection from the seller, or both. */
+  delivery?: SellerDelivery;
 };
+
+export type SellerDelivery = "courier" | "collection" | "both";
 
 export type SellerOrderStatus = "new" | "accepted" | "preparing" | "ready" | "done" | "declined" | "cancelled";
 
@@ -348,7 +355,7 @@ export type SellerAction =
   | { type: "sellerReplaceDocument"; kind: DocKind; fileName: string; uri?: string; fileKind?: "image" | "pdf" | "file" }
   | { type: "sellerSubmitVerification" }
   | { type: "sellerReviewTick" }
-  | { type: "sellerSaveStore"; patch: Partial<Pick<SellerProfile, "logoUri" | "bannerUri" | "place" | "storeName" | "description" | "location" | "days" | "opens" | "closes" | "taxNumber">> }
+  | { type: "sellerSaveStore"; patch: Partial<Pick<SellerProfile, "logoUri" | "bannerUri" | "place" | "storeName" | "description" | "location" | "days" | "opens" | "closes" | "taxNumber" | "campusId" | "delivery">> }
   | { type: "sellerFinishSetup" }
   | { type: "sellerReceiveOrder"; order: SellerOrder }
   | { type: "sellerRespondOrder"; id: string; accept: boolean; reason?: string }

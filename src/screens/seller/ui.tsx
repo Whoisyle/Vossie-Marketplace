@@ -129,6 +129,23 @@ export function SellerBackground() {
   );
 }
 
+/** The deep teal page of the setup: the welcome page's gradient with a faint dot grid. */
+export function DeepBackground() {
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <LinearGradient colors={["#274E5B", "#376371", "#14292F"]} locations={[0, 0.35, 1]} style={StyleSheet.absoluteFill} />
+      <Svg height="100%" style={StyleSheet.absoluteFill} width="100%">
+        <Defs>
+          <Pattern height={18} id="deepDots" patternUnits="userSpaceOnUse" width={18}>
+            <Circle cx={2} cy={2} fill="rgba(223,226,220,0.10)" r={1} />
+          </Pattern>
+        </Defs>
+        <Rect fill="url(#deepDots)" height="100%" width="100%" />
+      </Svg>
+    </View>
+  );
+}
+
 /** A seller page: the gradient behind a normal scrolling screen. `tabs` leaves room for the bottom bar. */
 export function SellerScreen({
   children,
@@ -137,7 +154,10 @@ export function SellerScreen({
   tabs = true,
   testID,
   tone = "blue",
+  deep = false,
 }: {
+  /** The deep Vossie teal, used by the setup pages. */
+  deep?: boolean;
   children: ReactNode;
   footer?: ReactNode;
   scroll?: boolean;
@@ -156,7 +176,7 @@ export function SellerScreen({
   return (
     <ToneContext.Provider value={tone}>
       <View style={[styles.page, { backgroundColor: TONES[tone].pageBg }]}>
-        {tone === "blue" ? <SellerBackground /> : <Backdrop tone="mist" />}
+        {tone === "blue" ? deep ? <DeepBackground /> : <SellerBackground /> : <Backdrop tone="mist" />}
         <Screen background="transparent" backdrop="none" footer={footer} inTabs={tabs} scroll={scroll} testID={testID}>
           {children}
         </Screen>

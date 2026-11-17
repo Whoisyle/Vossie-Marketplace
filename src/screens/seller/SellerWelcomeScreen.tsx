@@ -35,25 +35,25 @@ const DEEP = "#14292F";
 const TEAL = "#376371";
 
 /** A glossy object on a podium, drawn in code: a shopping bag and card, a parcel, or a shop front. */
-function Hero({ index }: { index: number }) {
+export function Hero({ index, scale = 1 }: { index: number; scale?: number }) {
   return (
-    <Svg height={350} viewBox="0 0 300 290" width={362}>
+    <Svg height={350 * scale} viewBox="0 0 300 290" width={362 * scale}>
       <Defs>
         <SvgGradient id="pod" x1="0" x2="1" y1="0" y2="1">
           <Stop offset="0" stopColor="#4C7B89" />
           <Stop offset="1" stopColor="#1E414B" />
         </SvgGradient>
         <SvgGradient id="obj" x1="0" x2="1" y1="0" y2="1">
-          <Stop offset="0" stopColor="#3C6C7B" />
-          <Stop offset="1" stopColor="#173540" />
+          <Stop offset="0" stopColor="#6FA3B2" />
+          <Stop offset="1" stopColor="#2A5866" />
         </SvgGradient>
         <SvgGradient id="card" x1="0" x2="1" y1="0" y2="1">
           <Stop offset="0" stopColor="#E8EBEE" />
           <Stop offset="1" stopColor="#8B9DA6" />
         </SvgGradient>
         <SvgGradient id="lid" x1="0" x2="1" y1="0" y2="0">
-          <Stop offset="0" stopColor="#5C8C9A" />
-          <Stop offset="1" stopColor="#2D5866" />
+          <Stop offset="0" stopColor="#8DB9C6" />
+          <Stop offset="1" stopColor="#4B7D8C" />
         </SvgGradient>
       </Defs>
       <Ellipse cx={150} cy={262} fill="rgba(0,0,0,0.28)" rx={118} ry={20} />
@@ -82,7 +82,7 @@ function Hero({ index }: { index: number }) {
 
       {index === 1 ? (
         <G>
-          <Polygon fill="#2A5361" points="86,150 150,180 150,236 86,206" />
+          <Polygon fill="#3F7080" points="86,150 150,180 150,236 86,206" />
           <Polygon fill="url(#obj)" points="150,180 214,150 214,206 150,236" />
           <Polygon fill="url(#lid)" points="86,150 150,120 214,150 150,180" />
           <Polygon fill="#DFE2DC" points="136,126 164,114 192,128 164,140" opacity={0.9} />

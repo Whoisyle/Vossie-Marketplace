@@ -118,3 +118,4 @@ The owner asked for a real buyer, Vumisa Malindi (`eduv11223@vossie.net`, studen
 - [ ] **Quality and rights.** There is no check that a seller owns the notes they sell, no refund rule for bad notes and no takedown path. These need a policy before real sellers upload.
 - [ ] **Pictures are generated.** The three pictures per pack (cover, sample page, contents) are rendered by `scripts/render-notes-photos.mjs`, not photographs. A real pack gets its pictures from the seller.
 
+- [ ] **Seller setup answers are demo only (2026-11-17).** The campus a seller sells on (`campusId`) and how buyers get orders (`delivery`: courier, collection or both) are kept in the on-phone seller state. They are not in the live backend mapping (`src/seller/live.ts`, `liveActions.ts`) or the database yet; add columns and map them when the seller side is wired to Supabase.
