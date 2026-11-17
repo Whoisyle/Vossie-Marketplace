@@ -4,6 +4,7 @@ import * as sellerService from "@/services/seller";
 import type { CampusId } from "@/data/types";
 import type { SellerOrderRow, SellerOrderStatus as DbOrderStatus } from "@/services/types";
 
+import { cleanDeliveryModes } from "./delivery";
 import { courierCodeFor, docKindsFor, platformFeeCents } from "./state";
 import type { DayKey, DocKind, DocStatus, LedgerEntry, SellerDocument, SellerListing, SellerListingStatus, SellerOrder, SellerOrderStatus, SellerState, SellerStatus } from "./types";
 
@@ -156,7 +157,7 @@ type DbSeller = {
   opens_at: string | null;
   closes_at: string | null;
   campus_id: string | null;
-  delivery_mode: string | null;
+  delivery_modes: string[] | null;
 };
 
 const DAYS: DayKey[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -188,7 +189,7 @@ export async function loadSellerState(): Promise<Partial<SellerState> | null> {
       campusId: (me.campus_id ?? undefined) as CampusId | undefined,
       closes: (me.closes_at ?? "17:00:00").slice(0, 5),
       days: (me.open_days ?? []).filter((day: string): day is DayKey => (DAYS as string[]).includes(day)),
-      delivery: me.delivery_mode === "courier" || me.delivery_mode === "collection" || me.delivery_mode === "both" ? me.delivery_mode : undefined,
+      deliveryModes: me.delivery_modes ? cleanDeliveryModes(me.delivery_modes) : undefined,
       description: me.bio ?? "",
       kind,
       location: me.location_text ?? "",

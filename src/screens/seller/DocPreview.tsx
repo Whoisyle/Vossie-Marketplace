@@ -2,7 +2,11 @@ import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 
 import { Button, Icon, Sheet } from "@/components";
+import { uprightWidth } from "@/components/StudentCard";
 import { shortDate } from "@/data/format";
+import { getCampusName } from "@/data/repository";
+import { StudentCardFlip } from "@/screens/account/CardBacks";
+import { useDemoStore } from "@/state/DemoStore";
 import { docTitles } from "@/seller/state";
 import type { SellerDocument } from "@/seller/types";
 import { space, text } from "@/theme/tokens";
@@ -17,13 +21,19 @@ import { SELLER, Text } from "./ui";
 export function DocPreview({ canChange, doc, onClose, onRemove, onReplace, onUpdate }: { doc: SellerDocument | null; canChange: boolean; onClose: () => void; onReplace: () => void; onRemove: () => void; onUpdate?: () => void }) {
   const image = doc?.uri && (doc.fileKind === "image" || (!doc.fileKind && /\.(jpe?g|png|heic|webp)$/i.test(doc.fileName ?? "")));
   const verified = doc?.status === "verified";
+  const { state } = useDemoStore();
+  const profile = state.profile;
+  // a verified student card is shown as the card itself, the way it looks in the account
+  const card = doc?.kind === "student-card" && verified && profile ? profile : null;
   const checking = doc?.status === "in-review";
   return (
     <Sheet onClose={onClose} title={doc ? docTitles[doc.kind] : "Document"} visible={Boolean(doc)}>
       {doc ? (
         <>
-          <View style={styles.frame} testID="doc-preview">
-            {image ? (
+          <View style={card ? styles.cardFrame : styles.frame} testID="doc-preview">
+            {card ? (
+              <StudentCardFlip campusName={getCampusName(card.campusId)} name={card.fullName} studentNumber={card.studentNumber} verified={card.isVerifiedStudent} width={uprightWidth(170)} />
+            ) : image ? (
               <Image accessibilityLabel={`${docTitles[doc.kind]} preview`} contentFit="contain" source={{ uri: doc.uri }} style={StyleSheet.absoluteFill} />
             ) : (
               <View style={styles.file}>
@@ -77,6 +87,7 @@ const styles = StyleSheet.create({
   badgeText: { color: "#1E7A4A", flex: 1, fontSize: 13, fontWeight: "700" },
   badgeWait: { backgroundColor: "#FCE9D0" },
   badgeWaitText: { color: "#8A5A0B" },
+  cardFrame: { alignItems: "center", justifyContent: "center", marginVertical: space.sm },
   file: { alignItems: "center", gap: 8 },
   frame: { alignItems: "center", backgroundColor: "#E9EFF3", borderRadius: 16, height: 220, justifyContent: "center", marginVertical: space.sm, overflow: "hidden" },
   name: { color: SELLER.ink, fontSize: 14, fontWeight: "700" },

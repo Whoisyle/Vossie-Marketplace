@@ -1,3 +1,4 @@
+import type { DeliveryMode } from "@/data/delivery";
 import type { CampusId } from "@/data/types";
 /**
  * Seller mode: the shapes behind the seller screens (owner designs, 2026-10-20). The same shapes are used by the demo
@@ -50,11 +51,9 @@ export type SellerProfile = {
   taxNumber?: string;
   /** The campus this store sells on. */
   campusId?: CampusId;
-  /** How buyers get their order: a campus courier, collection from the seller, or both. */
-  delivery?: SellerDelivery;
+  /** The ways this store gets an order to the buyer. Any of the four, at least one. */
+  deliveryModes?: DeliveryMode[];
 };
-
-export type SellerDelivery = "courier" | "collection" | "both";
 
 export type SellerOrderStatus = "new" | "accepted" | "preparing" | "ready" | "done" | "declined" | "cancelled";
 
@@ -357,7 +356,7 @@ export type SellerAction =
   | { type: "sellerReviewTick" }
   /** Demo only: a Vossie Operations reviewer accepts or turns down one document. */
   | { type: "sellerStaffReview"; kind: DocKind; decision: "verified" | "rejected"; note?: string }
-  | { type: "sellerSaveStore"; patch: Partial<Pick<SellerProfile, "logoUri" | "bannerUri" | "place" | "storeName" | "description" | "location" | "days" | "opens" | "closes" | "taxNumber" | "campusId" | "delivery">> }
+  | { type: "sellerSaveStore"; patch: Partial<Pick<SellerProfile, "logoUri" | "bannerUri" | "place" | "storeName" | "description" | "location" | "days" | "opens" | "closes" | "taxNumber" | "campusId" | "deliveryModes">> }
   | { type: "sellerFinishSetup" }
   | { type: "sellerReceiveOrder"; order: SellerOrder }
   | { type: "sellerRespondOrder"; id: string; accept: boolean; reason?: string }

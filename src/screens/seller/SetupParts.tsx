@@ -10,16 +10,12 @@ import { initials } from "@/data/format";
 import { getCampusName } from "@/data/repository";
 import type { CampusId } from "@/data/types";
 import { color } from "@/theme/tokens";
-import type { SellerDelivery, SellerKind } from "@/seller/types";
+import { DELIVERY_INFO } from "@/seller/delivery";
+import type { DeliveryMode } from "@/data/delivery";
+import type { SellerKind } from "@/seller/types";
 
 import { StepBar } from "./motion";
 import { Hero } from "./Packaging";
-
-export const DELIVERY_LABELS: Record<SellerDelivery, string> = {
-  both: "Courier and collection",
-  collection: "Collection only",
-  courier: "Campus courier",
-};
 
 /**
  * The top of each setup step: back arrow, "01 / 03" with the progress bar, a small drawn object floating on its podium,
@@ -74,7 +70,7 @@ export function StorePreview({
   name: string;
   kind: SellerKind | null;
   campusId?: CampusId;
-  delivery?: SellerDelivery;
+  delivery?: DeliveryMode[];
   logo?: string;
   banner?: string;
 }) {
@@ -99,18 +95,20 @@ export function StorePreview({
         <View style={styles.chips}>
           {kindLabel ? <PreviewChip icon="user" label={kindLabel} /> : null}
           {campusId ? <PreviewChip icon="map-pin" label={getCampusName(campusId)} /> : null}
-          {delivery ? <PreviewChip icon="truck" label={DELIVERY_LABELS[delivery]} /> : null}
-          {!kindLabel && !campusId && !delivery ? <Text style={styles.hint}>Answer the questions above and your store card fills in.</Text> : null}
+          {(delivery ?? []).map((mode) => (
+            <PreviewChip icon={DELIVERY_INFO[mode].icon} key={mode} label={DELIVERY_INFO[mode].label} tint={DELIVERY_INFO[mode].color} />
+          ))}
+          {!kindLabel && !campusId && !(delivery && delivery.length > 0) ? <Text style={styles.hint}>Answer the questions above and your store card fills in.</Text> : null}
         </View>
       </View>
     </Animated.View>
   );
 }
 
-function PreviewChip({ icon, label }: { icon: IconName; label: string }) {
+function PreviewChip({ icon, label, tint = color.slate }: { icon: IconName; label: string; tint?: string }) {
   return (
     <Animated.View entering={FadeInDown.duration(260)} style={styles.chip}>
-      <Icon color={color.slate} name={icon} size={13} />
+      <Icon color={tint} name={icon} size={13} />
       <Text numberOfLines={1} style={styles.chipText}>
         {label}
       </Text>

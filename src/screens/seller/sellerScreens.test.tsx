@@ -168,6 +168,34 @@ describe("seller setup", () => {
     expect(mockReplace).toHaveBeenCalledWith("/seller/home");
   });
 
+  it("offers the four ways to get an order to a buyer, and any or all of them can be ticked", () => {
+    const started = run(signedIn(), { type: "sellerStart" }, { kind: "student", type: "sellerSetKind" }, { patch: { place: { address: "12 Esselen Street, Die Bult", latitude: -26.694, longitude: 27.094, name: "Eduvos Potchefstroom campus", source: "hub" } }, type: "sellerSaveStore" });
+    renderWithProviders(<SellerStoreScreen />, started);
+    const checked = (mode: string) => screen.getByTestId(`delivery-${mode}`).props.accessibilityState.checked;
+    // the campus courier and collection start ticked
+    expect([checked("campus-courier"), checked("collection"), checked("hub-to-hub"), checked("third-party")]).toEqual([true, true, false, false]);
+    fireEvent.press(screen.getByTestId("delivery-hub-to-hub"));
+    expect(checked("hub-to-hub")).toBe(true);
+    fireEvent.press(screen.getByTestId("delivery-all"));
+    expect([checked("campus-courier"), checked("collection"), checked("hub-to-hub"), checked("third-party")]).toEqual([true, true, true, true]);
+    // none is not allowed
+    fireEvent.press(screen.getByTestId("delivery-all"));
+    expect([checked("campus-courier"), checked("third-party")]).toEqual([false, false]);
+    fireEvent.changeText(screen.getByTestId("store-name"), "CampusBites");
+    fireEvent.press(screen.getByTestId("seller-store-save"));
+    expect(screen.getByText("Choose at least one way buyers can get their order.")).toBeTruthy();
+    expect(mockReplace).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("delivery-third-party"));
+    fireEvent.press(screen.getByTestId("seller-store-save"));
+    expect(mockReplace).toHaveBeenCalledWith("/seller/home");
+  });
+
+  it("shows the seller's real student card on the documents page once the Eduvos record has matched", () => {
+    renderWithProviders(<SellerVerifyScreen />, run(signedIn(), { type: "sellerStart" }, { kind: "student", type: "sellerSetKind" }));
+    expect(screen.getByTestId("verify-student-card")).toBeTruthy();
+    expect(screen.getAllByTestId("student-card").length).toBeGreaterThan(0);
+  });
+
   it("offers a store banner from the library or the camera", () => {
     renderWithProviders(<SellerStoreScreen mode="manage" />, seller());
     fireEvent.press(screen.getByTestId("banner-button"));

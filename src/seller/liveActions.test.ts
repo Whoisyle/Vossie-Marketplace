@@ -40,8 +40,8 @@ describe("sending seller actions to the real services", () => {
   it("sends the campus chosen in the setup, not the campus the student buys on, and the delivery choice", async () => {
     await runLiveSellerAction({ campusId: "pretoria", phone: "0825735164", storeName: "CampusBites", type: "sellerSetBasics" }, state(), none);
     expect(seller.saveSellerOnboarding).toHaveBeenLastCalledWith(expect.objectContaining({ campusId: "pretoria" }));
-    await runLiveSellerAction({ patch: { campusId: "bloemfontein", delivery: "collection" }, type: "sellerSaveStore" }, state(), none);
-    expect(seller.saveSellerOnboarding).toHaveBeenLastCalledWith(expect.objectContaining({ campusId: "bloemfontein", deliveryMode: "collection" }));
+    await runLiveSellerAction({ patch: { campusId: "bloemfontein", deliveryModes: ["collection", "hub-to-hub"] }, type: "sellerSaveStore" }, state(), none);
+    expect(seller.saveSellerOnboarding).toHaveBeenLastCalledWith(expect.objectContaining({ campusId: "bloemfontein", deliveryModes: ["collection", "hub-to-hub"] }));
   });
 
   it("uploads a document with the file that was picked", async () => {

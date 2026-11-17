@@ -1,9 +1,12 @@
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
+import { uprightWidth } from "@/components/StudentCard";
 import { shortDate, timeOfDay } from "@/data/format";
+import { getCampusName } from "@/data/repository";
+import { StudentCardFlip } from "@/screens/account/CardBacks";
 import { docHints, docTitles } from "@/seller/state";
 import type { DocStatus, SellerDocument } from "@/seller/types";
 import { useDemoStore } from "@/state/DemoStore";
@@ -34,6 +37,7 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
   const [viewing, setViewing] = useState<SellerDocument | null>(null);
   const [scanning, setScanning] = useState<SellerDocument | null>(null);
   const seller = state.seller;
+  const profile = state.profile;
   const received = seller.documents.filter((doc) => doc.status !== "required" && doc.status !== "rejected").length;
   const missing = seller.documents.length - received;
   const submitted = seller.status === "pending" || seller.status === "approved";
@@ -101,9 +105,10 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
         </Animated.View>
         {seller.documents.map((doc, index) => {
           const look = DOC_LABEL[doc.status];
-          return (
-            <Animated.View entering={FadeInDown.delay(80 * (index + 1)).duration(360)} key={doc.kind}>
-              <SellerCard onPress={() => open(doc)} style={styles.row} testID={`doc-${doc.kind}`}>
+          // once the Eduvos record has matched, the seller's real student card is shown right here
+          const showCard = doc.kind === "student-card" && doc.status === "verified" && Boolean(profile);
+          const head = (
+            <>
                 <View style={styles.rowText}>
                   <Text style={styles.rowTitle}>{docTitles[doc.kind]}</Text>
                   <Text numberOfLines={1} style={styles.rowHint}>
@@ -111,6 +116,24 @@ export function SellerVerifyScreen({ mode = "setup" }: { mode?: "setup" | "manag
                   </Text>
                 </View>
                 <Pill label={look.label} tone={look.tone} />
+            </>
+          );
+          return (
+            <Animated.View entering={FadeInDown.delay(80 * (index + 1)).duration(360)} key={doc.kind}>
+              <SellerCard onPress={showCard ? undefined : () => open(doc)} style={showCard ? styles.rowTall : styles.row} testID={`doc-${doc.kind}`}>
+                {showCard && profile ? (
+                  <>
+                    {/* the card flips when tapped, so the row's own tap sits on its heading only, not around the card */}
+                    <Pressable accessibilityRole="button" onPress={() => open(doc)} style={styles.rowHead}>
+                      {head}
+                    </Pressable>
+                    <Animated.View entering={FadeInDown.delay(200).duration(420)} style={styles.cardWrap} testID="verify-student-card">
+                      <StudentCardFlip campusName={getCampusName(profile.campusId)} name={profile.fullName} studentNumber={profile.studentNumber} verified={profile.isVerifiedStudent} width={uprightWidth(190)} />
+                    </Animated.View>
+                  </>
+                ) : (
+                  head
+                )}
               </SellerCard>
             </Animated.View>
           );
@@ -185,7 +208,10 @@ const styles = StyleSheet.create({
   dotActive: { backgroundColor: "#F2A14A" },
   dotDone: { backgroundColor: "#2F8A57" },
   list: { gap: 10, marginTop: 16 },
+  cardWrap: { alignItems: "center", marginTop: 12 },
   row: { alignItems: "center", flexDirection: "row", gap: 10, minHeight: 64, paddingVertical: 12 },
+  rowHead: { alignItems: "center", flexDirection: "row", gap: 10 },
+  rowTall: { paddingVertical: 14 },
   rowHint: { color: SELLER.inkSoft, fontSize: 13 },
   rowText: { flex: 1, gap: 1 },
   rowTitle: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },

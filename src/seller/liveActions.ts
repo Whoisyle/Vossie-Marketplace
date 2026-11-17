@@ -32,7 +32,7 @@ async function saveOnboarding(profile: SellerProfile, fallbackCampusId: string):
     bio: profile.description,
     campusId,
     closesAt: profile.closes,
-    deliveryMode: profile.delivery,
+    deliveryModes: profile.deliveryModes,
     displayName: profile.storeName,
     kind: KIND_TO_DB[profile.kind],
     locationText: profile.location,
