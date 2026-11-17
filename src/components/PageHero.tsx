@@ -10,10 +10,10 @@ export type HeroTone = "slate" | "ink" | "warm" | "mist";
 
 /** The hero's colours, all from the brand palette: slate and ink, the warm accent, and a lighter mist-blue. */
 const TONES: Record<HeroTone, readonly [string, string]> = {
-  ink: ["#2C4150", "#1E2A38"],
-  mist: ["#6F8FA0", "#3F6173"],
+  ink: ["#586879", "#191B1D"],
+  mist: ["#8B9DA6", "#586879"],
   slate: ["#40677A", "#2F5A67"],
-  warm: ["#DDA46A", "#A8692F"],
+  warm: ["#8B9DA6", "#3F4D5B"],
 };
 
 export type HeroChip = { label: string; icon?: IconName };

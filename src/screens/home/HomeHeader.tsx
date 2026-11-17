@@ -6,6 +6,12 @@ import { Icon } from "@/components";
 import { haptic } from "@/lib/haptics";
 import { color, space } from "@/theme/tokens";
 
+const NAME_FONT = Platform.select({
+  android: "serif",
+  ios: "Georgia",
+  default: "Georgia, 'Times New Roman', serif",
+});
+
 const HAND = Platform.select({
   android: "cursive",
   ios: "Noteworthy",
@@ -85,8 +91,7 @@ export function HomeHeader({
       <View style={styles.hello}>
         <Text style={styles.greeting}>{greeting},</Text>
         <Text numberOfLines={1} style={styles.name}>
-          {name ? `${name} ` : "there "}
-          <Text style={styles.wave}>👋</Text>
+          {name ?? "there"}
         </Text>
         <Text style={styles.tagline}>Find it. Sell it. Get it delivered.</Text>
         <Pressable
@@ -177,7 +182,7 @@ const styles = StyleSheet.create({
   hello: { marginTop: space.md },
   hero: { marginTop: space.md },
   input: { color: color.charcoal, flex: 1, fontSize: 15, height: "100%", outlineWidth: 0 },
-  name: { color: color.charcoal, fontSize: 42, fontWeight: "800", letterSpacing: -1, lineHeight: 50 },
+  name: { color: color.accent, fontFamily: NAME_FONT, fontSize: 46, fontWeight: "700", letterSpacing: -0.5, lineHeight: 54 },
   note: { transform: [{ rotate: "-4deg" }] },
   noteLine: { backgroundColor: color.slateBlue, borderRadius: 1, height: 2, marginTop: 3, width: 96 },
   noteText: { color: color.slateBlue, fontFamily: HAND, fontSize: 15, lineHeight: 19 },
@@ -186,5 +191,4 @@ const styles = StyleSheet.create({
   searchRow: { alignItems: "center", flexDirection: "row", gap: space.xs, marginTop: space.md },
   tagline: { color: color.steelGrey, fontSize: 14, marginTop: 2 },
   topRow: { alignItems: "flex-start", flexDirection: "row", justifyContent: "space-between" },
-  wave: { fontSize: 34 },
 });

@@ -10,12 +10,12 @@ import { color, corner, gradient, space, text } from "@/theme/tokens";
 
 const TONES = { ink: gradient.ink, primary: gradient.primary, teal: gradient.teal } as const;
 
-/** A warm accent for the plan that is not slate, so each plan reads as its own. */
+/** An accent pair for the plan that is not slate, so each plan reads as its own. */
 const PLAN_COLOURS: Record<string, readonly [string, string]> = {
   plus: ["#40677A", "#2F5A67"],
   "seller-plus": ["#4E7B86", "#385F6B"],
-  "seller-pro": ["#2C4150", "#1E2A38"],
-  "study-pass": ["#D39A5C", "#B07338"],
+  "seller-pro": ["#586879", "#191B1D"],
+  "study-pass": ["#8B9DA6", "#586879"],
 };
 
 /** Subscriptions: the plans you are on (and when they renew or end), and the plans you can apply for. */

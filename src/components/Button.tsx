@@ -21,7 +21,7 @@ const variants: Record<Variant, Tone> = {
   // the main action colour everywhere: slate with a soft gradient
   primary: { bg: color.primary, pressed: color.primaryPressed, fg: color.onPrimary, gradient: gradient.primary, gradientPressed: gradient.primaryPressed },
   accent: { bg: color.primary, pressed: color.primaryPressed, fg: color.onPrimary, gradient: gradient.primary, gradientPressed: gradient.primaryPressed },
-  soft: { bg: color.surfaceSoft, pressed: "#CFDDE6", fg: color.heading },
+  soft: { bg: color.sage, pressed: "#D2D6CE", fg: color.heading },
   outline: { bg: "transparent", pressed: color.surfaceIcon, fg: color.heading, border: color.borderStrong },
   danger: { bg: color.danger, pressed: "#97433A", fg: color.onPrimary },
   light: { bg: color.surface, pressed: color.surfaceIcon, fg: color.heading },

@@ -1,7 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -274,6 +274,60 @@ export function StoreCard({
   );
 }
 
+/**
+ * A row of cards that slides to the next one by itself, wraps back to the start, stops while a finger is on
+ * it, and stays still with Reduce Motion. `delay` staggers rows so they never all move in the same moment.
+ */
+export function AutoRow({
+  children,
+  delay = 0,
+  itemWidth,
+  testID,
+}: {
+  children: ReactNode[];
+  delay?: number;
+  itemWidth: number;
+  testID?: string;
+}) {
+  const reduced = useReducedMotion();
+  const scroller = useRef<ScrollView>(null);
+  const index = useRef(0);
+  const pausedUntil = useRef(0);
+  const snap = itemWidth + space.xs;
+  const count = children.length;
+
+  useEffect(() => {
+    if (reduced || count < 2) return;
+    const timer = setInterval(() => {
+      if (Date.now() < pausedUntil.current) return;
+      index.current = (index.current + 1) % count;
+      scroller.current?.scrollTo({ animated: true, x: index.current * snap });
+    }, AUTO_ADVANCE_MS + delay);
+    return () => clearInterval(timer);
+  }, [count, delay, reduced, snap]);
+
+  return (
+    <ScrollView
+      contentContainerStyle={styles.autoRow}
+      decelerationRate="fast"
+      horizontal
+      onMomentumScrollEnd={(event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        index.current = Math.round(event.nativeEvent.contentOffset.x / snap);
+      }}
+      onScrollBeginDrag={() => {
+        pausedUntil.current = Date.now() + RESUME_AFTER_TOUCH_MS;
+      }}
+      ref={scroller}
+      showsHorizontalScrollIndicator={false}
+      snapToInterval={snap}
+      style={styles.bleed}
+      testID={testID}
+    >
+      {children}
+    </ScrollView>
+  );
+}
+
 /** A big rounded photo card, one per row: heart on the photo, then the name, rating, place and price. */
 export function ExploreCard({
   favourite,
@@ -380,6 +434,7 @@ export function CategoryChips<T extends string>({
 }
 
 const styles = StyleSheet.create({
+  autoRow: { gap: space.xs, paddingHorizontal: space.lg, paddingVertical: space.xs },
   bigCard: { backgroundColor: color.surface, borderRadius: 28, padding: space.xs, ...shadow.card },
   bigDeal: { backgroundColor: color.mist, borderRadius: 10, left: 12, paddingHorizontal: 8, paddingVertical: 4, position: "absolute", top: 12 },
   bigDealText: { color: color.ink, fontSize: 12, fontWeight: "800" },

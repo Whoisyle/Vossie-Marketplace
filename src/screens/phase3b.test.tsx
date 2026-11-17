@@ -36,8 +36,8 @@ describe("Explore layout", () => {
     const text = JSON.stringify(screen.toJSON());
     const at = (needle: string) => text.indexOf(needle);
     expect(at("Explore")).toBeGreaterThan(-1);
-    expect(at("promo-carousel")).toBeGreaterThan(-1);
-    expect(at("promo-carousel")).toBeLessThan(at("Search products, stores and categories"));
+    expect(at("home-hero")).toBeGreaterThan(-1);
+    expect(at("home-hero")).toBeLessThan(at("Search products, stores and categories"));
     expect(at("Search products, stores and categories")).toBeLessThan(at("Trending on campus"));
     expect(at("category-chips")).toBeGreaterThan(at("Search products, stores and categories"));
     expect(at("category-chips")).toBeLessThan(at("Trending on campus"));

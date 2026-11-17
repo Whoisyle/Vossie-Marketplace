@@ -14,8 +14,8 @@ type CardVariant = "default" | "soft" | "peach" | "row" | "primary";
 
 const backgrounds: Record<CardVariant, string> = {
   default: color.surface,
-  soft: color.surfaceSoft,
-  peach: color.surfacePeach,
+  soft: color.sage,
+  peach: color.cloudGrey,
   row: color.surfaceRow,
   primary: color.primary,
 };

@@ -17,10 +17,10 @@ export type BackdropTone = "mist" | "warm" | "ink" | "teal";
 
 /** Line colour and the wash behind it, per area of the app. */
 const LOOK: Record<BackdropTone, { line: string; wash: string }> = {
-  ink: { line: "rgba(31,47,57,0.13)", wash: "rgba(55,99,113,0.10)" },
-  mist: { line: "rgba(55,99,113,0.16)", wash: "rgba(183,196,204,0.28)" },
+  ink: { line: "rgba(88,104,121,0.20)", wash: "rgba(223,226,220,0.55)" },
+  mist: { line: "rgba(139,157,166,0.28)", wash: "rgba(232,235,238,0.7)" },
   teal: { line: "rgba(255,255,255,0.13)", wash: "rgba(255,255,255,0.10)" },
-  warm: { line: "rgba(190,128,62,0.20)", wash: "rgba(250,236,214,0.75)" },
+  warm: { line: "rgba(139,157,166,0.30)", wash: "rgba(223,226,220,0.85)" },
 };
 
 /** Which backdrop a route gets, so each area of the app has its own feel. */

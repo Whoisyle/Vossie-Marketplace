@@ -8,6 +8,7 @@ import {
   Chip,
   EmptyState,
   FilterButton,
+  ListingCard,
   Icon,
   ListingsSkeleton,
   Screen,
@@ -26,11 +27,11 @@ import { haptic } from "@/lib/haptics";
 import { useDetail } from "@/lib/paths";
 import { FiltersSheet } from "@/screens/home/FiltersSheet";
 import { activeFilterCount, applyFilters, NO_FILTERS, type Filters } from "@/screens/home/filters";
-import { PromoCarousel } from "@/screens/home/PromoCarousel";
+import { HomeHero } from "@/screens/home/HomeHero";
 import { useDemoStore } from "@/state/DemoStore";
 import { color, corner, size, space, text } from "@/theme/tokens";
 
-import { CategoryChips, ExploreCard, FeaturedCarousel, StoreCard } from "./ExploreParts";
+import { AutoRow, CategoryChips, ExploreCard, FeaturedCarousel, StoreCard } from "./ExploreParts";
 
 const KIND_ICON: Record<Suggestion["kind"], IconName> = { category: "grid", listing: "search", store: "shopping-bag" };
 
@@ -58,6 +59,8 @@ export function ExploreScreen() {
   const everything = useMemo(() => hideBlocked(getListings({ campusId }), state.blocked), [campusId, state.blocked]);
   const loading = useFirstLoad("explore");
   const featured = useMemo(() => [...everything].sort((a, b) => b.rating * 10 + b.ratingCount / 100 - (a.rating * 10 + a.ratingCount / 100)).slice(0, 6), [everything]);
+  const groups = useMemo(() => groupListings(everything), [everything]);
+  const bigWidth = Math.min(pageWidth * 0.82, 340);
   const topStores = useMemo(() => [...sellers].sort((a, b) => b.rating - a.rating || b.ratingCount - a.ratingCount).slice(0, 8), [sellers]);
   const trending = useMemo(() => [...everything].sort((a, b) => b.ratingCount - a.ratingCount).slice(0, 8), [everything]);
 
@@ -149,7 +152,7 @@ export function ExploreScreen() {
       <AppHeader title="Explore" />
       {showingIdle ? (
         <Animated.View entering={FadeInDown.duration(320)} style={styles.promo}>
-          <PromoCarousel onPress={(promo) => router.push(open("promo", promo.id))} width={pageWidth} />
+          <HomeHero onPress={(promo) => router.push(open("promo", promo.id))} />
         </Animated.View>
       ) : null}
       <View style={styles.searchRow}>
@@ -309,25 +312,54 @@ export function ExploreScreen() {
 
           <View style={styles.section}>
             <SectionHeader title="More to explore" />
-            {grid(everything, {
-              afterRow: 2,
-              node: (
-                <View style={styles.storesBlock}>
-                  <SectionHeader title="Top stores near you" />
-                  <ScrollView contentContainerStyle={styles.storeRow} horizontal showsHorizontalScrollIndicator={false} style={styles.bleed}>
-                    {topStores.map((seller) => (
-                      <StoreCard
-                        following={state.following.includes(seller.id)}
-                        key={seller.id}
-                        onFollow={() => dispatch({ sellerId: seller.id, type: "toggleFollow" })}
-                        onOpen={() => router.push(open("store", seller.id))}
-                        seller={seller}
-                      />
-                    ))}
-                  </ScrollView>
-                </View>
-              ),
-            })}
+            {groups.map((group, g) => (
+              <Fragment key={g}>
+                <AutoRow
+                  delay={g * 700}
+                  itemWidth={group.big ? bigWidth : SMALL_WIDTH}
+                  testID={`explore-row-${g}`}
+                >
+                  {group.items.map((listing) =>
+                    group.big ? (
+                      <View key={listing.id} style={{ width: bigWidth }}>
+                        <ExploreCard
+                          favourite={state.favourites.includes(listing.id)}
+                          listing={listing}
+                          onOpen={() => router.push(open("listing", listing.id))}
+                          onToggleFavourite={() => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
+                        />
+                      </View>
+                    ) : (
+                      <View key={listing.id} style={{ height: SMALL_HEIGHT, width: SMALL_WIDTH }}>
+                        <ListingCard
+                          favourite={state.favourites.includes(listing.id)}
+                          height={SMALL_HEIGHT}
+                          listing={listing}
+                          onPress={() => router.push(open("listing", listing.id))}
+                          onToggleFavourite={() => dispatch({ listingId: listing.id, type: "toggleFavourite" })}
+                        />
+                      </View>
+                    ),
+                  )}
+                </AutoRow>
+                {g === 0 ? (
+                  <View style={styles.storesBlock}>
+                    <SectionHeader title="Top stores near you" />
+                    <ScrollView contentContainerStyle={styles.storeRow} horizontal showsHorizontalScrollIndicator={false} style={styles.bleed}>
+                      {topStores.map((seller) => (
+                        <StoreCard
+                          following={state.following.includes(seller.id)}
+                          key={seller.id}
+                          onFollow={() => dispatch({ sellerId: seller.id, type: "toggleFollow" })}
+                          onOpen={() => router.push(open("store", seller.id))}
+                          seller={seller}
+                        />
+                      ))}
+                    </ScrollView>
+                  </View>
+                ) : null}
+              </Fragment>
+            ))}
           </View>
         </>
       )}
@@ -335,6 +367,22 @@ export function ExploreScreen() {
       <FiltersSheet filters={filters} listings={everything} onApply={setFilters} onClose={() => setFiltersOpen(false)} visible={filtersOpen} />
     </Screen>
   );
+}
+
+const SMALL_WIDTH = 150;
+const SMALL_HEIGHT = 196;
+// big, small, big, small: the "More to explore" rows alternate card size, each row moving by itself
+const GROUP_SIZES = [5, 8, 5, 8] as const;
+
+function groupListings(items: Listing[]): { big: boolean; items: Listing[] }[] {
+  const groups: { big: boolean; items: Listing[] }[] = [];
+  let at = 0;
+  GROUP_SIZES.forEach((size, index) => {
+    const slice = items.slice(at, at + size);
+    at += size;
+    if (slice.length > 0) groups.push({ big: index % 2 === 0, items: slice });
+  });
+  return groups;
 }
 
 const styles = StyleSheet.create({

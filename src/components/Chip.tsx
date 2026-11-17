@@ -36,7 +36,7 @@ export function Chip({
       style={({ pressed }) => [
         styles.chip,
         size === "sm" ? styles.small : styles.medium,
-        { backgroundColor: selected ? color.accent : color.surfaceSoft },
+        { backgroundColor: selected ? color.charcoal : color.cloudGrey },
         pressed && styles.pressed,
         disabled && { opacity: 0.4 },
       ]}
@@ -45,7 +45,7 @@ export function Chip({
       <Text style={[styles.label, { color: fg, fontWeight: selected ? "600" : "500" }]}>{label}</Text>
       {count !== undefined ? (
         <View style={[styles.count, { backgroundColor: selected ? color.onPrimary : color.surface }]}>
-          <Text style={[styles.countText, { color: selected ? color.accent : color.heading }]}>{count}</Text>
+          <Text style={[styles.countText, { color: selected ? color.charcoal : color.heading }]}>{count}</Text>
         </View>
       ) : null}
     </Pressable>
