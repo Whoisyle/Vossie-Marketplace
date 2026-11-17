@@ -26,31 +26,36 @@ type Tile = {
   x: number;
 };
 
-const ROW_GAP = 18;
+const ROW_GAP = 44;
 const CANVAS_WIDTH = 852;
 const COPIES = [-1, 0, 1] as const;
 // Seconds for one full loop. Slow on purpose.
 const LOOP_SECONDS = 48;
 
+const TILE_W = 440;
+const TILE_STEP = 484; // tile plus gap
 const topRow = {
   direction: 1,
-  tiles: [
-    { height: 272, index: 0, source: require("./assets/gallery-1.jpg"), width: 181, x: 37 },
-    { height: 272, index: 1, source: require("./assets/gallery-2.jpg"), width: 220, x: 236 },
-    { height: 272, index: 2, source: require("./assets/gallery-3.jpg"), width: 341, x: 474 },
-  ],
-  y: 78,
+  tiles: [0, 1, 2].map((i) => ({
+    height: 520,
+    index: i,
+    source: [require("./assets/gallery-1.jpg"), require("./assets/gallery-2.jpg"), require("./assets/gallery-3.jpg")][i],
+    width: TILE_W,
+    x: 212 + i * TILE_STEP,
+  })),
+  y: -40,
 } as const;
 
 const bottomRow = {
   direction: -1,
-  tiles: [
-    { height: 261, index: 3, source: require("./assets/gallery-4.jpg"), width: 168, x: 37 },
-    { height: 261, index: 4, source: require("./assets/gallery-5.jpg"), width: 201, x: 223 },
-    { height: 261, index: 5, source: require("./assets/gallery-6.jpg"), width: 163, x: 442 },
-    { height: 261, index: 6, source: require("./assets/gallery-7.jpg"), width: 192, x: 623 },
-  ],
-  y: 385,
+  tiles: [0, 1, 2, 3].map((i) => ({
+    height: 640,
+    index: i + 3,
+    source: [require("./assets/gallery-4.jpg"), require("./assets/gallery-5.jpg"), require("./assets/gallery-6.jpg"), require("./assets/gallery-7.jpg")][i],
+    width: TILE_W,
+    x: 212 + i * TILE_STEP,
+  })),
+  y: 516,
 } as const;
 
 type Row = { direction: 1 | -1; tiles: readonly Tile[]; y: number };
@@ -116,7 +121,7 @@ function AnimatedTile({
       style={[
         styles.tile,
         {
-          borderRadius: 24 * scale,
+          borderRadius: 46 * scale,
           height: tile.height * scale,
           left: (tile.x + copy * period) * scale,
           top: 0,

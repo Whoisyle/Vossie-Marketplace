@@ -67,7 +67,7 @@ export function AnimatedWordmark({
         rangeProgress(clock.get(), [0, introTimeline.totalDurationMs]),
       );
       return {
-        opacity: fade,
+        opacity: 0 * fade,
         transform: [
           { translateX },
           { translateY },
@@ -80,8 +80,11 @@ export function AnimatedWordmark({
     const travel = EASE_IN_OUT(
       rangeProgress(clock.get(), introTimeline.sharedLogoTransition),
     );
+    // The wordmark dissolves as it lands so the Welcome screen is photos and text only.
+    const [from, to] = introTimeline.sharedLogoTransition;
+    const dissolve = rangeProgress(clock.get(), [from + (to - from) * 0.6, to]);
     return {
-      opacity: visible,
+      opacity: visible * (1 - dissolve),
       transform: [
         { translateX: translateX * travel },
         { translateY: translateY * travel },
