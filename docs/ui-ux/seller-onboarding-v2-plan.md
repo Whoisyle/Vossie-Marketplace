@@ -1,6 +1,6 @@
 # Seller onboarding v2: plan (2026-11-17)
 
-Status: **plan only, nothing in this file is built yet.** Written after the owner's brief and two rounds of questions. Build in the four stages below, shipping and reviewing each one before the next.
+Status: **Stage 1 built and live (2026-11-18); stages 2 to 4 still to do.** Written after the owner's brief and two rounds of questions. Build in the four stages below, shipping and reviewing each one before the next.
 
 ## The owner's brief, in order
 
