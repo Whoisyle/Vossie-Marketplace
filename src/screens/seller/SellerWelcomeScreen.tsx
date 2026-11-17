@@ -1,221 +1,222 @@
-import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, type Href } from "expo-router";
 import { useEffect, useState } from "react";
-import { Text as RNText, StyleSheet, View } from "react-native";
+import { Pressable, Text, StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
+  FadeIn,
   FadeInDown,
-  FadeInLeft,
-  type SharedValue,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
-  withDelay,
   withRepeat,
   withSequence,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Circle, Defs, Ellipse, G, LinearGradient as SvgGradient, Path, Polygon, Rect, Stop, Text as SvgText } from "react-native-svg";
 
-import { Icon, type IconName } from "@/components";
-import { spring } from "@/theme/motion";
+import { Icon } from "@/components";
+import { color } from "@/theme/tokens";
 
 import { useSellerDispatch } from "./actions";
-import { useCountUp } from "./motion";
-import { SellerButton, SellerHeader, SellerScreen, Text } from "./ui";
 
-const BENEFITS: { icon: IconName; text: string }[] = [
-  { icon: "plus", text: "List what you sell" },
-  { icon: "clipboard", text: "Get orders from your campus" },
-  { icon: "credit-card", text: "Withdraw your earnings" },
+type Slide = { first: string; second: string; text: string };
+
+/** The three slides: what selling on Vossie is, how an order moves, and what is yours to run. */
+export const SLIDES: readonly Slide[] = [
+  { first: "Your Store.", second: "Your Campus.", text: "List what you sell, take orders from students on your campus and withdraw your earnings." },
+  { first: "Orders In.", second: "Couriers Out.", text: "Accept an order, hand it over with a code, and a campus courier gets it to the student." },
+  { first: "Your Shop.", second: "Your Rules.", text: "Set your own hours, prices and offers. Verified students buy from you with confidence." },
 ];
 
-/** The story, in milliseconds from the moment the page opens. It plays once and then rests. */
-export const STORY = { awning: 300, sign: 1250, products: [1700, 2150, 2600], earnings: 3200, headline: 3600, button: 4500 } as const;
+const DWELL_MS = 4800;
+const DEEP = "#14292F";
+const TEAL = "#376371";
 
-/** A value that goes from 0 to 1 after `delay`, on a spring or an ease, and stays there. With Reduce Motion it is there at once. */
-function useBeat(delay: number, kind: "spring" | "ease" = "ease", duration = 420): SharedValue<number> {
-  const reduced = useReducedMotion();
-  const t = useSharedValue(reduced ? 1 : 0);
-  useEffect(() => {
-    if (reduced) return;
-    t.set(withDelay(delay, kind === "spring" ? withSpring(1, spring.bouncy) : withTiming(1, { duration, easing: Easing.out(Easing.cubic) })));
-  }, [delay, duration, kind, reduced, t]);
-  return t;
-}
-
-const PHOTO_H = 330;
-
-/** An order notice that slides up over the photo, like the ones the seller's phone will show. */
-function Notice({ amount, delay, icon, title }: { amount: string; delay: number; icon: IconName; title: string }) {
-  const t = useBeat(delay, "spring");
-  const style = useAnimatedStyle(() => ({ opacity: t.get(), transform: [{ translateY: (1 - t.get()) * 36 }, { scale: 0.94 + t.get() * 0.06 }] }));
+/** A glossy object on a podium, drawn in code: a shopping bag and card, a parcel, or a shop front. */
+function Hero({ index }: { index: number }) {
   return (
-    <Animated.View style={[styles.notice, style]}>
-      <View style={styles.noticeIcon}>
-        <Icon color="#38606F" name={icon} size={16} />
-      </View>
-      <View style={styles.flex}>
-        <RNText style={styles.noticeTitle}>{title}</RNText>
-        <RNText style={styles.noticeSub}>Vossie Marketplace · now</RNText>
-      </View>
-      <RNText style={styles.noticeAmount}>{amount}</RNText>
-    </Animated.View>
+    <Svg height={350} viewBox="0 0 300 290" width={362}>
+      <Defs>
+        <SvgGradient id="pod" x1="0" x2="1" y1="0" y2="1">
+          <Stop offset="0" stopColor="#4C7B89" />
+          <Stop offset="1" stopColor="#1E414B" />
+        </SvgGradient>
+        <SvgGradient id="obj" x1="0" x2="1" y1="0" y2="1">
+          <Stop offset="0" stopColor="#3C6C7B" />
+          <Stop offset="1" stopColor="#173540" />
+        </SvgGradient>
+        <SvgGradient id="card" x1="0" x2="1" y1="0" y2="1">
+          <Stop offset="0" stopColor="#E8EBEE" />
+          <Stop offset="1" stopColor="#8B9DA6" />
+        </SvgGradient>
+        <SvgGradient id="lid" x1="0" x2="1" y1="0" y2="0">
+          <Stop offset="0" stopColor="#5C8C9A" />
+          <Stop offset="1" stopColor="#2D5866" />
+        </SvgGradient>
+      </Defs>
+      <Ellipse cx={150} cy={262} fill="rgba(0,0,0,0.28)" rx={118} ry={20} />
+      <Rect fill="url(#pod)" height={34} rx={4} width={176} x={62} y={228} />
+      <Ellipse cx={150} cy={228} fill="#5B8795" rx={88} ry={20} />
+      <Ellipse cx={150} cy={226} fill="#3E6E7C" rx={74} ry={15} />
+
+      {index === 0 ? (
+        <G>
+          <G transform="rotate(-14 186 150)">
+            <Rect fill="url(#card)" height={86} rx={11} width={134} x={120} y={98} />
+            <Rect fill="#B9A06A" height={20} rx={4} width={26} x={134} y={120} />
+            <Rect fill="rgba(25,27,29,0.22)" height={5} rx={2} width={50} x={134} y={158} />
+            <Circle cx={232} cy={150} fill="rgba(25,27,29,0.28)" r={11} />
+            <Circle cx={244} cy={150} fill="rgba(25,27,29,0.18)" r={11} />
+          </G>
+          <Path d="M110 128 C110 92 190 92 190 128" fill="none" stroke="#DFE2DC" strokeLinecap="round" strokeWidth={7} />
+          <Path d="M82 128 H218 L228 224 Q228 232 220 232 H80 Q72 232 72 224 Z" fill="url(#obj)" />
+          <Path d="M82 128 H218 L220 142 H80 Z" fill="rgba(255,255,255,0.12)" />
+          <Circle cx={150} cy={184} fill="#DFE2DC" r={22} />
+          <SvgText fill={DEEP} fontSize={28} fontWeight="800" textAnchor="middle" x={150} y={194}>
+            V
+          </SvgText>
+        </G>
+      ) : null}
+
+      {index === 1 ? (
+        <G>
+          <Polygon fill="#2A5361" points="86,150 150,180 150,236 86,206" />
+          <Polygon fill="url(#obj)" points="150,180 214,150 214,206 150,236" />
+          <Polygon fill="url(#lid)" points="86,150 150,120 214,150 150,180" />
+          <Polygon fill="#DFE2DC" points="136,126 164,114 192,128 164,140" opacity={0.9} />
+          <Polygon fill="rgba(223,226,220,0.55)" points="150,180 150,236 160,232 160,176" />
+          <Circle cx={196} cy={112} fill="#DFE2DC" r={26} />
+          <Path d="M184 112 L193 121 L209 103" fill="none" stroke={DEEP} strokeLinecap="round" strokeLinejoin="round" strokeWidth={7} />
+        </G>
+      ) : null}
+
+      {index === 2 ? (
+        <G>
+          <Rect fill="url(#obj)" height={78} rx={6} width={150} x={75} y={152} />
+          <Rect fill="#DFE2DC" height={42} rx={4} width={48} x={90} y={176} />
+          <Rect fill="rgba(25,27,29,0.35)" height={52} rx={4} width={34} x={160} y={178} />
+          <Rect fill="rgba(223,226,220,0.35)" height={34} rx={3} width={22} x={196} y={178} />
+          <Path d="M66 154 L84 104 H216 L234 154 Z" fill="#DFE2DC" />
+          <Path d="M84 104 H104 L98 154 H66 Z M126 104 H146 L146 154 H122 Z M170 104 H190 L194 154 H170 Z" fill="#8B9DA6" />
+          <Path d="M66 154 Q80 170 94 154 Q108 170 122 154 Q136 170 150 154 Q164 170 178 154 Q192 170 206 154 Q220 170 234 154 Z" fill="#586879" />
+          <Rect fill={DEEP} height={22} rx={5} width={86} x={107} y={78} />
+          <SvgText fill="#DFE2DC" fontSize={13} fontWeight="800" textAnchor="middle" x={150} y={93}>
+            OPEN
+          </SvgText>
+        </G>
+      ) : null}
+    </Svg>
   );
 }
 
-/** A real shop front, lit up for opening: the photo comes in dim, the light comes on, the OPEN sign glows, then orders and earnings arrive over it. */
-function ShopStory() {
-  const reduced = useReducedMotion();
-  const body = useBeat(0, "ease", 600);
-  const light = useBeat(STORY.awning, "ease", 900);
-  const open = useBeat(STORY.sign, "ease", 500);
-  const zoom = useSharedValue(1);
-  useEffect(() => {
-    if (reduced) return;
-    zoom.set(withTiming(1.1, { duration: 6000, easing: Easing.out(Easing.cubic) }));
-  }, [reduced, zoom]);
-  const style = useAnimatedStyle(() => ({ opacity: body.get(), transform: [{ translateY: (1 - body.get()) * 26 }] }));
-  const photo = useAnimatedStyle(() => ({ transform: [{ scale: zoom.get() }] }));
-  const dim = useAnimatedStyle(() => ({ opacity: 0.6 * (1 - light.get()) }));
-  const glow = useAnimatedStyle(() => ({ opacity: light.get() * 0.55 }));
-  const sign = useAnimatedStyle(() => ({ opacity: open.get(), transform: [{ scale: 0.85 + open.get() * 0.15 }] }));
-  return (
-    <View style={styles.scene} testID="welcome-story">
-      <Animated.View style={[styles.hero, style]}>
-        <Animated.View style={[StyleSheet.absoluteFill, photo]}>
-          <Image accessibilityLabel="A shop front" contentFit="cover" source={require("../../../assets/welcome/shop.jpg")} style={StyleSheet.absoluteFill} />
-        </Animated.View>
-        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.dim, dim]} />
-        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, glow]}>
-          <LinearGradient colors={["rgba(255,214,140,0)", "rgba(255,200,110,0.5)"]} style={StyleSheet.absoluteFill} />
-        </Animated.View>
-        <LinearGradient colors={["rgba(8,18,24,0.25)", "rgba(8,18,24,0)", "rgba(8,18,24,0.7)"]} locations={[0, 0.4, 1]} pointerEvents="none" style={StyleSheet.absoluteFill} />
-        <Animated.View style={[styles.neon, sign]}>
-          <RNText style={styles.neonText}>OPEN</RNText>
-        </Animated.View>
-        <Earnings />
-        <View style={styles.feed}>
-          <Notice amount="R 280" delay={STORY.products[0]} icon="shopping-bag" title="New order · Casio calculator" />
-          <Notice amount="R 340" delay={STORY.products[1]} icon="package" title="New order · Programming book" />
-        </View>
-      </Animated.View>
-    </View>
-  );
-}
-
-
-
-/** "This week R 1 245", counting up once the shop is open. */
-function Earnings() {
-  const t = useBeat(STORY.earnings, "spring");
-  const reduced = useReducedMotion();
-  const [counting, setCounting] = useState(Boolean(reduced));
-  useEffect(() => {
-    if (reduced) return;
-    const timer = setTimeout(() => setCounting(true), STORY.earnings + 150);
-    return () => clearTimeout(timer);
-  }, [reduced]);
-  const shown = useCountUp(counting ? 1245 : 0, 900);
-  const style = useAnimatedStyle(() => ({ opacity: t.get(), transform: [{ translateY: (1 - t.get()) * -18 }, { scale: 0.85 + t.get() * 0.15 }] }));
-  return (
-    <Animated.View style={[styles.earnings, style]} testID="welcome-earnings">
-      <LinearGradient colors={["#FFE9A3", "#E3B53F"]} style={styles.coin}>
-        <Icon color="#7A4F00" name="dollar-sign" size={14} />
-      </LinearGradient>
-      <View>
-        <Text style={styles.earnLabel}>This week</Text>
-        <Text style={styles.earnValue}>R {String(shown).replace(/\B(?=(\d{3})+(?!\d))/g, " ")}</Text>
-      </View>
-    </Animated.View>
-  );
-}
-
-/** The first seller page: a small shop builds itself, then "Welcome. Let's set up your shop." and the button that starts the setup. */
+/** The seller's first page: three short slides in the Vossie teal, then the button that starts the setup. */
 export function SellerWelcomeScreen() {
   const router = useRouter();
   const dispatch = useSellerDispatch();
+  const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();
-  const pulse = useSharedValue(0);
+  const [index, setIndex] = useState(0);
+  const float = useSharedValue(0);
+  const fill = useSharedValue(0);
+
   useEffect(() => {
     if (reduced) return;
-    // two gentle pulses once the button is in, then it rests
-    pulse.set(withDelay(STORY.button + 500, withRepeat(withSequence(withTiming(1, { duration: 700, easing: Easing.inOut(Easing.sin) }), withTiming(0, { duration: 700, easing: Easing.inOut(Easing.sin) })), 2)));
-  }, [pulse, reduced]);
-  const breathe = useAnimatedStyle(() => ({ transform: [{ scale: 1 + pulse.get() * 0.035 }] }));
+    float.set(withRepeat(withSequence(withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.sin) }), withTiming(0, { duration: 2600, easing: Easing.inOut(Easing.sin) })), -1));
+  }, [float, reduced]);
+
+  // each slide fills its bar, then the next one comes in; the last one rests
+  useEffect(() => {
+    fill.set(0);
+    if (reduced) {
+      fill.set(1);
+      return;
+    }
+    fill.set(withTiming(1, { duration: DWELL_MS, easing: Easing.linear }));
+    if (index >= SLIDES.length - 1) return;
+    const timer = setTimeout(() => setIndex((current) => Math.min(current + 1, SLIDES.length - 1)), DWELL_MS);
+    return () => clearTimeout(timer);
+  }, [fill, index, reduced]);
+
+  const bob = useAnimatedStyle(() => ({ transform: [{ translateY: -float.get() * 10 }, { rotate: `${(float.get() - 0.5) * 2}deg` }] }));
+  const bar = useAnimatedStyle(() => ({ width: `${fill.get() * 100}%` }));
+  const slide = SLIDES[index]!;
+
+  const start = () => {
+    dispatch({ type: "sellerStart" });
+    router.push("/seller-setup/type" as Href);
+  };
 
   return (
-    <SellerScreen tabs={false} testID="seller-welcome">
-      <SellerHeader />
-      <View style={styles.body}>
-        <ShopStory />
-        <Animated.View entering={reduced ? undefined : FadeInDown.delay(STORY.headline).duration(520)}>
-          <Text accessibilityRole="header" style={styles.title}>
-            Welcome.
-          </Text>
-          <Text style={styles.title}>Let&apos;s set up your shop.</Text>
-        </Animated.View>
-        <View style={styles.benefits}>
-          {BENEFITS.map((item, index) => (
-            <Animated.View entering={reduced ? undefined : FadeInLeft.delay(STORY.headline + 300 + index * 160).duration(420)} key={item.text} style={styles.benefit}>
-              <View style={styles.benefitIcon}>
-                <Icon color="#38606F" name={item.icon} size={18} />
-              </View>
-              <Text style={styles.benefitText}>{item.text}</Text>
-            </Animated.View>
+    <View style={styles.page} testID="seller-welcome">
+      <LinearGradient colors={["#274E5B", TEAL, DEEP]} locations={[0, 0.35, 1]} pointerEvents="none" style={StyleSheet.absoluteFill} />
+      <View style={[styles.top, { paddingTop: insets.top + 14 }]}>
+        <Text style={styles.count}>{`0${index + 1} / 0${SLIDES.length}`}</Text>
+        <View style={styles.bars}>
+          {SLIDES.map((item, position) => (
+            <Pressable accessibilityLabel={`Show slide ${position + 1} of ${SLIDES.length}`} accessibilityRole="button" hitSlop={10} key={item.first} onPress={() => setIndex(position)} style={styles.barTrack}>
+              {position < index ? <View style={[styles.barFill, { width: "100%" }]} /> : position === index ? <Animated.View style={[styles.barFill, bar]} /> : null}
+            </Pressable>
           ))}
         </View>
+        <Pressable accessibilityLabel="Skip to the last slide" accessibilityRole="button" hitSlop={10} onPress={() => setIndex(SLIDES.length - 1)}>
+          <Text style={styles.skip}>Skip</Text>
+        </Pressable>
       </View>
-      <Animated.View entering={reduced ? undefined : FadeInDown.delay(STORY.button).duration(420)} style={[styles.footer, breathe]}>
-        <SellerButton
-          label="Set up my shop"
-          onPress={() => {
-            dispatch({ type: "sellerStart" });
-            router.push("/seller-setup/type" as Href);
-          }}
-          size="lg"
-          testID="seller-start"
-          variant="glass"
-        />
-        <SellerButton
-          label="Not now, back to buying"
+
+      <View style={styles.copy}>
+        <Text style={styles.eyebrow}>Seller mode</Text>
+        <Animated.View entering={reduced ? undefined : FadeInDown.duration(480)} key={`t-${index}`}>
+          <Text accessibilityRole="header" style={styles.first}>
+            {slide.first}
+          </Text>
+          <Text style={styles.second}>{slide.second}</Text>
+          <Text style={styles.text}>{slide.text}</Text>
+        </Animated.View>
+      </View>
+
+      <Animated.View entering={reduced ? undefined : FadeIn.duration(500)} key={`h-${index}`} style={[styles.hero, bob]} testID="welcome-story">
+        <Hero index={index} />
+      </Animated.View>
+
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 14) + 8 }]}>
+        <Pressable accessibilityLabel="Set up my shop" accessibilityRole="button" onPress={start} style={({ pressed }) => [styles.cta, pressed && styles.pressed]} testID="seller-start">
+          <Text style={styles.ctaText}>Set up my shop</Text>
+          <Icon color={color.charcoal} name="arrow-right" size={20} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          hitSlop={10}
           onPress={() => {
             dispatch({ role: "buyer", type: "switchRole" });
             router.replace("/home" as Href);
           }}
-          size="sm"
-          style={styles.later}
-          variant="glass"
-        />
-      </Animated.View>
-    </SellerScreen>
+        >
+          <Text style={styles.later}>Not now, back to buying</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  dim: { backgroundColor: "#0A141A" },
-  earnings: { alignItems: "center", backgroundColor: "rgba(238,243,246,0.94)", borderRadius: 18, flexDirection: "row", gap: 8, paddingHorizontal: 12, paddingVertical: 8, position: "absolute", right: 12, top: 12 },
-  feed: { bottom: 12, gap: 8, left: 12, position: "absolute", right: 12 },
-  flex: { flex: 1 },
-  hero: { borderRadius: 26, boxShadow: "0 18px 30px rgba(8,18,24,0.45)", height: PHOTO_H, overflow: "hidden", width: "100%" },
-  neon: { alignItems: "center", borderColor: "#FFD9A0", borderRadius: 7, borderWidth: 2, boxShadow: "0 0 14px rgba(255,170,90,0.9)", left: 14, paddingHorizontal: 10, paddingVertical: 2, position: "absolute", top: 14 },
-  neonText: { color: "#FFE7C2", fontSize: 14, fontWeight: "900", letterSpacing: 3, textShadowColor: "rgba(255,160,80,1)", textShadowOffset: { height: 0, width: 0 }, textShadowRadius: 8 },
-  notice: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.93)", borderRadius: 16, flexDirection: "row", gap: 10, paddingHorizontal: 10, paddingVertical: 8 },
-  noticeAmount: { color: "#1E7A4A", fontSize: 14, fontWeight: "800" },
-  noticeIcon: { alignItems: "center", backgroundColor: "#E3EDF1", borderRadius: 16, height: 32, justifyContent: "center", width: 32 },
-  noticeSub: { color: "#6B7A82", fontSize: 11 },
-  noticeTitle: { color: "#1E2B33", fontSize: 13, fontWeight: "700" },
-  benefit: { alignItems: "center", flexDirection: "row", gap: 12 },
-  benefitIcon: { alignItems: "center", backgroundColor: "#FFFFFF", borderRadius: 18, height: 36, justifyContent: "center", width: 36 },
-  benefitText: { color: "#FFFFFF", fontSize: 15, fontWeight: "600" },
-  benefits: { gap: 10, marginTop: 18 },
-  body: { flex: 1, justifyContent: "center", paddingTop: 8 },
-  coin: { alignItems: "center", borderRadius: 15, height: 30, justifyContent: "center", width: 30 },
-  earnLabel: { color: "#5F6E76", fontSize: 11, fontWeight: "600" },
-  earnValue: { color: "#1E2B33", fontSize: 17, fontWeight: "800" },
-  footer: { gap: 10, paddingBottom: 24, paddingTop: 20 },
-  later: { alignSelf: "center" },
-  scene: { marginBottom: 26 },
-  title: { color: "#FFFFFF", fontSize: 32, fontWeight: "800", letterSpacing: -0.5, lineHeight: 38 },
+  barFill: { backgroundColor: color.sage, borderRadius: 2, height: 4 },
+  barTrack: { backgroundColor: "rgba(223,226,220,0.25)", borderRadius: 2, flex: 1, height: 4, overflow: "hidden" },
+  bars: { flex: 1, flexDirection: "row", gap: 6 },
+  copy: { paddingHorizontal: 28, paddingTop: 34 },
+  count: { color: "#FFFFFF", fontSize: 14, fontWeight: "600" },
+  cta: { alignItems: "center", backgroundColor: "#F4F5F2", borderRadius: 30, flexDirection: "row", gap: 10, height: 60, justifyContent: "center", width: "100%" },
+  ctaText: { color: color.charcoal, fontSize: 17, fontWeight: "700" },
+  eyebrow: { color: color.steelGrey, fontSize: 13, fontWeight: "700", letterSpacing: 1.2, marginBottom: 10, textTransform: "uppercase" },
+  first: { color: "#FFFFFF", fontSize: 40, fontWeight: "800", letterSpacing: -1, lineHeight: 46 },
+  footer: { alignItems: "center", gap: 14, paddingHorizontal: 24 },
+  hero: { alignItems: "center", flex: 1, justifyContent: "center" },
+  later: { color: "rgba(255,255,255,0.78)", fontSize: 14, fontWeight: "600" },
+  page: { backgroundColor: DEEP, flex: 1 },
+  pressed: { opacity: 0.85, transform: [{ scale: 0.985 }] },
+  second: { color: color.sage, fontSize: 40, fontWeight: "800", letterSpacing: -1, lineHeight: 46 },
+  skip: { color: "#FFFFFF", fontSize: 14, fontWeight: "600" },
+  text: { color: "rgba(255,255,255,0.86)", fontSize: 16, lineHeight: 23, marginTop: 14, maxWidth: 340 },
+  top: { alignItems: "center", flexDirection: "row", gap: 14, paddingHorizontal: 24 },
 });
