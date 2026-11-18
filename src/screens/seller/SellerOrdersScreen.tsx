@@ -6,7 +6,9 @@ import Animated, { FadeInDown, FadeOutRight, LinearTransition, SlideInUp } from 
 import { Button, Icon, Sheet, useToast } from "@/components";
 import { formatRand } from "@/data/format";
 import { LIMITS } from "@/seller/plan";
+import { orderProgress } from "@/seller/homeData";
 import { earlierOrders, ordersInGroup, type OrderGroup } from "@/seller/selectors";
+import { color } from "@/theme/tokens";
 import type { SellerOrder } from "@/seller/types";
 
 import { useSeller } from "./hooks";
@@ -14,7 +16,8 @@ import { Chips } from "./parts";
 import { useShake } from "./motion";
 import { DeclineSheet, orderTitle, OrderThumb, STATUS_PILL, whenLabel } from "./OrderParts";
 import { UpgradeSheet } from "./SellerReelsScreens";
-import { Pill, SELLER, SellerButton, SellerCard, SellerHeader, SellerScreen, SellerWell, Text } from "./ui";
+import { ProgressBar, ScreenHead, StatCards } from "./HomeParts";
+import { Pill, SELLER, SellerButton, SellerCard, SellerScreen, Text } from "./ui";
 
 const CHIPS: { key: OrderGroup; label: string }[] = [
   { key: "new", label: "New" },
@@ -49,10 +52,14 @@ export function SellerOrdersScreen() {
 
   return (
     <SellerScreen tone="white" testID="seller-orders">
-      <SellerHeader />
-      <Text accessibilityRole="header" style={styles.title}>
-        Orders
-      </Text>
+      <ScreenHead subtitle={view.counts.new > 0 ? `${view.counts.new} waiting for you` : "Nothing waiting for you"} title="Orders" />
+      <StatCards
+        items={[
+          { label: "New", onPress: () => setGroup("new"), testID: "stat-new", tone: "dark", value: view.counts.new },
+          { label: "In progress", onPress: () => setGroup("preparing"), testID: "stat-progress", tone: "sage", value: view.counts.accepted + view.counts.preparing },
+          { label: "Ready", onPress: () => setGroup("ready"), testID: "stat-ready", tone: "grey", value: view.counts.ready },
+        ]}
+      />
       <Chips
         items={CHIPS.map((chip) => ({ count: chip.key === "done" || chip.key === "cancelled" ? 0 : view.counts[chip.key], key: chip.key, label: chip.label }))}
         onChange={setGroup}
@@ -60,15 +67,15 @@ export function SellerOrdersScreen() {
       />
 
       {tools.orderSearch ? (
-        <SellerWell style={styles.search}>
-          <Icon color={SELLER.inkSoft} name="search" size={18} />
+        <View style={styles.search}>
+          <Icon color={color.slate} name="search" size={18} />
           <TextInput accessibilityLabel="Search orders" autoCorrect={false} onChangeText={setQuery} placeholder="Search by order, buyer or item" placeholderTextColor="#8A99A1" style={styles.searchInput} testID="order-search" value={query} />
           {query ? (
             <Pressable accessibilityLabel="Clear search" accessibilityRole="button" hitSlop={8} onPress={() => setQuery("")}>
               <Icon color={SELLER.inkSoft} name="x" size={18} />
             </Pressable>
           ) : null}
-        </SellerWell>
+        </View>
       ) : (
         <SellerCard onPress={() => setLocked(true)} style={styles.lockedSearch} testID="order-search-locked">
           <Icon color={SELLER.inkSoft} name="search" size={18} />
@@ -177,6 +184,15 @@ function OrderCard({ canAct, fresh, onDecline, order, repeat }: { order: SellerO
           <Text style={styles.price}>{formatRand(order.totalCents, { fixed: true })}</Text>
         </View>
 
+        {order.status === "new" || order.status === "accepted" || order.status === "preparing" || order.status === "ready" ? (
+          <View style={styles.progress} testID={`progress-${order.id}`}>
+            <View style={styles.progressRow}>
+              <Text style={styles.cardHint}>Progress</Text>
+              <Text style={styles.progressPercent}>{orderProgress(order.status)}%</Text>
+            </View>
+            <ProgressBar percent={orderProgress(order.status)} />
+          </View>
+        ) : null}
         {order.status === "new" ? (
           <View style={styles.buttons}>
             <View style={styles.button}>
@@ -229,12 +245,15 @@ const styles = StyleSheet.create({
   confirmText: { color: SELLER.inkSoft, fontSize: 14, lineHeight: 20 },
   lockedSearch: { alignItems: "center", flexDirection: "row", gap: 10, marginTop: 8, paddingVertical: 12 },
   pills: { flexDirection: "row", flexWrap: "wrap", flex: 1, gap: 6 },
-  search: { alignItems: "center", flexDirection: "row", gap: 8, marginTop: 8, minHeight: 48, paddingHorizontal: 14 },
+  progress: { gap: 6 },
+  progressPercent: { color: SELLER.ink, fontSize: 13, fontWeight: "800" },
+  progressRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
+  search: { alignItems: "center", backgroundColor: color.cloudGrey, borderRadius: 16, flexDirection: "row", gap: 8, marginTop: 8, minHeight: 48, paddingHorizontal: 14 },
   searchInput: { color: SELLER.ink, flex: 1, fontSize: 15, paddingVertical: 8 },
   buttons: { flexDirection: "row", gap: 12, marginTop: 12 },
   card: { gap: 10 },
   cardBody: { alignItems: "center", flexDirection: "row", gap: 12 },
-  cardFresh: { borderColor: "#FFE14A", borderWidth: 2 },
+  cardFresh: { borderColor: color.accent, borderWidth: 2 },
   cardHint: { color: SELLER.inkSoft, fontSize: 13 },
   cardText: { flex: 1, gap: 1 },
   cardTitle: { color: SELLER.ink, fontSize: 16, fontWeight: "800" },

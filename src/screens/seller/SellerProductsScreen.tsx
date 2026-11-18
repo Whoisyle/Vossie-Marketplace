@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
 
 import { ArtTile, hasArt } from "@/components/art/ProductArt";
@@ -10,11 +10,13 @@ import { formatRand } from "@/data/format";
 import { LIMITS } from "@/seller/plan";
 import { isLowStock, productCount } from "@/seller/selectors";
 import type { SellerListing, SellerListingStatus } from "@/seller/types";
+import { color } from "@/theme/tokens";
 
+import { ProgressBar, ScreenHead, StatCards } from "./HomeParts";
 import { useSeller } from "./hooks";
 import { Chips } from "./parts";
 import { ReelsPanel, UpgradeSheet } from "./SellerReelsScreens";
-import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerHeader, SellerScreen, Text } from "./ui";
+import { Pill, type PillTone, SELLER, SellerButton, SellerCard, SellerScreen, Text } from "./ui";
 import { RestockSheet } from "./RestockSheet";
 
 type Filter = "all" | "active" | "low" | "paused" | "draft" | "archived";
@@ -60,18 +62,18 @@ export function SellerProductsScreen() {
 
   return (
     <SellerScreen tone="white" testID="seller-listings">
-      <SellerHeader />
-      <View style={styles.titleRow}>
-        <View>
-          <Text accessibilityRole="header" style={styles.title}>
-            Products
-          </Text>
-          <Text style={styles.sub}>
-            {view.seller.listings.length} listed · {lowCount} low stock
-          </Text>
-        </View>
-        <SellerButton icon="plus" label="Add product" onPress={() => (productCount(view.seller.listings) >= LIMITS[view.plan].products ? setUpgrade(true) : router.push("/seller/products/new" as Href))} size="sm" testID="add-listing" variant="light" />
-      </View>
+      <ScreenHead
+        right={<SellerButton icon="plus" label="Add product" onPress={() => (productCount(view.seller.listings) >= LIMITS[view.plan].products ? setUpgrade(true) : router.push("/seller/products/new" as Href))} size="sm" testID="add-listing" variant="solid" />}
+        subtitle={`${view.seller.listings.length} listed · ${lowCount} low stock`}
+        title="Products"
+      />
+      <StatCards
+        items={[
+          { label: "Live", onPress: () => setFilter("active"), testID: "stat-live", tone: "dark", value: view.seller.listings.filter((item) => item.status === "published").length },
+          { label: "Low stock", onPress: () => setFilter("low"), testID: "stat-low", tone: "sage", value: lowCount },
+          { label: "Drafts", onPress: () => setFilter("draft"), testID: "stat-drafts", tone: "grey", value: view.seller.listings.filter((item) => item.status === "draft" || item.status === "under-review").length },
+        ]}
+      />
       <Chips items={[{ count: view.seller.listings.length, key: "products", label: "Products" }, { count: view.seller.reels.length, key: "reels", label: "Reels" }]} onChange={setTab} prefix="view" value={tab} />
       {tab === "reels" ? (
         <ReelsPanel />
@@ -92,26 +94,36 @@ export function SellerProductsScreen() {
           <Text style={styles.hint}>Add something to sell and it shows up for students on your campus.</Text>
         </SellerCard>
       ) : (
-        <View style={styles.list}>
+        <View style={styles.grid} testID="product-grid">
           {shown.map((listing, index) => {
             const look = STATUS[listing.status];
             const low = isLowStock(listing);
             return (
-              <Animated.View entering={FadeInDown.delay(Math.min(index, 6) * 50).duration(340)} key={listing.id} layout={LinearTransition.springify().damping(20)}>
-                <SellerCard onPress={() => router.push(`/seller/products/${listing.id}` as Href)} style={styles.card} testID={`listing-${listing.id}`}>
-                  <View style={styles.thumb}>{listing.photos[0] ? <Image contentFit="cover" source={{ uri: listing.photos[0] }} style={StyleSheet.absoluteFill} /> : listing.artId && hasArt(listing.artId) ? <ArtTile id={listing.artId} inset={0.06} /> : <Icon color="#FFFFFF" name="package" size={24} />}</View>
-                  <View style={styles.cardText}>
+              <Animated.View entering={FadeInDown.delay(Math.min(index, 6) * 50).duration(340)} key={listing.id} layout={LinearTransition.springify().damping(20)} style={styles.cell}>
+                <SellerCard style={styles.tile}>
+                  <Pressable accessibilityRole="button" onPress={() => router.push(`/seller/products/${listing.id}` as Href)} style={styles.tileTop} testID={`listing-${listing.id}`}>
+                    <View style={styles.thumb}>
+                      {listing.photos[0] ? <Image contentFit="cover" source={{ uri: listing.photos[0] }} style={StyleSheet.absoluteFill} /> : listing.artId && hasArt(listing.artId) ? <ArtTile id={listing.artId} inset={0.06} /> : <Icon color="#FFFFFF" name="package" size={26} />}
+                      <View style={styles.floatPill}>
+                        <Pill label={look.label} tone={look.tone} />
+                      </View>
+                    </View>
                     <Text numberOfLines={1} style={styles.cardTitle}>
                       {listing.title}
                     </Text>
-                    <Text style={styles.hint}>
-                      {formatRand(listing.priceCents, { fixed: true })} · {listing.unlimited ? "No limit" : `${listing.onHand} in stock`}
-                    </Text>
-                    <View style={styles.pills}>
-                      <Pill label={look.label} tone={look.tone} />
-                      {low ? <Pill label={listing.onHand === 0 ? "Sold out" : "Low stock"} tone="danger" /> : null}
-                    </View>
-                  </View>
+                    <Text style={styles.price}>{formatRand(listing.priceCents, { fixed: true })}</Text>
+                    {listing.unlimited ? (
+                      <Text style={styles.hint}>No stock limit</Text>
+                    ) : (
+                      <View style={styles.stock} testID={`stock-${listing.id}`}>
+                        <View style={styles.stockRow}>
+                          <Text style={styles.hint}>{listing.onHand === 0 ? "Sold out" : `${listing.onHand} in stock`}</Text>
+                          {low ? <Text style={styles.lowText}>Low</Text> : null}
+                        </View>
+                        <ProgressBar fillColor={low ? "#E58A2B" : undefined} percent={Math.min(100, listing.onHand * 8)} />
+                      </View>
+                    )}
+                  </Pressable>
                   <View style={styles.actions}>
                     {!listing.unlimited ? <SellerButton label="Restock" onPress={() => setRestock(listing.id)} size="sm" testID={`restock-${listing.id}`} variant="outline" /> : null}
                     {listing.status === "published" || listing.status === "paused" ? (
@@ -133,7 +145,16 @@ export function SellerProductsScreen() {
 }
 
 const styles = StyleSheet.create({
-  actions: { gap: 8 },
+  actions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },
+  cell: { flexBasis: "47.5%", flexGrow: 1 },
+  floatPill: { left: 8, position: "absolute", top: 8 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginTop: 14 },
+  lowText: { color: "#C26A12", fontSize: 12, fontWeight: "800" },
+  price: { color: SELLER.solid, fontSize: 15, fontWeight: "800" },
+  stock: { gap: 5, marginTop: 2 },
+  stockRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
+  tile: { padding: 10 },
+  tileTop: { gap: 4 },
   card: { alignItems: "center", flexDirection: "row", gap: 12 },
   cardText: { flex: 1, gap: 3 },
   cardTitle: { color: SELLER.ink, fontSize: 16, fontWeight: "800" },
@@ -147,9 +168,9 @@ const styles = StyleSheet.create({
   hint: { color: SELLER.inkSoft, fontSize: 13 },
   list: { gap: 12, marginTop: 14 },
   pills: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  thumb: { alignItems: "center", backgroundColor: "#7FA3B2", borderRadius: 14, height: 64, justifyContent: "center", overflow: "hidden", width: 64 },
+  thumb: { alignItems: "center", backgroundColor: "#7FA3B2", borderRadius: 14, height: 110, justifyContent: "center", overflow: "hidden", width: "100%" },
   inventory: { alignSelf: "flex-start", marginTop: 8 },
-  search: { alignItems: "center", backgroundColor: "rgba(232,240,243,0.96)", borderRadius: 16, flexDirection: "row", gap: 8, minHeight: 48, paddingHorizontal: 14 },
+  search: { alignItems: "center", backgroundColor: color.cloudGrey, borderRadius: 16, marginTop: 8, flexDirection: "row", gap: 8, minHeight: 48, paddingHorizontal: 14 },
   searchInput: { color: SELLER.ink, flex: 1, fontSize: 15, paddingVertical: 8 },
   sub: { color: "rgba(255,255,255,0.85)", fontSize: 14 },
   title: { color: "#FFFFFF", fontSize: 28, fontWeight: "800" },

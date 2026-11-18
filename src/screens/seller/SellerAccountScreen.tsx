@@ -1,12 +1,14 @@
-import { Image } from "expo-image";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Icon, type IconName } from "@/components";
 import { uprightWidth } from "@/components/StudentCard";
-import { formatRand, initials } from "@/data/format";
+import { collectionsOf, teamPeople } from "@/seller/homeData";
+import { averageRating } from "@/seller/state";
+import { color } from "@/theme/tokens";
+import { formatRand } from "@/data/format";
 import { getCampusName } from "@/data/repository";
 import { StudentCardFlip } from "@/screens/account/CardBacks";
 import { walletCardWidth } from "@/screens/account/WalletCards";
@@ -16,7 +18,9 @@ import { FEE_PERCENT, PLAN_NAMES } from "@/seller/plan";
 import { storeStatus } from "@/seller/schedule";
 
 import { useSeller } from "./hooks";
-import { Pill, SELLER, SellerButton, SellerCard, SellerHeader, SellerHeading, SellerScreen, Text } from "./ui";
+import { Avatar, ScreenHead, SectionTitle } from "./HomeParts";
+import { SELLER, SellerButton, SellerCard, SellerHeading, SellerScreen, Text } from "./ui";
+import { ProfileHeader } from "./AccountParts";
 
 /** Seller Account: the store as buyers see it, the documents and the bank account behind it, and the way back to buying. */
 export function SellerAccountScreen() {
@@ -27,14 +31,66 @@ export function SellerAccountScreen() {
   const profile = view.seller.profile;
   const go = (path: string) => router.push(path as Href);
   const [now] = useState(() => Date.now());
+  const collections = collectionsOf(view.seller.listings);
+  const team = teamPeople(view.seller);
   return (
     <SellerScreen tone="white" testID="seller-account">
-      <SellerHeader />
-      <Text accessibilityRole="header" style={styles.title}>
-        Account
-      </Text>
+      <ScreenHead subtitle="Your store, your people and your settings" title="Account" />
 
-      <Animated.View entering={FadeInDown.duration(380)} style={styles.cardGap} testID="seller-student-card">
+      <ProfileHeader
+        banner={profile.bannerUri}
+        logo={profile.logoUri}
+        name={view.storeName}
+        place={profile.place ? profile.place.name : profile.location || "Add a collection location"}
+        stats={[
+          { label: "Orders", value: String(view.seller.orders.filter((item) => item.status !== "declined" && item.status !== "cancelled").length) },
+          { label: "Rating", value: averageRating(view.seller.reviewCounts).toFixed(1) },
+          { label: "Products", value: String(view.listingsActive) },
+        ]}
+        verified={view.canTrade}
+      />
+
+      {collections.length > 0 ? (
+        <>
+          <SectionTitle action="Products" onAction={() => go("/seller/products")} title="Collections" />
+          <ScrollView contentContainerStyle={styles.collections} horizontal showsHorizontalScrollIndicator={false} style={styles.collectionsScroll} testID="collections">
+            {collections.map((item) => (
+              <Pressable accessibilityLabel={`${item.label}, ${item.count} products`} accessibilityRole="button" key={item.key} onPress={() => go("/seller/products")} style={({ pressed }) => [styles.collection, pressed && styles.pressed]}>
+                <View style={styles.collectionIcon}>
+                  <Icon color={color.accent} name={item.key === "food" ? "coffee" : item.key === "books" ? "book-open" : item.key === "electronics" ? "cpu" : item.key === "fashion" ? "shopping-bag" : "tool"} size={20} />
+                </View>
+                <View>
+                  <Text style={styles.rowTitle}>{item.label}</Text>
+                  <Text style={styles.hint}>
+                    {item.count} {item.count === 1 ? "product" : "products"}
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </>
+      ) : null}
+
+      <SectionTitle action="View all" onAction={() => go("/seller/account/team")} title="My team" />
+      <View style={styles.list} testID="team-list">
+        {team.map((person, index) => (
+          <Animated.View entering={FadeInDown.delay(80 + index * 50).duration(340)} key={person.id}>
+            <SellerCard onPress={() => go("/seller/account/team")} style={styles.row} testID={`team-${person.id}`}>
+              <Avatar name={person.name} />
+              <View style={styles.storeText}>
+                <Text style={styles.rowTitle}>{person.name}</Text>
+                <Text numberOfLines={1} style={styles.hint}>
+                  {person.role} · {person.detail}
+                </Text>
+              </View>
+              <Icon color={SELLER.inkSoft} name="chevron-right" size={18} />
+            </SellerCard>
+          </Animated.View>
+        ))}
+      </View>
+
+      <SectionTitle title="Your student card" />
+      <Animated.View entering={FadeInDown.delay(60).duration(380)} style={styles.cardGap} testID="seller-student-card">
         <StudentCardFlip
           campusName={getCampusName(state.profile?.campusId ?? "potchefstroom")}
           name={state.profile?.fullName ?? ""}
@@ -42,22 +98,6 @@ export function SellerAccountScreen() {
           verified={state.profile?.isVerifiedStudent ?? false}
           width={uprightWidth(walletCardWidth(width))}
         />
-      </Animated.View>
-
-      <Animated.View entering={FadeInDown.delay(60).duration(380)}>
-        <SellerCard style={styles.storeCol} testID="store-card">
-          {profile.bannerUri ? <Image accessibilityLabel="Store banner" contentFit="cover" source={{ uri: profile.bannerUri }} style={styles.cardBanner} /> : null}
-          <View style={styles.store}>
-            <View style={styles.logo}>
-              {profile.logoUri ? <Image accessibilityLabel="Store logo" contentFit="cover" source={{ uri: profile.logoUri }} style={StyleSheet.absoluteFill} /> : <Text style={styles.logoText}>{initials(profile.storeName || "Store")}</Text>}
-            </View>
-            <View style={styles.storeText}>
-              <Text style={styles.name}>{view.storeName}</Text>
-              <Text style={styles.hint}>{profile.location || "Add a collection location"}</Text>
-              <Pill label={view.canTrade ? "Verified seller" : "In review"} tone={view.canTrade ? "success" : "warn"} />
-            </View>
-          </View>
-        </SellerCard>
       </Animated.View>
 
       <SellerHeading>Your shop</SellerHeading>
@@ -127,7 +167,7 @@ function Row({ delay, hint, icon, label, onPress, testID }: { icon: IconName; la
     <Animated.View entering={FadeInDown.delay(delay).duration(340)}>
       <SellerCard onPress={onPress} style={styles.row} testID={testID}>
         <View style={styles.rowIcon}>
-          <Icon color={SELLER.solid} name={icon} size={20} />
+          <Icon color={color.accent} name={icon} size={20} />
         </View>
         <View style={styles.storeText}>
           <Text style={styles.rowTitle}>{label}</Text>
@@ -148,7 +188,12 @@ const styles = StyleSheet.create({
   logoText: { color: "#5F6E76", fontSize: 24, fontWeight: "700" },
   name: { color: SELLER.ink, fontSize: 20, fontWeight: "800" },
   row: { alignItems: "center", flexDirection: "row", gap: 12 },
-  rowIcon: { alignItems: "center", backgroundColor: "#E3ECEF", borderRadius: 14, height: 42, justifyContent: "center", width: 42 },
+  collection: { alignItems: "center", backgroundColor: color.sage, borderRadius: 18, flexDirection: "row", gap: 10, paddingHorizontal: 14, paddingVertical: 12 },
+  collectionIcon: { alignItems: "center", backgroundColor: "#FFFFFF", borderRadius: 12, height: 40, justifyContent: "center", width: 40 },
+  collections: { gap: 10, paddingHorizontal: 20, paddingVertical: 2 },
+  collectionsScroll: { marginHorizontal: -20 },
+  pressed: { opacity: 0.88 },
+  rowIcon: { alignItems: "center", backgroundColor: color.sage, borderRadius: 14, height: 42, justifyContent: "center", width: 42 },
   rowTitle: { color: SELLER.ink, fontSize: 15, fontWeight: "800" },
   store: { alignItems: "center", flexDirection: "row", gap: 14 },
   storeCol: { gap: 8 },

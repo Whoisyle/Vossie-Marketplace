@@ -205,6 +205,47 @@ describe("seller setup", () => {
   });
 });
 
+describe("the redesigned seller pages", () => {
+  it("opens Account on a profile card with three big numbers, the collections and the team", () => {
+    renderWithProviders(<SellerAccountScreen />, seller());
+    expect(screen.getByTestId("store-card")).toBeTruthy();
+    expect(screen.getByText("Orders")).toBeTruthy();
+    expect(screen.getByText("Rating")).toBeTruthy();
+    expect(screen.getByTestId("collections")).toBeTruthy();
+    expect(screen.getByTestId("team-list")).toBeTruthy();
+    expect(screen.getByText("My team")).toBeTruthy();
+    expect(screen.getByTestId("seller-student-card")).toBeTruthy();
+  });
+
+  it("shows the orders waiting as three number cards, and a progress bar on every order in progress", () => {
+    renderWithProviders(<SellerOrdersScreen />, seller());
+    expect(screen.getByTestId("stat-new")).toBeTruthy();
+    expect(screen.getByTestId("stat-progress")).toBeTruthy();
+    expect(screen.getByTestId("stat-ready")).toBeTruthy();
+    expect(screen.getByTestId("progress-so-2041")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("stat-ready"));
+    expect(screen.getByTestId("order-so-2035")).toBeTruthy();
+  });
+
+  it("shows products as a grid with a stock bar, and the stat cards filter it", () => {
+    renderWithProviders(<SellerProductsScreen />, seller());
+    expect(screen.getByTestId("product-grid")).toBeTruthy();
+    expect(screen.getByTestId("stock-sl-ti30")).toBeTruthy();
+    expect(screen.getByTestId("restock-sl-ti30")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("stat-low"));
+    expect(screen.getByTestId("listing-sl-ti30")).toBeTruthy();
+    expect(screen.queryByTestId("listing-sl-lamp")).toBeNull();
+  });
+
+  it("shows the balance on a dark card and explains how a payout reaches the bank", () => {
+    renderWithProviders(<SellerPayoutsScreen />, seller());
+    expect(screen.getByTestId("balance-card")).toBeTruthy();
+    expect(screen.getByTestId("open-withdraw")).toBeTruthy();
+    expect(screen.getByTestId("payout-steps")).toBeTruthy();
+    expect(screen.getByText("It arrives in your bank")).toBeTruthy();
+  });
+});
+
 describe("seller home", () => {
   it("shows the counts and what needs attention, with new orders first", () => {
     renderWithProviders(<SellerHomeScreen />, seller());

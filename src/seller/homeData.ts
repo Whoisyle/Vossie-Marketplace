@@ -59,6 +59,24 @@ export function setupChecklist(seller: SellerState): { steps: ChecklistStep[]; d
   return { done, next: steps.find((step) => !step.done), percent: Math.round((done / steps.length) * 100), steps };
 }
 
+const CATEGORY_LABEL: Record<SellerListing["category"], string> = { books: "Books", electronics: "Electronics", fashion: "Fashion", food: "Food", services: "Services" };
+
+/** The store's products grouped by category, biggest first, for the collections row. Archived products are left out. */
+export function collectionsOf(listings: SellerListing[]): { key: SellerListing["category"]; label: string; count: number }[] {
+  const counts = new Map<SellerListing["category"], number>();
+  for (const item of listings) if (item.status !== "archived") counts.set(item.category, (counts.get(item.category) ?? 0) + 1);
+  return [...counts.entries()].map(([key, count]) => ({ count, key, label: CATEGORY_LABEL[key] })).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+}
+
+/** The people around the store: the owner and helpers the seller added, then the couriers who have taken their orders. */
+export function teamPeople(seller: Pick<SellerState, "team" | "orders">, limit = 4): { id: string; name: string; role: string; detail: string }[] {
+  const people = seller.team.map((member) => ({ detail: member.email, id: member.id, name: member.name, role: member.role === "owner" ? "Owner" : "Packer" }));
+  const deliveries = new Map<string, number>();
+  for (const order of seller.orders) if (order.courier && order.status !== "declined" && order.status !== "cancelled") deliveries.set(order.courier.name, (deliveries.get(order.courier.name) ?? 0) + 1);
+  const couriers = [...deliveries.entries()].sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ detail: `${count} ${count === 1 ? "delivery" : "deliveries"} for you`, id: `courier-${name}`, name, role: "Courier" }));
+  return [...people, ...couriers].slice(0, limit);
+}
+
 /** The products that sold most, from orders that were not declined or cancelled. */
 export function bestSellers(orders: SellerOrder[], listings: SellerListing[], limit = 4): { listing?: SellerListing; title: string; sold: number }[] {
   const sold = new Map<string, number>();

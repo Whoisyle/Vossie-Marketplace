@@ -1,4 +1,4 @@
-import { bestSellers, ongoingOrders, orderProgress, orderTitle, searchSeller, setupChecklist, todayVsYesterday } from "./homeData";
+import { bestSellers, collectionsOf, ongoingOrders, orderProgress, orderTitle, searchSeller, setupChecklist, teamPeople, todayVsYesterday } from "./homeData";
 import { emptySellerState } from "./state";
 import type { SellerOrder } from "./types";
 
@@ -99,5 +99,30 @@ describe("best sellers and search", () => {
     expect(searchSeller(seller, "thabo").orders).toHaveLength(3);
     expect(searchSeller(seller, "  ").orders).toHaveLength(0);
     expect(searchSeller(seller, "nope").orders).toHaveLength(0);
+  });
+});
+
+describe("collections and the team", () => {
+  const listing = (id: string, category: "food" | "books" | "electronics", status: "published" | "archived" = "published") => ({ artId: undefined, category, description: "", id, onHand: 1, optionId: undefined, photos: [], priceCents: 100, sku: id, status, title: id, unlimited: false, updatedAt: "", variants: [] });
+  it("groups products by category, biggest first, and leaves archived ones out", () => {
+    const list = collectionsOf([listing("a", "food"), listing("b", "books"), listing("c", "books"), listing("d", "electronics", "archived")]);
+    expect(list.map((item) => [item.label, item.count])).toEqual([
+      ["Books", 2],
+      ["Food", 1],
+    ]);
+  });
+
+  it("lists the owner and helpers, then the couriers who took the seller's orders by how many", () => {
+    const team = [{ email: "me@vossie.net", id: "t1", name: "Vumisa", role: "owner" as const }];
+    const courier = (name: string) => ({ arrivesInMin: 5, name, rating: 5, vehicle: "Scooter" });
+    const orders = [order({ courier: courier("Linda M"), id: "a" }), order({ courier: courier("Linda M"), id: "b" }), order({ courier: courier("Sipho K"), id: "c" }), order({ courier: courier("Ignored"), id: "d", status: "cancelled" })];
+    const people = teamPeople({ orders, team });
+    expect(people.map((person) => [person.name, person.role])).toEqual([
+      ["Vumisa", "Owner"],
+      ["Linda M", "Courier"],
+      ["Sipho K", "Courier"],
+    ]);
+    expect(people[1]!.detail).toBe("2 deliveries for you");
+    expect(people[2]!.detail).toBe("1 delivery for you");
   });
 });

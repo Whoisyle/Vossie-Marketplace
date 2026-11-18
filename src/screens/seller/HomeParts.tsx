@@ -14,7 +14,7 @@ import { color } from "@/theme/tokens";
 import { PackagingScene } from "./Packaging";
 
 /** A bar that fills to `percent` when it first appears. */
-export function ProgressBar({ delay = 0, light = false, percent }: { percent: number; light?: boolean; delay?: number }) {
+export function ProgressBar({ delay = 0, fillColor, light = false, percent }: { percent: number; light?: boolean; delay?: number; fillColor?: string }) {
   const fill = useSharedValue(0);
   useEffect(() => {
     fill.set(withDelay(delay, withTiming(Math.max(0, Math.min(100, percent)), { duration: 700, easing: Easing.out(Easing.cubic) })));
@@ -22,7 +22,7 @@ export function ProgressBar({ delay = 0, light = false, percent }: { percent: nu
   const style = useAnimatedStyle(() => ({ width: `${fill.get()}%` }));
   return (
     <View style={[styles.track, light && styles.trackLight]}>
-      <Animated.View style={[styles.fill, light && styles.fillLight, style]} />
+      <Animated.View style={[styles.fill, light && styles.fillLight, fillColor ? { backgroundColor: fillColor } : null, style]} />
     </View>
   );
 }
@@ -203,7 +203,114 @@ export function BestSellers({ items, onOpen }: { items: { title: string; sold: n
   );
 }
 
+/** The top of a page: a big title, a short line under it, and an optional button on the right. */
+export function ScreenHead({ right, subtitle, title }: { title: string; subtitle?: string; right?: React.ReactNode }) {
+  return (
+    <Animated.View entering={FadeInDown.duration(340)} style={styles.head}>
+      <View style={styles.headText}>
+        <RNText accessibilityRole="header" style={styles.headTitle}>
+          {title}
+        </RNText>
+        {subtitle ? <RNText style={styles.headSub}>{subtitle}</RNText> : null}
+      </View>
+      {right}
+    </Animated.View>
+  );
+}
+
+export type StatCardItem = { label: string; value: string | number; tone?: "dark" | "sage" | "grey"; onPress?: () => void; testID?: string };
+
+/** A row of big-number cards, like the three numbers under a profile. The dark one is the one to look at first. */
+export function StatCards({ items }: { items: StatCardItem[] }) {
+  return (
+    <View style={styles.statRow}>
+      {items.map((item, index) => {
+        const tone = item.tone ?? "grey";
+        const dark = tone === "dark";
+        const body = (
+          <>
+            {dark ? <LinearGradient colors={[color.accent, "#274E5B"]} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} /> : null}
+            <RNText style={[styles.statValue, dark && styles.onDark]}>{item.value}</RNText>
+            <RNText style={[styles.statLabel, dark && styles.onDarkSoft]}>{item.label}</RNText>
+          </>
+        );
+        const look = [styles.statCard, tone === "sage" ? styles.cardSage : tone === "dark" ? styles.cardDark : styles.statPlain];
+        return (
+          <Animated.View entering={FadeInDown.delay(60 + index * 50).duration(340)} key={item.label} style={styles.statWrap}>
+            {item.onPress ? (
+              <Pressable accessibilityLabel={`${item.label}, ${item.value}`} accessibilityRole="button" onPress={item.onPress} style={({ pressed }) => [...look, pressed && styles.pressed]} testID={item.testID}>
+                {body}
+              </Pressable>
+            ) : (
+              <View style={look} testID={item.testID}>
+                {body}
+              </View>
+            )}
+          </Animated.View>
+        );
+      })}
+    </View>
+  );
+}
+
+/** Steps down a line: the ones reached are filled in teal with a tick, the current one is ringed. */
+export function Timeline({ active, steps }: { steps: { label: string; hint?: string }[]; active: number }) {
+  return (
+    <View testID="timeline">
+      {steps.map((step, index) => {
+        const done = index < active;
+        const current = index === active;
+        const last = index === steps.length - 1;
+        return (
+          <View accessibilityLabel={`${step.label}${done ? ", done" : current ? ", now" : ""}`} key={step.label} style={styles.stepRow}>
+            <View style={styles.stepRail}>
+              <View style={[styles.stepDot, (done || current) && styles.stepDotOn, current && styles.stepDotNow]}>{done ? <Icon color="#FFFFFF" name="check" size={12} /> : null}</View>
+              {last ? null : <View style={[styles.stepLine, done && styles.stepLineOn]} />}
+            </View>
+            <View style={styles.stepText}>
+              <RNText style={[styles.stepLabel, !done && !current && styles.stepLabelOff]}>{step.label}</RNText>
+              {step.hint ? <RNText style={styles.stepHint}>{step.hint}</RNText> : null}
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+/** A round badge with the initials of a person or a store. */
+export function Avatar({ name, size = 44 }: { name: string; size?: number }) {
+  return (
+    <View style={[styles.avatarSmall, { borderRadius: size / 2, height: size, width: size }]}>
+      <RNText style={[styles.avatarSmallText, { fontSize: size * 0.36 }]}>{initials(name)}</RNText>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  avatarSmall: { alignItems: "center", backgroundColor: color.sage, justifyContent: "center" },
+  avatarSmallText: { color: color.accent, fontWeight: "800" },
+  head: { alignItems: "center", flexDirection: "row", gap: 12, marginTop: 6 },
+  headSub: { color: color.steelGrey, fontSize: 14, marginTop: 2 },
+  headText: { flex: 1 },
+  headTitle: { color: color.charcoal, fontSize: 28, fontWeight: "800", letterSpacing: -0.5 },
+  statCard: { borderRadius: 18, gap: 2, justifyContent: "center", minHeight: 84, overflow: "hidden", padding: 12 },
+  statLabel: { color: color.slate, fontSize: 12 },
+  statPlain: { backgroundColor: "#FFFFFF", borderColor: "#E1E6E8", borderWidth: 1 },
+  statRow: { flexDirection: "row", gap: 10, marginTop: 16 },
+  statValue: { color: color.charcoal, fontSize: 24, fontWeight: "800" },
+  statWrap: { flex: 1 },
+  stepDot: { alignItems: "center", backgroundColor: color.cloudGrey, borderColor: "#C8D2D8", borderRadius: 11, borderWidth: 2, height: 22, justifyContent: "center", width: 22 },
+  stepDotNow: { backgroundColor: "#FFFFFF", borderColor: color.accent, borderWidth: 5 },
+  stepDotOn: { backgroundColor: color.accent, borderColor: color.accent },
+  stepHint: { color: color.slate, fontSize: 12 },
+  stepLabel: { color: color.charcoal, fontSize: 15, fontWeight: "800" },
+  stepLabelOff: { color: color.steelGrey, fontWeight: "600" },
+  stepLine: { backgroundColor: "#D6DDE0", flex: 1, marginVertical: 2, width: 3 },
+  stepLineOn: { backgroundColor: color.accent },
+  stepRail: { alignItems: "center", width: 24 },
+  stepRow: { flexDirection: "row", gap: 12, minHeight: 44 },
+  stepText: { flex: 1, paddingBottom: 10, paddingTop: 1 },
   avatar: { alignItems: "center", backgroundColor: color.sage, borderRadius: 24, height: 48, justifyContent: "center", overflow: "hidden", width: 48 },
   avatarText: { color: color.accent, fontSize: 17, fontWeight: "800" },
   bar: { backgroundColor: color.steelGrey, borderRadius: 4, width: "100%" },
