@@ -1,7 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, type Href } from "expo-router";
-import { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { type LayoutChangeEvent, StyleSheet, View } from "react-native";
 import Animated, { Easing, FadeIn, FadeInDown, FadeOut, useAnimatedProps, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withTiming } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -9,6 +9,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { Wordmark } from "@/components";
 import { haptic } from "@/lib/haptics";
 
+import { PackagingScene, SCENE } from "./Packaging";
 import { SlidePill } from "./SlidePill";
 import { Pill, SELLER, Text } from "./ui";
 
@@ -39,7 +40,7 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 const TICK = "M 22 54 L 46 78 L 90 28";
 
 /** A tick that draws itself, with a soft ring that pops out behind it. */
-function Tick() {
+function Tick({ size = 112 }: { size?: number }) {
   const reduced = useReducedMotion();
   const draw = useSharedValue(reduced ? 1 : 0);
   const pop = useSharedValue(reduced ? 1 : 0);
@@ -53,9 +54,9 @@ function Tick() {
   const props = useAnimatedProps(() => ({ strokeDashoffset: 130 * (1 - draw.get()) }));
   const ring = useAnimatedStyle(() => ({ opacity: pop.get() * 0.5, transform: [{ scale: 0.6 + pop.get() * 0.5 }] }));
   return (
-    <View style={styles.tickBox} testID="verified-tick">
-      <Animated.View style={[styles.tickRing, ring]} />
-      <Svg height={112} width={112}>
+    <View style={[styles.tickBox, { height: size, marginBottom: 10, width: size }]} testID="verified-tick">
+      <Animated.View style={[styles.tickRing, { borderRadius: size / 2, height: size * 1.07, width: size * 1.07 }, ring]} />
+      <Svg height={size} viewBox="0 0 112 112" width={size}>
         <AnimatedPath animatedProps={props} d={TICK} fill="none" stroke="#FFFFFF" strokeDasharray="130" strokeLinecap="round" strokeLinejoin="round" strokeWidth={9} />
       </Svg>
     </View>
@@ -70,21 +71,29 @@ function Tick() {
 export function SellerReviewGate({ kind = "seller", onContinue, phase, storeName, supportHref = "/seller/account/support/new" }: { phase: "review" | "verified"; storeName: string; onContinue: () => void; kind?: "seller" | "courier"; supportHref?: string }) {
   const router = useRouter();
   const verified = phase === "verified";
+  // the boxes are drawn at a fixed size and scaled to the room left under the words
+  const [room, setRoom] = useState({ height: 640, width: 360 });
+  const onRoom = (event: LayoutChangeEvent) => setRoom({ height: event.nativeEvent.layout.height, width: event.nativeEvent.layout.width });
+  const sceneScale = Math.max(0.45, Math.min(1, (room.height - 210) / SCENE.height, room.width / SCENE.width));
   return (
     <Animated.View entering={FadeIn.duration(260)} exiting={FadeOut.duration(420)} style={styles.page} testID={verified ? (kind === "courier" ? "courier-verified-gate" : "seller-verified-gate") : kind === "courier" ? "courier-review-gate" : "seller-review-gate"}>
-      <LinearGradient colors={[SELLER.bgTop, SELLER.bgMid, SELLER.bgBottom]} locations={[0, 0.45, 1]} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={verified ? ["#274E5B", "#376371", "#14292F"] : [SELLER.bgTop, SELLER.bgMid, SELLER.bgBottom]} locations={verified ? [0, 0.35, 1] : [0, 0.45, 1]} style={StyleSheet.absoluteFill} />
       <SafeAreaView style={styles.safe}>
         <View style={styles.markRow}>{verified ? <Wordmark tone="white" width={150} /> : null}</View>
-        <View style={styles.center}>
+        <View onLayout={onRoom} style={styles.center}>
           {verified ? (
             <Animated.View entering={FadeIn.duration(300)} key="verified" style={styles.stack}>
-              <Tick />
+              <Tick size={76} />
               <Animated.View entering={FadeInDown.delay(500).duration(420)} style={styles.copy}>
                 <Text accessibilityRole="header" style={styles.title}>
                   You&apos;re verified!
                 </Text>
                 <Text style={styles.sub}>{kind === "courier" ? `${storeName}, you are approved and ready to deliver on Vossie` : `${storeName} is approved and ready to sell on Vossie`}</Text>
               </Animated.View>
+              {/* the boxes drop in, shake and burst open: the celebration */}
+              <View style={styles.celebrate} testID="verified-celebration">
+                <PackagingScene chips={false} index={2} scale={sceneScale} />
+              </View>
             </Animated.View>
           ) : (
             <Animated.View entering={FadeIn.duration(260)} key="review" style={styles.stack}>
@@ -108,7 +117,7 @@ export function SellerReviewGate({ kind = "seller", onContinue, phase, storeName
         </View>
         <Animated.View entering={FadeInDown.delay(380).duration(420)} key={phase} style={styles.footer}>
           {verified ? (
-            <SlidePill label="Go to dashboard" onComplete={() => setTimeout(onContinue, 420)} testID="gate-dashboard" />
+            <SlidePill label="Go to dashboard" large onComplete={() => setTimeout(onContinue, 420)} testID="gate-dashboard" />
           ) : (
             <SlidePill label="Contact support" onComplete={() => router.push(supportHref as Href)} resetAfter testID="gate-support" />
           )}
@@ -124,7 +133,8 @@ const styles = StyleSheet.create({
   stack: { alignItems: "center" },
   tickBox: { alignItems: "center", height: 112, justifyContent: "center", marginBottom: 18, width: 112 },
   tickRing: { backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 60, height: 120, position: "absolute", width: 120 },
-  copy: { alignItems: "center", gap: 10, marginTop: 14 },
+  celebrate: { alignItems: "center", marginTop: 4 },
+  copy: { alignItems: "center", gap: 10, marginTop: 6 },
   footer: { paddingBottom: 18, paddingHorizontal: 20 },
   page: { ...StyleSheet.absoluteFill, backgroundColor: SELLER.bgBottom, zIndex: 50 },
   pill: { marginTop: 18 },

@@ -18,13 +18,15 @@ const PAD = 4;
  * knob returns afterwards (for a button that opens something and then waits). A hint chevron nudges the knob while it rests,
  * and a screen reader can activate it without dragging.
  */
-export function SlidePill({ dark = false, disabled = false, label, onComplete, resetAfter = false, testID }: { label: string; onComplete: () => void; resetAfter?: boolean; testID?: string; /** A dark track with a white knob, for the courier app. */ dark?: boolean; /** Locked: the knob does not move and the pill is dimmed. */ disabled?: boolean }) {
+export function SlidePill({ dark = false, disabled = false, label, large = false, onComplete, resetAfter = false, testID }: { label: string; /** The bigger size used on the verified screen: as tall as the main buttons. */ large?: boolean; onComplete: () => void; resetAfter?: boolean; testID?: string; /** A dark track with a white knob, for the courier app. */ dark?: boolean; /** Locked: the knob does not move and the pill is dimmed. */ disabled?: boolean }) {
   const reduced = useReducedMotion();
   const [width, setWidth] = useState(0);
   const x = useSharedValue(0);
   const done = useSharedValue(0);
   const hint = useSharedValue(0);
-  const max = Math.max(0, width - KNOB - PAD * 2);
+  const knobSize = large ? 62 : KNOB;
+  const pad = large ? 6 : PAD;
+  const max = Math.max(0, width - knobSize - pad * 2);
 
   const finish = useCallback(() => {
     haptic.success();
@@ -57,7 +59,7 @@ export function SlidePill({ dark = false, disabled = false, label, onComplete, r
     .runOnJS(true);
 
   const knob = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() + hint.get() * Math.min(10, max * 0.04) }] }));
-  const fill = useAnimatedStyle(() => ({ width: x.get() + KNOB + PAD * 2 }));
+  const fill = useAnimatedStyle(() => ({ width: x.get() + knobSize + pad * 2 }));
   const text = useAnimatedStyle(() => ({ opacity: 1 - Math.min(1, x.get() / (max * 0.55 || 1)), transform: [{ translateX: interpolate(x.get(), [0, max || 1], [0, 16]) }] }));
   const tick = useAnimatedStyle(() => ({ opacity: done.get(), transform: [{ scale: 0.6 + done.get() * 0.4 }] }));
   const arrow = useAnimatedStyle(() => ({ opacity: 1 - done.get() }));
@@ -72,20 +74,20 @@ export function SlidePill({ dark = false, disabled = false, label, onComplete, r
         if (event.nativeEvent.actionName === "activate" && !disabled) finish();
       }}
       onLayout={onLayout}
-      style={[styles.track, dark && styles.trackDark, disabled && styles.trackLocked]}
+      style={[styles.track, large && { borderRadius: 40, height: knobSize + pad * 2 }, dark && styles.trackDark, disabled && styles.trackLocked]}
       testID={testID}
     >
       <Animated.View style={[styles.fill, fill]} />
-      <Animated.View pointerEvents="none" style={[styles.labelWrap, text]}>
-        <Text style={[styles.label, dark && styles.labelDark]}>{label}</Text>
+      <Animated.View pointerEvents="none" style={[styles.labelWrap, { left: knobSize + pad, right: pad * 2 }, text]}>
+        <Text style={[styles.label, large && styles.labelLarge, dark && styles.labelDark]}>{label}</Text>
       </Animated.View>
       <GestureDetector gesture={pan}>
-        <Animated.View style={[styles.knob, dark && styles.knobDark, knob]}>
-          <Animated.View style={[styles.knobIcon, arrow]}>
-            <Icon color={dark ? "#3B6370" : "#FFFFFF"} name="chevrons-right" size={24} />
+        <Animated.View style={[styles.knob, large && { borderRadius: knobSize / 2, height: knobSize, left: pad, top: pad, width: knobSize }, dark && styles.knobDark, knob]}>
+          <Animated.View style={[styles.knobIcon, large && { height: knobSize, width: knobSize }, arrow]}>
+            <Icon color={dark ? "#3B6370" : "#FFFFFF"} name="chevrons-right" size={large ? 30 : 24} />
           </Animated.View>
-          <Animated.View style={[styles.knobIcon, tick]}>
-            <Icon color={dark ? "#3B6370" : "#FFFFFF"} name="check" size={24} />
+          <Animated.View style={[styles.knobIcon, large && { height: knobSize, width: knobSize }, tick]}>
+            <Icon color={dark ? "#3B6370" : "#FFFFFF"} name="check" size={large ? 30 : 24} />
           </Animated.View>
         </Animated.View>
       </GestureDetector>
@@ -100,6 +102,7 @@ const styles = StyleSheet.create({
   knobDark: { backgroundColor: "#FFFFFF" },
   label: { color: "#6C8A95", fontSize: 18, fontWeight: "700" },
   labelDark: { color: "#FFFFFF" },
+  labelLarge: { fontSize: 20 },
   labelWrap: { alignItems: "center", bottom: 0, justifyContent: "center", left: KNOB + PAD, position: "absolute", right: PAD * 2, top: 0 },
   trackDark: { backgroundColor: "#3B6370" },
   trackLocked: { opacity: 0.55 },

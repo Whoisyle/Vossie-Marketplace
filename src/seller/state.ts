@@ -557,6 +557,15 @@ export function sellerReduce(state: SellerState, action: SellerAction, ctx: { ve
     }
     case "sellerNote":
       return { ...state, alerts: addAlert({ body: action.body, href: action.href, kind: action.kind, title: action.title }) };
+    case "sellerSignAgreement": {
+      // only an approved seller signs, and the name has to be a real name
+      if (state.status !== "approved" || action.signedName.trim().length < 3 || action.signature.length < 20) return state;
+      return {
+        ...state,
+        agreement: { idLast4: action.idNumber.replace(/\s+/g, "").slice(-4), signature: action.signature, signedAt: stamp, signedName: action.signedName.trim(), version: action.version },
+        alerts: addAlert({ body: "Your signed agreement is saved in your account.", href: "/seller/account/agreement", kind: "account", title: "Agreement signed" }),
+      };
+    }
     case "sellerApprovalSeen":
       return state.approvalSeen ? state : { ...state, approvalSeen: true };
     case "sellerSetAutoAccept":

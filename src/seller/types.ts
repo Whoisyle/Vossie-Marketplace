@@ -341,6 +341,18 @@ export type SellerState = {
   goalReachedWeek?: string;
   /** The seller has seen the "You're verified" screen and gone on to the dashboard. */
   approvalSeen?: boolean;
+  /** The signed seller agreement. Until the current version is signed the seller cannot list or sell. */
+  agreement?: SellerAgreement;
+};
+
+/** A signed seller agreement as the app keeps it. The full ID number is never kept here, only its last four digits. */
+export type SellerAgreement = {
+  version: string;
+  signedName: string;
+  signedAt: string;
+  idLast4: string;
+  /** The drawn signature as SVG path data. */
+  signature: string;
 };
 
 export type SellerAction =
@@ -354,6 +366,8 @@ export type SellerAction =
   | { type: "sellerReplaceDocument"; kind: DocKind; fileName: string; uri?: string; fileKind?: "image" | "pdf" | "file"; backUri?: string; backFileName?: string }
   | { type: "sellerSubmitVerification" }
   | { type: "sellerReviewTick" }
+  /** The seller signs the agreement. `idNumber` and `textHash` go to the live backend and are not kept in the state. */
+  | { type: "sellerSignAgreement"; version: string; signedName: string; idNumber: string; signature: string; textHash?: string }
   /** Demo only: a Vossie Operations reviewer accepts or turns down one document. */
   | { type: "sellerStaffReview"; kind: DocKind; decision: "verified" | "rejected"; note?: string }
   | { type: "sellerSaveStore"; patch: Partial<Pick<SellerProfile, "logoUri" | "bannerUri" | "place" | "storeName" | "description" | "location" | "days" | "opens" | "closes" | "taxNumber" | "campusId" | "deliveryModes">> }

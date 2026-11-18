@@ -442,7 +442,7 @@ function Chip({ chip, s }: { chip: (typeof CHIPS)[number]; s: Shared }) {
  * `still` is the small version for the setup headers: it never stops, but loops (lids open, things hop out and float, then
  * settle back in) with no chips. Reduce Motion shows one calm pose and nothing moves.
  */
-export function PackagingScene({ index, scale = 1, still = false }: { index: number; scale?: number; still?: boolean }) {
+export function PackagingScene({ chips = true, index, scale = 1, still = false }: { index: number; scale?: number; still?: boolean; /** The small notices at the top; the verified screen turns them off. */ chips?: boolean }) {
   const reduced = useReducedMotion();
   const instant = reduced;
   const loop = still && !reduced;
@@ -558,7 +558,7 @@ export function PackagingScene({ index, scale = 1, still = false }: { index: num
           ))}
           <Burst flash={flash} go={go} />
         </Animated.View>
-        {still ? null : CHIPS.map((chip) => <Chip chip={chip} key={chip.label} s={shared} />)}
+        {still || !chips ? null : CHIPS.map((chip) => <Chip chip={chip} key={chip.label} s={shared} />)}
       </View>
     </View>
   );

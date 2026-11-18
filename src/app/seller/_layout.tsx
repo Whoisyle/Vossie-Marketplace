@@ -6,7 +6,9 @@ import { TabChromeProvider } from "@/components/nav/TabChrome";
 import type { IconName } from "@/components";
 import { orderCounts } from "@/seller/selectors";
 import { SellerPushBanner } from "@/screens/seller/SellerPush";
+import { SellerContractSheet } from "@/screens/seller/SellerContractSheet";
 import { SellerReviewGate } from "@/screens/seller/SellerReviewGate";
+import { AGREEMENT_VERSION } from "@/seller/agreement";
 import { useDemoStore } from "@/state/DemoStore";
 
 /** The seller's bottom bar: Home, Products, Orders, Payouts and Account. */
@@ -26,6 +28,8 @@ export default function SellerLayout() {
   if (!state.profile) return <Redirect href="/sign-in" />;
   if (state.profile.role !== "seller") return <Redirect href="/home" />;
   if (!state.seller.setupDone) return <Redirect href={"/seller-setup/welcome" as Href} />;
+  // approved, has seen the verified screen, and has not signed the current agreement: the contract slides up and has to be signed
+  const contractDue = state.seller.status === "approved" && Boolean(state.seller.approvalSeen) && state.seller.agreement?.version !== AGREEMENT_VERSION;
   const showGate = gate !== "none" && !(gate === "review" && path.startsWith("/seller/account/support"));
   const counts = orderCounts(state.seller.orders);
   const badges = { orders: state.seller.status === "approved" ? counts.new : 0 };
@@ -41,6 +45,7 @@ export default function SellerLayout() {
       </Tabs>
       <SellerPushBanner />
       <OfflineBanner />
+      <SellerContractSheet due={contractDue && gate === "none"} />
       {showGate ? <SellerReviewGate onContinue={() => dispatch({ type: "sellerApprovalSeen" })} phase={gate === "verified" ? "verified" : "review"} storeName={state.seller.profile.storeName || "Your shop"} /> : null}
     </TabChromeProvider>
   );

@@ -44,6 +44,12 @@ describe("sending seller actions to the real services", () => {
     expect(seller.saveSellerOnboarding).toHaveBeenLastCalledWith(expect.objectContaining({ campusId: "bloemfontein", deliveryModes: ["collection", "hub-to-hub"] }));
   });
 
+  it("sends the signed agreement to the database with the full ID number, the hash and the drawn signature", async () => {
+    const sign = { idNumber: "8001015009087", signature: "M10 40 C 30 5, 50 70, 70 30 S 110 60, 130 20", signedName: "Vumisa Mokoena", textHash: "a".repeat(64), type: "sellerSignAgreement" as const, version: "2026-11-v1" };
+    await runLiveSellerAction(sign, state(), none);
+    expect(seller.signSellerAgreement).toHaveBeenCalledWith({ idNumber: "8001015009087", signature: sign.signature, signedName: "Vumisa Mokoena", textHash: "a".repeat(64), version: "2026-11-v1" });
+  });
+
   it("uploads a document with the file that was picked", async () => {
     await runLiveSellerAction({ fileName: "id.jpg", kind: "id", type: "sellerUploadDocument", uri: "file:///id.jpg" }, state(), none);
     expect(seller.attachSellerDocument).toHaveBeenCalledWith("id", { name: "id.jpg", uri: "file:///id.jpg" }, undefined);

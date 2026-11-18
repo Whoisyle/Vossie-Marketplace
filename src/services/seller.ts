@@ -98,6 +98,32 @@ export const markServiceComplete = (bookingId: string) => rpc("provider_mark_com
 export const cancelAsSeller = (sellerOrderId: string, reason: string) =>
   rpc("seller_cancel_order", { p_seller_order_id: sellerOrderId, p_reason: reason });
 
+/** What the seller sends to sign the agreement. The database checks the name, the ID number and the version again. */
+export type SignAgreementInput = { version: string; textHash: string; signedName: string; idNumber: string; signature: string };
+
+/** Signs the seller agreement. Refused unless the seller is approved, the version is current, the name matches the account and the ID number is a valid South African one. */
+export const signSellerAgreement = (input: SignAgreementInput) =>
+  rpc("sign_seller_agreement", {
+    p_version: input.version,
+    p_text_hash: input.textHash,
+    p_signed_name: input.signedName,
+    p_id_number: input.idNumber,
+    p_signature_svg: input.signature,
+  });
+
+/** The seller's latest signed agreement, without the ID number (only its last four digits are readable). */
+export async function getMyAgreement(sellerId: string) {
+  return unwrap(
+    await supabase
+      .from("seller_agreements")
+      .select("version, signed_name, signed_at, id_last4, signature_svg")
+      .eq("seller_id", sellerId)
+      .order("signed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ) as { version: string; signed_name: string; signed_at: string; id_last4: string; signature_svg: string } | null;
+}
+
 export type SellerKindDb = "student" | "campus_business" | "registered";
 export type SellerDocKindDb = "student_card" | "id" | "address" | "cipc";
 

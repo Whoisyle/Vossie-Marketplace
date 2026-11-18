@@ -1115,6 +1115,9 @@ describe("the review and verified screens", () => {
     const onContinue = jest.fn();
     renderWithProviders(<SellerReviewGate onContinue={onContinue} phase="verified" storeName="CampusBites" />, seller());
     expect(screen.getByTestId("seller-verified-gate")).toBeTruthy();
+    // the boxes burst open as the celebration
+    expect(screen.getByTestId("verified-celebration")).toBeTruthy();
+    expect(screen.getByTestId("packaging-scene")).toBeTruthy();
     expect(screen.getByTestId("verified-tick")).toBeTruthy();
     expect(screen.getByText("You're verified!")).toBeTruthy();
     expect(screen.getByText("CampusBites is approved and ready to sell on Vossie")).toBeTruthy();

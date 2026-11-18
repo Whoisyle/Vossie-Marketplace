@@ -1,6 +1,6 @@
 # Seller onboarding v2: plan (2026-11-17)
 
-Status: **Stages 1 and 2 built and live (2026-11-18); stages 3 and 4 still to do.** Written after the owner's brief and two rounds of questions. Build in the four stages below, shipping and reviewing each one before the next.
+Status: **All four stages built and live (2026-11-18).** Stage 3 (verified page: larger slide button, box burst) and stage 4 (the seller agreement) were built together. One change from the plan: the drawn signature is stored as vector path data in the database, not as an image file, so there is no file to upload or lose. The ID number is stored in full but is not readable by the app (column permission); staff read it through an audited function. Not done: a "Signed contracts" list in the Operations Review tab, and a PDF copy by email. Written after the owner's brief and two rounds of questions. Build in the four stages below, shipping and reviewing each one before the next.
 
 ## The owner's brief, in order
 

@@ -179,7 +179,9 @@ export async function loadSellerState(): Promise<Partial<SellerState> | null> {
   const buyers = buyerIds.length > 0 ? unwrap(await supabase.from("profile_cards").select("id, display_name").in("id", buyerIds)) : [];
   const names: Record<string, string> = Object.fromEntries((buyers as { id: string; display_name: string }[]).map((item) => [item.id, item.display_name]));
   const status = mapSellerStatus(me.status);
+  const agreementRow = await sellerService.getMyAgreement(me.id).catch(() => null);
   return {
+    agreement: agreementRow ? { idLast4: agreementRow.id_last4, signature: agreementRow.signature_svg, signedAt: agreementRow.signed_at, signedName: agreementRow.signed_name, version: agreementRow.version } : undefined,
     approvedAt: status === "approved" ? new Date().toISOString() : undefined,
     documents: kind ? mapDocuments(docRows as never, kind) : [],
     ledger: buildLedger(orderRows, payouts as never, balances.seller_available_cents),

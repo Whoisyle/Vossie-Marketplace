@@ -62,6 +62,8 @@ before(async () => {
   await rpc(u.seller, "(public.submit_seller_profile('Campus Bites', 'Burgers', 'Food court', 'potchefstroom', true, true)).id");
   ids.sellerRow = (await db.query("select id from sellers where user_id = $1", [u.seller])).rows[0].id;
   await rpc(u.ops, "public.review_seller($1, 'approved', 'ok')", [ids.sellerRow]);
+  // the seller has signed the current seller agreement, so can publish and take orders
+  await db.exec(`insert into seller_agreements (seller_id, version, text_hash, signed_name, id_number, id_last4, signature_svg) values ('${ids.sellerRow}', '2026-11-v1', '${"a".repeat(64)}', 'Test Seller', '8001015009087', '9087', 'M10 40 C 30 5, 50 70, 70 30 S 110 60, 130 20')`);
   for (const who of ["buyer", "buyer2"]) await rpc(u[who], "public.demo_top_up(100000)");
 });
 
