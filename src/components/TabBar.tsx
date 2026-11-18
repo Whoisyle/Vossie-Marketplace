@@ -23,7 +23,7 @@ import { useBarTone } from "./nav/barTone";
 import { ReelsGlyph } from "./nav/ReelsGlyph";
 import { TAB_BAR_HEIGHT, useTabChrome } from "./nav/TabChrome";
 
-export const TABS: { name: string; label: string; icon: IconName }[] = [
+export const TABS: TabConfig[] = [
   { name: "home", label: "Home", icon: "home" },
   { name: "explore", label: "Explore", icon: "compass" },
   { name: "reels", label: "Reels", icon: "video" },
@@ -39,14 +39,14 @@ const BAR_PADDING = space.xxs;
  * the active icon hops, and the whole bar slowly slides away while you scroll down a page and returns when you
  * scroll up. Screens can lock it hidden (Reels).
  */
-export type TabConfig = { name: string; label: string; icon: IconName };
+export type TabConfig = { name: string; label: string; icon: IconName; /** The round raised button in the middle of the bar: it does something instead of opening a page. */ center?: boolean };
 
 /**
  * The bottom bar. By default it shows the buyer's six tabs; pass `tabs` for another set (seller mode) and `badges` for
  * counts on them. Without `badges` the Cart tab shows how many items are in the cart.
  */
-export function TabBar({ badges, fixed = false, insets, navigation, neo = false, state, tabs }: BottomTabBarProps & { tabs?: readonly TabConfig[]; badges?: Record<string, number>; /** Icons and labels keep one size and never hop; the bar still slides away while scrolling down. */ fixed?: boolean; /** The soft raised look used in seller mode. */ neo?: boolean }) {
-  const config = tabs ?? TABS;
+export function TabBar({ badges, fixed = false, insets, navigation, neo = false, onCenterPress, state, tabs }: BottomTabBarProps & { /** What the raised centre button does, when `tabs` has a `center` entry. */ onCenterPress?: () => void; tabs?: readonly TabConfig[]; badges?: Record<string, number>; /** Icons and labels keep one size and never hop; the bar still slides away while scrolling down. */ fixed?: boolean; /** The soft raised look used in seller mode. */ neo?: boolean }) {
+  const config: readonly TabConfig[] = tabs ?? TABS;
   const wantDark = useBarTone() === "dark" && neo;
   // the bar slides from one colour to the other, and the icons and shadow follow half way through so nothing is ever unreadable
   const fade = useSharedValue(wantDark ? 1 : 0);
@@ -61,20 +61,26 @@ export function TabBar({ badges, fixed = false, insets, navigation, neo = false,
   const chrome = useTabChrome();
   const reduced = useReducedMotion();
   const [barWidth, setBarWidth] = useState(0);
-  const tabWidth = barWidth > 0 ? (barWidth - BAR_PADDING * 2) / state.routes.length : 0;
+  // only the tabs in `config` are drawn (a page can sit in the app without a tab), so positions count those alone
+  const shown = state.routes.filter((route) => config.some((item) => item.name === route.name));
+  const tabWidth = barWidth > 0 ? (barWidth - BAR_PADDING * 2) / Math.max(1, shown.length) : 0;
+  const shownIndex = shown.findIndex((route) => route.key === state.routes[state.index]?.key);
+  const centerIndex = config.findIndex((item) => item.center);
   const pillX = useSharedValue(0);
   const placed = useSharedValue(0);
 
   useEffect(() => {
     if (tabWidth === 0) return;
-    const x = state.index * tabWidth;
+    // on a page that has no tab (or on the centre button) the highlight stays where it was
+    if (shownIndex < 0) return;
+    const x = shownIndex * tabWidth;
     if (placed.get() === 0) {
       pillX.set(x);
       placed.set(1);
     } else {
       pillX.set(reduced ? withTiming(x, { duration: 120 }) : withSpring(x, spring.soft));
     }
-  }, [pillX, placed, reduced, state.index, tabWidth]);
+  }, [pillX, placed, reduced, shownIndex, tabWidth]);
 
   const pillStyle = useAnimatedStyle(() => ({ transform: [{ translateX: pillX.get() }] }));
   const bottom = Math.max(insets.bottom, space.sm);
@@ -127,6 +133,8 @@ export function TabBar({ badges, fixed = false, insets, navigation, neo = false,
         {state.routes.map((route, index) => {
           const tab = config.find((item) => item.name === route.name);
           if (!tab) return null;
+          // the centre button floats above the bar; its place in the row is left empty
+          if (tab.center) return <View key={route.key} style={styles.centerSlot} />;
           const focused = state.index === index;
           const badge = badges ? (badges[tab.name] ?? 0) : tab.name === "cart" && itemCount > 0 ? itemCount : 0;
           const onPress = () => {
@@ -151,6 +159,32 @@ export function TabBar({ badges, fixed = false, insets, navigation, neo = false,
           );
         })}
       </View>
+      {centerIndex >= 0 && onCenterPress ? <CenterButton icon={config[centerIndex]!.icon} label={config[centerIndex]!.label} onPress={onCenterPress} bottom={bottom} /> : null}
+    </Animated.View>
+  );
+}
+
+/** The round button in the middle of the seller's bar: it rises above the bar and gives a little under the finger. */
+function CenterButton({ bottom, icon, label, onPress }: { icon: IconName; label: string; onPress: () => void; bottom: number }) {
+  const press = useSharedValue(0);
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: 1 - press.get() * 0.1 }] }));
+  return (
+    <Animated.View pointerEvents="box-none" style={[styles.centerWrap, { bottom: bottom + 22 }, style]}>
+      <Pressable
+        accessibilityLabel={label}
+        accessibilityRole="button"
+        onPress={() => {
+          haptic.press();
+          onPress();
+        }}
+        onPressIn={() => press.set(withTiming(1, { duration: 80 }))}
+        onPressOut={() => press.set(withSpring(0, spring.bouncy))}
+        style={styles.centerButton}
+        testID="tab-center"
+      >
+        <LinearGradient colors={[color.accent, "#274E5B"]} end={{ x: 1, y: 1 }} pointerEvents="none" start={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
+        <Icon color="#FFFFFF" name={icon} size={28} />
+      </Pressable>
     </Animated.View>
   );
 }
@@ -223,6 +257,9 @@ function TabItem({
 }
 
 const styles = StyleSheet.create({
+  centerButton: { alignItems: "center", borderColor: "#FFFFFF", borderRadius: 30, borderWidth: 4, boxShadow: "0 8px 18px rgba(25,40,48,0.4)", height: 60, justifyContent: "center", overflow: "hidden", width: 60 },
+  centerSlot: { flex: 1 },
+  centerWrap: { alignSelf: "center", position: "absolute" },
   androidGlass: { backgroundColor: "rgba(250,252,253,0.94)" },
   badge: {
     alignItems: "center",

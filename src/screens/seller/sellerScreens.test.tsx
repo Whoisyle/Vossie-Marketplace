@@ -209,8 +209,11 @@ describe("seller home", () => {
   it("shows the counts and what needs attention, with new orders first", () => {
     renderWithProviders(<SellerHomeScreen />, seller());
     expect(screen.getByText("Needs your attention")).toBeTruthy();
-    expect(screen.getByText("New orders")).toBeTruthy();
-    expect(screen.getByText("To ship")).toBeTruthy();
+    expect(screen.getByText("Ongoing orders")).toBeTruthy();
+    expect(screen.getByText("Today at a glance")).toBeTruthy();
+    // an order in progress is a card with a progress bar, and the new ones come first
+    expect(screen.getByTestId("order-card-so-2041")).toBeTruthy();
+    expect(screen.getByTestId("earnings-card")).toBeTruthy();
     expect(screen.getByTestId("attention-a-so-2041")).toBeTruthy();
     expect(screen.getByTestId("attention-a-sl-ti30")).toBeTruthy();
     expect(screen.queryByTestId("verification-banner")).toBeNull();
@@ -223,12 +226,34 @@ describe("seller home", () => {
     expect(screen.getByTestId("attention-act-a-so-2041").props.accessibilityState.disabled).toBe(true);
   });
 
-  it("opens the notifications and the orders from the bell and the tiles", () => {
+  it("opens the notifications from the bell and an order from its card", () => {
     renderWithProviders(<SellerHomeScreen />, seller());
     fireEvent.press(screen.getByTestId("seller-bell"));
     expect(mockPush).toHaveBeenCalledWith("/seller/home/notifications");
-    fireEvent.press(screen.getByTestId("tile-orders"));
+    fireEvent.press(screen.getByTestId("order-card-so-2041"));
+    expect(mockPush).toHaveBeenCalledWith("/seller/orders/so-2041");
+  });
+
+  it("greets the seller by name, and the welcome card says there are new orders", () => {
+    renderWithProviders(<SellerHomeScreen />, seller());
+    expect(screen.getByText(/^Hi /)).toBeTruthy();
+    expect(screen.getByText(/new orders?$/)).toBeTruthy();
+    fireEvent.press(screen.getByTestId("home-banner"));
     expect(mockPush).toHaveBeenCalledWith("/seller/orders");
+  });
+
+  it("searches orders and products, and shows nothing-found when nothing matches", () => {
+    renderWithProviders(<SellerHomeScreen />, seller());
+    fireEvent.changeText(screen.getByTestId("home-search"), "calculator");
+    expect(screen.getByTestId("search-results")).toBeTruthy();
+    expect(screen.getByTestId("found-order-so-2041")).toBeTruthy();
+    expect(screen.queryByText("Ongoing orders")).toBeNull();
+    fireEvent.press(screen.getByTestId("found-order-so-2041"));
+    expect(mockPush).toHaveBeenCalledWith("/seller/orders/so-2041");
+    fireEvent.changeText(screen.getByTestId("home-search"), "zzzz");
+    expect(screen.getByTestId("search-empty")).toBeTruthy();
+    fireEvent.changeText(screen.getByTestId("home-search"), "");
+    expect(screen.getByText("Ongoing orders")).toBeTruthy();
   });
 });
 
